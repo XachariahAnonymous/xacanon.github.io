@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xac Anon</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet">
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SPLASH TICKER -->
+  <div id="splash-screen" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=8ec2cbe072784b69">
+    <button id="close-splash" aria-label="Close splash">✕</button>
+
+    <div class="splash-inner">
+      <div class="splash-art">
+        <img id="splash-cover" src="placeholder-cover.jpg" alt="Track cover art (will auto-load)" />
+      </div>
+
+      <div class="splash-player">
+        <h2>Have you heard this yet?</h2>
+        <iframe id="splash-iframe"
+                src=""
+                width="350"
+                height="90"
+                frameborder="0"
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                allowfullscreen
+                title="Spotify player - splash"></iframe>
+        <p class="splash-track-title" id="splash-track-title">Loading track…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PAGE -->
+  <div id="main-content" class="hidden">
+
+    <header>
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" class="logo" />
+      <h1>Xac Anon</h1>
+      <p class="tagline">Welcome to the sound of the future.</p>
+
+      <div class="countdown-container">
+        <h2>Next Release Countdown</h2>
+        <p id="countdown">Loading...</p>
+        <p class="countdown-date">Release Date: <span id="release-date">2025-12-01T18:00:00</span> AEST</p>
+      </div>
+    </header>
+
+    <!-- POPULAR TRACKS -->
+    <section id="featured-music" class="music-section">
+      <h2>Popular Tracks</h2>
+      <div class="music-grid">
+
+        <a href="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=8ec2cbe072784b69" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title (Auto)</h3>
+        </a>
+
+        <a href="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e?si=363678f64b164a95" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title 2 (Auto)</h3>
+        </a>
+
+        <a href="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G?si=756aa762c02b464d" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title 3 (Auto)</h3>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- RECENT RELEASES -->
+    <section id="recent-releases" class="music-section">
+      <h2>Recent Releases</h2>
+      <div class="music-grid">
+
+        <a href="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title (Auto)</h3>
+        </a>
+
+        <a href="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title 2 (Auto)</h3>
+        </a>
+
+        <a href="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title 3 (Auto)</h3>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- FEATURED MUSIC -->
+    <section id="popular-tracks" class="music-section">
+      <h2>Featured Music</h2>
+      <div class="music-grid">
+
+        <a href="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title (Auto)</h3>
+        </a>
+
+        <a href="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title 2 (Auto)</h3>
+        </a>
+
+        <a href="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
+          <h3>Track Title 3 (Auto)</h3>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>Got something to say? Reach out:</p>
+
+      <a href="mailto:anonxac@gmail.com" class="contact-link">Email Us</a>
+
+      <div class="socials">
+        <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </section>
+
+    <footer>
+      <div id="news-ticker">
+        <p>Breaking News: New single dropping soon — stay tuned! • Tour dates coming soon • New collab on the horizon!</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- External JS -->
+  <script src="script.js"></script>
+</body>
+</html>
