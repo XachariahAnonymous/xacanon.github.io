@@ -118,6 +118,7 @@ const releases2025 = [
   {title:"Album 4", url:"https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l"},
   {title:"Album 5", url:"https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"}
 ];
+
 const releases2024 = [
   {title:"Album 1", url:"https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"},
   {title:"Album 2", url:"https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI"},
@@ -127,6 +128,7 @@ const releases2024 = [
   {title:"Album 6", url:"https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR"},
   {title:"Album 7", url:"https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq"}
 ];
+
 const releases2023 = [
   {title:"Album 1", url:"https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"},
   {title:"Album 2", url:"https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa"},
@@ -138,6 +140,7 @@ const releases2023 = [
   {title:"Album 8", url:"https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S"},
   {title:"Album 9", url:"https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis"}
 ];
+
 const features = [
   {title:"Feature 1", url:"https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt"},
   {title:"Feature 2", url:"https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ"},
@@ -145,14 +148,14 @@ const features = [
   {title:"Feature 4", url:"https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"}
 ];
 
-// Load grids with thumbnails
+// Load grid with thumbnails + modal
 function loadGrid(containerId, items){
   const container = document.getElementById(containerId);
   items.forEach(item=>{
     const card = document.createElement("div");
     card.className = "music-card";
-
-    // Fetch oEmbed to get thumbnail & title
+    
+    // Fetch thumbnail via Spotify oEmbed
     fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(item.url)}`)
       .then(res=>res.json())
       .then(data=>{
@@ -169,15 +172,15 @@ function loadGrid(containerId, items){
 function openModal(url){
   const id = url.split('/')[4];
   const type = url.includes("/track/") ? "track" : "album";
-  document.getElementById("spotify-player").src=`https://open.spotify.com/embed/${type}/${id}`;
-  document.getElementById("spotify-modal").style.display="flex";
+  document.getElementById("spotify-player").src = `https://open.spotify.com/embed/${type}/${id}`;
+  document.getElementById("spotify-modal").style.display = "flex";
 }
 
 // Close modal
 document.querySelectorAll(".modal-close").forEach(btn=>{
-  btn.onclick = ()=>{ 
-    document.getElementById("spotify-modal").style.display="none"; 
-    document.getElementById("spotify-player").src=""; 
+  btn.onclick = ()=>{
+    document.getElementById("spotify-modal").style.display="none";
+    document.getElementById("spotify-player").src="";
   }
 });
 window.onclick = e=>{
@@ -191,26 +194,34 @@ window.onclick = e=>{
 document.querySelectorAll('.carousel-arrow').forEach(btn=>{
   const targetId = btn.getAttribute('data-target');
   const grid = document.getElementById(targetId);
-  btn.addEventListener('click',()=>{ 
-    const scrollAmount = btn.classList.contains('left')?-270:270;
-    grid.scrollBy({left:scrollAmount, behavior:'smooth'});
+
+  btn.addEventListener('click', ()=>{
+    const card = grid.querySelector('.music-card');
+    if(!card) return; // grid not loaded yet
+    const style = window.getComputedStyle(card);
+    const cardWidth = card.offsetWidth;
+    const gap = parseInt(style.marginRight) || 10;
+    const scrollAmount = btn.classList.contains('left') ? -(cardWidth + gap) : (cardWidth + gap);
+    grid.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   });
-  
+
+  // Swipe support
   let startX;
-  grid.addEventListener('touchstart', e=>startX=e.touches[0].pageX);
+  grid.addEventListener('touchstart', e=> startX = e.touches[0].pageX);
   grid.addEventListener('touchmove', e=>{
     if(!startX) return;
-    let diffX=startX-e.touches[0].pageX;
-    grid.scrollBy({left:diffX, behavior:'auto'});
-    startX=e.touches[0].pageX;
+    const diffX = startX - e.touches[0].pageX;
+    grid.scrollBy({ left: diffX, behavior: 'auto' });
+    startX = e.touches[0].pageX;
   });
 });
 
-// Initialize
+// Initialize grids
 loadGrid("releases-2025", releases2025);
 loadGrid("releases-2024", releases2024);
 loadGrid("releases-2023", releases2023);
 loadGrid("features", features);
+
 </script>
 </body>
 </html>
