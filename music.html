@@ -71,7 +71,7 @@ body {
 }
 .nav-links a:hover::before {animation: glitchTop 0.6s infinite linear alternate-reverse;}
 .nav-links a:hover::after {animation: glitchBottom 0.6s infinite linear alternate-reverse;}
-@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);}}
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
 @keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
 
 /* Music Sections */
@@ -84,7 +84,6 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 0.6rem;
 }
-
 .music-card {
   background: #1a1a1a;
   border-radius: 8px;
@@ -94,18 +93,15 @@ body {
   cursor:pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .music-card:hover {
   transform: scale(1.02);
   box-shadow:0 0 8px #ff4f81;
 }
-
 .music-card img {
   width: 100%;
   border-radius: 6px;
   margin-bottom: 0.3rem;
 }
-
 .music-card h3 { font-size:0.85rem; margin:0; }
 
 /* Modal */
@@ -114,8 +110,52 @@ body {
 .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
 .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
 
-/* Footer */
-footer { text-align:center; padding:1rem; background:#111; border-top:1px solid #ff4f81; }
+/* Footer with ticker */
+footer {
+  padding:1rem;
+  background:#111;
+  border-top:1px solid #ff4f81;
+  text-align:center;
+  overflow:hidden;
+  position:relative;
+  font-size:0.9rem;
+}
+footer .ticker {
+  white-space: nowrap;
+  display: inline-block;
+  padding-left: 100%;
+  animation: scrollText 20s linear infinite;
+  color:#fff;
+}
+footer .ticker:hover {
+  animation-play-state: paused;
+  color:#ff4f81;
+  text-shadow:1px 0 #ff4f81, -1px 0 #ff4f81;
+}
+@keyframes scrollText {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+footer .socials { margin-top:0.5rem; text-align:center; }
+footer .socials a {
+  margin:0 0.5rem;
+  color:#f0f0f0;
+  font-size:1.5rem;
+  position: relative;
+  transition: color 0.3s ease;
+}
+footer .socials a::before,
+footer .socials a::after {
+  content: attr(aria-label);
+  position: absolute;
+  left:0;
+  width:100%;
+  color:#ff4f81;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+}
+footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
 /* Responsive */
 @media (max-width: 992px) { .music-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -174,9 +214,18 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
   </div>
 </div>
 
-<footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
+<!-- Footer with ticker and socials -->
+<footer>
+  <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
+  <div class="socials">
+    <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+    <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+    <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+  </div>
+</footer>
 
 <script>
+// Spotify data grids
 const releases2025 = [
   "https://open.spotify.com/album/2JwOIpIRO6wp8tJs3JSCMw",
   "https://open.spotify.com/album/05rb2HuHImb9alhVJuzlyq",
@@ -184,7 +233,6 @@ const releases2025 = [
   "https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l",
   "https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"
 ];
-
 const releases2024 = [
   "https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l",
   "https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI",
@@ -194,7 +242,6 @@ const releases2024 = [
   "https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR",
   "https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq"
 ];
-
 const releases2023 = [
   "https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I",
   "https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa",
@@ -206,7 +253,6 @@ const releases2023 = [
   "https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S",
   "https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis"
 ];
-
 const features = [
   "https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt",
   "https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ",
@@ -238,19 +284,11 @@ function openModal(url){
 }
 
 document.querySelectorAll(".modal-close").forEach(btn=>{
-  btn.onclick = ()=>{
-    document.getElementById("spotify-modal").style.display="none";
-    document.getElementById("spotify-player").src="";
-  }
+  btn.onclick = ()=>{ document.getElementById("spotify-modal").style.display="none"; document.getElementById("spotify-player").src=""; };
 });
-window.onclick = e=>{
-  if(e.target==document.getElementById("spotify-modal")){
-    document.getElementById("spotify-modal").style.display="none";
-    document.getElementById("spotify-player").src="";
-  }
-}
+window.onclick = e=>{ if(e.target==document.getElementById("spotify-modal")){ document.getElementById("spotify-modal").style.display="none"; document.getElementById("spotify-player").src=""; } }
 
-// Initialize
+// Initialize grids
 loadGrid("releases-2025", releases2025);
 loadGrid("releases-2024", releases2024);
 loadGrid("releases-2023", releases2023);
