@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to the New Era | Xac Anon</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+  <style>
+    body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
+    .navbar, .navbar-container, .nav-logo img, .nav-links { /* Same navbar styling from blog.html */ }
+    .blog-post { max-width:900px; margin:3rem auto; background:rgba(20,20,20,0.9); padding:2rem; border:1px solid #ff4f81; border-radius:8px; box-shadow:0 0 15px #ff4f81; }
+    .blog-post h2 { color:#ff4f81; margin-bottom:0.5rem; }
+    .blog-post .date { color:#ff80a6; font-size:0.9rem; margin-bottom:1rem; display:block; }
+    .blog-post p { line-height:1.7; margin-bottom:1rem; }
+    footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
+      <ul class="nav-links">
+        <li><a href="index.html" data-text="Home">Home</a></li>
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="blog.html" data-text="Blog">Blog</a></li>
+        <li><a href="contact.html" data-text="Contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="blog-post">
+    <h2>Welcome to the New Era</h2>
+    <span class="date" id="post-date"></span>
+    <p>This is my very first blog post, and it feels right to start here with a new home, a new sound, and a new chapter.
+       I’ve been working hard to bring this site to life, shaping it to reflect the glitchy, mythic world behind my music. Every page, every effect, and every detail is part of that vision. Huge thanks to Dayze for helping me set this whole thing up and making sure it feels alive from the start.</p>
+    <p>And what better way to launch than with a release timed for Halloween. My new single, <strong>“Stuck in My Mind”</strong>, drops on October 31. It is a track built from haunted thoughts, sleepless nights, and the horror icons that shaped my imagination. Dark, raw, and cinematic, it is the perfect soundtrack for the season.</p>
+    <p>So welcome to the site, welcome to the blog, and welcome to the next phase of Xac Anon. Explore the layout, dive into the music, and when Halloween night comes, let <strong>Stuck in My Mind</strong> haunt your speakers.</p>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    const dateElement = document.getElementById('post-date');
+    const today = new Date();
+    dateElement.textContent = today.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  </script>
+
+</body>
+</html>
