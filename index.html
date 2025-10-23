@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Xac Anon</title>
 
@@ -16,12 +20,13 @@
   <!-- External CSS -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Glitch Navbar Styles -->
+  <!-- Glitch + Animation Styles -->
   <style>
     html {
       scroll-behavior: smooth;
     }
 
+    /* Navbar */
     .navbar {
       position: sticky;
       top: 0;
@@ -99,6 +104,70 @@
       50% { clip: rect(5px, 9999px, 10px, 0); transform: translate(2px, 2px); }
       100% { clip: rect(0, 9999px, 0, 0); }
     }
+
+    /* Countdown pulse */
+    #countdown {
+      animation: pulseCountdown 1.5s infinite ease-in-out;
+    }
+    @keyframes pulseCountdown {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+
+    /* Music card animation */
+    .music-card {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1s ease forwards;
+      animation-delay: var(--delay, 0s);
+    }
+    .music-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 10px #ff4f81;
+    }
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Glitch headers */
+    .music-section h2 {
+      position: relative;
+      color: #f0f0f0;
+      font-family: 'Friz Quadrata', serif;
+      font-size: 2rem;
+      text-transform: uppercase;
+      animation: glitchHeader 2s infinite;
+    }
+
+    .music-section h2::before,
+    .music-section h2::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      width: 100%;
+      color: #ff4f81;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    .music-section h2::before {
+      animation: glitchTop 1s infinite linear alternate-reverse;
+    }
+    .music-section h2::after {
+      animation: glitchBottom 1s infinite linear alternate-reverse;
+    }
+
+    @keyframes glitchHeader {
+      0% { transform: none; }
+      20% { transform: skew(2deg); }
+      40% { transform: skew(-2deg); }
+      60% { transform: none; }
+      80% { transform: translateX(2px); }
+      100% { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -122,6 +191,7 @@
   <div id="main-content" class="hidden">
 
     <header>
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" class="logo" />
       <h1>Xac Anon</h1>
       <p class="tagline">Welcome to the sound of the future.</p>
 
@@ -129,6 +199,7 @@
         <h2>Next Release Countdown</h2>
         <p id="countdown">Loading...</p>
         <p class="countdown-date">Release Date: <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span></p>
+
         <script>
           const releaseElement = document.getElementById("release-date");
           const releaseDate = new Date(releaseElement.dataset.release);
@@ -142,11 +213,17 @@
 
     <!-- POPULAR TRACKS -->
     <section id="featured-music" class="music-section">
-      <h2>Popular Tracks</h2>
+      <h2 data-text="Popular Tracks">Popular Tracks</h2>
       <div class="music-grid">
-        <!-- Music Cards -->
-      </div>
-    </section>
+        <a href="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT" target="_blank" class="music-card" style="--delay: 0.2s">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover" />
+          <h3>Track Title (Auto)</h3>
+        </a>
+        <a href="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e" target="_blank" class="music-card" style="--delay: 0.4s">
+          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover" />
+          <h3>Track Title 2 (Auto)</h3>
+        </a>
+        <a href="https://open.spotify.com/track/4cjPxibtS86
 
     <!-- RECENT RELEASES -->
     <section id="recent-releases" class="music-section">
@@ -160,6 +237,7 @@
     <section id="popular-tracks" class="music-section">
       <h2>Featured Music</h2>
       <div class="music-grid">
+       
         <!-- Music Cards -->
       </div>
     </section>
