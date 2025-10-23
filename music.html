@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Music | Xac Anon</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+<style>
+  body { background: #0f0f0f; color: #f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+  
+  /* Navbar */
+  .navbar { position: sticky; top:0; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; z-index:1000; }
+  .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; }
+  .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+  @keyframes pulseGlitch { 0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+  .nav-links { list-style:none; display:flex; gap:2rem; }
+  .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; transition:color 0.3s ease; }
+  .nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; clip:rect(0,0,0,0); }
+  .nav-links li a:hover::before { animation:glitchTop 0.6s infinite linear alternate-reverse; }
+  .nav-links li a:hover::after { animation:glitchBottom 0.6s infinite linear alternate-reverse; }
+  @keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0);transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+  @keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0);transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
+
+  /* Music Section */
+  .music-section { padding:2rem; text-align:center; }
+  .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
+  .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr)); gap:2rem; margin-top:2rem; }
+  
+  .music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; position:relative; overflow:hidden; }
+  .music-card:hover { box-shadow:0 0 15px #ff4f81; transform:scale(1.03); }
+  .music-card img { width:100%; border-radius:8px; margin-bottom:0.5rem; }
+  .music-card h3 { font-size:1rem; margin:0; position:relative; }
+  .music-card .features { font-size:0.85rem; color:#ff80a6; margin-top:0.25rem; }
+  
+  /* Expandable Track List */
+  .track-list { display:none; margin-top:1rem; text-align:left; max-height:0; overflow:hidden; transition:max-height 0.3s ease; padding-left:0; list-style:none; }
+  .track-list li { padding:0.3rem 0; cursor:pointer; border-bottom:1px solid #ff4f81; }
+  .track-list li:last-child { border-bottom:none; }
+  .track-list li:hover { color:#ff4f81; }
+
+  /* Modal */
+  .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
+  .modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
+  .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
+  .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+
+  footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
+    <ul class="nav-links">
+      <li><a href="index.html" data-text="Home">Home</a></li>
+      <li><a href="music.html" data-text="Music">Music</a></li>
+      <li><a href="blog.html" data-text="Blog">Blog</a></li>
+      <li><a href="contact.html" data-text="Contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="music-section">
+  <h2>2025 Releases</h2>
+  <div class="music-grid" id="releases-2025"></div>
+</section>
+
+<section class="music-section">
+  <h2>Features</h2>
+  <div class="music-grid" id="features"></div>
+</section>
+
+<!-- Spotify Modal -->
+<div id="spotify-modal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+</footer>
+
+<script>
+// Sample album data with tracks and features
+const releases2025 = [
+  {
+    url: "https://open.spotify.com/album/2JwOIpIRO6wp8tJs3JSCMw?si=wtq8le1uRm28frtpvFcpuQ",
+    name: "Stuck in My Mind EP",
+    features: ["Xac Anon"],
+    tracks: [
+      {name:"Stuck in My Mind", features:["Xac Anon"]},
+      {name:"Haunted Thoughts", features:["Xac Anon"]},
+      {name:"Sleepless Nights", features:["Xac Anon"]}
+    ]
+  },
+  {
+    url: "https://open.spotify.com/album/05rb2HuHImb9alhVJuzlyq?si=68kq8QfgRqKhq1Hvtn83BQ",
+    name: "Second EP",
+    features: ["Xac Anon"],
+    tracks: [
+      {name:"Track 1", features:["Xac Anon"]},
+      {name:"Track 2", features:["Xac Anon","Feature Artist"]}
+    ]
+  }
+];
+
+const features = [
+  {url:"https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt?si=b27ab56e6f2b4989", name:"Feature Track A", features:["Xac Anon","Artist 2"]},
+  {url:"https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ?si=09cec77416924a51", name:"Feature Track B", features:["Artist 3","Xac Anon"]}
+];
+
+async function loadAlbums(containerId, array){
+  const container = document.getElementById(containerId);
+  for(const album of array){
+    try{
+      const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(album.url)}`);
+      const data = await res.json();
+      const card = document.createElement('div');
+      card.className='music-card';
+      card.innerHTML = `
+        <img src="${data.thumbnail_url}" alt="${album.name}">
+        <h3 data-text="${album.name}">${album.name}</h3>
+        <div class="features">feat: ${album.features.join(', ')}</div>
+        <ul class="track-list">
+          ${album.tracks.map(track=>`<li data-url="${album.url.includes('/track/')?album.url:`${album.url}/track/${track.name.replace(/\s/g,'-')}`}">${track.name} (${track.features.join(', ')})</li>`).join('')}
+        </ul>
+      `;
+      card.querySelector('h3').addEventListener('click',()=>{
+        const list = card.querySelector('.track-list');
+        list.style.display = list.style.display==='block'?'none':'block';
+      });
+      card.querySelectorAll('.track-list li').forEach(trackEl=>{
+        trackEl.addEventListener('click',()=>{
+          document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${trackEl.dataset.url.split('/').pop()}`;
+          document.getElementById('spotify-modal').style.display='flex';
+        });
+      });
+      container.appendChild(card);
+    }catch(err){console.error(err);}
+  }
+}
+
+loadAlbums('releases-2025', releases2025);
+loadAlbums('features', features);
+
+// Modal close
+document.querySelector('.modal-close').onclick=function(){
+  document.getElementById('spotify-modal').style.display='none';
+  document.getElementById('spotify-player').src='';
+};
+window.onclick=function(e){
+  if(e.target===document.getElementById('spotify-modal')){
+    document.getElementById('spotify-modal').style.display='none';
+    document.getElementById('spotify-player').src='';
+  }
+};
+</script>
+
+</body>
+</html>
