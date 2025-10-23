@@ -30,12 +30,40 @@
       margin: 0 auto;
       flex-wrap: wrap;
     }
-    .nav-logo img { height: 50px; animation: pulseGlitch 2s infinite ease-in-out; transition: height 0.3s ease; }
-    @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+    .nav-logo img { height: 50px; transition: height 0.3s ease; }
 
+    /* Hover-only glitch effect on navbar links */
     .nav-links { list-style: none; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
-    .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
-    .nav-links li a:hover{color:#ff4f81;}
+    .nav-links li a {
+      position: relative;
+      color:#f0f0f0;
+      text-decoration:none;
+      font-size:1.1rem;
+      transition: color 0.3s ease;
+    }
+    .nav-links li a::before,
+    .nav-links li a::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      width: 100%;
+      color: #ff4f81;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+    }
+    .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+    @keyframes glitchTop {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      50% { clip: rect(0, 9999px, 5px, 0); transform: translate(-2px, -2px); }
+      100% { clip: rect(0, 9999px, 0, 0); }
+    }
+    @keyframes glitchBottom {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      50% { clip: rect(5px, 9999px, 10px, 0); transform: translate(2px, 2px); }
+      100% { clip: rect(0, 9999px, 0, 0); }
+    }
 
     /* Countdown */
     #countdown{animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -60,8 +88,25 @@
     .countdown-container h2 { font-size:1.5rem; }
     .countdown-container p { font-size:1rem; }
 
-    /* Footer */
-    footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; }
+    /* Footer as news ticker */
+    footer {
+      margin-top:2rem;
+      padding:1rem;
+      background:#111;
+      border-top:1px solid #ff4f81;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    footer p {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scrollText 20s linear infinite;
+      font-size: 0.9rem;
+    }
+    @keyframes scrollText {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
 
     /* Modal */
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
@@ -77,7 +122,6 @@
       .navbar-container { padding: 0.8rem 1.5rem; }
       .nav-logo img { height: 40px; }
       .nav-links { gap: 1.5rem; }
-
       header h1 { font-size:1.8rem; }
       header .tagline { font-size:0.95rem; }
       .music-section h2 { font-size:1.8rem; }
@@ -85,40 +129,18 @@
     }
 
     @media (max-width: 576px) {
-      /* Mobile navbar stays in one row across top */
-      .navbar-container {
-        flex-direction: row; 
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        flex-wrap: nowrap;
-      }
+      .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; flex-wrap: nowrap; }
       .nav-logo img { height: 30px; }
       .nav-links { flex-direction: row; gap: 0.8rem; }
       .nav-links li a { font-size:0.9rem; }
-
-      /* Header adjustments */
       header img { max-width:120px; }
       header h1 { font-size:1.5rem; }
       header .tagline { font-size:0.85rem; }
       .music-section h2 { font-size:1.5rem; }
       .music-card h3 { font-size:0.9rem; }
       #featured-music { padding-bottom:250px; }
-
-      /* Mobile-only music grid swipeable */
-      .music-grid {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        gap: 1rem;
-        padding-bottom: 1rem;
-      }
-      .music-card {
-        flex: 0 0 70%;
-        scroll-snap-align: start;
-        margin-bottom: 0;
-      }
+      .music-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; gap: 1rem; padding-bottom: 1rem; }
+      .music-card { flex: 0 0 70%; scroll-snap-align: start; margin-bottom: 0; }
       .music-grid::-webkit-scrollbar { display: none; }
       .music-grid { -ms-overflow-style: none; scrollbar-width: none; }
     }
@@ -133,10 +155,10 @@
         <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       </a>
       <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="music.html">Music</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="contact.html">Contact</a></li>
+        <li><a href="index.html" data-text="Home">Home</a></li>
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="blog.html" data-text="Blog">Blog</a></li>
+        <li><a href="contact.html" data-text="Contact">Contact</a></li>
       </ul>
     </div>
   </nav>
@@ -191,39 +213,40 @@
     </div>
 
     <footer>
-      <p>Breaking News: New single dropping soon — stay tuned!</p>
+      <p>
+        Breaking News: New single dropping soon — stay tuned! • 
+        Follow Xac Anon: 
+        <a href="https://twitter.com/yourhandle" target="_blank">Twitter</a> • 
+        <a href="https://instagram.com/yourhandle" target="_blank">Instagram</a> • 
+        <a href="https://youtube.com/yourhandle" target="_blank">YouTube</a>
+      </p>
     </footer>
   </div>
 
   <script>
-// Countdown
-const countdownElement = document.getElementById("countdown");
-const releaseElement = document.getElementById("release-date");
+    // Countdown
+    const countdownElement = document.getElementById("countdown");
+    const releaseElement = document.getElementById("release-date");
+    const releaseAEST = "2025-10-25T00:00:00+10:00"; // AEST timezone
+    const releaseDate = new Date(releaseAEST);
+    releaseElement.textContent = `AEST: ${releaseDate.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short'})} | Your Time: ${releaseDate.toLocaleString(undefined, {dateStyle:'medium', timeStyle:'short'})}`;
 
-// Set release in AEST (UTC+10)
-const releaseAEST = "2025-10-25T00:00:00+10:00"; // AEST timezone
+    function updateCountdown() {
+      const now = new Date();
+      const diff = releaseDate - now;
+      if (diff <= 0) {
+        countdownElement.textContent = "Out Now!";
+        return;
+      }
+      const days = Math.floor(diff / (1000*60*60*24));
+      const hours = Math.floor((diff / (1000*60*60)) % 24);
+      const mins = Math.floor((diff / (1000*60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+    }
 
-// Display release time in AEST and viewer's local time
-const releaseDate = new Date(releaseAEST);
-releaseElement.textContent = `AEST: ${releaseDate.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short'})} | Your Time: ${releaseDate.toLocaleString(undefined, {dateStyle:'medium', timeStyle:'short'})}`;
-
-// Countdown function
-function updateCountdown() {
-  const now = new Date();
-  const diff = releaseDate - now;
-  if (diff <= 0) {
-    countdownElement.textContent = "Out Now!";
-    return;
-  }
-  const days = Math.floor(diff / (1000*60*60*24));
-  const hours = Math.floor((diff / (1000*60*60)) % 24);
-  const mins = Math.floor((diff / (1000*60)) % 60);
-  const secs = Math.floor((diff / 1000) % 60);
-  countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
-}
-
-setInterval(updateCountdown, 1000);
-updateCountdown();
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
 
     // Load Spotify Track Covers + Titles
     async function loadSpotifyData(){
