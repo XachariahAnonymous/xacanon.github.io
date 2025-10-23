@@ -13,77 +13,42 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet">
 
-  <!-- External CSS -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Internal Styles -->
   <style>
     html { scroll-behavior: smooth; }
-    body { background: #0a0a0a; color: #fff; font-family: 'Friz Quadrata', serif; margin: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: 'Friz Quadrata', serif; margin:0; }
 
     /* Navbar */
-    .navbar {
-      position: sticky; top: 0; z-index: 1000;
-      background-color: #0f0f0f;
-      border-bottom: 1px solid #ff4f81;
-      box-shadow: 0 0 10px #ff4f81;
-    }
+    .navbar { position: sticky; top: 0; z-index: 1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+    .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; }
+    .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+    @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+    .nav-links { list-style:none; display:flex; gap:2rem; }
+    .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
+    .nav-links li a:hover{color:#ff4f81;}
 
-    .navbar-container {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 2rem; max-width: 1200px; margin: 0 auto;
-    }
+    /* Countdown */
+    #countdown{animation:pulseCountdown 1.5s infinite ease-in-out;}
+    @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
 
-    .nav-logo img { height: 50px; animation: pulseGlitch 2s infinite ease-in-out; }
-
-    @keyframes pulseGlitch {
-      0%, 100% { filter: none; }
-      50% { filter: drop-shadow(0 0 6px #ff4f81); transform: scale(1.05); }
-    }
-
-    .nav-links { list-style: none; display: flex; gap: 2rem; }
-
-    .nav-links li a {
-      position: relative; color: #f0f0f0; text-decoration: none;
-      font-size: 1.1rem; transition: color 0.3s ease;
-    }
-
-    .nav-links li a:hover { color: #ff4f81; }
-
-    /* Countdown Pulse */
-    #countdown { animation: pulseCountdown 1.5s infinite ease-in-out; }
-    @keyframes pulseCountdown {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.05); }
-    }
-
-    /* Music Section */
-    .music-section { padding: 2rem; text-align: center; }
-    .music-section h2 {
-      font-size: 2rem; margin-bottom: 1rem; color: #ff4f81;
-      text-transform: uppercase;
-    }
-    .music-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 2rem; justify-content: center; margin-top: 2rem;
-    }
-    .music-card {
-      display: block; background: #1a1a1a; border-radius: 12px;
-      padding: 1rem; transition: all 0.3s ease; text-decoration: none; color: white;
-    }
-    .music-card:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 10px #ff4f81;
-    }
-    .music-card img {
-      width: 100%; border-radius: 8px; margin-bottom: 1rem;
-    }
+    /* Sections */
+    .music-section { padding:2rem; text-align:center; }
+    .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
+    .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:2rem; margin-top:2rem; }
+    .music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
+    .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
+    .music-card img { width:100%; border-radius:8px; margin-bottom:1rem; }
+    @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
 
     /* Footer */
-    footer {
-      margin-top: 2rem; padding: 1rem; background: #111; border-top: 1px solid #ff4f81;
-      text-align: center;
-    }
+    footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; }
+
+    /* Modal */
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
+    .modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
+    .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
+    .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
   </style>
 </head>
 
@@ -95,92 +60,122 @@
         <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       </a>
       <ul class="nav-links">
-        <li><a href="index.html" data-text="Home">Home</a></li>
-        <li><a href="music.html" data-text="Music">Music</a></li>
-        <li><a href="blog.html" data-text="Blog">Blog</a></li>
-        <li><a href="contact.html" data-text="Contact">Contact</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="music.html">Music</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
       </ul>
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
   <div id="main-content">
     <header style="text-align:center; padding:2rem 1rem;">
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" class="logo" style="width:150px;border-radius:50%;" />
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" style="width:150px;border-radius:50%;" />
       <h1>Xac Anon</h1>
       <p class="tagline">Welcome to the sound of the future.</p>
 
       <div class="countdown-container">
         <h2>Next Release Countdown</h2>
         <p id="countdown">Loading...</p>
-        <p class="countdown-date">Release Date:
+        <p>Release Date:
           <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span>
         </p>
       </div>
     </header>
 
-    <!-- POPULAR TRACKS -->
-    <section id="featured-music" class="music-section">
+    <!-- MUSIC SECTIONS -->
+    <section class="music-section">
       <h2>Popular Tracks</h2>
       <div class="music-grid">
-        <a href="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT" class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
-        <a href="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e" class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
-        <a href="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G" class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
       </div>
     </section>
 
-    <!-- FOOTER -->
+    <section class="music-section">
+      <h2>Recent Releases</h2>
+      <div class="music-grid">
+        <a class="music-card" data-track-url="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
+      </div>
+    </section>
+
+    <section class="music-section">
+      <h2>Featured Music</h2>
+      <div class="music-grid">
+        <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
+      </div>
+    </section>
+
+    <!-- MODAL -->
+    <div id="spotify-modal" class="modal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      </div>
+    </div>
+
     <footer>
       <p>Breaking News: New single dropping soon — stay tuned!</p>
     </footer>
   </div>
 
-  <!-- JAVASCRIPT -->
   <script>
-    // Countdown Timer
+    // Countdown
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
     const releaseDate = new Date(releaseElement.dataset.release);
-    releaseElement.textContent = releaseDate.toLocaleString(undefined, {
-      dateStyle: "medium", timeStyle: "short"
-    });
+    releaseElement.textContent = releaseDate.toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
 
-    function updateCountdown() {
-      const now = new Date();
-      const diff = releaseDate - now;
-      if (diff <= 0) {
-        countdownElement.textContent = "Out Now!";
-        return;
-      }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
-      countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+    function updateCountdown(){
+      const now=new Date();
+      const diff=releaseDate-now;
+      if(diff<=0){countdownElement.textContent="Out Now!"; return;}
+      const days=Math.floor(diff/(1000*60*60*24));
+      const hours=Math.floor((diff/(1000*60*60))%24);
+      const mins=Math.floor((diff/(1000*60))%60);
+      const secs=Math.floor((diff/1000)%60);
+      countdownElement.textContent=`${days}d ${hours}h ${mins}m ${secs}s`;
     }
-    setInterval(updateCountdown, 1000);
+    setInterval(updateCountdown,1000);
     updateCountdown();
 
-    // Spotify oEmbed API for Track Titles + Images
-    async function loadSpotifyData() {
-      const cards = document.querySelectorAll(".music-card");
-      for (const card of cards) {
-        const url = card.dataset.trackUrl;
-        try {
-          const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
-          const data = await res.json();
-
-          card.innerHTML = `
-            <img src="${data.thumbnail_url}" alt="${data.title}">
-            <h3>${data.title}</h3>
-          `;
-        } catch (err) {
-          console.error("Spotify fetch failed:", err);
-          card.innerHTML = `<h3>Track unavailable</h3>`;
+    // Load Spotify Track Covers + Titles
+    async function loadSpotifyData(){
+      const cards=document.querySelectorAll(".music-card");
+      for(let card of cards){
+        const url=card.dataset.trackUrl;
+        try{
+          const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+          const data=await res.json();
+          card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
+          card.addEventListener('click',()=>{
+            document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`;
+            document.getElementById('spotify-modal').style.display='flex';
+          });
+        } catch(err){
+          console.error(err);
+          card.innerHTML="<h3>Track unavailable</h3>";
         }
       }
     }
     loadSpotifyData();
+
+    // Modal Close
+    document.querySelector('.modal-close').onclick=function(){
+      document.getElementById('spotify-modal').style.display='none';
+      document.getElementById('spotify-player').src='';
+    };
+    window.onclick=function(e){
+      if(e.target==document.getElementById('spotify-modal')){
+        document.getElementById('spotify-modal').style.display='none';
+        document.getElementById('spotify-player').src='';
+      }
+    };
   </script>
 </body>
 </html>
