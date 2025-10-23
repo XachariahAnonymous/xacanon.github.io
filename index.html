@@ -79,8 +79,26 @@
     /* Footer */
     footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; }
     footer .socials { margin-top:1rem; text-align:center; }
-    footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; transition:color 0.3s ease; }
-    footer .socials a:hover { color:#ff4f81; }
+    footer .socials a {
+      margin:0 0.5rem;
+      color:#f0f0f0;
+      font-size:1.5rem;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    /* Footer social glitch effect (only text/icon moves) */
+    footer .socials a::before,
+    footer .socials a::after {
+      content: attr(aria-label);
+      position: absolute;
+      left:0;
+      width:100%;
+      color:#ff4f81;
+      overflow:hidden;
+      clip: rect(0,0,0,0);
+    }
+    footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
     /* Modal */
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
@@ -91,7 +109,6 @@
     /* Featured Music spacing */
     #featured-music { padding-bottom:150px; }
 
-    /* Media Queries omitted for brevity, can be kept from original code */
   </style>
 </head>
 
