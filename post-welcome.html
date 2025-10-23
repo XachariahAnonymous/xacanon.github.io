@@ -124,7 +124,52 @@
     .back-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
     .back-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-    footer { padding: 1rem; text-align: center; background: #111; border-top: 1px solid #ff4f81; }
+    /* Footer with ticker */
+    footer {
+      padding:1rem;
+      background:#111;
+      border-top:1px solid #ff4f81;
+      text-align:center;
+      overflow:hidden;
+      position:relative;
+      font-size:0.9rem;
+    }
+    footer .ticker {
+      white-space: nowrap;
+      display: inline-block;
+      padding-left: 100%;
+      animation: scrollText 20s linear infinite;
+      color:#fff;
+    }
+    footer .ticker:hover {
+      animation-play-state: paused;
+      color:#ff4f81;
+      text-shadow:1px 0 #ff4f81, -1px 0 #ff4f81;
+    }
+    @keyframes scrollText {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+    footer .socials { margin-top:0.5rem; text-align:center; }
+    footer .socials a {
+      margin:0 0.5rem;
+      color:#f0f0f0;
+      font-size:1.5rem;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    footer .socials a::before,
+    footer .socials a::after {
+      content: attr(aria-label);
+      position: absolute;
+      left:0;
+      width:100%;
+      color:#ff4f81;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+    }
+    footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
     /* MOBILE NAVBAR FIX */
     @media (max-width: 576px) {
@@ -165,7 +210,12 @@
 
   <!-- FOOTER -->
   <footer>
-    <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+    <div class="ticker">Breaking News: New single “Stuck in My Mind” drops October 31 — stay tuned for more releases!</div>
+    <div class="socials">
+      <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+    </div>
   </footer>
 
   <script>
