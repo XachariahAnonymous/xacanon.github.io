@@ -103,22 +103,23 @@
     </section>
 
   <!-- Featured Music Section -->
- <section class="music-section">
-      <h2>Featured Music</h2>
-      <div class="music-grid">
-        <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
-      </div>
-    </section>
+<!-- Featured Music Section -->
+<section id="featured-music" class="music-section">
+  <h2>Featured Music</h2>
+  <div class="music-grid">
+    <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+    <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+    <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
+  </div>
+</section>
 
 <style>
-  /* Only affects Featured Music section */
+  /* Featured Music section spacing to prevent footer overlap */
   #featured-music {
     padding-bottom: 150px; /* Default for large screens */
   }
 
-  /* Medium screens */
+  /* Medium screens (tablets) */
   @media (max-width: 992px) {
     #featured-music {
       padding-bottom: 200px;
@@ -132,6 +133,7 @@
     }
   }
 </style>
+
 
     <!-- MODAL -->
     <div id="spotify-modal" class="modal">
