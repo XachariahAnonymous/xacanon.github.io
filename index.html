@@ -85,10 +85,19 @@
     }
 
     @media (max-width: 576px) {
-      .navbar-container { flex-direction: column; padding: 0.5rem 1rem; }
-      .nav-logo img { height: 35px; margin-bottom: 0.5rem; }
-      .nav-links { flex-direction: column; gap: 0.5rem; }
+      /* Mobile navbar stays in one row across top */
+      .navbar-container {
+        flex-direction: row; 
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        flex-wrap: nowrap;
+      }
+      .nav-logo img { height: 30px; }
+      .nav-links { flex-direction: row; gap: 0.8rem; }
+      .nav-links li a { font-size:0.9rem; }
 
+      /* Header adjustments */
       header img { max-width:120px; }
       header h1 { font-size:1.5rem; }
       header .tagline { font-size:0.85rem; }
@@ -96,7 +105,7 @@
       .music-card h3 { font-size:0.9rem; }
       #featured-music { padding-bottom:250px; }
 
-      /* Mobile-only app-like music grid */
+      /* Mobile-only music grid swipeable */
       .music-grid {
         display: flex;
         overflow-x: auto;
@@ -105,14 +114,11 @@
         gap: 1rem;
         padding-bottom: 1rem;
       }
-
       .music-card {
         flex: 0 0 70%;
         scroll-snap-align: start;
         margin-bottom: 0;
       }
-
-      /* Hide scrollbar */
       .music-grid::-webkit-scrollbar { display: none; }
       .music-grid { -ms-overflow-style: none; scrollbar-width: none; }
     }
