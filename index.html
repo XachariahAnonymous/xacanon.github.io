@@ -15,20 +15,111 @@
 
   <!-- External CSS -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Glitch & Animation Styles -->
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      opacity: 0;
+      animation: fadeIn 1.2s ease forwards;
+      background-color: #0f0f0f;
+      color: #f0f0f0;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #0f0f0f;
+      border-bottom: 1px solid #ff4f81;
+      font-family: 'Friz Quadrata', serif;
+      box-shadow: 0 0 10px #ff4f81;
+      animation: navFade 1s ease forwards;
+    }
+    @keyframes navFade {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .navbar-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .nav-logo img {
+      height: 50px;
+      animation: pulseGlitch 2s infinite ease-in-out;
+    }
+    @keyframes pulseGlitch {
+      0%, 100% { filter: none; }
+      50% { filter: drop-shadow(0 0 6px #ff4f81); transform: scale(1.05); }
+    }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+    .nav-links li a {
+      position: relative;
+      color: #f0f0f0;
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+    }
+    .nav-links li a:hover {
+      color: #ff4f81;
+    }
+    .nav-links a::before,
+    .nav-links a::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      color: #ff4f81;
+      clip: rect(0, 0, 0, 0);
+    }
+    .nav-links a:hover::before {
+      animation: glitchTop 0.6s infinite linear alternate-reverse;
+    }
+    .nav-links a:hover::after {
+      animation: glitchBottom 0.6s infinite linear alternate-reverse;
+    }
+    @keyframes glitchTop {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      50% { clip: rect(0, 9999px, 5px, 0); transform: translate(-2px, -2px); }
+      100% { clip: rect(0, 9999px, 0, 0); }
+    }
+    @keyframes glitchBottom {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      50% { clip: rect(5px, 9999px, 10px, 0); transform: translate(2px, 2px); }
+      100% { clip: rect(0, 9999px, 0, 0); }
+    }
+  </style>
 </head>
 <body>
 
   <!-- 🔗 NAVBAR -->
   <nav class="navbar">
-    <div class="nav-logo">
-      <a href="index.html"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
+    <div class="navbar-container">
+      <a href="index.html" class="nav-logo">
+        <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" data-text="Home">Home</a></li>
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="blog.html" data-text="Blog">Blog</a></li>
+        <li><a href="contact.html" data-text="Contact">Contact</a></li>
+      </ul>
     </div>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="music.html">Music</a></li>
-      <li><a href="blog.html">Blog</a></li>
-      <li><a href="contact.html">Contact</a></li>
-    </ul>
   </nav>
 
   <!-- SPLASH TICKER -->
@@ -57,7 +148,6 @@
   <div id="main-content" class="hidden">
 
     <header>
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" class="logo" />
       <h1>Xac Anon</h1>
       <p class="tagline">Welcome to the sound of the future.</p>
 
@@ -81,7 +171,6 @@
       <h2>Popular Tracks</h2>
       <div class="music-grid">
         <!-- Music Cards -->
-        <!-- ... -->
       </div>
     </section>
 
@@ -90,7 +179,6 @@
       <h2>Recent Releases</h2>
       <div class="music-grid">
         <!-- Music Cards -->
-        <!-- ... -->
       </div>
     </section>
 
@@ -99,7 +187,6 @@
       <h2>Featured Music</h2>
       <div class="music-grid">
         <!-- Music Cards -->
-        <!-- ... -->
       </div>
     </section>
 
@@ -120,9 +207,4 @@
         <p>Breaking News: New single dropping soon — stay tuned! • Tour dates coming soon • New collab on the horizon!</p>
       </div>
     </footer>
-  </div>
-
-  <!-- External JS -->
-  <script src="script.js"></script>
-</body>
-</html>
+ 
