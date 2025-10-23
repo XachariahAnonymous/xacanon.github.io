@@ -18,7 +18,7 @@ body { background:#0a0a0a; color:#fff; font-family:'Friz Quadrata', serif; margi
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);}}
+@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 .nav-links { list-style:none; display:flex; gap:2rem; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
 .nav-links li a:hover{color:#ff4f81;}
@@ -31,15 +31,10 @@ body { background:#0a0a0a; color:#fff; font-family:'Friz Quadrata', serif; margi
 .carousel-container { position:relative; overflow:hidden; margin-bottom:2rem; }
 .music-grid { display:flex; gap:1rem; transition:transform 0.5s ease; scroll-behavior:smooth; }
 .music-card { flex:0 0 250px; background:#1a1a1a; border-radius:12px; padding:1rem; cursor:pointer; text-align:center; text-decoration:none; color:#fff; }
-.music-card img { width:100%; border-radius:8px; margin-bottom:0.5rem; }
-.music-card h3 { font-size:1rem; margin:0.3rem 0; }
-.tracklist { text-align:left; font-size:0.8rem; margin-top:0.5rem; color:#ff80a6; }
-.tracklist li { margin:0.2rem 0; }
+.music-card h3 { font-size:1rem; margin:0.5rem 0; }
 
 /* Carousel arrows */
 .carousel-arrow { position:absolute; top:50%; transform:translateY(-50%); background:rgba(15,15,15,0.8); border:none; color:#ff4f81; font-size:2rem; cursor:pointer; padding:0.5rem 1rem; z-index:10; border-radius:6px; }
-
-/* Arrows position */
 .carousel-arrow.left { left:0.5rem; }
 .carousel-arrow.right { right:0.5rem; }
 
@@ -64,10 +59,10 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
   <div class="navbar-container">
     <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
     <ul class="nav-links">
-      <li><a href="index.html" data-text="Home">Home</a></li>
-      <li><a href="music.html" data-text="Music">Music</a></li>
-      <li><a href="blog.html" data-text="Blog">Blog</a></li>
-      <li><a href="contact.html" data-text="Contact">Contact</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="music.html">Music</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
     </ul>
   </div>
 </nav>
@@ -120,92 +115,58 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
 <footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
 
 <script>
+// Spotify items
 const releases2025 = [
-  {url:"https://open.spotify.com/album/2JwOIpIRO6wp8tJs3JSCMw?si=wtq8le1uRm28frtpvFcpuQ"},
-  {url:"https://open.spotify.com/album/05rb2HuHImb9alhVJuzlyq?si=68kq8QfgRqKhq1Hvtn83BQ"},
-  {url:"https://open.spotify.com/album/05pleJzJZ3cJzTVXuOENzJ?si=0BdjQXArTrChDbA_AHHpow"},
-  {url:"https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l?si=7O7IfSnATlOkKJfnDYAFpA"},
-  {url:"https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj?si=kNFQHW5vSQyrZFe634qtFg"}
+  "https://open.spotify.com/album/2JwOIpIRO6wp8tJs3JSCMw",
+  "https://open.spotify.com/album/05rb2HuHImb9alhVJuzlyq",
+  "https://open.spotify.com/album/05pleJzJZ3cJzTVXuOENzJ",
+  "https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l",
+  "https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"
 ];
-
 const releases2024 = [
-  {url:"https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l?si=V_HTdvZaQqqnaDqQQxdFGQ"},
-  {url:"https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI?si=bMlWd2FsR0i_YIPc95Frag"},
-  {url:"https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns?si=enT3EMqYTM6mJ8yOcsfonA"},
-  {url:"https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7?si=bZYT7GgSTR6iyzuKUBfACA"},
-  {url:"https://open.spotify.com/album/5AHMPcf1STwqSYTmhhwXO6?si=sDvWHO7zSz6BoSGCU5MzEw"},
-  {url:"https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR?si=Tzc2uWvqR6eQN8WJpwqVPQ"},
-  {url:"https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq?si=IYIYMD0OSxm78O3-FZpvVg"}
+  "https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l",
+  "https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI",
+  "https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns",
+  "https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7",
+  "https://open.spotify.com/album/5AHMPcf1STwqSYTmhhwXO6",
+  "https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR",
+  "https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq"
 ];
-
 const releases2023 = [
-  {url:"https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I?si=DM37cSdERhCRvYyPlyP8Qw"},
-  {url:"https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa?si=tZkLPZ8MQNqRcYRHg-LOfQ"},
-  {url:"https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x?si=fC7IocITQuCmIq-4pIcF1g"},
-  {url:"https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS?si=cFQFjR7cR0yr2hXTMZm7ug"},
-  {url:"https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg?si=E98_me5LQjqQUyVJR6FvuQ"},
-  {url:"https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp?si=PdDRP-GLROaFWORvahmhYg"},
-  {url:"https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4?si=pR1wSCHsQ8OS5sGKD9taMw"},
-  {url:"https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S?si=R4f_qC9iRsK1DkIY8vQE1A"},
-  {url:"https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis?si=Y65sv1ePRbaH9HY3hht7OQ"}
+  "https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I",
+  "https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa",
+  "https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x",
+  "https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS",
+  "https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg",
+  "https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp",
+  "https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4",
+  "https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S",
+  "https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis"
 ];
-
 const features = [
-  {url:"https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt?si=b27ab56e6f2b4989"},
-  {url:"https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ?si=09cec77416924a51"},
-  {url:"https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx?si=befdab49a42a40ea"},
-  {url:"https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7?si=9aadb53b94454033"}
+  "https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt",
+  "https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ",
+  "https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx",
+  "https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"
 ];
 
-// Example tracklists with collaborators
-const tracklists = {
-  "2JwOIpIRO6wp8tJs3JSCMw":["Track 1","Track 2 feat. Dayze","Track 3 feat. Ghostly"],
-  "05rb2HuHImb9alhVJuzlyq":["Track A","Track B feat. Nightfall","Track C"],
-  "05pleJzJZ3cJzTVXuOENzJ":["Song X","Song Y","Song Z feat. Lyra"],
-  "33Wlii1dREnBXoFTFiS67l":["Alpha","Beta feat. Shadow","Gamma"],
-  "6UGlPh0NYeiwI0n0zhFZIj":["One","Two","Three feat. Veil"],
-
-  "2xz3IRqwAySrFPiYcl0a0l":["2024 Track 1","2024 Track 2 feat. Dawn"],
-  "6TSlktfiVCdWZhch7YpKEI":["2024 Song A","2024 Song B","2024 Song C feat. Echo"],
-  "0EJqWBbj4gq4oO2ls9q9ns":["Track X","Track Y feat. Nova","Track Z"],
-  "6sIegLMLO9emdOvbNEzIr7":["Alpha","Beta","Gamma feat. Flux"],
-  "5AHMPcf1STwqSYTmhhwXO6":["One","Two feat. Orion","Three"],
-  "5s8N7QkRDRDcb9hjjLmSVR":["Track 1","Track 2","Track 3 feat. Prism"],
-  "3bDV8BmFQmIt3oAt7G0KWq":["Song A","Song B feat. Luna","Song C"],
-
-  "2pjDn7jjA8Zb2qYTihhi5I":["2023 Track 1","2023 Track 2 feat. Mirage"],
-  "5za6AYgvlnmT0W0Sa0p7Fa":["Track A","Track B","Track C feat. Zenith"],
-  "3gjNxpXMiwdv02FhEVlS5x":["Alpha","Beta feat. Nova","Gamma"],
-  "1Ixr0UYfnpPzCHoJA7jCcS":["One","Two","Three feat. Void"],
-  "1ChmCOKHZm2zjWsdTfLnRg":["Song X","Song Y feat. Phantom","Song Z"],
-  "6Gwf7YX7ZACMzooU0AjuRp":["Track 1","Track 2 feat. Echo","Track 3"],
-  "6NhDsLCg4ysYRMPgEUePZ4":["Song A","Song B feat. Aura","Song C"],
-  "5U8Tn78SKRzHYAldy6AK9S":["Track X","Track Y feat. Nova","Track Z"],
-  "0vV9iMbpYwGtqsFSZhbjis":["Alpha","Beta feat. Flux","Gamma"]
-};
-
-// Load albums/tracks
-async function loadSpotifyGrid(containerId, items){
+// Load grid with only names
+async function loadGrid(containerId, urls){
   const container = document.getElementById(containerId);
-  for(const item of items){
+  for(const url of urls){
     try{
-      const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(item.url)}`);
+      const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
       const data = await res.json();
       const card = document.createElement('a');
       card.classList.add('music-card');
-      let albumId = item.url.split('/')[4].split('?')[0];
-      let trackHTML = '';
-      if(tracklists[albumId]){
-        trackHTML = `<ul class="tracklist">${tracklists[albumId].map(t=>`<li>${t}</li>`).join('')}</ul>`;
-      }
-      card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>${trackHTML}`;
-      card.addEventListener('click',()=>openModal(item.url));
+      card.innerHTML = `<h3>${data.title}</h3>`;
+      card.addEventListener('click',()=>openModal(url));
       container.appendChild(card);
-    }catch(err){ console.error(err);}
+    }catch(err){console.error(err);}
   }
 }
 
-// Modal functions
+// Modal
 function openModal(url){
   const id = url.split('/')[4].split('?')[0];
   const type = url.includes('/track/') ? 'track' : 'album';
@@ -214,10 +175,7 @@ function openModal(url){
 }
 
 document.querySelectorAll('.modal-close').forEach(btn=>{
-  btn.onclick = ()=>{
-    document.getElementById('spotify-modal').style.display='none';
-    document.getElementById('spotify-player').src='';
-  }
+  btn.onclick = ()=>{ document.getElementById('spotify-modal').style.display='none'; document.getElementById('spotify-player').src=''; }
 });
 window.onclick = e=>{
   if(e.target==document.getElementById('spotify-modal')){
@@ -226,11 +184,11 @@ window.onclick = e=>{
   }
 };
 
-// Load all sections
-loadSpotifyGrid('releases-2025', releases2025);
-loadSpotifyGrid('releases-2024', releases2024);
-loadSpotifyGrid('releases-2023', releases2023);
-loadSpotifyGrid('features', features);
+// Load all grids
+loadGrid('releases-2025', releases2025);
+loadGrid('releases-2024', releases2024);
+loadGrid('releases-2023', releases2023);
+loadGrid('features', features);
 
 // Carousel arrows & swipe
 document.querySelectorAll('.carousel-arrow').forEach(btn=>{
@@ -240,8 +198,6 @@ document.querySelectorAll('.carousel-arrow').forEach(btn=>{
     const scrollAmount = btn.classList.contains('left')?-270:270;
     grid.scrollBy({left:scrollAmount, behavior:'smooth'});
   });
-
-  // Swipe
   let startX;
   grid.addEventListener('touchstart', e=>startX=e.touches[0].pageX);
   grid.addEventListener('touchmove', e=>{
