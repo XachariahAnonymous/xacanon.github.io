@@ -5,10 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Music | Xac Anon</title>
 
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
 <style>
@@ -29,13 +26,9 @@ body { background:#0a0a0a; color:#fff; font-family:'Friz Quadrata', serif; margi
 
 /* Carousel */
 .carousel-container { position:relative; overflow:hidden; margin-bottom:2rem; }
-.music-grid { display:flex; gap:1rem; overflow-x: auto; scroll-behavior:smooth; padding-bottom:1rem; }
-.music-grid::-webkit-scrollbar { display:none; }
-.music-card { flex:0 0 auto; width:200px; background:#1a1a1a; border-radius:12px; padding:1rem; cursor:pointer; text-align:center; color:#fff; }
-.music-card img { width:100%; border-radius:8px; margin-bottom:0.5rem; }
+.music-grid { display:flex; gap:1rem; transition:transform 0.5s ease; scroll-behavior:smooth; padding-bottom:1rem; }
+.music-card { flex:0 0 250px; background:#1a1a1a; border-radius:12px; padding:1rem; cursor:pointer; text-align:center; color:#fff; }
 .music-card h3 { font-size:1rem; margin:0; }
-
-/* Carousel arrows */
 .carousel-arrow { position:absolute; top:50%; transform:translateY(-50%); background:rgba(15,15,15,0.8); border:none; color:#ff4f81; font-size:2rem; cursor:pointer; padding:0.5rem 1rem; z-index:10; border-radius:6px; }
 .carousel-arrow.left { left:0.5rem; }
 .carousel-arrow.right { right:0.5rem; }
@@ -48,9 +41,8 @@ body { background:#0a0a0a; color:#fff; font-family:'Friz Quadrata', serif; margi
 
 footer { text-align:center; padding:1rem; background:#111; border-top:1px solid #ff4f81; }
 
-/* Mobile adjustments */
-@media (max-width: 768px){ .music-card { width:160px; } }
-@media (max-width: 576px){ .music-card { width:140px; } }
+@media (max-width: 768px){ .music-card { flex:0 0 200px; } }
+@media (max-width: 576px){ .music-card { flex:0 0 180px; } }
 </style>
 </head>
 <body>
@@ -116,100 +108,102 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
 <footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
 
 <script>
-// Spotify URLs
+// Albums & Tracks
 const releases2025 = [
-  "https://open.spotify.com/album/2JwOIpIRO6wp8tJs3JSCMw",
-  "https://open.spotify.com/album/05rb2HuHImb9alhVJuzlyq",
-  "https://open.spotify.com/album/05pleJzJZ3cJzTVXuOENzJ",
-  "https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l",
-  "https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"
-];
-const releases2024 = [
-  "https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l",
-  "https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI",
-  "https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns",
-  "https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7",
-  "https://open.spotify.com/album/5AHMPcf1STwqSYTmhhwXO6",
-  "https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR",
-  "https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq"
-];
-const releases2023 = [
-  "https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I",
-  "https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa",
-  "https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x",
-  "https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS",
-  "https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg",
-  "https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp",
-  "https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4",
-  "https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S",
-  "https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis"
-];
-const features = [
-  "https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt",
-  "https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ",
-  "https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx",
-  "https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"
+  {title:"Album 1", url:"https://open.spotify.com/album/2JwOIpIRO6wp8tJs3JSCMw"},
+  {title:"Album 2", url:"https://open.spotify.com/album/05rb2HuHImb9alhVJuzlyq"},
+  {title:"Album 3", url:"https://open.spotify.com/album/05pleJzJZ3cJzTVXuOENzJ"},
+  {title:"Album 4", url:"https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l"},
+  {title:"Album 5", url:"https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"}
 ];
 
-// Load grid
-async function loadGrid(containerId, urls){
+const releases2024 = [
+  {title:"Album 1", url:"https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"},
+  {title:"Album 2", url:"https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI"},
+  {title:"Album 3", url:"https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns"},
+  {title:"Album 4", url:"https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7"},
+  {title:"Album 5", url:"https://open.spotify.com/album/5AHMPcf1STwqSYTmhhwXO6"},
+  {title:"Album 6", url:"https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR"},
+  {title:"Album 7", url:"https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq"}
+];
+
+const releases2023 = [
+  {title:"Album 1", url:"https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"},
+  {title:"Album 2", url:"https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa"},
+  {title:"Album 3", url:"https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x"},
+  {title:"Album 4", url:"https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS"},
+  {title:"Album 5", url:"https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg"},
+  {title:"Album 6", url:"https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp"},
+  {title:"Album 7", url:"https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4"},
+  {title:"Album 8", url:"https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S"},
+  {title:"Album 9", url:"https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis"}
+];
+
+const features = [
+  {title:"Feature 1", url:"https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt"},
+  {title:"Feature 2", url:"https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ"},
+  {title:"Feature 3", url:"https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx"},
+  {title:"Feature 4", url:"https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"}
+];
+
+// Load grids
+function loadGrid(containerId, items){
   const container = document.getElementById(containerId);
-  for(const url of urls){
-    try{
-      const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
-      const data = await res.json();
-      const card = document.createElement('div');
-      card.classList.add('music-card');
-      card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
-      card.addEventListener('click', ()=>openModal(url));
-      container.appendChild(card);
-    } catch(err){ console.error(err);}
-  }
+  items.forEach(item=>{
+    const card = document.createElement("div");
+    card.className = "music-card";
+    card.innerHTML = `<h3>${item.title}</h3>`;
+    card.addEventListener('click',()=>openModal(item.url));
+    container.appendChild(card);
+  });
 }
 
 // Modal
 function openModal(url){
-  const id = url.split('/')[4].split('?')[0];
-  const type = url.includes('/track/') ? 'track' : 'album';
-  document.getElementById('spotify-player').src = `https://open.spotify.com/embed/${type}/${id}`;
-  document.getElementById('spotify-modal').style.display = 'flex';
+  const id = url.split('/')[4];
+  const type = url.includes("/track/") ? "track" : "album";
+  document.getElementById("spotify-player").src=`https://open.spotify.com/embed/${type}/${id}`;
+  document.getElementById("spotify-modal").style.display="flex";
 }
-document.querySelectorAll('.modal-close').forEach(btn=>{
-  btn.onclick = ()=>{ 
-    document.getElementById('spotify-modal').style.display='none';
-    document.getElementById('spotify-player').src='';
+
+document.querySelectorAll(".modal-close").forEach(btn=>{
+  btn.onclick = ()=>{
+    document.getElementById("spotify-modal").style.display="none";
+    document.getElementById("spotify-player").src="";
   }
 });
 window.onclick = e=>{
-  if(e.target==document.getElementById('spotify-modal')){
-    document.getElementById('spotify-modal').style.display='none';
-    document.getElementById('spotify-player').src='';
+  if(e.target==document.getElementById("spotify-modal")){
+    document.getElementById("spotify-modal").style.display="none";
+    document.getElementById("spotify-player").src="";
   }
 }
-
-// Load all grids
-loadGrid('releases-2025', releases2025);
-loadGrid('releases-2024', releases2024);
-loadGrid('releases-2023', releases2023);
-loadGrid('features', features);
 
 // Carousel arrows & swipe
 document.querySelectorAll('.carousel-arrow').forEach(btn=>{
   const targetId = btn.getAttribute('data-target');
   const grid = document.getElementById(targetId);
   btn.addEventListener('click',()=>{
-    const scrollAmount = btn.classList.contains('left') ? -grid.clientWidth : grid.clientWidth;
-    grid.scrollBy({left: scrollAmount, behavior: 'smooth'});
+    const scrollAmount = btn.classList.contains('left')?-270:270;
+    grid.scrollBy({left:scrollAmount, behavior:'smooth'});
   });
+  
+  // Swipe
   let startX;
-  grid.addEventListener('touchstart', e=> startX=e.touches[0].pageX);
+  grid.addEventListener('touchstart', e=>startX=e.touches[0].pageX);
   grid.addEventListener('touchmove', e=>{
     if(!startX) return;
-    let diffX = startX - e.touches[0].pageX;
-    grid.scrollBy({left: diffX, behavior:'auto'});
+    let diffX=startX-e.touches[0].pageX;
+    grid.scrollBy({left:diffX, behavior:'auto'});
     startX=e.touches[0].pageX;
   });
 });
+
+// Initialize
+loadGrid("releases-2025", releases2025);
+loadGrid("releases-2024", releases2024);
+loadGrid("releases-2023", releases2023);
+loadGrid("features", features);
 </script>
 </body>
 </html>
