@@ -72,12 +72,26 @@
     header h1 { font-size:2rem; margin:0.5rem 0; }
     header .tagline { font-size:1rem; }
 
-    /* Countdown container */
-    .countdown-container h2 { font-size:1.5rem; }
-    .countdown-container p { font-size:1rem; }
-
     /* Footer */
-    footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; }
+    footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
+    footer .ticker {
+      white-space: nowrap;
+      display: inline-block;
+      padding-left: 100%;
+      animation: scrollText 20s linear infinite;
+      color:#fff;
+    }
+    footer .ticker:hover {
+      animation-play-state: paused;
+      color:#ff4f81;
+      position: relative;
+      text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81;
+    }
+    @keyframes scrollText {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+
     footer .socials { margin-top:1rem; text-align:center; }
     footer .socials a {
       margin:0 0.5rem;
@@ -86,7 +100,7 @@
       position: relative;
       transition: color 0.3s ease;
     }
-    /* Footer social glitch effect (only text/icon moves) */
+    /* Footer social glitch effect (text/icon only) */
     footer .socials a::before,
     footer .socials a::after {
       content: attr(aria-label);
@@ -108,7 +122,6 @@
 
     /* Featured Music spacing */
     #featured-music { padding-bottom:150px; }
-
   </style>
 </head>
 
@@ -179,7 +192,7 @@
 
     <!-- FOOTER -->
     <footer>
-      <p>Breaking News: New single dropping soon — stay tuned!</p>
+      <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
       <div class="socials">
         <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
         <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
