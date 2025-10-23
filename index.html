@@ -25,25 +25,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem; /* default for large screens */
+      padding: 1rem 2rem;
       max-width: 1200px;
       margin: 0 auto;
       flex-wrap: wrap;
     }
-    .nav-logo img {
-      height: 50px; /* default logo size */
-      animation: pulseGlitch 2s infinite ease-in-out;
-      transition: height 0.3s ease;
-    }
+    .nav-logo img { height: 50px; animation: pulseGlitch 2s infinite ease-in-out; transition: height 0.3s ease; }
     @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+    .nav-links { list-style: none; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
     .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
     .nav-links li a:hover{color:#ff4f81;}
 
@@ -106,7 +96,7 @@
       .music-card h3 { font-size:0.9rem; }
       #featured-music { padding-bottom:250px; }
 
-      /* Mobile swipe-friendly music grids */
+      /* Mobile-only app-like music grid */
       .music-grid {
         display: flex;
         overflow-x: auto;
@@ -115,6 +105,7 @@
         gap: 1rem;
         padding-bottom: 1rem;
       }
+
       .music-card {
         flex: 0 0 70%;
         scroll-snap-align: start;
@@ -188,4 +179,68 @@
     <!-- MODAL -->
     <div id="spotify-modal" class="modal">
       <div class="modal-content">
-        <span
+        <span class="modal-close">&times;</span>
+        <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      </div>
+    </div>
+
+    <footer>
+      <p>Breaking News: New single dropping soon — stay tuned!</p>
+    </footer>
+  </div>
+
+  <script>
+    // Countdown
+    const countdownElement = document.getElementById("countdown");
+    const releaseElement = document.getElementById("release-date");
+    const releaseDate = new Date(releaseElement.dataset.release);
+    releaseElement.textContent = releaseDate.toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
+
+    function updateCountdown(){
+      const now=new Date();
+      const diff=releaseDate-now;
+      if(diff<=0){countdownElement.textContent="Out Now!"; return;}
+      const days=Math.floor(diff/(1000*60*60*24));
+      const hours=Math.floor((diff/(1000*60*60))%24);
+      const mins=Math.floor((diff/(1000*60))%60);
+      const secs=Math.floor((diff/1000)%60);
+      countdownElement.textContent=`${days}d ${hours}h ${mins}m ${secs}s`;
+    }
+    setInterval(updateCountdown,1000);
+    updateCountdown();
+
+    // Load Spotify Track Covers + Titles
+    async function loadSpotifyData(){
+      const cards=document.querySelectorAll(".music-card");
+      for(let card of cards){
+        const url=card.dataset.trackUrl;
+        try{
+          const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+          const data=await res.json();
+          card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
+          card.addEventListener('click',()=>{
+            document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`;
+            document.getElementById('spotify-modal').style.display='flex';
+          });
+        } catch(err){
+          console.error(err);
+          card.innerHTML="<h3>Track unavailable</h3>";
+        }
+      }
+    }
+    loadSpotifyData();
+
+    // Modal Close
+    document.querySelector('.modal-close').onclick=function(){
+      document.getElementById('spotify-modal').style.display='none';
+      document.getElementById('spotify-player').src='';
+    };
+    window.onclick=function(e){
+      if(e.target==document.getElementById('spotify-modal')){
+        document.getElementById('spotify-modal').style.display='none';
+        document.getElementById('spotify-player').src='';
+      }
+    };
+  </script>
+</body>
+</html>
