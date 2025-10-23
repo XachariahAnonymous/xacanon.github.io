@@ -5,27 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Music | Xac Anon</title>
 
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
 <style>
 body {
-  background:#0a0a0a;
+  background:#0f0f0f;
   color:#fff;
   font-family:'Friz Quadrata', serif;
   margin:0;
+  padding:0;
 }
 
 /* Navbar */
-.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
-.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-.nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; }
-.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
+.navbar {
+  position: sticky;
+  top:0;
+  z-index:1000;
+  background:#0f0f0f;
+  border-bottom:1px solid #ff4f81;
+  box-shadow:0 0 10px #ff4f81;
+}
+.navbar-container {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:1rem 2rem;
+  max-width:1200px;
+  margin:0 auto;
+  flex-wrap:wrap;
+}
+.nav-logo img {
+  height:50px;
+  animation:pulseGlitch 2s infinite ease-in-out;
+  transition: height 0.3s ease;
+}
+@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81); transform: scale(1.05);}}
+.nav-links {
+  list-style:none;
+  display:flex;
+  gap:2rem;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.nav-links li a {
+  position: relative;
+  color:#f0f0f0;
+  text-decoration:none;
+  font-size:1.1rem;
+  transition:color 0.3s ease;
+}
 .nav-links li a:hover{color:#ff4f81;}
+.nav-links a::before,
+.nav-links a::after {
+  content: attr(data-text);
+  position:absolute;
+  left:0;
+  width:100%;
+  color:#ff4f81;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+}
+.nav-links a:hover::before {animation: glitchTop 0.6s infinite linear alternate-reverse;}
+.nav-links a:hover::after {animation: glitchBottom 0.6s infinite linear alternate-reverse;}
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);}}
+@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
 
-/* Sections */
+/* Music Sections */
 .music-section { padding:2rem 1rem; }
 .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; text-align:center; }
 
@@ -33,31 +82,31 @@ body {
 .music-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.8rem;
+  gap: 0.6rem;
 }
 
 .music-card {
   background: #1a1a1a;
-  border-radius: 10px;
-  padding: 0.8rem;
-  text-align: center;
-  color: #fff;
-  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.6rem;
+  text-align:center;
+  color:#fff;
+  cursor:pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .music-card:hover {
   transform: scale(1.02);
-  box-shadow: 0 0 8px #ff4f81;
+  box-shadow:0 0 8px #ff4f81;
 }
 
 .music-card img {
   width: 100%;
   border-radius: 6px;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
 }
 
-.music-card h3 { font-size:0.9rem; margin:0; }
+.music-card h3 { font-size:0.85rem; margin:0; }
 
 /* Modal */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
@@ -70,7 +119,13 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
 
 /* Responsive */
 @media (max-width: 992px) { .music-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 576px) { .music-grid { grid-template-columns: 1fr; } .navbar-container { padding:0.5rem 1rem; } .nav-logo img { height:40px; } }
+@media (max-width: 576px) {
+  .music-grid { grid-template-columns: 1fr; }
+  .navbar-container { padding:0.5rem 1rem; flex-wrap:nowrap; justify-content:space-between; }
+  .nav-logo img { height:30px; }
+  .nav-links { flex-direction:row; gap:0.8rem; justify-content:flex-end; }
+  .nav-links li a { font-size:0.9rem; }
+}
 </style>
 </head>
 <body>
@@ -78,12 +133,14 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
 <!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
+    <a href="index.html" class="nav-logo">
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+    </a>
     <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="music.html">Music</a></li>
-      <li><a href="blog.html">Blog</a></li>
-      <li><a href="contact.html">Contact</a></li>
+      <li><a href="index.html" data-text="Home">Home</a></li>
+      <li><a href="music.html" data-text="Music">Music</a></li>
+      <li><a href="blog.html" data-text="Blog">Blog</a></li>
+      <li><a href="contact.html" data-text="Contact">Contact</a></li>
     </ul>
   </div>
 </nav>
