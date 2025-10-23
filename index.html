@@ -21,10 +21,11 @@
 
     /* Navbar */
     .navbar { position: sticky; top: 0; z-index: 1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-    .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; }
+    .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap: wrap; }
     .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
     @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-    .nav-links { list-style:none; display:flex; gap:2rem; }
+    .nav-links { list-style:none; display:flex; gap:2rem; flex-wrap: wrap; justify-content: center; }
+    .nav-links li { margin: 0.5rem 0; }
     .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
     .nav-links li a:hover{color:#ff4f81;}
 
@@ -35,20 +36,52 @@
     /* Sections */
     .music-section { padding:2rem; text-align:center; }
     .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
-    .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:2rem; margin-top:2rem; }
+    .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
     .music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
     .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
-    .music-card img { width:100%; border-radius:8px; margin-bottom:1rem; }
+    .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
+    .music-card h3 { font-size: 1rem; }
     @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
 
+    /* Header */
+    header img { max-width:150px; height:auto; border-radius:50%; }
+    header h1 { font-size:2rem; margin:0.5rem 0; }
+    header .tagline { font-size:1rem; }
+
+    /* Countdown */
+    .countdown-container h2 { font-size:1.5rem; }
+    .countdown-container p { font-size:1rem; }
+
     /* Footer */
-    footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; }
+    footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; }
 
     /* Modal */
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
     .modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
     .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
     .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+
+    /* Featured Music section spacing */
+    #featured-music { padding-bottom:150px; }
+
+    /* Media Queries */
+    @media (max-width: 992px) {
+      header h1 { font-size:1.8rem; }
+      header .tagline { font-size:0.95rem; }
+      .music-section h2 { font-size:1.8rem; }
+      #featured-music { padding-bottom:200px; }
+    }
+
+    @media (max-width: 576px) {
+      header img { max-width:120px; }
+      header h1 { font-size:1.5rem; }
+      header .tagline { font-size:0.85rem; }
+      .music-section h2 { font-size:1.5rem; }
+      .music-card h3 { font-size:0.9rem; }
+      #featured-music { padding-bottom:250px; }
+      .navbar-container { flex-direction: column; align-items: center; }
+      .nav-links { flex-direction: column; gap: 0.5rem; }
+    }
   </style>
 </head>
 
@@ -70,16 +103,14 @@
 
   <div id="main-content">
     <header style="text-align:center; padding:2rem 1rem;">
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" style="width:150px;border-radius:50%;" />
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       <h1>Xac Anon</h1>
       <p class="tagline">Welcome to the sound of the future.</p>
 
       <div class="countdown-container">
         <h2>Next Release Countdown</h2>
         <p id="countdown">Loading...</p>
-        <p>Release Date:
-          <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span>
-        </p>
+        <p>Release Date: <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span></p>
       </div>
     </header>
 
@@ -102,38 +133,14 @@
       </div>
     </section>
 
-  <!-- Featured Music Section -->
-<!-- Featured Music Section -->
-<section id="featured-music" class="music-section">
-  <h2>Featured Music</h2>
-  <div class="music-grid">
-    <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
-    <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
-    <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
-  </div>
-</section>
-
-<style>
-  /* Featured Music section spacing to prevent footer overlap */
-  #featured-music {
-    padding-bottom: 150px; /* Default for large screens */
-  }
-
-  /* Medium screens (tablets) */
-  @media (max-width: 992px) {
-    #featured-music {
-      padding-bottom: 200px;
-    }
-  }
-
-  /* Small screens / mobile */
-  @media (max-width: 576px) {
-    #featured-music {
-      padding-bottom: 250px; /* More space so footer doesn't overlap */
-    }
-  }
-</style>
-
+    <section id="featured-music" class="music-section">
+      <h2>Featured Music</h2>
+      <div class="music-grid">
+        <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+        <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
+      </div>
+    </section>
 
     <!-- MODAL -->
     <div id="spotify-modal" class="modal">
