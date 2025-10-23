@@ -37,10 +37,12 @@
       padding: 1rem 2rem;
       max-width: 1200px;
       margin: 0 auto;
+      flex-wrap: wrap; /* allow wrapping on smaller screens */
     }
     .nav-logo img {
       height: 50px;
       animation: pulseGlitch 2s infinite ease-in-out;
+      transition: height 0.3s ease;
     }
     @keyframes pulseGlitch {
       0%, 100% { filter: none; }
@@ -50,6 +52,8 @@
       list-style: none;
       display: flex;
       gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .nav-links li a {
       position: relative;
@@ -58,9 +62,9 @@
       font-size: 1.1rem;
       transition: color 0.3s ease;
     }
-    .nav-links li a:hover {
-      color: #ff4f81;
-    }
+    .nav-links li a:hover { color: #ff4f81; }
+
+    /* Glitch effect */
     .nav-links a::before,
     .nav-links a::after {
       content: attr(data-text);
@@ -71,12 +75,8 @@
       overflow: hidden;
       clip: rect(0, 0, 0, 0);
     }
-    .nav-links a:hover::before {
-      animation: glitchTop 0.6s infinite linear alternate-reverse;
-    }
-    .nav-links a:hover::after {
-      animation: glitchBottom 0.6s infinite linear alternate-reverse;
-    }
+    .nav-links a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    .nav-links a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
     @keyframes glitchTop {
       0% { clip: rect(0, 9999px, 0, 0); }
       50% { clip: rect(0, 9999px, 5px, 0); transform: translate(-2px, -2px); }
@@ -121,12 +121,8 @@
       overflow: hidden;
       clip: rect(0, 0, 0, 0);
     }
-    h1::before {
-      animation: glitchTop 1s infinite linear alternate-reverse;
-    }
-    h1::after {
-      animation: glitchBottom 1s infinite linear alternate-reverse;
-    }
+    h1::before { animation: glitchTop 1s infinite linear alternate-reverse; }
+    h1::after { animation: glitchBottom 1s infinite linear alternate-reverse; }
     @keyframes glitchHeader {
       0% { transform: none; }
       20% { transform: skew(2deg); }
@@ -136,16 +132,8 @@
       100% { transform: none; }
     }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    label {
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+    form { display: flex; flex-direction: column; gap: 1rem; }
+    label { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
     input, textarea {
       padding: 0.8rem;
       border: 1px solid #ff4f81;
@@ -160,7 +148,6 @@
       box-shadow: 0 0 8px #ff4f81;
     }
 
-    /* Glitch Button */
     button {
       position: relative;
       padding: 0.8rem;
@@ -182,26 +169,12 @@
       color: #ff4f81;
       clip: rect(0, 0, 0, 0);
     }
-    button:hover::before {
-      animation: glitchTop 0.6s infinite linear alternate-reverse;
-    }
-    button:hover::after {
-      animation: glitchBottom 0.6s infinite linear alternate-reverse;
-    }
+    button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-    .socials {
-      margin-top: 2rem;
-      text-align: center;
-    }
-    .socials a {
-      margin: 0 0.5rem;
-      color: #f0f0f0;
-      font-size: 1.5rem;
-      transition: color 0.3s ease;
-    }
-    .socials a:hover {
-      color: #ff4f81;
-    }
+    .socials { margin-top: 2rem; text-align: center; }
+    .socials a { margin: 0 0.5rem; color: #f0f0f0; font-size: 1.5rem; transition: color 0.3s ease; }
+    .socials a:hover { color: #ff4f81; }
 
     /* Confirmation Overlay */
     .overlay {
@@ -225,11 +198,29 @@
       pointer-events: auto;
       animation: glitchHeader 2s infinite;
     }
+
+    /* MEDIA QUERIES FOR MOBILE NAVBAR */
+    @media (max-width: 576px) {
+      .navbar-container {
+        flex-direction: row; 
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        flex-wrap: nowrap;
+      }
+      .nav-logo img { height: 30px; }
+      .nav-links {
+        flex-direction: row;
+        gap: 0.8rem;
+        justify-content: flex-end;
+      }
+      .nav-links li a { font-size: 0.9rem; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- 🔗 NAVBAR -->
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="navbar-container">
       <a href="index.html" class="nav-logo">
@@ -290,9 +281,7 @@
         if (response.ok) {
           overlay.classList.add('active');
           form.reset();
-          setTimeout(() => {
-            overlay.classList.remove('active');
-          }, 3000); // Hide after 3 seconds
+          setTimeout(() => { overlay.classList.remove('active'); }, 3000);
         } else {
           alert("Oops! Something went wrong.");
         }
@@ -304,4 +293,3 @@
 
 </body>
 </html>
-
