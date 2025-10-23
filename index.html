@@ -196,24 +196,34 @@
   </div>
 
   <script>
-    // Countdown
-    const countdownElement = document.getElementById("countdown");
-    const releaseElement = document.getElementById("release-date");
-    const releaseDate = new Date(releaseElement.dataset.release);
-    releaseElement.textContent = releaseDate.toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
+// Countdown
+const countdownElement = document.getElementById("countdown");
+const releaseElement = document.getElementById("release-date");
 
-    function updateCountdown(){
-      const now=new Date();
-      const diff=releaseDate-now;
-      if(diff<=0){countdownElement.textContent="Out Now!"; return;}
-      const days=Math.floor(diff/(1000*60*60*24));
-      const hours=Math.floor((diff/(1000*60*60))%24);
-      const mins=Math.floor((diff/(1000*60))%60);
-      const secs=Math.floor((diff/1000)%60);
-      countdownElement.textContent=`${days}d ${hours}h ${mins}m ${secs}s`;
-    }
-    setInterval(updateCountdown,1000);
-    updateCountdown();
+// Set release in AEST (UTC+10)
+const releaseAEST = "2025-10-25T00:00:00+10:00"; // AEST timezone
+
+// Display release time in AEST and viewer's local time
+const releaseDate = new Date(releaseAEST);
+releaseElement.textContent = `AEST: ${releaseDate.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short'})} | Your Time: ${releaseDate.toLocaleString(undefined, {dateStyle:'medium', timeStyle:'short'})}`;
+
+// Countdown function
+function updateCountdown() {
+  const now = new Date();
+  const diff = releaseDate - now;
+  if (diff <= 0) {
+    countdownElement.textContent = "Out Now!";
+    return;
+  }
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff / (1000*60*60)) % 24);
+  const mins = Math.floor((diff / (1000*60)) % 60);
+  const secs = Math.floor((diff / 1000) % 60);
+  countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
 
     // Load Spotify Track Covers + Titles
     async function loadSpotifyData(){
