@@ -5,51 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to the New Era | Xac Anon</title>
 
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
   <style>
-    body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
-    .navbar, .navbar-container, .nav-logo img, .nav-links { /* Same navbar styling from blog.html */ }
-
-    .blog-post { max-width:900px; margin:3rem auto; background:rgba(20,20,20,0.9); padding:2rem; border:1px solid #ff4f81; border-radius:8px; box-shadow:0 0 15px #ff4f81; }
-    .blog-post h2 { color:#ff4f81; margin-bottom:0.5rem; }
-    .blog-post .date { color:#ff80a6; font-size:0.9rem; margin-bottom:1rem; display:block; }
-    .blog-post p { line-height:1.7; margin-bottom:1rem; }
-
-    /* Glitch Button */
-    .back-button {
-      display:inline-block;
-      margin-top:2rem;
-      padding:0.8rem 1.5rem;
-      border:1px solid #ff4f81;
-      border-radius:4px;
-      background:#0f0f0f;
-      color:#ff4f81;
-      text-decoration:none;
-      font-family:'Friz Quadrata', serif;
-      text-transform:uppercase;
-      position:relative;
-      overflow:hidden;
-      transition:0.3s;
+    body {
+      background: #0f0f0f;
+      color: #f0f0f0;
+      font-family: 'Friz Quadrata', serif;
+      margin: 0;
+      padding: 0;
     }
-    .back-button::before,
-    .back-button::after {
+
+    /* NAVBAR */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #0f0f0f;
+      border-bottom: 1px solid #ff4f81;
+      box-shadow: 0 0 10px #ff4f81;
+    }
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .nav-logo img {
+      height: 50px;
+      animation: pulseGlitch 2s infinite ease-in-out;
+    }
+    @keyframes pulseGlitch {
+      0%,100% { filter: none; }
+      50% { filter: drop-shadow(0 0 6px #ff4f81); transform: scale(1.05); }
+    }
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+    .nav-links li a {
+      color: #f0f0f0;
+      text-decoration: none;
+      font-size: 1.1rem;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .nav-links li a:hover {
+      color: #ff4f81;
+    }
+    .nav-links a::before,
+    .nav-links a::after {
       content: attr(data-text);
-      position:absolute;
-      left:0;
-      width:100%;
-      color:#ff4f81;
-      overflow:hidden;
+      position: absolute;
+      left: 0;
+      width: 100%;
+      color: #ff4f81;
+      overflow: hidden;
       clip: rect(0, 0, 0, 0);
     }
-    .back-button:hover::before {
+    .nav-links a:hover::before {
       animation: glitchTop 0.6s infinite linear alternate-reverse;
     }
-    .back-button:hover::after {
+    .nav-links a:hover::after {
       animation: glitchBottom 0.6s infinite linear alternate-reverse;
     }
-
     @keyframes glitchTop {
       0% { clip: rect(0, 9999px, 0, 0); }
       50% { clip: rect(0, 9999px, 5px, 0); transform: translate(-2px, -2px); }
@@ -61,14 +85,69 @@
       100% { clip: rect(0, 9999px, 0, 0); }
     }
 
-    footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+    /* BLOG POST */
+    .blog-post {
+      max-width: 900px;
+      margin: 3rem auto;
+      background: rgba(20,20,20,0.9);
+      padding: 2rem;
+      border: 1px solid #ff4f81;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #ff4f81;
+    }
+    .blog-post h2 { color: #ff4f81; margin-bottom: 0.5rem; }
+    .blog-post .date { color: #ff80a6; font-size: 0.9rem; margin-bottom: 1rem; display: block; }
+    .blog-post p { line-height: 1.7; margin-bottom: 1rem; }
+
+    /* Back Button */
+    .back-button {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.8rem 1.5rem;
+      border: 1px solid #ff4f81;
+      border-radius: 4px;
+      background: #0f0f0f;
+      color: #ff4f81;
+      text-decoration: none;
+      font-family: 'Friz Quadrata', serif;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+    .back-button::before,
+    .back-button::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      width: 100%;
+      color: #ff4f81;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+    .back-button:hover::before {
+      animation: glitchTop 0.6s infinite linear alternate-reverse;
+    }
+    .back-button:hover::after {
+      animation: glitchBottom 0.6s infinite linear alternate-reverse;
+    }
+
+    footer { padding: 1rem; text-align: center; background: #111; border-top: 1px solid #ff4f81; }
+
+    /* MOBILE NAVBAR FIX */
+    @media (max-width: 576px) {
+      .navbar-container { flex-direction: column; padding: 0.5rem 1rem; }
+      .nav-links { flex-direction: row; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-top: 0.5rem; }
+      .nav-logo img { height: 40px; }
+    }
   </style>
 </head>
 <body>
 
   <nav class="navbar">
     <div class="navbar-container">
-      <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
+      <a href="index.html" class="nav-logo">
+        <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+      </a>
       <ul class="nav-links">
         <li><a href="index.html" data-text="Home">Home</a></li>
         <li><a href="music.html" data-text="Music">Music</a></li>
@@ -96,7 +175,7 @@
   <script>
     const dateElement = document.getElementById('post-date');
     const today = new Date();
-    dateElement.textContent = today.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    dateElement.textContent = today.toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   </script>
 
 </body>
