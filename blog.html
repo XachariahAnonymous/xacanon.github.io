@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blog | Xac Anon</title>
 
-  <!-- Font Awesome -->
+  <!-- Font Awesome & Google Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
   <style>
@@ -20,68 +18,43 @@
       padding: 0;
     }
 
-    /* Navbar */
-    .navbar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background-color: #0f0f0f;
-      border-bottom: 1px solid #ff4f81;
-      box-shadow: 0 0 10px #ff4f81;
-    }
-    .navbar-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      flex-wrap: wrap;
-    }
-    .nav-logo img { height: 50px; animation: pulseGlitch 2s infinite ease-in-out; transition: height 0.3s ease; }
-    @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform: scale(1.05);} }
-    .nav-links { list-style: none; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; }
-    .nav-links li a { position: relative; color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition: color 0.3s ease; }
-    .nav-links li a:hover { color: #ff4f81; }
-    .nav-links a::before,
-    .nav-links a::after { content: attr(data-text); position: absolute; left: 0; width: 100%; color: #ff4f81; overflow: hidden; clip: rect(0,0,0,0); }
+    /* Navbar (same as your contact page) */
+    .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+    .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+    .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+    @keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);}}
+    .nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; }
+    .nav-links li a { position:relative; color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
+    .nav-links li a:hover { color:#ff4f81; }
+    .nav-links a::before, .nav-links a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
     .nav-links a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
     .nav-links a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-    @keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
-    @keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
+    @keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0);transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);}}
+    @keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0);transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
 
-    /* Blog Container */
-    .blog-container { max-width: 900px; margin: 3rem auto; padding: 2rem; }
-    .blog-post { background: rgba(20,20,20,0.9); padding: 2rem; border: 1px solid #ff4f81; border-radius: 8px; box-shadow: 0 0 15px #ff4f81; margin-bottom: 2rem; }
-    .blog-post h2 { font-size: 2rem; margin-bottom: 1rem; color: #ff4f81; position: relative; animation: glitchHeader 2s infinite; }
-    .blog-post h2::before,
-    .blog-post h2::after { content: attr(data-text); position: absolute; left: 0; width: 100%; color: #ff4f81; overflow: hidden; clip: rect(0,0,0,0); }
-    .blog-post h2::before { animation: glitchTop 1s infinite linear alternate-reverse; }
-    .blog-post h2::after { animation: glitchBottom 1s infinite linear alternate-reverse; }
-    .blog-post p { line-height: 1.7; margin-bottom: 1rem; }
+    /* Blog Post Cards */
+    .blog-container { max-width:900px; margin:3rem auto; display:grid; gap:2rem; padding:0 1rem; }
+    .blog-card { background: rgba(20,20,20,0.9); padding:2rem; border:1px solid #ff4f81; border-radius:8px; box-shadow:0 0 15px #ff4f81; }
+    .blog-card h2 { color:#ff4f81; margin-bottom:0.5rem; font-size:1.8rem; position:relative; }
+    .blog-card p { line-height:1.6; margin-bottom:1rem; }
+    .read-more { color:#ff4f81; text-decoration:underline; cursor:pointer; }
 
-    @keyframes glitchHeader { 0%{transform:none;} 20%{transform:skew(2deg);} 40%{transform:skew(-2deg);} 60%{transform:none;} 80%{transform:translateX(2px);} 100%{transform:none;} }
-
-    /* Footer */
     footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
 
     /* Mobile Navbar */
-    @media (max-width: 576px){
-      .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; padding:0.5rem 1rem; flex-wrap: nowrap; }
+    @media(max-width:576px){
+      .navbar-container { flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:nowrap; padding:0.5rem 1rem; }
       .nav-logo img { height:30px; }
-      .nav-links { flex-direction: row; gap:0.8rem; justify-content:flex-end; }
+      .nav-links { flex-direction:row; gap:0.8rem; justify-content:flex-end; }
       .nav-links li a { font-size:0.9rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="navbar-container">
-      <a href="index.html" class="nav-logo">
-        <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
-      </a>
+      <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
       <ul class="nav-links">
         <li><a href="index.html" data-text="Home">Home</a></li>
         <li><a href="music.html" data-text="Music">Music</a></li>
@@ -91,19 +64,25 @@
     </div>
   </nav>
 
-  <!-- BLOG POSTS -->
   <div class="blog-container">
-    <div class="blog-post">
-      <h2 data-text="First Blog Post">This is my very first blog post</h2>
-      <p>It feels right to start here with a new home, a new sound, and a new chapter. I’ve been working hard to bring this site to life, shaping it to reflect the glitchy, mythic world behind my music. Every page, every effect, and every detail is part of that vision. Huge thanks to Dayze for helping me set this whole thing up and making sure it feels alive from the start.</p>
-      <p>And what better way to launch than with a release timed for Halloween. My new single, <strong>“Stuck in My Mind”</strong>, drops on October 31. It is a track built from haunted thoughts, sleepless nights, and the horror icons that shaped my imagination. Dark, raw, and cinematic, it is the perfect soundtrack for the season.</p>
-      <p>So welcome to the site, welcome to the blog, and welcome to the next phase of Xac Anon. Explore the layout, dive into the music, and when Halloween night comes, let <strong>Stuck in My Mind</strong> haunt your speakers.</p>
+    <!-- First Post Preview -->
+    <div class="blog-card">
+      <h2>Welcome to the New Era</h2>
+      <span class="date" id="post-date"></span>
+      <p>This is my very first blog post, and it feels right to start here with a new home, a new sound, and a new chapter...</p>
+      <a href="post-welcome.html" class="read-more">Read More</a>
     </div>
   </div>
 
   <footer>
     <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
   </footer>
+
+  <script>
+    const dateElement = document.getElementById('post-date');
+    const today = new Date();
+    dateElement.textContent = today.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  </script>
 
 </body>
 </html>
