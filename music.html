@@ -45,6 +45,34 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
 
 @media (max-width: 768px){ .music-card { flex:0 0 200px; } }
 @media (max-width: 576px){ .music-card { flex:0 0 180px; } }
+
+  .carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 15, 15, 0.5);
+  border: none;
+  color: #ff4f81;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  z-index: 10;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.2s ease; /* add transform transition */
+}
+
+.carousel-container:hover .carousel-arrow {
+  opacity: 1;
+}
+
+.carousel-arrow:hover {
+  transform: translateY(-50%) scale(1.2); /* pop effect on hover */
+}
+
+.carousel-arrow.left { left: 0.5rem; }
+.carousel-arrow.right { right: 0.5rem; }
+
 </style>
 </head>
 <body>
@@ -154,8 +182,7 @@ function loadGrid(containerId, items){
   items.forEach(item=>{
     const card = document.createElement("div");
     card.className = "music-card";
-    
-    // Fetch thumbnail via Spotify oEmbed
+
     fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(item.url)}`)
       .then(res=>res.json())
       .then(data=>{
@@ -196,13 +223,20 @@ document.querySelectorAll('.carousel-arrow').forEach(btn=>{
   const grid = document.getElementById(targetId);
 
   btn.addEventListener('click', ()=>{
-    const card = grid.querySelector('.music-card');
-    if(!card) return; // grid not loaded yet
-    const style = window.getComputedStyle(card);
-    const cardWidth = card.offsetWidth;
-    const gap = parseInt(style.marginRight) || 10;
-    const scrollAmount = btn.classList.contains('left') ? -(cardWidth + gap) : (cardWidth + gap);
-    grid.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    const cards = grid.querySelectorAll('.music-card');
+    if(cards.length === 0) return;
+    const style = window.getComputedStyle(cards[0]);
+    const cardWidth = cards[0].offsetWidth + parseInt(style.marginRight || 10);
+    
+    // Scroll 3 cards at a time
+    const scrollAmount = cardWidth * 3;
+    if(btn.classList.contains('left')){
+      grid.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else {
+      const maxScroll = grid.scrollWidth - grid.clientWidth;
+      const newScroll = Math.min(grid.scrollLeft + scrollAmount, maxScroll);
+      grid.scrollTo({ left: newScroll, behavior: 'smooth' });
+    }
   });
 
   // Swipe support
@@ -221,6 +255,7 @@ loadGrid("releases-2025", releases2025);
 loadGrid("releases-2024", releases2024);
 loadGrid("releases-2023", releases2023);
 loadGrid("features", features);
+
 
 </script>
 </body>
