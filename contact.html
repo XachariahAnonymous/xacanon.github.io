@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +7,6 @@
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
   <style>
@@ -38,7 +35,7 @@
       padding: 1rem 2rem;
       max-width: 1200px;
       margin: 0 auto;
-      flex-wrap: wrap; /* allow wrapping on smaller screens */
+      flex-wrap: wrap;
     }
     .nav-logo img {
       height: 50px;
@@ -64,8 +61,6 @@
       transition: color 0.3s ease;
     }
     .nav-links li a:hover { color: #ff4f81; }
-
-    /* Glitch effect */
     .nav-links a::before,
     .nav-links a::after {
       content: attr(data-text);
@@ -200,21 +195,57 @@
       animation: glitchHeader 2s infinite;
     }
 
-    /* MEDIA QUERIES FOR MOBILE NAVBAR */
+    /* Footer with ticker */
+    footer {
+      padding:1rem;
+      background:#111;
+      border-top:1px solid #ff4f81;
+      text-align:center;
+      overflow:hidden;
+      position:relative;
+      font-size:0.9rem;
+    }
+    footer .ticker {
+      white-space: nowrap;
+      display: inline-block;
+      padding-left: 100%;
+      animation: scrollText 20s linear infinite;
+      color:#fff;
+    }
+    footer .ticker:hover {
+      animation-play-state: paused;
+      color:#ff4f81;
+      text-shadow:1px 0 #ff4f81, -1px 0 #ff4f81;
+    }
+    @keyframes scrollText {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+    footer .socials-footer { margin-top:0.5rem; }
+    footer .socials-footer a {
+      margin:0 0.5rem;
+      color:#f0f0f0;
+      font-size:1.5rem;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    footer .socials-footer a::before,
+    footer .socials-footer a::after {
+      content: attr(aria-label);
+      position: absolute;
+      left:0;
+      width:100%;
+      color:#ff4f81;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+    }
+    footer .socials-footer a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
     @media (max-width: 576px) {
-      .navbar-container {
-        flex-direction: row; 
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        flex-wrap: nowrap;
-      }
+      .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; flex-wrap: nowrap; }
       .nav-logo img { height: 30px; }
-      .nav-links {
-        flex-direction: row;
-        gap: 0.8rem;
-        justify-content: flex-end;
-      }
+      .nav-links { flex-direction: row; gap: 0.8rem; justify-content: flex-end; }
       .nav-links li a { font-size: 0.9rem; }
     }
   </style>
@@ -237,7 +268,7 @@
   </nav>
 
   <!-- CONTACT FORM -->
- <div class="contact-container">
+  <div class="contact-container">
     <h1 data-text="Contact Xac Anon">Contact Xac Anon</h1>
     <form id="contact-form" action="https://formspree.io/f/xeorbygg" method="POST">
       <label for="name">Name</label>
@@ -263,6 +294,16 @@
   <div class="overlay" id="confirmation-overlay">
     <p data-text="Message Sent!">Message Sent!</p>
   </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="ticker">Breaking News: New single “Stuck in My Mind” drops October 31 — stay tuned for more releases!</div>
+    <div class="socials-footer">
+      <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+    </div>
+  </footer>
 
   <script>
     const form = document.getElementById('contact-form');
