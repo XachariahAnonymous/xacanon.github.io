@@ -24,16 +24,35 @@ body { background:#0a0a0a; color:#fff; font-family:'Friz Quadrata', serif; margi
 .music-section { padding:2rem; }
 .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; text-align:center; }
 
-/* Carousel */
-.carousel-container { position:relative; overflow:hidden; margin-bottom:2rem; }
-.music-grid { display:flex; gap:1rem; transition:transform 0.5s ease; scroll-behavior:smooth; padding-bottom:1rem; }
-.music-card { flex:0 0 250px; background:#1a1a1a; border-radius:12px; padding:1rem; cursor:pointer; text-align:center; color:#fff; transition: transform 0.3s, box-shadow 0.3s; }
-.music-card:hover { transform:scale(1.03); box-shadow:0 0 10px #ff4f81; }
-.music-card img { width:100%; border-radius:8px; margin-bottom:0.5rem; }
+/* Music Grid */
+.music-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 cards per row */
+  gap: 1rem;
+}
+
+.music-card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.music-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 10px #ff4f81;
+}
+
+.music-card img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
 .music-card h3 { font-size:1rem; margin:0; }
-.carousel-arrow { position:absolute; top:50%; transform:translateY(-50%); background:rgba(15,15,15,0.8); border:none; color:#ff4f81; font-size:2rem; cursor:pointer; padding:0.5rem 1rem; z-index:10; border-radius:6px; }
-.carousel-arrow.left { left:0.5rem; }
-.carousel-arrow.right { right:0.5rem; }
 
 /* Modal */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
@@ -43,35 +62,9 @@ body { background:#0a0a0a; color:#fff; font-family:'Friz Quadrata', serif; margi
 
 footer { text-align:center; padding:1rem; background:#111; border-top:1px solid #ff4f81; }
 
-@media (max-width: 768px){ .music-card { flex:0 0 200px; } }
-@media (max-width: 576px){ .music-card { flex:0 0 180px; } }
-
-  .carousel-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(15, 15, 15, 0.5);
-  border: none;
-  color: #ff4f81;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  z-index: 10;
-  border-radius: 6px;
-  opacity: 0;
-  transition: opacity 0.3s ease, transform 0.2s ease; /* add transform transition */
-}
-
-.carousel-container:hover .carousel-arrow {
-  opacity: 1;
-}
-
-.carousel-arrow:hover {
-  transform: translateY(-50%) scale(1.2); /* pop effect on hover */
-}
-
-.carousel-arrow.left { left: 0.5rem; }
-.carousel-arrow.right { right: 0.5rem; }
+/* Responsive */
+@media (max-width: 992px) { .music-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 576px) { .music-grid { grid-template-columns: 1fr; } }
 
 </style>
 </head>
@@ -93,38 +86,22 @@ footer { text-align:center; padding:1rem; background:#111; border-top:1px solid 
 <!-- Music Sections -->
 <section class="music-section">
   <h2>2025 Releases</h2>
-  <div class="carousel-container">
-    <button class="carousel-arrow left" data-target="releases-2025">&#8249;</button>
-    <div class="music-grid" id="releases-2025"></div>
-    <button class="carousel-arrow right" data-target="releases-2025">&#8250;</button>
-  </div>
+  <div class="music-grid" id="releases-2025"></div>
 </section>
 
 <section class="music-section">
   <h2>2024 Releases</h2>
-  <div class="carousel-container">
-    <button class="carousel-arrow left" data-target="releases-2024">&#8249;</button>
-    <div class="music-grid" id="releases-2024"></div>
-    <button class="carousel-arrow right" data-target="releases-2024">&#8250;</button>
-  </div>
+  <div class="music-grid" id="releases-2024"></div>
 </section>
 
 <section class="music-section">
   <h2>2023 Releases</h2>
-  <div class="carousel-container">
-    <button class="carousel-arrow left" data-target="releases-2023">&#8249;</button>
-    <div class="music-grid" id="releases-2023"></div>
-    <button class="carousel-arrow right" data-target="releases-2023">&#8250;</button>
-  </div>
+  <div class="music-grid" id="releases-2023"></div>
 </section>
 
 <section class="music-section">
   <h2>Features</h2>
-  <div class="carousel-container">
-    <button class="carousel-arrow left" data-target="features">&#8249;</button>
-    <div class="music-grid" id="features"></div>
-    <button class="carousel-arrow right" data-target="features">&#8250;</button>
-  </div>
+  <div class="music-grid" id="features"></div>
 </section>
 
 <!-- Spotify Modal -->
@@ -150,30 +127,19 @@ const releases2025 = [
 const releases2024 = [
   {title:"Album 1", url:"https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"},
   {title:"Album 2", url:"https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI"},
-  {title:"Album 3", url:"https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns"},
-  {title:"Album 4", url:"https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7"},
-  {title:"Album 5", url:"https://open.spotify.com/album/5AHMPcf1STwqSYTmhhwXO6"},
-  {title:"Album 6", url:"https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR"},
-  {title:"Album 7", url:"https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq"}
+  {title:"Album 3", url:"https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns"}
 ];
 
 const releases2023 = [
   {title:"Album 1", url:"https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"},
   {title:"Album 2", url:"https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa"},
-  {title:"Album 3", url:"https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x"},
-  {title:"Album 4", url:"https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS"},
-  {title:"Album 5", url:"https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg"},
-  {title:"Album 6", url:"https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp"},
-  {title:"Album 7", url:"https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4"},
-  {title:"Album 8", url:"https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S"},
-  {title:"Album 9", url:"https://open.spotify.com/album/0vV9iMbpYwGtqsFSZhbjis"}
+  {title:"Album 3", url:"https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x"}
 ];
 
 const features = [
   {title:"Feature 1", url:"https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt"},
   {title:"Feature 2", url:"https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ"},
-  {title:"Feature 3", url:"https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx"},
-  {title:"Feature 4", url:"https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"}
+  {title:"Feature 3", url:"https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx"}
 ];
 
 // Load grid with thumbnails + modal
@@ -217,45 +183,11 @@ window.onclick = e=>{
   }
 }
 
-// Carousel arrows & swipe
-document.querySelectorAll('.carousel-arrow').forEach(btn=>{
-  const targetId = btn.getAttribute('data-target');
-  const grid = document.getElementById(targetId);
-
-  btn.addEventListener('click', ()=>{
-    const cards = grid.querySelectorAll('.music-card');
-    if(cards.length === 0) return;
-    const style = window.getComputedStyle(cards[0]);
-    const cardWidth = cards[0].offsetWidth + parseInt(style.marginRight || 10);
-    
-    // Scroll 3 cards at a time
-    const scrollAmount = cardWidth * 3;
-    if(btn.classList.contains('left')){
-      grid.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    } else {
-      const maxScroll = grid.scrollWidth - grid.clientWidth;
-      const newScroll = Math.min(grid.scrollLeft + scrollAmount, maxScroll);
-      grid.scrollTo({ left: newScroll, behavior: 'smooth' });
-    }
-  });
-
-  // Swipe support
-  let startX;
-  grid.addEventListener('touchstart', e=> startX = e.touches[0].pageX);
-  grid.addEventListener('touchmove', e=>{
-    if(!startX) return;
-    const diffX = startX - e.touches[0].pageX;
-    grid.scrollBy({ left: diffX, behavior: 'auto' });
-    startX = e.touches[0].pageX;
-  });
-});
-
 // Initialize grids
 loadGrid("releases-2025", releases2025);
 loadGrid("releases-2024", releases2024);
 loadGrid("releases-2023", releases2023);
 loadGrid("features", features);
-
 
 </script>
 </body>
