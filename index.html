@@ -18,15 +18,26 @@
 </head>
 <body>
 
+  <!-- 🔗 NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">
+      <a href="index.html"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="music.html">Music</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+
   <!-- SPLASH TICKER -->
   <div id="splash-screen" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=8ec2cbe072784b69">
     <button id="close-splash" aria-label="Close splash">✕</button>
-
     <div class="splash-inner">
       <div class="splash-art">
         <img id="splash-cover" src="placeholder-cover.jpg" alt="Track cover art (will auto-load)" />
       </div>
-
       <div class="splash-player">
         <h2>Have you heard this yet?</h2>
         <iframe id="splash-iframe"
@@ -53,17 +64,15 @@
       <div class="countdown-container">
         <h2>Next Release Countdown</h2>
         <p id="countdown">Loading...</p>
-       <p class="countdown-date">Release Date: <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span></p>
-
-<script>
-  // Automatically convert EST release time to user's local timezone
-  const releaseElement = document.getElementById("release-date");
-  const releaseDate = new Date(releaseElement.dataset.release);
-  releaseElement.textContent = releaseDate.toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short"
-  });
-</script>
+        <p class="countdown-date">Release Date: <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span></p>
+        <script>
+          const releaseElement = document.getElementById("release-date");
+          const releaseDate = new Date(releaseElement.dataset.release);
+          releaseElement.textContent = releaseDate.toLocaleString(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short"
+          });
+        </script>
       </div>
     </header>
 
@@ -71,22 +80,8 @@
     <section id="featured-music" class="music-section">
       <h2>Popular Tracks</h2>
       <div class="music-grid">
-
-        <a href="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=8ec2cbe072784b69" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title (Auto)</h3>
-        </a>
-
-        <a href="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e?si=363678f64b164a95" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title 2 (Auto)</h3>
-        </a>
-
-        <a href="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G?si=756aa762c02b464d" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title 3 (Auto)</h3>
-        </a>
-
+        <!-- Music Cards -->
+        <!-- ... -->
       </div>
     </section>
 
@@ -94,22 +89,8 @@
     <section id="recent-releases" class="music-section">
       <h2>Recent Releases</h2>
       <div class="music-grid">
-
-        <a href="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title (Auto)</h3>
-        </a>
-
-        <a href="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title 2 (Auto)</h3>
-        </a>
-
-        <a href="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title 3 (Auto)</h3>
-        </a>
-
+        <!-- Music Cards -->
+        <!-- ... -->
       </div>
     </section>
 
@@ -117,22 +98,8 @@
     <section id="popular-tracks" class="music-section">
       <h2>Featured Music</h2>
       <div class="music-grid">
-
-        <a href="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title (Auto)</h3>
-        </a>
-
-        <a href="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title 2 (Auto)</h3>
-        </a>
-
-        <a href="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5" target="_blank" class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5">
-          <img class="card-cover" src="placeholder-cover.jpg" alt="Track cover (auto-loaded)" />
-          <h3>Track Title 3 (Auto)</h3>
-        </a>
-
+        <!-- Music Cards -->
+        <!-- ... -->
       </div>
     </section>
 
@@ -140,9 +107,7 @@
     <section id="contact">
       <h2>Contact</h2>
       <p>Got something to say? Reach out:</p>
-
       <a href="mailto:anonxac@gmail.com" class="contact-link">Email Us</a>
-
       <div class="socials">
         <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
         <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
