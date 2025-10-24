@@ -148,10 +148,11 @@
       <h1>Xac Anon</h1>
       <p class="tagline">Welcome to the sound of the future.</p>
 
+      <!-- Countdown Section -->
       <div class="countdown-container">
         <h2>Next Release Countdown</h2>
         <p id="countdown">Loading...</p>
-        <p>Release Date: <span id="release-date" data-release="2025-10-25T00:00:00-04:00"></span></p>
+        <p>Release Date: <span id="release-date"></span></p>
       </div>
     </header>
 
@@ -210,24 +211,40 @@
   </div>
 
   <script>
-    // Countdown
+    // AEDT Countdown
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
-    const releaseAEDT = "2025-10-25T00:00:00+10:00";
-    const releaseDate = new Date(releaseAEDT);
-    releaseElement.textContent = `AEDT: ${releaseDate.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short'})} | Your Time: ${releaseDate.toLocaleString()}`;
+
+    const releaseTime = "2025-10-25T00:00:00"; // release midnight
+    const timeZone = "Australia/Sydney";
+
+    const releaseDateAEDT = new Date(releaseTime);
+    releaseElement.textContent = releaseDateAEDT.toLocaleString('en-AU', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: timeZone
+    });
 
     function updateCountdown() {
       const now = new Date();
-      const diff = releaseDate - now;
-      if(diff <=0){ countdownElement.textContent="Out Now!"; return; }
-      const days=Math.floor(diff/(1000*60*60*24));
-      const hours=Math.floor((diff/(1000*60*60))%24);
-      const mins=Math.floor((diff/(1000*60))%60);
-      const secs=Math.floor((diff/1000)%60);
-      countdownElement.textContent=`${days}d ${hours}h ${mins}m ${secs}s`;
+      const releaseUTC = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const nowUTC = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const diff = releaseUTC - nowUTC;
+
+      if (diff <= 0) {
+        countdownElement.textContent = "Out Now!";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
     }
-    setInterval(updateCountdown,1000);
+
+    setInterval(updateCountdown, 1000);
     updateCountdown();
 
     // Load Spotify Track Covers + Titles
