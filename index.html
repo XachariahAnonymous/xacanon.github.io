@@ -213,9 +213,9 @@
     // Countdown
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
-    const releaseAEST = "2025-10-25T00:00:00+10:00";
-    const releaseDate = new Date(releaseAEST);
-    releaseElement.textContent = `AEST: ${releaseDate.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short'})} | Your Time: ${releaseDate.toLocaleString()}`;
+    const releaseAEDT = "2025-10-25T00:00:00+10:00";
+    const releaseDate = new Date(releaseAEDT);
+    releaseElement.textContent = `AEDT: ${releaseDate.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short'})} | Your Time: ${releaseDate.toLocaleString()}`;
 
     function updateCountdown() {
       const now = new Date();
