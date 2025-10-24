@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xac Anon | Electronic Press Kit</title>
+  <link rel="icon" type="image/png" href="images/tabicon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+    }
+
+    header {
+      text-align: center;
+      padding: 4rem 1rem 2rem;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      color: #fff;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    .bio, .highlights, .media-kit, .music-section, .contact-section {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,255,255,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      color: #0ff;
+      text-transform: uppercase;
+    }
+
+    .bio p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .music-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      justify-content: center;
+    }
+
+    .track-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      cursor: pointer;
+      background: #111;
+      transition: transform 0.3s;
+    }
+
+    .track-card:hover {
+      transform: scale(1.05);
+    }
+
+    .track-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
+    .track-title {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: #0ff;
+      text-align: center;
+      padding: 0.8rem;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #111;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0 20px #0ff;
+    }
+
+    .modal-content iframe {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      height: 380px;
+    }
+
+    .close {
+      color: #0ff;
+      font-size: 2rem;
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      cursor: pointer;
+    }
+
+    footer {
+      background: #000;
+      color: #0ff;
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(0,255,255,0.2);
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .footer-scroll {
+      display: inline-block;
+      animation: scrollText 20s linear infinite;
+    }
+
+    @keyframes scrollText {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    @media (max-width: 768px) {
+      header h1 { font-size: 2.2rem; }
+      .bio, .highlights, .music-section, .contact-section {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Xac Anon</h1>
+    <p>Electronic Press Kit</p>
+  </header>
+
+  <section class="bio">
+    <h2>Biography</h2>
+    <p>Xac Anon was a lo-fi emo rapper from Australia whose music blended raw emotion with haunting production. His body of work — including *Purgatory*, *Second Chance*, and *Darkness and Light* — carries the echo of pain, growth, and transcendence. His legacy continues to inspire a generation of artists navigating their own purgatories.</p>
+  </section>
+
+  <section class="music-section">
+    <h2>Discography</h2>
+    <div class="music-grid" id="musicGrid">
+      <!-- Tracks will load here dynamically -->
+    </div>
+  </section>
+
+  <section class="highlights">
+    <h2>Achievements</h2>
+    <ul>
+      <li>10M+ collective Spotify streams</li>
+      <li>Featured on “Lo-Fi Nights” and “Sad Rap Therapy” playlists</li>
+      <li>Collaborated with underground artists across Australia and the US</li>
+    </ul>
+  </section>
+
+  <section class="contact-section">
+    <h2>Press & Contact</h2>
+    <p>Management: <a href="mailto:contact@xacanon.com">contact@xacanon.com</a></p>
+    <p>Instagram: <a href="https://instagram.com/xacanon" target="_blank">@xacanon</a></p>
+    <p>Spotify: <a href="https://open.spotify.com/artist/YOUR_SPOTIFY_ID" target="_blank">Listen Here</a></p>
+  </section>
+
+  <footer>
+    <div class="footer-scroll">© 2025 Xac Anon | Website by Xachariah Anonymous | Dayze Dev Support</div>
+  </footer>
+
+  <!-- Modal -->
+  <div id="trackModal" class="modal">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+
+  <script type="module">
+    import Modal from "https://cdn.jsdelivr.net/npm/@modal-labs/sdk@latest/+esm";
+
+    const modal = new Modal({
+      clientID: "YOUR_MODAL_CLIENT_ID", // Replace with your Modal Client ID
+    });
+
+    const artistId = "YOUR_SPOTIFY_ARTIST_ID"; // Replace with your Spotify artist ID
+
+    async function loadTracks() {
+      const response = await modal.spotify.artists.albums(artistId);
+      const albums = response.items || [];
+      const grid = document.getElementById("musicGrid");
+      grid.innerHTML = "";
+
+      albums.forEach(album => {
+        const img = album.images[0]?.url;
+        const title = album.name;
+        const id = album.id;
+
+        const card = document.createElement("div");
+        card.className = "track-card";
+        card.innerHTML = `
+          <img src="${img}" alt="${title}">
+          <div class="track-title">${title}</div>
+        `;
+        card.onclick = () => openModal(id);
+        grid.appendChild(card);
+      });
+    }
+
+    function openModal(albumId) {
+      const modalElement = document.getElementById("trackModal");
+      const modalContent = document.getElementById("modalContent");
+      modalElement.style.display = "flex";
+      modalContent.innerHTML = `
+        <iframe src="https://open.spotify.com/embed/album/${albumId}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+      `;
+    }
+
+    function closeModal() {
+      document.getElementById("trackModal").style.display = "none";
+      document.getElementById("modalContent").innerHTML = "";
+    }
+
+    window.onload = loadTracks;
+  </script>
+</body>
+</html>
