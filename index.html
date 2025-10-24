@@ -148,7 +148,6 @@
       <h1>Xac Anon</h1>
       <p class="tagline">Welcome to the sound of the future.</p>
 
-      <!-- Countdown Section -->
       <div class="countdown-container">
         <h2>Next Release Countdown</h2>
         <p id="countdown">Loading...</p>
@@ -211,25 +210,27 @@
   </div>
 
   <script>
-    // AEDT Countdown
+    // Countdown with AEDT + visitor timezone
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
 
-    const releaseTime = "2025-10-25T00:00:00"; // release midnight
+    const releaseTime = "2025-10-25T00:00:00"; // release midnight AEDT
     const timeZone = "Australia/Sydney";
 
+    // Display release time in AEDT and visitor's local time
     const releaseDateAEDT = new Date(releaseTime);
-    releaseElement.textContent = releaseDateAEDT.toLocaleString('en-AU', {
+    const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+
+    releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', {
       dateStyle: 'medium',
       timeStyle: 'short',
       timeZone: timeZone
-    });
+    })} | Your Time: ${releaseDateLocal.toLocaleString()}`;
 
+    // Countdown function (relative to visitor's local time)
     function updateCountdown() {
       const now = new Date();
-      const releaseUTC = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: 'UTC' }));
-      const nowUTC = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-      const diff = releaseUTC - nowUTC;
+      const diff = releaseDateAEDT - now; // difference in milliseconds
 
       if (diff <= 0) {
         countdownElement.textContent = "Out Now!";
