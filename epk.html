@@ -11,7 +11,7 @@
 <style>
 body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
 
-/* NAVBAR (Contact Page Style) */
+/* NAVBAR */
 .navbar {
   position: sticky; top:0; z-index:1000;
   background-color: #0f0f0f;
@@ -30,7 +30,7 @@ body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f
 .nav-links a::before, .nav-links a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
 .nav-links a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .nav-links a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);}}
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
 @keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
 
 /* HEADER */
@@ -41,8 +41,21 @@ header h1::before { animation: glitchTop 1s infinite linear alternate-reverse; }
 header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse; }
 @keyframes glitchHeader {0%{transform:none;}20%{transform:skew(2deg);}40%{transform:skew(-2deg);}60%{transform:none;}80%{transform:translateX(2px);}100%{transform:none;}}
 
-/* SECTIONS */
-section { max-width:1000px; margin:2rem auto; padding:2rem; background:rgba(20,20,20,0.9); border:1px solid #ff4f81; border-radius:12px; box-shadow:0 0 15px #ff4f81; }
+/* EPK SECTION BACKGROUNDS */
+.bio,
+.music-section,
+.highlights,
+.contact-section {
+  background: #404347;
+  border: 1px solid #ff4f81;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #ff4f81;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 1000px;
+}
+
+/* SECTION TITLES */
 section h2 { text-align:center; font-size:1.8rem; margin-bottom:1.5rem; color:#ff4f81; text-transform:uppercase; }
 .bio p { font-size:1.1rem; line-height:1.6; text-align:center; }
 
@@ -65,7 +78,7 @@ footer .footer-scroll { display:inline-block; white-space:nowrap; animation: scr
 @keyframes scrollText { 0%{transform:translateX(100%);} 100%{transform:translateX(-100%);} }
 footer .socials-footer { margin-top:0.5rem; }
 footer .socials-footer a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position:relative; }
-footer .socials-footer a::before, footer .socials-footer a::after { content: attr(aria-label); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0);}
+footer .socials-footer a::before, footer .socials-footer a::after { content: attr(aria-label); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
 footer .socials-footer a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
