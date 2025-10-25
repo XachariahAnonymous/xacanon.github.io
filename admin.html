@@ -14,7 +14,6 @@
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 
 <style>
-/* ===== General ===== */
 body { margin:0; padding:0; background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; }
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
@@ -25,7 +24,6 @@ body { margin:0; padding:0; background:#0f0f0f; color:#f0f0f0; font-family:'Friz
 .home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0;width:100%;color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0);}
 .home-button:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
 .home-button:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
-
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
 .nav-links li { margin:0.5rem 0; }
@@ -39,26 +37,19 @@ body { margin:0; padding:0; background:#0f0f0f; color:#f0f0f0; font-family:'Friz
 
 .admin-container { max-width:900px; margin:3rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:12px; box-shadow:0 0 20px #ff4f81; }
 .admin-container h1 { text-align:center; color:#ff4f81; margin-bottom:2rem; }
-
 .admin-container form, .blog-editor { display:flex; flex-direction:column; gap:1rem; }
 .admin-container input, .admin-container select { padding:0.6rem; border-radius:6px; border:1px solid #ff4f81; background:#1a1a1a; color:#f0f0f0; font-size:1rem; }
-
 .admin-container button { padding:0.6rem; border-radius:6px; border:1px solid #ff4f81; background:#0f0f0f; color:#f0f0f0; cursor:pointer; font-size:1rem; transition:0.3s; }
 .admin-container button:hover { background:#ff4f81; color:#0f0f0f; }
 .logout-btn { margin-top:1rem; background:#ff4f81; color:#0f0f0f; }
 .logout-btn:hover { background:#0f0f0f; color:#ff4f81; }
-
-/* Quill editor height */
 #editor { height:300px; background:#1a1a1a; color:#f0f0f0; border-radius:6px; }
 
-/* Mobile */
 @media(max-width:576px){ .navbar-container { padding:0.5rem 1rem; } .nav-logo img { height:30px; } .admin-container { padding:1.2rem; margin:2rem 1rem; } }
 </style>
-
 </head>
-<body>
 
-<!-- Navbar -->
+<body>
 <nav class="navbar">
   <div class="navbar-container">
     <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
@@ -85,10 +76,10 @@ body { margin:0; padding:0; background:#0f0f0f; color:#f0f0f0; font-family:'Friz
     <button type="submit">Login</button>
   </form>
 
-  <!-- Logout Button -->
+  <!-- Logout -->
   <button id="logoutBtn" class="logout-btn" style="display:none;">Logout</button>
 
-  <!-- Blog Editor (Hidden Until Login) -->
+  <!-- Blog Editor -->
   <div class="blog-editor" id="blogEditor" style="display:none;">
     <input type="text" id="postTitle" placeholder="Post Title">
     <input type="text" id="postTags" placeholder="Categories / Tags (comma-separated)">
@@ -97,27 +88,27 @@ body { margin:0; padding:0; background:#0f0f0f; color:#f0f0f0; font-family:'Friz
   </div>
 </div>
 
-<!-- Firebase + Quill + Scripts -->
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
 
-// Firebase config
+// Firebase Config
 const firebaseConfig = {
-    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
-    authDomain: "xacanonblog.firebaseapp.com",
-    projectId: "xacanonblog",
-    storageBucket: "xacanonblog.firebasestorage.app",
-    messagingSenderId: "319182532803",
-    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
+// DOM Elements
 const loginForm = document.getElementById("loginForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const blogEditor = document.getElementById("blogEditor");
@@ -125,7 +116,7 @@ const blogEditor = document.getElementById("blogEditor");
 // Initialize Quill
 const quill = new Quill('#editor', { theme: 'snow', placeholder:'Write your post here...' });
 
-// Auth state listener
+// Auth State Listener
 onAuthStateChanged(auth, user => {
   if (user) {
     loginForm.style.display = "none";
@@ -148,4 +139,30 @@ loginForm.addEventListener("submit", e => {
 });
 
 // Logout
-logoutBtn
+logoutBtn.addEventListener("click", () => {
+  signOut(auth).catch(err => alert(err.message));
+});
+
+// Save Blog Post
+document.getElementById("savePostBtn").addEventListener("click", async () => {
+  const title = document.getElementById("postTitle").value;
+  const tags = document.getElementById("postTags").value.split(",").map(t=>t.trim());
+  const content = quill.root.innerHTML;
+  if(!title || !content) return alert("Title and content are required.");
+  try {
+    await addDoc(collection(db,"blogPosts"),{
+      title,
+      tags,
+      content,
+      createdAt: serverTimestamp()
+    });
+    alert("Post saved!");
+    document.getElementById("postTitle").value="";
+    document.getElementById("postTags").value="";
+    quill.setText("");
+  } catch(err){ console.error(err); alert("Failed to save post"); }
+});
+</script>
+
+<script>
+// Hamburger
