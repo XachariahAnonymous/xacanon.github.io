@@ -23,8 +23,8 @@
     .navbar-container { display:flex; justify-content: space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
     .nav-logo img { height:50px; transition: height 0.3s ease; }
 
-    /* Navbar link hover glitch effect */
-    .nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; }
+    /* Navbar links & glitch */
+    .nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; margin:0; padding:0; }
     .nav-links li a {
       position: relative;
       color:#f0f0f0;
@@ -57,40 +57,48 @@
     }
 
     /* Dropdown */
-    .nav-links li.dropdown {
-      position: relative;
-    }
+    .nav-links li.dropdown { position: relative; }
     .nav-links li .dropdown-content {
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.4s ease;
       position: absolute;
-      background-color: #1a1a1a;
-      min-width: 180px;
       top: 100%;
       left: 0;
+      background-color: #1a1a1a;
       border: 1px solid #ff4f81;
       border-radius: 8px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease, opacity 0.4s ease;
+      opacity: 0;
       z-index: 1000;
     }
     .nav-links li .dropdown-content li a {
-      display: block;
       padding: 0.8rem 1rem;
       color: #f0f0f0;
+      display: block;
       font-size: 1rem;
+      text-decoration: none;
       transition: background 0.3s ease;
     }
-    .nav-links li .dropdown-content li a:hover {
-      background-color: #ff4f81;
-      color: #0a0a0a;
+    .nav-links li .dropdown-content li a:hover { background-color: #ff4f81; color: #0a0a0a; }
+
+    /* Desktop hover animation */
+    @media(min-width: 577px){
+      .nav-links li.dropdown:hover .dropdown-content {
+        max-height: 500px;
+        opacity: 1;
+      }
     }
 
-    /* Desktop hover */
-    @media(min-width: 577px){
-      .nav-links li.dropdown .dropdown-content { max-height: none; }
-      .nav-links li.dropdown:hover .dropdown-content { display: flex; }
+    /* Hamburger */
+    .hamburger { display: none; cursor: pointer; font-size: 1.5rem; color:#f0f0f0; }
+    @media(max-width: 576px){
+      .hamburger { display: block; }
+      .nav-links { flex-direction: column; width: 100%; max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+      .nav-links.show { max-height: 1000px; }
+      .nav-links li { width: 100%; }
+      .dropdown-content { position: relative; border: none; border-radius: 0; }
     }
 
     /* Countdown */
@@ -157,7 +165,6 @@
     @media (max-width: 576px) {
       .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; flex-wrap: nowrap; }
       .nav-logo img { height: 30px; }
-      .nav-links { flex-direction: row; gap: 0.8rem; justify-content: flex-end; }
       .nav-links li a { font-size: 0.9rem; }
     }
   </style>
@@ -170,25 +177,27 @@
       <a href="index.html" class="nav-logo">
         <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       </a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
         <li><a href="index.html" data-text="Home">Home</a></li>
         <li class="dropdown">
-          <a href="#" class="dropbtn" data-text="Music">Music</a>
+          <a href="#" class="dropbtn" data-text="Pages">Pages <i class="fas fa-caret-down"></i></a>
           <ul class="dropdown-content">
-            <li><a href="music.html" data-text="All Music">All Music</a></li>
+            <li><a href="music.html" data-text="Music">Music</a></li>
             <li><a href="albums.html" data-text="Albums">Albums</a></li>
             <li><a href="singles.html" data-text="Singles">Singles</a></li>
+            <li><a href="blog.html" data-text="Blog">Blog</a></li>
+            <li><a href="about.html" data-text="About Me">About Me</a></li>
+            <li><a href="contact.html" data-text="Contact">Contact</a></li>
             <li><a href="epk.html" data-text="EPK">EPK</a></li>
           </ul>
         </li>
-        <li><a href="blog.html" data-text="Blog">Blog</a></li>
-        <li><a href="about.html" data-text="About Me">About Me</a></li>
-        <li><a href="contact.html" data-text="Contact">Contact</a></li>
       </ul>
     </div>
   </nav>
 
   <div id="main-content">
+    <!-- HEADER -->
     <header style="text-align:center; padding:2rem 1rem;">
       <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       <h1>Xac Anon</h1>
@@ -256,39 +265,28 @@
   </div>
 
   <script>
-    // Countdown with AEDT + visitor timezone
+    // Countdown
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
-
-    const releaseTime = "2025-10-25T00:00:00"; // release midnight AEDT
+    const releaseTime = "2025-10-25T00:00:00";
     const timeZone = "Australia/Sydney";
-
     const releaseDateAEDT = new Date(releaseTime);
     const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
-
-    releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      timeZone: timeZone
-    })} | Your Time: ${releaseDateLocal.toLocaleString()}`;
+    releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short', timeZone: timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
 
     function updateCountdown() {
       const now = new Date();
       const diff = releaseDateAEDT - now;
-      if (diff <= 0) {
-        countdownElement.textContent = "Out Now!";
-        return;
-      }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-      const secs = Math.floor((diff / 1000) % 60);
+      if(diff <= 0){ countdownElement.textContent="Out Now!"; return; }
+      const days = Math.floor(diff / (1000*60*60*24));
+      const hours = Math.floor((diff/(1000*60*60))%24);
+      const mins = Math.floor((diff/(1000*60))%60);
+      const secs = Math.floor((diff/1000)%60);
       countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
     }
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
+    setInterval(updateCountdown, 1000); updateCountdown();
 
-    // Load Spotify Track Covers + Titles
+    // Load Spotify Tracks
     async function loadSpotifyData(){
       const cards=document.querySelectorAll(".music-card");
       for(let card of cards){
@@ -297,19 +295,16 @@
           const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
           const data=await res.json();
           card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
-          card.addEventListener('click',()=> {
+          card.addEventListener('click',()=>{ 
             document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`;
             document.getElementById('spotify-modal').style.display='flex';
           });
-        } catch(err){
-          console.error(err);
-          card.innerHTML="<h3>Track unavailable</h3>";
-        }
+        }catch(err){ console.error(err); card.innerHTML="<h3>Track unavailable</h3>"; }
       }
     }
     loadSpotifyData();
 
-    // Modal Close
+    // Modal close
     document.querySelector('.modal-close').onclick=function(){
       document.getElementById('spotify-modal').style.display='none';
       document.getElementById('spotify-player').src='';
@@ -321,32 +316,18 @@
       }
     };
 
-    // Mobile Dropdown Toggle with Smooth Slide
-    const dropdowns = document.querySelectorAll('.nav-links li.dropdown');
-    dropdowns.forEach(drop => {
-      const btn = drop.querySelector('.dropbtn');
-      const content = drop.querySelector('.dropdown-content');
+    // Hamburger toggle
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    hamburger.addEventListener('click', ()=>{ navLinks.classList.toggle('show'); });
 
-      btn.addEventListener('click', (e) => {
+    // Mobile dropdown toggle
+    document.querySelectorAll('.dropbtn').forEach(btn=>{
+      btn.addEventListener('click', e=>{
         e.preventDefault();
-        const isVisible = content.classList.contains('show');
-
-        // Close all other dropdowns
-        document.querySelectorAll('.dropdown-content').forEach(dc => dc.classList.remove('show'));
-
-        // Toggle current dropdown
-        if(!isVisible){
-          content.classList.add('show');
-        } else {
-          content.classList.remove('show');
-        }
+        const dropdown = btn.nextElementSibling;
+        dropdown.style.maxHeight = dropdown.style.maxHeight && dropdown.style.maxHeight !== "0px" ? "0px" : dropdown.scrollHeight + "px";
       });
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.nav-links li.dropdown')) {
-        document.querySelectorAll('.dropdown-content').forEach(dc => dc.classList.remove('show'));
-      }
     });
   </script>
 </body>
