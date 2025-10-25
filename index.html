@@ -49,10 +49,26 @@
 body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
 
 /* ===== NAVBAR ===== */
-.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:1rem 2rem; }
+.navbar { 
+  position: sticky; 
+  top:0; 
+  z-index:1000; 
+  background:#0f0f0f; 
+  box-shadow:none; /* Removed pink line and shadow */
+  border:none;     /* Removed border line */
+}
+.navbar-container { 
+  max-width:1200px; 
+  margin:0 auto; 
+  display:flex; 
+  justify-content:space-between; 
+  align-items:center; 
+  flex-wrap:wrap; 
+  padding:1rem 2rem; 
+}
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
+
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
 .home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
