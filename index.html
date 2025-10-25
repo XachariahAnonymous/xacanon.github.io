@@ -22,31 +22,18 @@
     .navbar { position: sticky; top: 0; z-index: 1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
     .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
     .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; transition: height 0.3s ease; }
-
     @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
 
-    /* Right-aligned controls: Home + Hamburger + Dropdown */
+    /* Right-aligned controls */
     .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 
     /* Glitch Home Button */
     .home-button { 
-      color:#f0f0f0; 
-      text-decoration:none; 
-      font-size:1.1rem; 
-      padding:0.4rem 0.8rem; 
-      border:1px solid #ff4f81; 
-      border-radius:6px; 
-      position:relative; 
-      transition:0.3s; 
+      color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; 
+      border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; 
     }
     .home-button::before, .home-button::after { 
-      content:attr(data-text); 
-      position:absolute; 
-      left:0; 
-      width:100%; 
-      color:#ff4f81; 
-      overflow:hidden; 
-      clip:rect(0,0,0,0); 
+      content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); 
     }
     .home-button:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
     .home-button:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
@@ -54,27 +41,14 @@
     /* Hamburger */
     .hamburger { cursor:pointer; font-size:1.5rem; color:#f0f0f0; }
 
-    /* Links initially hidden under hamburger */
+    /* Dropdown links */
     .nav-links { 
-      list-style:none; 
-      padding:0; 
-      margin:0; 
-      position:absolute; 
-      top:100%; 
-      right:0; 
-      background:#0f0f0f; 
-      border:1px solid #ff4f81; 
-      border-radius:8px; 
-      display:flex; 
-      flex-direction:column; 
-      overflow:hidden; 
-      max-height:0; 
-      transition:max-height 0.3s ease; 
-      min-width:max-content; 
+      list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; 
+      background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; 
+      display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.3s ease; min-width:max-content; 
     }
     .nav-links.show { max-height:500px; }
 
-    .nav-links li { padding:0; margin:0; }
     .nav-links li a { padding:0.8rem 1.2rem; display:block; white-space:nowrap; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
     .nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
     .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
@@ -93,7 +67,7 @@
 
     /* Countdown */
     #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
-    @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
+    @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);} }
 
     /* Sections */
     .music-section { padding:2rem; text-align:center; }
@@ -144,7 +118,7 @@
   <!-- NAVBAR -->
   <nav class="navbar">
     <div class="navbar-container">
-      <!-- Logo on the left -->
+      <!-- Logo -->
       <a href="index.html" class="nav-logo">
         <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       </a>
@@ -238,10 +212,10 @@
       navLinks.classList.toggle('show');
     });
 
-    // Countdown with AEDT + visitor timezone
+    // Countdown
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
-    const releaseTime = "2025-10-25T00:00:00"; // release midnight AEDT
+    const releaseTime = "2025-10-25T00:00:00"; 
     const timeZone = "Australia/Sydney";
     const releaseDateAEDT = new Date(releaseTime);
     const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
@@ -263,7 +237,7 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // Load Spotify Track Covers + Titles
+    // Load Spotify Tracks
     async function loadSpotifyData(){
       const cards=document.querySelectorAll(".music-card");
       for(let card of cards){
@@ -273,10 +247,7 @@
           const data=await res.json();
           card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
           card.addEventListener('click',()=>{document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`;document.getElementById('spotify-modal').style.display='flex';});
-        } catch(err){
-          console.error(err);
-          card.innerHTML="<h3>Track unavailable</h3>";
-        }
+        } catch(err){ card.innerHTML="<h3>Track unavailable</h3>"; }
       }
     }
     loadSpotifyData();
