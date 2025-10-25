@@ -87,7 +87,7 @@ async function loadPosts() {
     postEl.innerHTML = `
       <h3>${data.title}</h3>
       <p><strong>Category:</strong> ${data.category || "Uncategorized"} | <strong>Tags:</strong> ${data.tags?.join(", ") || "None"} | <strong>Date:</strong> ${date}</p>
-      <a href="post.html?id=${doc.id}">Read More</a>
+      <a href="blogPost.html?id=${doc.id}">Read More</a>
     `;
     postsDiv.appendChild(postEl);
   });
