@@ -21,12 +21,35 @@
     /* Navbar */
     .navbar { position: sticky; top: 0; z-index: 1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
     .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
-    .nav-logo img { height:50px; }
+    .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; transition: height 0.3s ease; }
+
+    @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
 
     /* Right-aligned controls: Home + Hamburger + Dropdown */
     .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 
-    .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+    /* Glitch Home Button */
+    .home-button { 
+      color:#f0f0f0; 
+      text-decoration:none; 
+      font-size:1.1rem; 
+      padding:0.4rem 0.8rem; 
+      border:1px solid #ff4f81; 
+      border-radius:6px; 
+      position:relative; 
+      transition:0.3s; 
+    }
+    .home-button::before, .home-button::after { 
+      content:attr(data-text); 
+      position:absolute; 
+      left:0; 
+      width:100%; 
+      color:#ff4f81; 
+      overflow:hidden; 
+      clip:rect(0,0,0,0); 
+    }
+    .home-button:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    .home-button:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
     /* Hamburger */
     .hamburger { cursor:pointer; font-size:1.5rem; color:#f0f0f0; }
@@ -47,7 +70,7 @@
       overflow:hidden; 
       max-height:0; 
       transition:max-height 0.3s ease; 
-      min-width:max-content; /* wrap to widest link */
+      min-width:max-content; 
     }
     .nav-links.show { max-height:500px; }
 
@@ -80,7 +103,7 @@
     .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
     .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
     .music-card h3 { font-size:1rem; }
-    @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
+    @keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
 
     /* Header */
     header img { max-width:150px; height:auto; border-radius:50%; }
@@ -108,27 +131,6 @@
     /* Featured Music spacing */
     #featured-music { padding-bottom:150px; }
 
-    /* EPK Section */
-    .epk-section { text-align:center; padding:3rem 1rem; background:#111; margin-top:2rem; border-top:2px solid #ff4f81; border-bottom:2px solid #ff4f81; border-radius:12px; }
-    .epk-section h2 { color:#ff4f81; font-size:2rem; margin-bottom:1rem; text-transform:uppercase; }
-    .epk-section p { font-size:1.1rem; margin-bottom:2rem; }
-    .epk-button {
-      display:inline-block;
-      padding:1rem 2rem;
-      background:#ff4f81;
-      color:#0f0f0f;
-      text-decoration:none;
-      font-weight:bold;
-      font-size:1rem;
-      border-radius:8px;
-      position:relative;
-      transition: transform 0.3s ease;
-    }
-    .epk-button::before, .epk-button::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#0f0f0f; overflow:hidden; clip: rect(0,0,0,0); }
-    .epk-button:hover { transform: scale(1.05); }
-    .epk-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-    .epk-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-
     @media (max-width: 576px) {
       .navbar-container { flex-direction:row; justify-content:space-between; align-items:center; padding:0.5rem 1rem; flex-wrap:nowrap; }
       .nav-logo img { height:30px; }
@@ -155,7 +157,7 @@
           <li><a href="music.html" data-text="Music">Music</a></li>
           <li><a href="blog.html" data-text="Blog">Blog</a></li>
           <li><a href="contact.html" data-text="Contact">Contact</a></li>
-           <li><a href="about.html" data-text="About">About Me</a></li>
+          <li><a href="about.html" data-text="About">About Me</a></li>
         </ul>
       </div>
     </div>
