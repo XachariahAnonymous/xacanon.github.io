@@ -20,28 +20,57 @@
 
     /* Navbar */
     .navbar { position: sticky; top: 0; z-index: 1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-    .navbar-container { display:flex; justify-content: space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
-    .nav-logo img { height:50px; transition: height 0.3s ease; }
+    .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+    .nav-logo img { height:50px; }
 
-    .nav-right { display:flex; align-items:center; gap:1rem; }
+    /* Right-aligned controls: Home + Hamburger + Dropdown */
+    .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 
-    /* Hamburger menu */
+    .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+
+    /* Hamburger */
     .hamburger { cursor:pointer; font-size:1.5rem; color:#f0f0f0; }
 
-    /* Navbar links */
-    .nav-links { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; width:100%; max-height:0; overflow:hidden; transition:max-height 0.4s ease; gap:1rem; }
+    /* Links initially hidden under hamburger */
+    .nav-links { 
+      list-style:none; 
+      padding:0; 
+      margin:0; 
+      position:absolute; 
+      top:100%; 
+      right:0; 
+      background:#0f0f0f; 
+      border:1px solid #ff4f81; 
+      border-radius:8px; 
+      display:flex; 
+      flex-direction:column; 
+      overflow:hidden; 
+      max-height:0; 
+      transition:max-height 0.3s ease; 
+      min-width:max-content; /* wrap to widest link */
+    }
     .nav-links.show { max-height:500px; }
-    .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+
+    .nav-links li { padding:0; margin:0; }
+    .nav-links li a { padding:0.8rem 1.2rem; display:block; white-space:nowrap; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
     .nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
     .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
     .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-    @keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0);transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
-    @keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0);transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
+    @keyframes glitchTop {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      50% { clip: rect(0, 9999px, 5px, 0); transform: translate(-2px,-2px); }
+      100% { clip: rect(0, 9999px, 0, 0); }
+    }
+    @keyframes glitchBottom {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      50% { clip: rect(5px, 9999px, 10px,0); transform: translate(2px,2px); }
+      100% { clip: rect(0, 9999px, 0,0); }
+    }
 
     /* Countdown */
     #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
-    @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);} }
+    @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
 
     /* Sections */
     .music-section { padding:2rem; text-align:center; }
@@ -51,7 +80,7 @@
     .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
     .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
     .music-card h3 { font-size:1rem; }
-    @keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
+    @keyframes fadeUp{to{opacity:1; transform:translateY(0);}}
 
     /* Header */
     header img { max-width:150px; height:auto; border-radius:50%; }
@@ -83,47 +112,55 @@
     .epk-section { text-align:center; padding:3rem 1rem; background:#111; margin-top:2rem; border-top:2px solid #ff4f81; border-bottom:2px solid #ff4f81; border-radius:12px; }
     .epk-section h2 { color:#ff4f81; font-size:2rem; margin-bottom:1rem; text-transform:uppercase; }
     .epk-section p { font-size:1.1rem; margin-bottom:2rem; }
-    .epk-button { display:inline-block; padding:1rem 2rem; background:#ff4f81; color:#0f0f0f; text-decoration:none; font-weight:bold; font-size:1rem; border-radius:8px; position:relative; transition: transform 0.3s ease; }
+    .epk-button {
+      display:inline-block;
+      padding:1rem 2rem;
+      background:#ff4f81;
+      color:#0f0f0f;
+      text-decoration:none;
+      font-weight:bold;
+      font-size:1rem;
+      border-radius:8px;
+      position:relative;
+      transition: transform 0.3s ease;
+    }
     .epk-button::before, .epk-button::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#0f0f0f; overflow:hidden; clip: rect(0,0,0,0); }
     .epk-button:hover { transform: scale(1.05); }
     .epk-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
     .epk-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-    @media (max-width: 1024px) {
-      .nav-links { flex-direction:column; max-height:0; overflow:hidden; }
-      .nav-links.show { max-height:500px; }
-      .nav-links li a { font-size:1rem; }
+    @media (max-width: 576px) {
+      .navbar-container { flex-direction:row; justify-content:space-between; align-items:center; padding:0.5rem 1rem; flex-wrap:nowrap; }
+      .nav-logo img { height:30px; }
+      .home-button { font-size:0.9rem; }
+      .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
     }
   </style>
 </head>
+
 <body>
   <!-- NAVBAR -->
   <nav class="navbar">
     <div class="navbar-container">
-      <!-- Left: Logo -->
+      <!-- Logo on the left -->
       <a href="index.html" class="nav-logo">
         <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       </a>
 
-      <!-- Right: Home button + Hamburger -->
+      <!-- Right: Home + Hamburger + Dropdown -->
       <div class="nav-right">
-        <a href="index.html" class="home-button" data-text="Home" style="color:#f0f0f0; text-decoration:none; font-size:1.1rem;">Home</a>
+        <a href="index.html" class="home-button" data-text="Home">Home</a>
         <div class="hamburger"><i class="fas fa-bars"></i></div>
+        <ul class="nav-links">
+          <li><a href="music.html" data-text="Music">Music</a></li>
+          <li><a href="blog.html" data-text="Blog">Blog</a></li>
+          <li><a href="contact.html" data-text="Contact">Contact</a></li>
+        </ul>
       </div>
-
-      <!-- Navbar links (for hamburger toggle) -->
-      <ul class="nav-links">
-        <li><a href="music.html" data-text="Music">Music</a></li>
-        <li><a href="blog.html" data-text="Blog">Blog</a></li>
-        <li><a href="contact.html" data-text="Contact">Contact</a></li>
-      </ul>
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
   <div id="main-content">
-    <!-- (All your existing header, music sections, EPK, modal, footer remain unchanged) -->
-
     <header style="text-align:center; padding:2rem 1rem;">
       <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
       <h1>Xac Anon</h1>
@@ -136,6 +173,7 @@
       </div>
     </header>
 
+    <!-- MUSIC SECTIONS -->
     <section class="music-section">
       <h2>Popular Tracks</h2>
       <div class="music-grid">
@@ -163,12 +201,14 @@
       </div>
     </section>
 
+    <!-- EPK SECTION -->
     <section class="epk-section">
       <h2>Check Out My EPK</h2>
       <p>Everything you need to know about my music, achievements, and press kit.</p>
       <a href="epk.html" class="epk-button" data-text="View My EPK">View My EPK</a>
     </section>
 
+    <!-- MODAL -->
     <div id="spotify-modal" class="modal">
       <div class="modal-content">
         <span class="modal-close">&times;</span>
@@ -176,6 +216,7 @@
       </div>
     </div>
 
+    <!-- FOOTER -->
     <footer>
       <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
       <div class="socials">
@@ -190,21 +231,26 @@
     // Hamburger toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('show');
+    });
 
-    // Countdown
+    // Countdown with AEDT + visitor timezone
     const countdownElement = document.getElementById("countdown");
     const releaseElement = document.getElementById("release-date");
-    const releaseTime = "2025-10-25T00:00:00";
+    const releaseTime = "2025-10-25T00:00:00"; // release midnight AEDT
     const timeZone = "Australia/Sydney";
     const releaseDateAEDT = new Date(releaseTime);
     const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
-    releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short', timeZone })} | Your Time: ${releaseDateLocal.toLocaleString()}`;
+    releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short', timeZone: timeZone })} | Your Time: ${releaseDateLocal.toLocaleString()}`;
 
     function updateCountdown() {
       const now = new Date();
       const diff = releaseDateAEDT - now;
-      if (diff <= 0) { countdownElement.textContent = "Out Now!"; return; }
+      if (diff <= 0) {
+        countdownElement.textContent = "Out Now!";
+        return;
+      }
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const mins = Math.floor((diff / (1000 * 60)) % 60);
@@ -214,7 +260,7 @@
     setInterval(updateCountdown, 1000);
     updateCountdown();
 
-    // Spotify load
+    // Load Spotify Track Covers + Titles
     async function loadSpotifyData(){
       const cards=document.querySelectorAll(".music-card");
       for(let card of cards){
@@ -223,15 +269,26 @@
           const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
           const data=await res.json();
           card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
-          card.addEventListener('click',()=>{ document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`; document.getElementById('spotify-modal').style.display='flex'; });
-        } catch(err){ console.error(err); card.innerHTML="<h3>Track unavailable</h3>"; }
+          card.addEventListener('click',()=>{document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`;document.getElementById('spotify-modal').style.display='flex';});
+        } catch(err){
+          console.error(err);
+          card.innerHTML="<h3>Track unavailable</h3>";
+        }
       }
     }
     loadSpotifyData();
 
     // Modal Close
-    document.querySelector('.modal-close').onclick=function(){ document.getElementById('spotify-modal').style.display='none'; document.getElementById('spotify-player').src=''; };
-    window.onclick=function(e){ if(e.target==document.getElementById('spotify-modal')){ document.getElementById('spotify-modal').style.display='none'; document.getElementById('spotify-player').src=''; } };
+    document.querySelector('.modal-close').onclick=function(){
+      document.getElementById('spotify-modal').style.display='none';
+      document.getElementById('spotify-player').src='';
+    };
+    window.onclick=function(e){
+      if(e.target==document.getElementById('spotify-modal')){
+        document.getElementById('spotify-modal').style.display='none';
+        document.getElementById('spotify-player').src='';
+      }
+    };
   </script>
 </body>
 </html>
