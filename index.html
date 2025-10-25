@@ -57,7 +57,7 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .home-button:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
 /* Hamburger */
-.hamburger { font-size:1.5rem; cursor:pointer; color:#f0f0f0; }
+.hamburger { font-size:1.5rem; cursor:pointer; color:#f0f0f0; display:none; }
 
 /* Dropdown */
 .nav-links {
@@ -65,18 +65,19 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   padding:0;
   margin:0;
   position:absolute;
-  top:calc(100% + 5px); /* spacing below navbar */
+  top:calc(100% + 5px);
   right:0;
   background:#0f0f0f;
   border:1px solid #ff4f81;
-  border-top:none; /* remove top border to eliminate line */
+  border-top:none;
   border-radius:0 0 8px 8px;
   display:flex;
   flex-direction:column;
   overflow:hidden;
   max-height:0;
-  transition:max-height 0.3s ease;
+  transition:max-height 0.4s ease;
   min-width:max-content;
+  z-index:1000;
 }
 .nav-links.show { max-height:500px; }
 .nav-links li a {
@@ -92,8 +93,8 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
 /* Glitch keyframes */
-@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);}}
-@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
 
 /* Countdown */
 #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -138,6 +139,10 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 
 #featured-music { padding-bottom:150px; }
 
+/* Responsive */
+@media(max-width:768px){
+  .hamburger { display:block; }
+}
 @media(max-width:576px){
   .navbar-container { padding:0.5rem 1rem; }
   .nav-logo img { height:30px; }
@@ -233,7 +238,7 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 </div>
 
 <script>
-// Hamburger toggle
+// Hamburger toggle with smooth slide
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => {
