@@ -21,11 +21,13 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button, .logout-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; cursor:pointer; }
-.hamburger { display:block; font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; z-index:1001; }
+.nav-links.active { display:flex; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 
+/* Login & Admin Panel */
 #login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 #admin-content { display:none; }
 input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; }
@@ -95,9 +97,18 @@ const db = getFirestore(app);
 // Quill editor
 const quill = new Quill('#editor', { theme: 'snow' });
 
-// Hamburger toggle
-document.querySelector('.hamburger').addEventListener('click', () => {
-  document.querySelector('.nav-links').classList.toggle('active');
+// Hamburger menu
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('active');
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.nav-right')){
+    navLinks.classList.remove('active');
+  }
 });
 
 // Login
@@ -136,9 +147,7 @@ document.getElementById("blog-form").addEventListener("submit", async (e)=>{
   const content = quill.root.innerHTML;
 
   try {
-    await addDoc(collection(db, "blogPosts"), {
-      title, category, tags, content, timestamp: serverTimestamp()
-    });
+    await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
     alert("Post published!");
     document.getElementById("blog-form").reset();
     quill.setContents([]);
