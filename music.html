@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Music | Xac Anon</title>
 <link rel="icon" type="image/png" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
@@ -48,7 +48,33 @@ header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse;
 
 /* Music Sections */
 .music-section { padding:2rem 1rem; }
-.music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; text-align:center; cursor:pointer; user-select:none; }
+
+/* Collapsible headers with arrows */
+.collapsible {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  padding-left: 1rem;
+}
+
+/* Arrow icon on left */
+.collapsible::before {
+  content: "\f105"; /* Font Awesome chevron-right */
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  display: inline-block;
+  transition: transform 0.3s ease;
+  color: #ff4f81;
+}
+
+/* Rotate arrow when expanded */
+.collapsible.active::before {
+  transform: rotate(90deg);
+}
 
 /* Music Grid */
 .music-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; margin-bottom:1rem; }
@@ -153,13 +179,14 @@ document.querySelector('.hamburger').addEventListener('click', () => {
   document.querySelector('.nav-links').classList.toggle('active');
 });
 
-// Collapsible sections
-document.querySelectorAll('.collapsible').forEach(header=>{
+// Collapsible sections with arrow
+document.querySelectorAll('.collapsible').forEach(header => {
   const content = header.nextElementSibling;
   content.style.display = "none"; // collapsed initially
-
-  header.addEventListener('click', ()=> {
-    content.style.display = (content.style.display === "grid") ? "none" : "grid";
+  header.addEventListener('click', () => {
+    const isActive = content.style.display === "grid";
+    content.style.display = isActive ? "none" : "grid";
+    header.classList.toggle("active", !isActive);
   });
 });
 
