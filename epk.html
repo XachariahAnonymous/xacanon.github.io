@@ -12,26 +12,16 @@
 body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
 
 /* NAVBAR */
-.navbar {
-  position: sticky; top:0; z-index:1000;
-  background-color: #0f0f0f;
-  border-bottom: 1px solid #ff4f81;
-  box-shadow: 0 0 10px #ff4f81;
-}
-.navbar-container {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 2rem; max-width: 1200px; margin:0 auto; flex-wrap: wrap;
-}
-.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; transition: height 0.3s ease; }
-@keyframes pulseGlitch { 0%,100% { filter:none; } 50% { filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05); } }
-.nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; }
-.nav-links li a { position:relative; color:#f0f0f0; text-decoration:none; font-size:1.1rem; transition:color 0.3s ease; }
-.nav-links li a:hover{ color:#ff4f81; }
-.nav-links a::before, .nav-links a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.nav-links a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
-@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
+.navbar { position: sticky; top:0; z-index:1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; transition: height 0.3s ease; }
+.nav-menu { display:flex; align-items:center; gap:1rem; }
+.nav-links { list-style:none; display:flex; flex-direction:column; position:absolute; top:70px; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 0; display:none; min-width: max-content; }
+.nav-links li { margin:0; }
+.nav-links li a { display:block; padding:0.5rem 1rem; color:#f0f0f0; text-decoration:none; font-size:1.1rem; white-space:nowrap; }
+.nav-links li a:hover { color:#ff4f81; }
+.hamburger { cursor:pointer; font-size:1.5rem; color:#f0f0f0; }
+.show { display:block !important; }
 
 /* HEADER */
 header { text-align:center; padding:3rem 1rem 2rem; }
@@ -41,11 +31,8 @@ header h1::before { animation: glitchTop 1s infinite linear alternate-reverse; }
 header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse; }
 @keyframes glitchHeader {0%{transform:none;}20%{transform:skew(2deg);}40%{transform:skew(-2deg);}60%{transform:none;}80%{transform:translateX(2px);}100%{transform:none;}}
 
-/* EPK SECTION BACKGROUNDS */
-.bio,
-.music-section,
-.highlights,
-.contact-section {
+/* EPK SECTIONS */
+.bio, .music-section, .highlights, .contact-section {
   background: #2E2D2B;
   border: 1px solid #ff4f81;
   border-radius: 12px;
@@ -54,8 +41,6 @@ header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse;
   margin: 2rem auto;
   max-width: 1000px;
 }
-
-/* SECTION TITLES */
 section h2 { text-align:center; font-size:1.8rem; margin-bottom:1.5rem; color:#ff4f81; text-transform:uppercase; }
 .bio p { font-size:1.1rem; line-height:1.6; text-align:center; }
 
@@ -82,12 +67,13 @@ footer .socials-footer a::before, footer .socials-footer a::after { content: att
 footer .socials-footer a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
+/* GLITCH ANIMATIONS */
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);}}
+
 /* MOBILE */
 @media(max-width:576px){
-  .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; flex-wrap: nowrap; }
-  .nav-logo img { height: 30px; }
-  .nav-links { flex-direction: row; gap: 0.8rem; justify-content: flex-end; }
-  .nav-links li a { font-size:0.9rem; }
+  .nav-links { position:absolute; top:60px; right:0; }
 }
 </style>
 </head>
@@ -97,12 +83,15 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 <nav class="navbar">
   <div class="navbar-container">
     <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
-    <ul class="nav-links">
-      <li><a href="index.html" data-text="Home">Home</a></li>
-      <li><a href="music.html" data-text="Music">Music</a></li>
-      <li><a href="blog.html" data-text="Blog">Blog</a></li>
-      <li><a href="contact.html" data-text="Contact">Contact</a></li>
-    </ul>
+    <div class="nav-menu">
+      <a href="index.html" data-text="Home">Home</a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
+      <ul class="nav-links">
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="blog.html" data-text="Blog">Blog</a></li>
+        <li><a href="contact.html" data-text="Contact">Contact</a></li>
+      </ul>
+    </div>
   </div>
 </nav>
 
@@ -123,23 +112,23 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 
 <section class="highlights">
   <h2>Achievements</h2>
-  <h3 style="color: #ff4c4c;">Musical Milestones</h3>
+  <h3 style="color:#ff4c4c;">Musical Milestones</h3>
   <ul>
     <li>Released critically noted projects: <em>Purgatory</em>, <em>Second Chance</em>, and <em>Darkness and Light</em>.</li>
     <li>Developed a signature <strong>lo-fi emo rap</strong> style, blending dark, introspective lyrics with haunting melodies.</li>
   </ul>
-  <h3 style="color: #ff4c4c;">Artistic Influence</h3>
+  <h3 style="color:#ff4c4c;">Artistic Influence</h3>
   <ul>
     <li>Shaped the Australian lo-fi rap scene with emotionally raw storytelling.</li>
     <li>Inspired fans and fellow artists to explore vulnerability, grief, and mental health through music.</li>
   </ul>
-  <h3 style="color: #ff4c4c;">Fan Impact & Community</h3>
+  <h3 style="color:#ff4c4c;">Fan Impact & Community</h3>
   <ul>
     <li>Cultivated a devoted online following across streaming platforms and Discord.</li>
     <li>Songs and lyrics are celebrated as sources of comfort, reflection, and connection.</li>
     <li>Work continues to inspire fan tributes, edits, and creative interpretations.</li>
   </ul>
-  <h3 style="color: #ff4c4c;">Legacy</h3>
+  <h3 style="color:#ff4c4c;">Legacy</h3>
   <ul>
     <li>Renowned for authenticity and emotional honesty, never shying from confronting pain in art.</li>
     <li>Left a lasting imprint on music and culture, offering catharsis and resonance for listeners navigating struggle.</li>
@@ -169,6 +158,11 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 </div>
 
 <script>
+// Hamburger toggle
+const hamburger = document.querySelector(".hamburger");
+const navLinks = document.querySelector(".nav-links");
+hamburger.addEventListener("click", () => { navLinks.classList.toggle("show"); });
+
 // Spotify Tracks
 const tracks = [
   "https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e",
@@ -177,7 +171,6 @@ const tracks = [
 ];
 
 const grid = document.getElementById("musicGrid");
-
 tracks.forEach(url => {
   fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
     .then(res => res.json())
