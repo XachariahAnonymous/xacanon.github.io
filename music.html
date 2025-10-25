@@ -74,6 +74,7 @@ footer .socials-footer a:hover::before { animation: glitchTop 0.6s infinite line
 footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
 /* MOBILE */
+@media(max-width:992px){ .music-grid { grid-template-columns:repeat(2,1fr); } }
 @media(max-width:576px){
   .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; padding:0.5rem 1rem; flex-wrap: nowrap; }
   .nav-logo img { height:30px; }
@@ -105,7 +106,7 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
   <p>Explore the latest releases and features</p>
 </header>
 
-<!-- Music Sections (collapsible) -->
+<!-- Music Sections -->
 <section class="music-section">
   <h2 class="collapsible">2025 Albums</h2>
   <div class="music-grid" id="albums-2025"></div>
@@ -148,73 +149,29 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 
 <script>
 // Hamburger toggle
-document.querySelectorAll(".nav-logo, .nav-links a").forEach(el=>{
-  el.addEventListener("click", ()=>document.querySelector(".nav-links").classList.remove("active"));
-});
-document.querySelector(".hamburger")?.addEventListener("click", ()=>{
-  document.querySelector(".nav-links").classList.toggle("active");
+document.querySelector('.hamburger').addEventListener('click', () => {
+  document.querySelector('.nav-links').classList.toggle('active');
 });
 
-// Collapsible sections with arrow rotation
+// Collapsible sections
 document.querySelectorAll('.collapsible').forEach(header=>{
-  const grid = header.nextElementSibling;
-  grid.style.display = "none"; // collapsed initially
-  const icon = header.querySelector("i");
+  const content = header.nextElementSibling;
+  content.style.display = "none"; // collapsed initially
 
-  header.addEventListener('click', ()=>{
-    const isOpen = grid.style.display === "grid";
-    // collapse all others
-    document.querySelectorAll('.music-grid').forEach(g=>{ g.style.display="none"; g.previousElementSibling.querySelector("i").style.transform="rotate(0deg)"; });
-    if(!isOpen){
-      grid.style.display="grid";
-      icon.style.transform="rotate(180deg)";
-    } else {
-      grid.style.display="none";
-      icon.style.transform="rotate(0deg)";
-    }
+  header.addEventListener('click', ()=> {
+    content.style.display = (content.style.display === "grid") ? "none" : "grid";
   });
 });
 
 // Spotify grids data
 const data = {
-  "albums-2025": [
-    "https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l",
-    "https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"
-  ],
-  "singles-2025": [
-    "https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1",
-    "https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT",
-    "https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5",
-    "https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"
-  ],
-  "albums-2024": [
-    "https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"
-  ],
-  "singles-2024": [
-    "https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI",
-    "https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns",
-    "https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7",
-    "https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR",
-    "https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq",
-    "https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"
-  ],
-  "albums-2023": [
-    "https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg"
-  ],
-  "singles-2023": [
-    "https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa",
-    "https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x",
-    "https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS",
-    "https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp",
-    "https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4",
-    "https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S"
-  ],
-  "features": [
-    "https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt",
-    "https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ",
-    "https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx",
-    "https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"
-  ]
+  "albums-2025": ["https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l","https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"],
+  "singles-2025": ["https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1","https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT","https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5","https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"],
+  "albums-2024": ["https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"],
+  "singles-2024": ["https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI","https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq","https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"],
+  "albums-2023": ["https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg"],
+  "singles-2023": ["https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa","https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x","https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS","https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp","https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4","https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S"],
+  "features": ["https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt","https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ","https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx","https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"]
 };
 
 // Populate grids
@@ -226,7 +183,7 @@ function loadGrid(containerId, urls){
     fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
       .then(res=>res.json())
       .then(data=>{ card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`; })
-      .catch(()=>{ card.innerHTML = `<h3>Spotify Link</h3>`; });
+      .catch(()=>{ card.innerHTML = `<div style="padding:1rem; font-size:0.9rem; color:#ff4f81;">Spotify unavailable</div>`; });
     card.addEventListener('click', ()=>openModal(url));
     container.appendChild(card);
   });
@@ -241,23 +198,17 @@ function openModal(url){
 }
 
 // Close modal
-document.querySelectorAll(".modal-close").forEach(btn=>{
-  btn.onclick = ()=>{ 
-    document.getElementById("spotify-modal").style.display="none"; 
-    document.getElementById("spotify-player").src=""; 
-  };
-});
-window.onclick = e=>{ 
-  if(e.target==document.getElementById("spotify-modal")){
-    document.getElementById("spotify-modal").style.display="none"; 
-    document.getElementById("spotify-player").src="";
-  }
-};
+function closeModal(){
+  document.getElementById("spotify-modal").style.display="none"; 
+  document.getElementById("spotify-player").src="";
+}
+document.querySelectorAll(".modal-close").forEach(btn=>{ btn.onclick = closeModal; });
+window.onclick = e=>{ if(e.target==document.getElementById("spotify-modal")) closeModal(); };
+document.addEventListener('keydown', (e)=>{ if(e.key === "Escape") closeModal(); });
 
 // Load all grids
 for(const key in data){ loadGrid(key,data[key]); }
 </script>
-
 
 </body>
 </html>
