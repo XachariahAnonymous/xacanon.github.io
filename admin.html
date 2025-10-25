@@ -1,160 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel | Xac Anon</title>
 
-<!-- Fonts & Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+<!-- Favicon & Fonts -->
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+<!-- Quill.js -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
 <style>
-/* ===== BODY ===== */
-body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
-
-/* ===== NAVBAR ===== */
-.navbar {
-  position: sticky;
-  top:0; z-index:1000;
-  background:#0f0f0f;
-  border-bottom:1px solid #ff4f81;
-  box-shadow:0 0 10px #ff4f81;
-}
-.navbar-container {
-  max-width:1200px;
-  margin:0 auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  padding:0.8rem 2rem;
-  height:60px;
-}
-.nav-logo img {
-  height:50px;
-  animation:pulseGlitch 2s infinite ease-in-out;
-}
-@keyframes pulseGlitch {
-  0%,100%{filter:none;}
-  50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);}
-}
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
+.navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; display:none; }
+.home-button, .logout-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; cursor:pointer; }
+.home-button::before, .home-button::after, .logout-button::before, .logout-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.home-button:hover::before, .logout-button:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
+.home-button:hover::after, .logout-button:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-.nav-links.show { display:flex; max-height:500px; flex-direction:column; }
+.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.nav-links li a:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
+.nav-links.active { display:flex; flex-direction:column; }
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
 
-@keyframes glitchTop {
-  0%{clip:rect(0,9999px,0,0);}
-  50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}
-  100%{clip:rect(0,9999px,0,0);}
-}
-@keyframes glitchBottom {
-  0%{clip:rect(0,9999px,0,0);}
-  50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}
-  100%{clip:rect(0,9999px,0,0);}
-}
-
-/* ===== ADMIN CONTAINER ===== */
-.admin-container {
-  max-width:900px;
-  margin:3rem auto;
-  padding:2rem;
-  background:#2E2D2B;
-  border:1px solid #ff4f81;
-  border-radius:12px;
-  box-shadow:0 0 20px #ff4f81;
-  display:flex;
-  flex-direction:column;
-  gap:1rem;
-}
-.admin-container h1 { text-align:center; color:#ff4f81; margin-bottom:1rem; }
-.admin-container input, .admin-container select, #editor {
-  padding:0.6rem;
-  border-radius:6px;
-  border:1px solid #ff4f81;
-  background:#1a1a1a;
-  color:#f0f0f0;
-  font-size:1rem;
-}
-button { padding:0.6rem; border-radius:6px; border:1px solid #ff4f81; background:#0f0f0f; color:#f0f0f0; cursor:pointer; font-size:1rem; transition:0.3s; }
+.admin-container { max-width:900px; margin:3rem auto; background:#2E2D2B; padding:2rem; border-radius:12px; border:1px solid #ff4f81; box-shadow:0 0 20px #ff4f81; }
+.admin-container h1 { color:#ff4f81; margin-bottom:1rem; text-align:center; }
+.form-group { margin-bottom:1rem; }
+label { display:block; margin-bottom:0.3rem; }
+input, .tags-input { width:100%; padding:0.5rem; border-radius:6px; border:1px solid #ff4f81; background:#111; color:#f0f0f0; }
+button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ff4f81; background:none; color:#f0f0f0; cursor:pointer; transition:0.3s; }
 button:hover { background:#ff4f81; color:#0f0f0f; }
-.logout-btn { background:#ff4f81; color:#0f0f0f; margin-top:1rem; }
-.logout-btn:hover { background:#0f0f0f; color:#ff4f81; }
-#editor { height:300px; background:#1a1a1a; color:#f0f0f0; border-radius:6px; }
 
-/* ===== FOOTER ===== */
-footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; text-align:center; overflow:hidden; }
-footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
-footer .ticker:hover { animation-play-state: paused; color:#ff4f81; text-shadow:1px 0 #ff4f81, -1px 0 #ff4f81; }
-footer .socials { margin-top:1rem; text-align:center; }
-footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
-footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
-footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+#editor { height:300px; background:#111; border-radius:6px; }
 
-/* ===== RESPONSIVE ===== */
-@media(max-width:768px){ .hamburger { display:block; } }
-@media(max-width:576px){
-  .navbar-container { padding:0.5rem 1rem; }
-  .nav-logo img { height:30px; }
-}
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+
+@media(max-width:576px){ .admin-container{margin:2rem 1rem; padding:1rem;} .navbar-container{padding:0.5rem 1rem;} .nav-logo img{height:30px;} }
 </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
+<!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo">
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
-    </a>
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Logo"></a>
     <div class="nav-right">
+      <a href="index.html" class="home-button" data-text="Home">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
-        <li><a href="index.html" data-text="Home">Home</a></li>
         <li><a href="music.html" data-text="Music">Music</a></li>
         <li><a href="blog.html" data-text="Blog">Blog</a></li>
         <li><a href="contact.html" data-text="Contact">Contact</a></li>
+        <li><a href="about.html" data-text="About">About</a></li>
       </ul>
+      <a class="logout-button" data-text="Logout" id="logoutBtn">Logout</a>
     </div>
   </div>
 </nav>
 
-<!-- ADMIN PANEL -->
 <div class="admin-container">
-  <h1>Admin Panel</h1>
-  <input type="text" id="postTitle" placeholder="Post Title">
-  <input type="text" id="postTags" placeholder="Categories / Tags (comma-separated)">
-  <div id="editor"></div>
-  <button id="savePostBtn">Save Post</button>
-  <button id="logoutBtn" class="logout-btn">Logout</button>
+  <h1>Create New Blog Post</h1>
+  <div class="form-group">
+    <label for="title">Title</label>
+    <input type="text" id="title" placeholder="Post Title">
+  </div>
+  <div class="form-group">
+    <label for="tags">Tags (comma-separated)</label>
+    <input type="text" id="tags" class="tags-input" placeholder="lofi, emo, rap">
+  </div>
+  <div class="form-group">
+    <label for="date">Publish Date & Time</label>
+    <input type="datetime-local" id="date">
+  </div>
+  <div class="form-group">
+    <label for="editor">Content</label>
+    <div id="editor"></div>
+  </div>
+  <button id="savePost">Publish Post</button>
 </div>
 
-<!-- FOOTER -->
-<footer>
-  <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
-  <div class="socials">
-    <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-    <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-    <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-  </div>
-</footer>
+<footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
 
-<!-- Scripts -->
-<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+<!-- Quill.js -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
 
-// Firebase Config
+// ===== Firebase Config =====
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
     authDomain: "xacanonblog.firebaseapp.com",
@@ -165,35 +112,46 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
 const db = getFirestore();
+const auth = getAuth();
 
-// Redirect if not logged in
-onAuthStateChanged(auth, user => { if(!user) window.location.href = "login.html"; });
+// ===== Quill Editor =====
+const quill = new Quill('#editor', { theme: 'snow' });
 
-// Logout button
-document.getElementById("logoutBtn").addEventListener("click", ()=>{ signOut(auth).then(()=>window.location.href="login.html"); });
-
-// Quill Editor
-const quill = new Quill('#editor', { theme:'snow', placeholder:'Write your post here...' });
-
-// Save Post
-document.getElementById("savePostBtn").addEventListener("click", async () => {
-  const title = document.getElementById("postTitle").value;
-  const tags = document.getElementById("postTags").value.split(",").map(t=>t.trim());
+// ===== Save Post =====
+document.getElementById('savePost').addEventListener('click', async () => {
+  const title = document.getElementById('title').value.trim();
+  const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t);
   const content = quill.root.innerHTML;
-  if(!title || !content) return alert("Title and content are required.");
+  const dateInput = document.getElementById('date').value;
+  const createdAt = dateInput ? Timestamp.fromDate(new Date(dateInput)) : Timestamp.now();
+
+  if(!title || !content) return alert("Title and Content are required.");
+
   try {
-    await addDoc(collection(db,"blogPosts"),{ title, tags, content, createdAt: serverTimestamp() });
-    alert("Post saved!");
-    document.getElementById("postTitle").value="";
-    document.getElementById("postTags").value="";
-    quill.setText("");
-  } catch(err){ console.error(err); alert("Failed to save post"); }
+    const docRef = await addDoc(collection(db,"blogPosts"),{
+      title, tags, content, createdAt
+    });
+    alert("Post Published! ID: "+docRef.id);
+    // Optionally reset fields
+    document.getElementById('title').value='';
+    document.getElementById('tags').value='';
+    document.getElementById('date').value='';
+    quill.setContents([]);
+  } catch(err){
+    console.error(err);
+    alert("Error publishing post.");
+  }
+});
+
+// ===== Logout =====
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  signOut(auth).then(()=>{ window.location.href="login.html"; }).catch(console.error);
 });
 
 // Hamburger toggle
-document.querySelector('.hamburger').addEventListener('click', ()=>{ document.querySelector('.nav-links').classList.toggle('show'); });
+document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
 </script>
+
 </body>
 </html>
