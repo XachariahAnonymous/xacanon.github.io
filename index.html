@@ -20,36 +20,38 @@
 
     /* Navbar */
     .navbar { position: sticky; top: 0; z-index: 1000; background-color:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-    .navbar-container { display:flex; justify-content: space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+    .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 
-    /* Left section: hamburger + home */
-    .nav-left { display:flex; align-items:center; gap:1rem; }
-    .nav-left .hamburger { cursor: pointer; font-size: 1.5rem; color:#f0f0f0; }
-    .nav-left .nav-home { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-    .nav-left .nav-home::before,
-    .nav-left .nav-home::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
-    .nav-left .nav-home:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-    .nav-left .nav-home:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+    /* Left: logo */
+    .nav-logo img { height:50px; transition: height 0.3s ease; }
 
-    /* Navbar links (hidden until hamburger clicked) */
-    .nav-links { display:flex; flex-direction: column; list-style:none; padding:0; margin:0; width:100%; max-height:0; overflow:hidden; transition: max-height 0.4s ease; gap:1rem; }
+    /* Right section: hamburger + home */
+    .nav-right { display:flex; align-items:center; gap:1rem; }
+    .hamburger { cursor:pointer; font-size:1.5rem; color:#f0f0f0; }
+    .nav-home { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+    .nav-home::before, .nav-home::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+    .nav-home:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+    .nav-home:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+    /* Navbar links */
+    .nav-links { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; width:100%; max-height:0; overflow:hidden; transition:max-height 0.4s ease; gap:1rem; }
     .nav-links.show { max-height:1000px; }
     .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
     .nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
     .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
     .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-    @keyframes glitchTop { 0% { clip: rect(0,9999px,0,0); } 50% { clip: rect(0,9999px,5px,0); transform: translate(-2px,-2px);} 100% { clip: rect(0,9999px,0,0);} }
-    @keyframes glitchBottom { 0% { clip: rect(0,9999px,0,0); } 50% { clip: rect(5px,9999px,10px,0); transform: translate(2px,2px);} 100% { clip: rect(0,9999px,0,0);} }
+    @keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0);transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+    @keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0);transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
 
     /* Countdown */
     #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
-    @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
+    @keyframes pulseCountdown{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(1.05);}}
 
     /* Sections */
     .music-section { padding:2rem; text-align:center; }
     .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
-    .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
+    .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:1.5rem; margin-top:2rem; }
     .music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
     .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
     .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
@@ -65,7 +67,7 @@
     footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
     footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
     footer .ticker:hover { animation-play-state: paused; color:#ff4f81; position: relative; text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81; }
-    @keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
+    @keyframes scrollText { 0%{transform:translateX(0%);}100%{transform:translateX(-100%);} }
     footer .socials { margin-top:1rem; text-align:center; }
     footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
     footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
@@ -92,22 +94,24 @@
     .epk-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
     @media (max-width: 576px) {
-      .navbar-container { flex-direction: row; justify-content: flex-start; align-items: center; padding: 0.5rem 1rem; flex-wrap: nowrap; }
-      .nav-left .nav-home { font-size:0.9rem; }
+      .navbar-container { flex-direction:row; justify-content:space-between; align-items:center; padding:0.5rem 1rem; flex-wrap:nowrap; }
+      .nav-logo img { height:30px; }
+      .nav-home { font-size:0.9rem; }
       .nav-links li a { font-size:0.9rem; }
     }
   </style>
 </head>
-
 <body>
   <!-- NAVBAR -->
   <nav class="navbar">
     <div class="navbar-container">
-      <div class="nav-left">
+      <a href="index.html" class="nav-logo">
+        <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+      </a>
+      <div class="nav-right">
         <div class="hamburger"><i class="fas fa-bars"></i></div>
         <a href="index.html" class="nav-home" data-text="Home">Home</a>
       </div>
-
       <ul class="nav-links">
         <li><a href="music.html" data-text="Music">Music</a></li>
         <li><a href="blog.html" data-text="Blog">Blog</a></li>
@@ -118,73 +122,71 @@
     </div>
   </nav>
 
-  <div id="main-content">
-    <!-- HEADER -->
-    <header style="text-align:center; padding:2rem 1rem;">
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
-      <h1>Xac Anon</h1>
-      <p class="tagline">Welcome to the sound of the future.</p>
+  <!-- HEADER -->
+  <header style="text-align:center; padding:2rem 1rem;">
+    <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+    <h1>Xac Anon</h1>
+    <p class="tagline">Welcome to the sound of the future.</p>
 
-      <div class="countdown-container">
-        <h2>Next Release Countdown</h2>
-        <p id="countdown">Loading...</p>
-        <p>Release Date: <span id="release-date"></span></p>
-      </div>
-    </header>
-
-    <!-- MUSIC SECTIONS -->
-    <section class="music-section">
-      <h2>Popular Tracks</h2>
-      <div class="music-grid">
-        <a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
-      </div>
-    </section>
-
-    <section class="music-section">
-      <h2>Recent Releases</h2>
-      <div class="music-grid">
-        <a class="music-card" data-track-url="https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1?si=YCMMa99YSkyfHG29rI2imw"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
-      </div>
-    </section>
-
-    <section id="featured-music" class="music-section">
-      <h2>Featured Music</h2>
-      <div class="music-grid">
-        <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
-        <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
-      </div>
-    </section>
-
-    <!-- EPK SECTION -->
-    <section class="epk-section">
-      <h2>Check Out My EPK</h2>
-      <p>Everything you need to know about my music, achievements, and press kit.</p>
-      <a href="epk.html" class="epk-button" data-text="View My EPK">View My EPK</a>
-    </section>
-
-    <!-- MODAL -->
-    <div id="spotify-modal" class="modal">
-      <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-      </div>
+    <div class="countdown-container">
+      <h2>Next Release Countdown</h2>
+      <p id="countdown">Loading...</p>
+      <p>Release Date: <span id="release-date"></span></p>
     </div>
+  </header>
 
-    <!-- FOOTER -->
-    <footer>
-      <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
-      <div class="socials">
-        <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-        <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-        <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-      </div>
-    </footer>
+  <!-- MUSIC SECTIONS -->
+  <section class="music-section">
+    <h2>Popular Tracks</h2>
+    <div class="music-grid">
+      <a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
+      <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
+      <a class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
+    </div>
+  </section>
+
+  <section class="music-section">
+    <h2>Recent Releases</h2>
+    <div class="music-grid">
+      <a class="music-card" data-track-url="https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1?si=YCMMa99YSkyfHG29rI2imw"></a>
+      <a class="music-card" data-track-url="https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5"></a>
+      <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
+    </div>
+  </section>
+
+  <section id="featured-music" class="music-section">
+    <h2>Featured Music</h2>
+    <div class="music-grid">
+      <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+      <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+      <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
+    </div>
+  </section>
+
+  <!-- EPK SECTION -->
+  <section class="epk-section">
+    <h2>Check Out My EPK</h2>
+    <p>Everything you need to know about my music, achievements, and press kit.</p>
+    <a href="epk.html" class="epk-button" data-text="View My EPK">View My EPK</a>
+  </section>
+
+  <!-- MODAL -->
+  <div id="spotify-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    </div>
   </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
+    <div class="socials">
+      <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      <a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+    </div>
+  </footer>
 
   <script>
     // Countdown
@@ -241,7 +243,6 @@
     // Hamburger toggle
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    hamburger.addEventListener('click', ()=>{ navLinks.classList.toggle('show'); });
-  </script>
+    hamburger.addEventListener('click', ()=>{ navLinks.classList
 </body>
 </html>
