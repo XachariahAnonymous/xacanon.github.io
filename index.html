@@ -127,12 +127,11 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   padding:0;
   margin:0;
   position:absolute;
-  top:100%; /* directly below navbar */
+  top:100%; /* below navbar */
   right:0;
-  margin-top:-1px; /* flush border with navbar */
   background:#0f0f0f;
   border:1px solid #ff4f81;
-  border-top:none; /* no double line */
+  border-top:none;
   border-radius:0 0 8px 8px;
   display:flex;
   flex-direction:column;
@@ -142,6 +141,12 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   min-width:max-content;
   z-index:1000;
 }
+
+.nav-links.show {
+  display:flex;       /* ensures links are visible */
+  max-height:500px;   /* animate height */
+}
+
 
 .nav-links.show { max-height:500px; }
 
