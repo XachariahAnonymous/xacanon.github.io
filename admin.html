@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+</head>
+<body>
+<h2>Create New Blog Post</h2>
+<form id="blogForm">
+  <input type="text" id="title" placeholder="Post Title" required>
+  <textarea id="content" placeholder="Write your post..." required></textarea>
+  <button type="submit">Publish</button>
+</form>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Only allow logged-in admins
+onAuthStateChanged(auth, user => {
+  if(!user){
+    alert("Login required");
+    window.location.href = "login.html";
+  }
+});
+
+// Handle blog post submission
+document.getElementById("blogForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+
+  try {
+    await addDoc(collection(db, "blogPosts"), {
+      title,
+      content,
+      createdAt: serverTimestamp(),
+      author: auth.currentUser.email
+    });
+    alert("Post published!");
+    e.target.reset();
+  } catch(err) {
+    console.error(err);
+    alert("Error publishing post");
+  }
+});
+</script>
+</body>
+</html>
