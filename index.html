@@ -14,59 +14,137 @@
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
-<!-- OG & Twitter -->
-<meta property="og:title" content="Xac Anon – Official Site" />
-<meta property="og:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
-<meta property="og:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
-<meta property="og:url" content="https://xacanonmusic.com" />
-<meta property="og:type" content="website" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Xac Anon – Official Site" />
-<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
-<meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
-<meta name="description" content="Discover Xac Anon’s music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
-
-<!-- Structured Data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "MusicGroup",
-  "name": "Xac Anon",
-  "url": "https://xacanonmusic.com",
-  "sameAs": [
-    "https://instagram.com/xacanon/",
-    "https://x.com/XacAnonMusic",
-    "https://youtube.com/@XacAnon"
-  ],
-  "image": "https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg",
-  "description": "Discover Xac Anon’s music, latest releases, and press kit. Lo-fi and emo rap that speaks from the heart.",
-  "genre": ["Lo-fi Rap", "Emo Rap"]
-}
-</script>
-
 <style>
 /* ===== BODY ===== */
 body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
 
 /* ===== NAVBAR ===== */
-.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:1rem 2rem; }
-.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch { 0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
-.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
-.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.home-button:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.home-button:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-.hamburger { font-size:1.5rem; cursor:pointer; color:#f0f0f0; display:block; }
-.nav-links { list-style:none; padding:0; margin:0; position:absolute; top:calc(100% + 5px); right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.navbar {
+  position: sticky;
+  top:0;
+  z-index:1000;
+  background:#0f0f0f;
+  border-bottom:1px solid #ff4f81;
+  box-shadow:0 0 10px #ff4f81;
+}
+
+.navbar-container {
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:0.8rem 2rem;
+  height:60px; /* fixed navbar height for alignment */
+}
+
+.nav-logo img {
+  height:50px;
+  animation:pulseGlitch 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlitch {
+  0%,100%{filter:none;}
+  50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);}
+}
+
+.nav-right {
+  display:flex;
+  align-items:center; /* vertical center */
+  gap:1rem;
+  position:relative;
+}
+
+.home-button {
+  color:#f0f0f0;
+  text-decoration:none;
+  font-size:1.1rem;
+  padding:0.4rem 0.8rem;
+  border:1px solid #ff4f81;
+  border-radius:6px;
+  position:relative;
+  transition:0.3s;
+}
+
+.home-button::before, .home-button::after {
+  content:attr(data-text);
+  position:absolute;
+  left:0;
+  width:100%;
+  color:#ff4f81;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+}
+
+.home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+.hamburger {
+  font-size:1.5rem;
+  cursor:pointer;
+  color:#f0f0f0;
+  display:block;
+  line-height:1; /* ensures vertical alignment */
+  margin:0; /* remove extra spacing */
+}
+
+.nav-links {
+  list-style:none;
+  padding:0;
+  margin:0;
+  position:absolute;
+  top:100%; /* directly below navbar */
+  right:0;
+  margin-top:-1px; /* flush border with navbar */
+  background:#0f0f0f;
+  border:1px solid #ff4f81;
+  border-top:none; /* no double line */
+  border-radius:0 0 8px 8px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 0.4s ease;
+  min-width:max-content;
+  z-index:1000;
+}
+
 .nav-links.show { max-height:500px; }
-.nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+
+.nav-links li a {
+  padding:0.8rem 1.2rem;
+  display:block;
+  color:#f0f0f0;
+  text-decoration:none;
+  font-size:1.1rem;
+  position:relative;
+}
+
+.nav-links li a::before, .nav-links li a::after {
+  content: attr(data-text);
+  position:absolute;
+  left:0;
+  width:100%;
+  color:#ff4f81;
+  overflow:hidden;
+  clip: rect(0,0,0,0);
+}
+
 .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
-@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
+
+@keyframes glitchTop {
+  0%{clip:rect(0,9999px,0,0);}
+  50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}
+  100%{clip:rect(0,9999px,0,0);}
+}
+
+@keyframes glitchBottom {
+  0%{clip:rect(0,9999px,0,0);}
+  50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}
+  100%{clip:rect(0,9999px,0,0);}
+}
 
 /* ===== COUNTDOWN ===== */
 #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -207,63 +285,62 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 
 <script>
 // ===== NAVBAR HAMBURGER =====
-const hamburger=document.querySelector('.hamburger');
-const navLinks=document.querySelector('.nav-links');
-hamburger.addEventListener('click',()=>{navLinks.classList.toggle('show');});
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
 // ===== COUNTDOWN =====
-const countdownElement=document.getElementById("countdown");
-const releaseElement=document.getElementById("release-date");
-const releaseTime="2025-10-25T00:00:00"; // AEDT
-const timeZone="Australia/Sydney";
-const releaseDateAEDT=new Date(releaseTime);
-const releaseDateLocal=new Date(releaseDateAEDT.toLocaleString('en-US',{timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone}));
-releaseElement.textContent=`AEDT: ${releaseDateAEDT.toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
+const countdownElement = document.getElementById("countdown");
+const releaseElement = document.getElementById("release-date");
+const releaseTime = "2025-10-25T00:00:00"; // AEDT
+const timeZone = "Australia/Sydney";
+const releaseDateAEDT = new Date(releaseTime);
+const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US',{timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone}));
+releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
+
 function updateCountdown(){
-const now=new Date();
-const diff=releaseDateAEDT-now;
-if(diff<=0){countdownElement.textContent="Out Now!";return;}
-const days=Math.floor(diff/(1000*60*60*24));
-const hours=Math.floor((diff/(1000*60*60))%24);
-const mins=Math.floor((diff/(1000*60))%60);
-const secs=Math.floor((diff/1000)%60);
-countdownElement.textContent=`${days}d ${hours}h ${mins}m ${secs}s`;
+  const now = new Date();
+  const diff = releaseDateAEDT - now;
+  if(diff <= 0){ countdownElement.textContent="Out Now!"; return; }
+  const days = Math.floor(diff/(1000*60*60*24));
+  const hours = Math.floor((diff/(1000*60*60))%24);
+  const mins = Math.floor((diff/(1000*60))%60);
+  const secs = Math.floor((diff/1000)%60);
+  countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
 }
 setInterval(updateCountdown,1000);
 updateCountdown();
 
 // ===== SPOTIFY TRACK & ALBUM CARDS =====
 async function loadSpotifyData(){
-const cards=document.querySelectorAll(".music-card");
-for(let card of cards){
-const url=card.dataset.trackUrl;
-try{
-const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
-const data=await res.json();
-card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
-
-// Detect album or track
-const type=url.includes('/album/')?'album':'track';
-const id=url.split('/').pop().split('?')[0];
-card.addEventListener('click',()=>{
-document.getElementById('spotify-player').src=`https://open.spotify.com/embed/${type}/${id}`;
-document.getElementById('spotify-modal').style.display='flex';
-});
-}catch(err){console.error(err);card.innerHTML="<h3>Track unavailable</h3>";}
-}
+  const cards = document.querySelectorAll(".music-card");
+  for(let card of cards){
+    const url = card.dataset.trackUrl;
+    try{
+      const res = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+      card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
+      const type = url.includes('/album/')?'album':'track';
+      const id = url.split('/').pop().split('?')[0];
+      card.addEventListener('click',()=> {
+        document.getElementById('spotify-player').src=`https://open.spotify.com/embed/${type}/${id}`;
+        document.getElementById('spotify-modal').style.display='flex';
+      });
+    } catch(err){ console.error(err); card.innerHTML="<h3>Track unavailable</h3>"; }
+  }
 }
 loadSpotifyData();
 
 // ===== MODAL =====
-document.querySelector('.modal-close').onclick=function(){
-document.getElementById('spotify-modal').style.display='none';
-document.getElementById('spotify-player').src='';
+document.querySelector('.modal-close').onclick = function(){
+  document.getElementById('spotify-modal').style.display='none';
+  document.getElementById('spotify-player').src='';
 };
-window.onclick=function(e){
-if(e.target==document.getElementById('spotify-modal')){
-document.getElementById('spotify-modal').style.display='none';
-document.getElementById('spotify-player').src='';
-}
+window.onclick = function(e){
+  if(e.target==document.getElementById('spotify-modal')){
+    document.getElementById('spotify-modal').style.display='none';
+    document.getElementById('spotify-player').src='';
+  }
 };
 </script>
 
