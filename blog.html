@@ -1,77 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Blog | Xac Anon</title>
 
 <!-- Favicon & Fonts -->
-<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet">
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
 <style>
-body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
-.navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; }
-.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.home-button:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
-.home-button:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+.nav-right { display:flex; align-items:center; gap:1rem; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
 .nav-links li { margin:0.5rem 0; }
-.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.nav-links li a:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links li a:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
-.nav-links.active { display:flex; flex-direction:column; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 
-@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
-@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
+.blog-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+.blog-post { margin-bottom:2rem; border-bottom:1px solid #ff4f81; padding-bottom:1rem; }
+.blog-post h3 { color:#ff4f81; margin:0; }
+.blog-post p { margin:0.5rem 0; }
+.blog-post a { color:#f0f0f0; text-decoration:underline; cursor:pointer; }
 
-.blog-container { max-width:900px; margin:3rem auto; padding:2rem; }
-.post-card { background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; padding:1.5rem; margin-bottom:2rem; box-shadow:0 0 15px #ff4f81; }
-.post-card h2 { color:#ff4f81; margin-bottom:0.5rem; }
-.post-card p { margin-bottom:0.5rem; }
-.post-card a { color:#ff4f81; text-decoration:none; }
 footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
-@media(max-width:576px){ .blog-container{margin:2rem 1rem; padding:1rem;} .navbar-container{padding:0.5rem 1rem;} .nav-logo img{height:30px;} }
 </style>
 </head>
 <body>
 
-<!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Logo"></a>
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
     <div class="nav-right">
-      <a href="index.html" class="home-button" data-text="Home">Home</a>
+      <a href="index.html" class="home-button">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
-        <li><a href="music.html" data-text="Music">Music</a></li>
-        <li><a href="blog.html" data-text="Blog">Blog</a></li>
-        <li><a href="contact.html" data-text="Contact">Contact</a></li>
-        <li><a href="about.html" data-text="About">About</a></li>
+        <li><a href="music.html">Music</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="about.html">About</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
-<div class="blog-container" id="blogContainer">
-  <!-- Blog posts will be injected here -->
+<div class="blog-container" id="blog-container">
+  <h2>Blog Posts</h2>
+  <div id="posts"></div>
 </div>
 
-<footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
+<footer>
+  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+</footer>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
     authDomain: "xacanonblog.firebaseapp.com",
@@ -80,34 +71,33 @@ const firebaseConfig = {
     messagingSenderId: "319182532803",
     appId: "1:319182532803:web:3a4d33372643dd71d5f276",
 };
-
 const app = initializeApp(firebaseConfig);
-const db = getFirestore();
+const db = getFirestore(app);
 
-// Hamburger toggle
-document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
+const postsDiv = document.getElementById("posts");
 
-// Fetch blog posts
-async function loadPosts(){
-  const container = document.getElementById('blogContainer');
-  const q = query(collection(db,"blogPosts"), orderBy("createdAt","desc"));
+async function loadPosts() {
+  const q = query(collection(db, "blogPosts"), orderBy("timestamp", "desc"));
   const snapshot = await getDocs(q);
   snapshot.forEach(doc => {
-    const post = doc.data();
-    const postDiv = document.createElement('div');
-    postDiv.classList.add('post-card');
-    const date = post.createdAt?.toDate ? post.createdAt.toDate() : new Date();
-    postDiv.innerHTML = `
-      <h2>${post.title}</h2>
-      <p><strong>Tags:</strong> ${post.tags?.join(', ') || 'None'}</p>
-      <p><strong>Published:</strong> ${date.toLocaleString()}</p>
-      <a href="blogPost.html?id=${doc.id}">Read More</a>
+    const data = doc.data();
+    const date = data.timestamp?.toDate().toLocaleString() || "";
+    const postEl = document.createElement("div");
+    postEl.className = "blog-post";
+    postEl.innerHTML = `
+      <h3>${data.title}</h3>
+      <p><strong>Category:</strong> ${data.category || "Uncategorized"} | <strong>Tags:</strong> ${data.tags?.join(", ") || "None"} | <strong>Date:</strong> ${date}</p>
+      <a href="post.html?id=${doc.id}">Read More</a>
     `;
-    container.appendChild(postDiv);
+    postsDiv.appendChild(postEl);
   });
 }
-
 loadPosts();
+
+// Hamburger
+document.querySelector('.hamburger').addEventListener('click', () => {
+  document.querySelector('.nav-links').classList.toggle('active');
+});
 </script>
 
 </body>
