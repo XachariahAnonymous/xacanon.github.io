@@ -24,7 +24,7 @@
     .nav-logo img { height:50px; transition: height 0.3s ease; }
 
     /* Navbar links & glitch */
-    .nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; margin:0; padding:0; }
+    .nav-links { list-style:none; display:flex; gap:2rem; flex-wrap:wrap; justify-content:flex-end; margin:0; padding:0; }
     .nav-links li a {
       position: relative;
       color:#f0f0f0;
@@ -56,50 +56,20 @@
       100% { clip: rect(0, 9999px, 0,0); }
     }
 
-    /* Dropdown */
-    .nav-links li.dropdown { position: relative; }
-    .nav-links li .dropdown-content {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background-color: #1a1a1a;
-      border: 1px solid #ff4f81;
-      border-radius: 8px;
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.4s ease, opacity 0.4s ease;
-      opacity: 0;
-      z-index: 1000;
-    }
-    .nav-links li .dropdown-content li a {
-      padding: 0.8rem 1rem;
-      color: #f0f0f0;
-      display: block;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: background 0.3s ease;
-    }
-    .nav-links li .dropdown-content li a:hover { background-color: #ff4f81; color: #0a0a0a; }
-
-    /* Desktop hover animation */
-    @media(min-width: 577px){
-      .nav-links li.dropdown:hover .dropdown-content {
-        max-height: 500px;
-        opacity: 1;
-      }
-    }
-
     /* Hamburger */
     .hamburger { display: none; cursor: pointer; font-size: 1.5rem; color:#f0f0f0; }
     @media(max-width: 576px){
       .hamburger { display: block; }
       .nav-links { flex-direction: column; width: 100%; max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
       .nav-links.show { max-height: 1000px; }
-      .nav-links li { width: 100%; }
-      .dropdown-content { position: relative; border: none; border-radius: 0; }
+      .nav-links li { width: 100%; text-align:center; margin:0.5rem 0; }
+      .nav-links li a:hover::before,
+      .nav-links li a:hover::after { animation: glitchTop 0.6s infinite linear alternate-reverse, glitchBottom 0.6s infinite linear alternate-reverse; }
     }
+
+    /* Align hamburger vertically with Home */
+    .navbar-container { position: relative; }
+    .nav-logo, .hamburger { display: flex; align-items: center; }
 
     /* Countdown */
     #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -180,16 +150,11 @@
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
         <li><a href="index.html" data-text="Home">Home</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropbtn" data-text="Pages">View More <i class="fas fa-caret-down"></i></a>
-          <ul class="dropdown-content">
-            <li><a href="music.html" data-text="Music">Music</a></li>
-            <li><a href="blog.html" data-text="Blog">Blog</a></li>
-            <li><a href="about.html" data-text="About Me">About Me</a></li>
-            <li><a href="contact.html" data-text="Contact">Contact</a></li>
-            <li><a href="epk.html" data-text="EPK">EPK</a></li>
-          </ul>
-        </li>
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="blog.html" data-text="Blog">Blog</a></li>
+        <li><a href="about.html" data-text="About Me">About Me</a></li>
+        <li><a href="contact.html" data-text="Contact">Contact</a></li>
+        <li><a href="epk.html" data-text="EPK">EPK</a></li>
       </ul>
     </div>
   </nav>
@@ -262,71 +227,109 @@
     </footer>
   </div>
 
-  <script>
-    // Countdown
-    const countdownElement = document.getElementById("countdown");
-    const releaseElement = document.getElementById("release-date");
-    const releaseTime = "2025-10-25T00:00:00";
-    const timeZone = "Australia/Sydney";
-    const releaseDateAEDT = new Date(releaseTime);
-    const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
-    releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short', timeZone: timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
+ <script>
+  // Countdown (existing code)
+  const countdownElement = document.getElementById("countdown");
+  const releaseElement = document.getElementById("release-date");
+  const releaseTime = "2025-10-25T00:00:00";
+  const timeZone = "Australia/Sydney";
+  const releaseDateAEDT = new Date(releaseTime);
+  const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }));
+  releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU', {dateStyle:'medium', timeStyle:'short', timeZone: timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
 
-    function updateCountdown() {
-      const now = new Date();
-      const diff = releaseDateAEDT - now;
-      if(diff <= 0){ countdownElement.textContent="Out Now!"; return; }
-      const days = Math.floor(diff / (1000*60*60*24));
-      const hours = Math.floor((diff/(1000*60*60))%24);
-      const mins = Math.floor((diff/(1000*60))%60);
-      const secs = Math.floor((diff/1000)%60);
-      countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+  function updateCountdown() {
+    const now = new Date();
+    const diff = releaseDateAEDT - now;
+    if(diff <= 0){ countdownElement.textContent="Out Now!"; return; }
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hours = Math.floor((diff/(1000*60*60))%24);
+    const mins = Math.floor((diff/(1000*60))%60);
+    const secs = Math.floor((diff/1000)%60);
+    countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+  }
+  setInterval(updateCountdown, 1000); updateCountdown();
+
+  // Load Spotify Tracks (with responsive modal)
+  async function loadSpotifyData(){
+    const cards=document.querySelectorAll(".music-card");
+    const modal = document.getElementById('spotify-modal');
+    const player = document.getElementById('spotify-player');
+
+    for(let card of cards){
+      const url=card.dataset.trackUrl;
+      try{
+        const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+        const data=await res.json();
+        card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
+
+        card.addEventListener('click',()=>{ 
+          let embedUrl = "";
+          if(url.includes("/track/")){
+            embedUrl = `https://open.spotify.com/embed/track/${url.split('/').pop().split('?')[0]}`;
+          } else if(url.includes("/album/")){
+            embedUrl = `https://open.spotify.com/embed/album/${url.split('/').pop().split('?')[0]}`;
+          } else {
+            embedUrl = url; // fallback
+          }
+          player.src = embedUrl;
+
+          // Responsive sizing
+          player.style.width = window.innerWidth < 576 ? "90%" : "100%";
+          player.style.height = window.innerWidth < 576 ? "380px" : "80px";
+
+          modal.style.display='flex';
+        });
+      }catch(err){ console.error(err); card.innerHTML="<h3>Track unavailable</h3>"; }
     }
-    setInterval(updateCountdown, 1000); updateCountdown();
+  }
+  loadSpotifyData();
 
-    // Load Spotify Tracks
-    async function loadSpotifyData(){
-      const cards=document.querySelectorAll(".music-card");
-      for(let card of cards){
-        const url=card.dataset.trackUrl;
-        try{
-          const res=await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
-          const data=await res.json();
-          card.innerHTML=`<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
-          card.addEventListener('click',()=>{ 
-            document.getElementById('spotify-player').src=`https://open.spotify.com/embed/track/${url.split('/').pop()}`;
-            document.getElementById('spotify-modal').style.display='flex';
-          });
-        }catch(err){ console.error(err); card.innerHTML="<h3>Track unavailable</h3>"; }
-      }
+  // Modal close
+  const modal = document.getElementById('spotify-modal');
+  const player = document.getElementById('spotify-player');
+  document.querySelector('.modal-close').onclick=function(){
+    modal.style.display='none';
+    player.src='';
+  };
+  window.onclick=function(e){
+    if(e.target==modal){
+      modal.style.display='none';
+      player.src='';
     }
-    loadSpotifyData();
+  };
 
-    // Modal close
-    document.querySelector('.modal-close').onclick=function(){
-      document.getElementById('spotify-modal').style.display='none';
-      document.getElementById('spotify-player').src='';
-    };
-    window.onclick=function(e){
-      if(e.target==document.getElementById('spotify-modal')){
-        document.getElementById('spotify-modal').style.display='none';
-        document.getElementById('spotify-player').src='';
+  // Hamburger toggle
+  const hamburger = document.querySelector('.hamburger');
+  const navLinks = document.querySelector('.nav-links');
+  hamburger.addEventListener('click', () => {
+    if(navLinks.classList.contains('show')){
+      navLinks.style.maxHeight = navLinks.scrollHeight + "px";
+      setTimeout(() => { navLinks.style.maxHeight = "0px"; }, 10);
+      navLinks.classList.remove('show');
+    } else {
+      navLinks.style.maxHeight = navLinks.scrollHeight + "px";
+      navLinks.classList.add('show');
+    }
+  });
+
+  // Auto-close menu when link clicked
+  document.querySelectorAll('.nav-links li a').forEach(link => {
+    link.addEventListener('click', () => {
+      if(navLinks.classList.contains('show')){
+        navLinks.style.maxHeight = navLinks.scrollHeight + "px";
+        setTimeout(() => { navLinks.style.maxHeight = "0px"; }, 10);
+        navLinks.classList.remove('show');
       }
-    };
-
-    // Hamburger toggle
-    const hamburger = document.querySelector('.hamburger');
-    const navLinks = document.querySelector('.nav-links');
-    hamburger.addEventListener('click', ()=>{ navLinks.classList.toggle('show'); });
-
-    // Mobile dropdown toggle
-    document.querySelectorAll('.dropbtn').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        e.preventDefault();
-        const dropdown = btn.nextElementSibling;
-        dropdown.style.maxHeight = dropdown.style.maxHeight && dropdown.style.maxHeight !== "0px" ? "0px" : dropdown.scrollHeight + "px";
-      });
     });
-  </script>
+  });
+
+  // Adjust modal size on window resize
+  window.addEventListener('resize', () => {
+    if(player.src){
+      player.style.width = window.innerWidth < 576 ? "90%" : "100%";
+      player.style.height = window.innerWidth < 576 ? "380px" : "80px";
+    }
+  });
+</script>
 </body>
 </html>
