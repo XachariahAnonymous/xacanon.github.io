@@ -2,63 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blog | Xac Anon</title>
 
+<!-- Favicon -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+
+<!-- Font Awesome & Google Fonts -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
 <style>
 body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
 .navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; }
 .home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.home-button:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.home-button:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+.home-button:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
+.home-button:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.nav-links li a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.nav-links li a:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
 .nav-links.active { display:flex; flex-direction:column; }
+@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
 
-@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
-@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
+.blog-container { max-width:900px; margin:3rem auto; }
+.blog-post { background:#2E2D2B; padding:1.5rem; border-radius:12px; border:1px solid #ff4f81; margin-bottom:1rem; box-shadow:0 0 20px #ff4f81; }
+.blog-post h3 { color:#ff4f81; margin-bottom:0.5rem; }
+.blog-post p { margin:0.2rem 0; }
+.blog-post a { color:#ff4f81; text-decoration:none; }
 
-.blog-container { max-width:900px; margin:3rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-.blog-post { margin-bottom:2rem; }
-.blog-post h2 { color:#ff4f81; margin-bottom:0.5rem; }
-.blog-post .meta { font-size:0.9rem; margin-bottom:0.5rem; color:#f0f0f0a0; }
-.blog-post .tags { font-style:italic; }
-.blog-post .content { line-height:1.8; }
-#loadMore { display:block; margin:1rem auto; padding:0.6rem 1.2rem; background:#ff4f81; color:#0f0f0f; border:none; border-radius:6px; cursor:pointer; font-size:1rem; transition:0.3s; }
-#loadMore:hover { background:#f0f0f0; color:#ff4f0f; }
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
 
-footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; position:relative; }
-
-@media(max-width:576px){
-  .navbar-container { padding:0.5rem 1rem; }
-  .nav-logo img { height:30px; }
-  .home-button { font-size:0.9rem; }
-  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
-  .blog-container { margin:2rem 1rem; padding:1.2rem; }
-}
+@media(max-width:576px){ .navbar-container{flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:nowrap; padding:0.5rem 1rem;} .nav-logo img{height:30px;} .blog-container{margin:2rem 1rem;} }
 </style>
 </head>
 <body>
 
+<!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo">
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
-    </a>
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Logo"></a>
     <div class="nav-right">
       <a href="index.html" class="home-button" data-text="Home">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
@@ -72,20 +64,14 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
   </div>
 </nav>
 
-<section class="blog-container" id="postsContainer"></section>
-<button id="loadMore">Load More</button>
+<!-- Blog Container -->
+<div class="blog-container" id="postsContainer"></div>
 
-<footer>
-  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
-</footer>
+<footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
 
 <script type="module">
-document.querySelector('.hamburger').addEventListener('click', () => {
-  document.querySelector('.nav-links').classList.toggle('active');
-});
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -99,41 +85,27 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 
 const postsContainer = document.getElementById("postsContainer");
-const loadMoreBtn = document.getElementById("loadMore");
-const pageSize = 5;
-let lastVisible = null;
 
-async function loadPosts() {
-  let q;
-  if(lastVisible) {
-    q = query(collection(db, "blogPosts"), orderBy("createdAt", "desc"), startAfter(lastVisible), limit(pageSize));
-  } else {
-    q = query(collection(db, "blogPosts"), orderBy("createdAt", "desc"), limit(pageSize));
-  }
-  
+async function loadPosts(){
+  const q = query(collection(db,"blogPosts"), orderBy("createdAt","desc"));
   const snapshot = await getDocs(q);
-  if(snapshot.empty) { loadMoreBtn.style.display = "none"; return; }
-  
   snapshot.forEach(doc => {
     const data = doc.data();
-    const post = document.createElement("div");
-    post.classList.add("blog-post");
-    post.innerHTML = `
-      <h2>${data.title}</h2>
-      <div class="meta">
-        <span class="tags">${data.tags?.join(", ") || ""}</span> | 
-        <span class="date">${data.createdAt?.toDate().toLocaleString() || ""}</span>
-      </div>
-      <div class="content">${data.content}</div>
-    `;
-    postsContainer.appendChild(post);
+    const createdAt = data.createdAt ? data.createdAt.toDate().toLocaleString() : "";
+    postsContainer.innerHTML += `
+      <div class="blog-post">
+        <h3>${data.title}</h3>
+        <p><em>${createdAt}</em></p>
+        <p>Tags: ${data.tags.join(", ")}</p>
+        <a href="blogPost.html?id=${doc.id}">Read More</a>
+      </div>`;
   });
-  
-  lastVisible = snapshot.docs[snapshot.docs.length - 1];
 }
 
-loadMoreBtn.addEventListener("click", loadPosts);
-await loadPosts();
+loadPosts();
+
+// Hamburger menu toggle
+document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
 </script>
 
 </body>
