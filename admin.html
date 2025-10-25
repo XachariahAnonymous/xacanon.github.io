@@ -19,13 +19,12 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-.nav-right { display:flex; align-items:center; gap:1rem; position: relative; }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button, .logout-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; cursor:pointer; }
-.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; display:none; }
-.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:flex; gap:0.5rem; }
+.hamburger { display:block; font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; z-index:1001; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
-.nav-links.active { display:flex; flex-direction:column; }
 
 #login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 #admin-content { display:none; }
@@ -33,13 +32,6 @@ input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; borde
 button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; }
 button:hover { background:#f066a0; }
 #editor { height:300px; background:#fff; color:#000; border-radius:8px; }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .hamburger { display:block; }
-  .nav-links { display:none; width:100%; top:100%; right:0; position: absolute; }
-  .nav-right { flex-direction: column; align-items:flex-end; }
-}
 </style>
 </head>
 <body>
@@ -87,7 +79,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-// Firebase config
+// Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
     authDomain: "xacanonblog.firebaseapp.com",
@@ -103,11 +95,9 @@ const db = getFirestore(app);
 // Quill editor
 const quill = new Quill('#editor', { theme: 'snow' });
 
-// Hamburger menu toggle
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => {
-  navLinks.classList.toggle('active');
+// Hamburger toggle
+document.querySelector('.hamburger').addEventListener('click', () => {
+  document.querySelector('.nav-links').classList.toggle('active');
 });
 
 // Login
@@ -134,7 +124,6 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("login-container").style.display = "block";
     document.getElementById("admin-content").style.display = "none";
     document.querySelector(".logout-button").style.display = "none";
-    navLinks.classList.remove('active'); // Close menu on logout
   }
 });
 
