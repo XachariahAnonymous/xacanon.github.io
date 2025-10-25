@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blog Post | Xac Anon</title>
 
-<!-- Favicon -->
-<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
-
-<!-- Font Awesome & Google Fonts -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+<!-- Favicon & Fonts -->
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet">
 
 <style>
 body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
 .navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; }
 .home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
@@ -31,17 +29,16 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .nav-links li a:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
 .nav-links li a:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
 .nav-links.active { display:flex; flex-direction:column; }
-@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
-@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
 
-.blog-container { max-width:900px; margin:3rem auto; background:#2E2D2B; padding:2rem; border-radius:12px; border:1px solid #ff4f81; box-shadow:0 0 20px #ff4f81; }
-.blog-container h1 { color:#ff4f81; margin-bottom:0.5rem; }
-.blog-container .meta { font-size:0.9rem; margin-bottom:1.5rem; color:#f0f0f0; }
-.blog-container .content { line-height:1.8; }
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
 
+.post-container { max-width:900px; margin:3rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 15px #ff4f81; line-height:1.8; }
+.post-container h1 { color:#ff4f81; margin-bottom:1rem; }
+.post-container p { margin-bottom:1rem; }
+.post-container .meta { font-size:0.9rem; color:#ccc; margin-bottom:1.5rem; }
 footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
-
-@media(max-width:576px){ .navbar-container{flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:nowrap; padding:0.5rem 1rem;} .nav-logo img{height:30px;} .blog-container{margin:2rem 1rem; padding:1rem;} }
+@media(max-width:576px){ .post-container{margin:2rem 1rem; padding:1rem;} .navbar-container{padding:0.5rem 1rem;} .nav-logo img{height:30px;} }
 </style>
 </head>
 <body>
@@ -63,11 +60,8 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
   </div>
 </nav>
 
-<!-- Single Blog Post Container -->
-<div class="blog-container" id="postContainer">
-  <h1>Loading...</h1>
-  <p class="meta"></p>
-  <div class="content"></div>
+<div class="post-container" id="postContainer">
+  <!-- Post content will be injected here -->
 </div>
 
 <footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
@@ -76,6 +70,7 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
     authDomain: "xacanonblog.firebaseapp.com",
@@ -88,33 +83,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 
-const postContainer = document.getElementById("postContainer");
+// Hamburger toggle
+document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
 
 // Get post ID from URL
 const urlParams = new URLSearchParams(window.location.search);
-const postId = urlParams.get("id");
+const postId = urlParams.get('id');
 
 async function loadPost() {
-  if(!postId) return postContainer.innerHTML = "<h1>Post not found</h1>";
-  const docRef = doc(db,"blogPosts",postId);
+  if(!postId) { document.getElementById('postContainer').innerHTML="<p>Post not found.</p>"; return; }
+  const docRef = doc(db, "blogPosts", postId);
   const docSnap = await getDoc(docRef);
   if(docSnap.exists()){
-    const data = docSnap.data();
-    const createdAt = data.createdAt ? data.createdAt.toDate().toLocaleString() : "";
-    postContainer.innerHTML = `
-      <h1>${data.title}</h1>
-      <p class="meta">Published: ${createdAt} | Tags: ${data.tags.join(", ")}</p>
-      <div class="content">${data.content}</div>
+    const post = docSnap.data();
+    const date = post.createdAt?.toDate ? post.createdAt.toDate() : new Date();
+    document.getElementById('postContainer').innerHTML = `
+      <h1>${post.title}</h1>
+      <div class="meta">Tags: ${post.tags?.join(', ') || 'None'} | Published: ${date.toLocaleString()}</div>
+      <div>${post.content}</div>
     `;
   } else {
-    postContainer.innerHTML = "<h1>Post not found</h1>";
+    document.getElementById('postContainer').innerHTML="<p>Post not found.</p>";
   }
 }
 
 loadPost();
-
-// Hamburger menu toggle
-document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
 </script>
 
 </body>
