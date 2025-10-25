@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog Post | Xac Anon</title>
+
+<!-- Favicon & Fonts -->
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet">
+
+<style>
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; padding:0; }
+.navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; }
+.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.home-button:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
+.home-button:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
+.nav-links li { margin:0.5rem 0; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.nav-links li a:hover::before{ animation:glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after{ animation:glitchBottom 0.6s infinite linear alternate-reverse; }
+.nav-links.active { display:flex; flex-direction:column; }
+
+@keyframes glitchTop {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom {0%{clip:rect(0,9999px,0,0);}50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}100%{clip:rect(0,9999px,0,0);} }
+
+.post-container { max-width:900px; margin:3rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 15px #ff4f81; line-height:1.8; }
+.post-container h1 { color:#ff4f81; margin-bottom:1rem; }
+.post-container p { margin-bottom:1rem; }
+.post-container .meta { font-size:0.9rem; color:#ccc; margin-bottom:1.5rem; }
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+@media(max-width:576px){ .post-container{margin:2rem 1rem; padding:1rem;} .navbar-container{padding:0.5rem 1rem;} .nav-logo img{height:30px;} }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Logo"></a>
+    <div class="nav-right">
+      <a href="index.html" class="home-button" data-text="Home">Home</a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
+      <ul class="nav-links">
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="blog.html" data-text="Blog">Blog</a></li>
+        <li><a href="contact.html" data-text="Contact">Contact</a></li>
+        <li><a href="about.html" data-text="About">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="post-container" id="postContainer">
+  <!-- Post content will be injected here -->
+</div>
+
+<footer>&copy; 2025 Xac Anon. All Rights Reserved.</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore();
+
+// Hamburger toggle
+document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
+
+// Get post ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const postId = urlParams.get('id');
+
+async function loadPost() {
+  if(!postId) { document.getElementById('postContainer').innerHTML="<p>Post not found.</p>"; return; }
+  const docRef = doc(db, "blogPosts", postId);
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()){
+    const post = docSnap.data();
+    const date = post.createdAt?.toDate ? post.createdAt.toDate() : new Date();
+    document.getElementById('postContainer').innerHTML = `
+      <h1>${post.title}</h1>
+      <div class="meta">Tags: ${post.tags?.join(', ') || 'None'} | Published: ${date.toLocaleString()}</div>
+      <div>${post.content}</div>
+    `;
+  } else {
+    document.getElementById('postContainer').innerHTML="<p>Post not found.</p>";
+  }
+}
+
+loadPost();
+</script>
+
+</body>
+</html>
