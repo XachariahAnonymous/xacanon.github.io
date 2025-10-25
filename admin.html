@@ -24,6 +24,12 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 
+/* Fixed hamburger */
+.nav-links.active {
+  display: flex;
+  flex-direction: column;
+}
+
 .blog-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 .blog-post { margin-bottom:2rem; border-bottom:1px solid #ff4f81; padding-bottom:1rem; }
 .blog-post h3 { color:#ff4f81; margin:0; }
