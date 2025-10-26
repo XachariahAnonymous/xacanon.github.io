@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin Panel | Xac Anon</title>
 
 <!-- Favicon & Fonts -->
@@ -14,254 +15,74 @@
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 
 <style>
-:root { --accent:#ff4f81; --bg:#0f0f0f; --panel:#2E2D2B; --text:#f0f0f0; }
-*{box-sizing:border-box}
-body{margin:0;font-family:'Friz Quadrata',serif;background:var(--bg);color:var(--text);}
-a{color:inherit}
-.navbar{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--accent);box-shadow:0 0 10px var(--accent);z-index:2000}
-.navbar-container{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.5rem;gap:1rem}
-.nav-logo img{height:48px;filter:none;transition:0.2s}
-.nav-right{display:flex;align-items:center;gap:0.8rem;position:relative}
-.home-button,.logout-button{border:1px solid var(--accent);background:transparent;color:var(--text);padding:0.35rem .7rem;border-radius:6px;cursor:pointer}
-.hamburger{font-size:1.6rem;cursor:pointer;color:var(--text)}
-.nav-links{position:absolute;top:110%;right:0;background:var(--bg);border:1px solid var(--accent);border-radius:8px;padding:.5rem 1rem;display:none;z-index:3000}
-.nav-links.active{display:flex;flex-direction:column}
-.nav-links a{padding:.4rem 0;display:block}
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.home-button, .logout-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; cursor:pointer; }
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; z-index:1001; }
+.nav-links.active { display:flex; }
+.nav-links li { margin:0.5rem 0; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 
-/* Layout */
-.container { max-width:1000px;margin:2rem auto;padding:0 1rem; }
-.container-common { background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:1.25rem;box-shadow:0 0 20px var(--accent);color:#fff; }
-
-/* Tabs */
-.tabs { display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
-.tab { padding:.5rem .9rem;border-radius:8px;cursor:pointer;border:1px solid transparent;background:rgba(255,255,255,0.02); }
-.tab.active{ background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid var(--accent); color:var(--accent) }
-
-/* Sections */
-.admin-section{ margin-bottom:1rem; background:rgba(0,0,0,0.12); padding:1rem;border-radius:8px; border:1px solid rgba(255,255,255,0.03)}
-.admin-section h3{ margin:.1rem 0 .6rem 0;color:var(--accent) }
-.label{font-size:0.9rem;color:#ddd;margin-bottom:.4rem}
-
-/* Form controls */
-input[type="text"], input[type="email"], input[type="url"], textarea, select { width:100%; padding:.6rem; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:var(--text); margin-bottom:.6rem; }
-textarea{ min-height:110px; resize:vertical; }
-.flex-row{ display:flex; gap:1rem }
-.col{ flex:1 }
-
-/* Quill */
-#editor{ height:220px; background:#fff; color:#000; border-radius:8px; margin-bottom:.6rem }
-
-/* Blog list */
-.post-list{ margin-top:.6rem; display:flex; flex-direction:column; gap:.6rem }
-.post-item{ background:rgba(255,255,255,0.02); padding:.6rem; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:1rem }
-.post-meta{ font-size:0.9rem;color:#ddd }
-
-/* Buttons */
-button{ background:var(--accent); color:#0f0f0f; border:none; padding:.5rem .8rem; border-radius:6px; cursor:pointer }
-.btn-ghost{ background:transparent;border:1px solid rgba(255,255,255,0.06); color:#fff }
-.small{ padding:.35rem .6rem; font-size:0.9rem }
-
-/* Responsive */
-@media(max-width:800px){
-  .tabs{flex-wrap:wrap}
-  .flex-row{flex-direction:column}
-  .navbar-container{padding:.6rem 1rem}
-}
+/* Login & Admin Panel */
+#login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+#admin-content { display:none; }
+input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; }
+button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; }
+button:hover { background:#f066a0; }
+#editor { height:300px; background:#fff; color:#000; border-radius:8px; }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="logo"></a>
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
     <div class="nav-right">
-      <a class="home-button" href="index.html">Home</a>
+      <a href="index.html" class="home-button">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
-      <div class="nav-links" id="navLinks">
-        <a href="music.html">Music</a>
-        <a href="blog.html">Blog</a>
-        <a href="contact.html">Contact</a>
-        <a href="about.html">About</a>
-      </div>
-      <button class="logout-button" id="logoutTop" style="display:none">Logout</button>
+      <ul class="nav-links">
+        <li><a href="music.html">Music</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      <button class="logout-button" style="display:none;">Logout</button>
     </div>
   </div>
 </nav>
 
-<div class="container">
+<!-- Login Form -->
+<div id="login-container">
+  <h2>Admin Login</h2>
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="password" id="password" placeholder="Password" required />
+  <button id="login-btn">Login</button>
+</div>
 
-  <!-- LOGIN -->
-  <div id="login-container" class="container-common" style="max-width:520px;margin:2.5rem auto;">
-    <h2>Admin Login</h2>
-    <div class="admin-section">
-      <label class="label">Email</label>
-      <input id="email" type="email" placeholder="you@domain.com" />
-      <label class="label">Password</label>
-      <input id="password" type="password" placeholder="••••••••" />
-      <div style="display:flex;gap:.6rem;justify-content:flex-end">
-        <button id="login-btn">Login</button>
-      </div>
-    </div>
-  </div>
+<!-- Admin Panel -->
+<div id="admin-content">
+  <h2>Welcome to Admin Panel</h2>
+  <form id="blog-form">
+    <input type="text" id="post-title" placeholder="Post Title" required />
+    <input type="text" id="post-category" placeholder="Category" />
+    <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
+    <div id="editor"></div>
+    <button type="submit">Publish Post</button>
+  </form>
+</div>
 
-  <!-- ADMIN DASHBOARD -->
-  <div id="admin-content" class="container-common" style="display:none">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-      <h2 style="margin:0">Admin Dashboard</h2>
-      <div style="display:flex;gap:.5rem;align-items:center">
-        <button class="btn-ghost small" id="openSite" title="Open site in new tab">Open site</button>
-        <button id="logout-btn" class="small" style="display:none">Logout</button>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs" id="tabs">
-      <div class="tab active" data-tab="blog">Blog</div>
-      <div class="tab" data-tab="website">Website</div>
-      <div class="tab" data-tab="socials">Socials</div>
-      <div class="tab" data-tab="theme">Theme</div>
-      <div class="tab" data-tab="about">About</div>
-    </div>
-
-    <!-- TAB PANES -->
-    <div id="tab-panes">
-
-      <!-- BLOG TAB -->
-      <div class="tab-pane" id="pane-blog">
-        <div class="admin-section">
-          <h3>New Blog Post</h3>
-          <form id="blog-form">
-            <label class="label">Title</label>
-            <input id="post-title" type="text" placeholder="Post title" required />
-            <label class="label">Category</label>
-            <input id="post-category" type="text" placeholder="Category" />
-            <label class="label">Tags (comma separated)</label>
-            <input id="post-tags" type="text" placeholder="tag1, tag2" />
-            <label class="label">Cover image URL (optional)</label>
-            <input id="post-image" type="url" placeholder="https://..." />
-            <label class="label">Content</label>
-            <div id="editor"></div>
-            <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.6rem">
-              <button type="submit">Publish Post</button>
-            </div>
-          </form>
-        </div>
-
-        <div class="admin-section">
-          <h3>Existing Posts</h3>
-          <div id="posts" class="post-list">Loading…</div>
-        </div>
-      </div>
-
-      <!-- WEBSITE TAB -->
-      <div class="tab-pane" id="pane-website" style="display:none">
-        <div class="admin-section">
-          <h3>Homepage Content</h3>
-          <label class="label">Hero Title</label>
-          <input id="site-hero-title" type="text" placeholder="Main headline" />
-          <label class="label">Hero Subtitle</label>
-          <input id="site-hero-sub" type="text" placeholder="Sub headline" />
-          <label class="label">Homepage Description</label>
-          <textarea id="site-description" placeholder="Short description"></textarea>
-          <div style="display:flex;gap:.6rem;justify-content:flex-end">
-            <button id="save-home">Save Homepage</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- SOCIALS TAB -->
-      <div class="tab-pane" id="pane-socials" style="display:none">
-        <div class="admin-section">
-          <h3>Social Links</h3>
-          <div class="flex-row">
-            <div class="col">
-              <label class="label">Instagram</label>
-              <input id="social-instagram" type="url" placeholder="https://instagram.com/..." />
-            </div>
-            <div class="col">
-              <label class="label">X / Twitter</label>
-              <input id="social-x" type="url" placeholder="https://x.com/..." />
-            </div>
-          </div>
-          <div class="flex-row">
-            <div class="col">
-              <label class="label">YouTube</label>
-              <input id="social-youtube" type="url" placeholder="https://youtube.com/..." />
-            </div>
-            <div class="col">
-              <label class="label">Spotify</label>
-              <input id="social-spotify" type="url" placeholder="https://open.spotify.com/..." />
-            </div>
-          </div>
-          <div style="display:flex;gap:.6rem;justify-content:flex-end">
-            <button id="save-socials">Save Socials</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- THEME TAB -->
-      <div class="tab-pane" id="pane-theme" style="display:none">
-        <div class="admin-section">
-          <h3>Theme</h3>
-          <div class="flex-row">
-            <div class="col">
-              <label class="label">Accent Color</label>
-              <input id="theme-accent" type="color" value="#ff4f81" />
-            </div>
-            <div class="col">
-              <label class="label">Background Color</label>
-              <input id="theme-bg" type="color" value="#0f0f0f" />
-            </div>
-          </div>
-          <label class="label">Font</label>
-          <select id="theme-font">
-            <option value="Friz Quadrata">Friz Quadrata</option>
-            <option value="Medici">Medici</option>
-            <option value="Arial">Arial</option>
-            <option value="Georgia">Georgia</option>
-          </select>
-          <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:.6rem">
-            <button id="save-theme">Save Theme</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ABOUT TAB -->
-      <div class="tab-pane" id="pane-about" style="display:none">
-        <div class="admin-section">
-          <h3>About / Static Page Editor</h3>
-          <label class="label">About Page HTML (or plain text)</label>
-          <textarea id="about-content" placeholder="HTML or text for About page"></textarea>
-          <div style="display:flex;gap:.6rem;justify-content:flex-end">
-            <button id="save-about">Save About</button>
-          </div>
-        </div>
-      </div>
-
-    </div> <!-- tab-panes -->
-
-  </div> <!-- admin-content -->
-
-</div> <!-- container -->
-
-<!-- Firebase & Quill -->
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script type="module">
-/* ---------------------------
-  Firebase imports
-----------------------------*/
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, serverTimestamp, getDocs, query, orderBy, deleteDoc, doc, setDoc, getDoc
-} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-/* ---------------------------
-  Your existing Firebase config (single project)
-  Keep this as-is (xacanonblog). If you ever move projects, update this.
-----------------------------*/
+// Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
     authDomain: "xacanonblog.firebaseapp.com",
@@ -274,240 +95,67 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* ---------------------------
-  Quill editor init
-----------------------------*/
+// Quill editor
 const quill = new Quill('#editor', { theme: 'snow' });
 
-/* ---------------------------
-  NAV hamburger
-----------------------------*/
-const hamb = document.querySelector('.hamburger');
-const navLinks = document.getElementById('navLinks');
-hamb.addEventListener('click', ()=> navLinks.classList.toggle('active'));
-document.addEventListener('click', (e)=> { if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
-
-/* ---------------------------
-  Tabs logic
-----------------------------*/
-const tabs = document.querySelectorAll('.tab');
-const panes = document.querySelectorAll('.tab-pane');
-tabs.forEach(t => t.addEventListener('click', ()=>{
-  tabs.forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');
-  const target = t.dataset.tab;
-  panes.forEach(p => p.style.display = (p.id === 'pane-'+target) ? 'block' : 'none');
-}));
-
-/* ---------------------------
-  Auth: login/logout and UI toggle
-----------------------------*/
-const loginContainer = document.getElementById('login-container');
-const adminContent = document.getElementById('admin-content');
-const logoutTop = document.getElementById('logoutTop');
-const logoutBtn = document.getElementById('logout-btn');
-const openSite = document.getElementById('openSite');
-
-document.getElementById('login-btn').addEventListener('click', async ()=>{
-  const email = document.getElementById('email').value.trim();
-  const pw = document.getElementById('password').value;
-  try { await signInWithEmailAndPassword(auth, email, pw); } 
-  catch(e){ alert("Login error: "+e.message); }
+// Hamburger menu
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('active');
 });
 
-logoutBtn.addEventListener('click', ()=> signOut(auth));
-logoutTop.addEventListener('click', ()=> signOut(auth));
-openSite.addEventListener('click', ()=> window.open('/', '_blank'));
+// Close menu when clicking outside
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.nav-right')){
+    navLinks.classList.remove('active');
+  }
+});
 
-// react to auth state
-onAuthStateChanged(auth, async user => {
+// Login
+document.getElementById("login-btn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch(err) { alert("Login failed: "+err.message); }
+});
+
+// Logout
+document.querySelector(".logout-button").addEventListener("click", () => {
+  signOut(auth);
+});
+
+// Auth state
+onAuthStateChanged(auth, (user) => {
   if(user){
-    loginContainer.style.display = 'none';
-    adminContent.style.display = 'block';
-    document.querySelectorAll('.logout-button').forEach(b=>b.style.display='inline-block');
-    loadPosts();
-    loadWebsiteSettings();
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("admin-content").style.display = "block";
+    document.querySelector(".logout-button").style.display = "inline-block";
   } else {
-    loginContainer.style.display = 'block';
-    adminContent.style.display = 'none';
-    document.querySelectorAll('.logout-button').forEach(b=>b.style.display='none');
+    document.getElementById("login-container").style.display = "block";
+    document.getElementById("admin-content").style.display = "none";
+    document.querySelector(".logout-button").style.display = "none";
   }
 });
 
-/* ---------------------------
-  BLOG: Create + list + delete
-----------------------------*/
-const postsContainer = document.getElementById('posts');
-async function loadPosts(){
-  postsContainer.innerHTML = 'Loading...';
-  try {
-    const q = query(collection(db,'blogPosts'), orderBy('timestamp','desc'));
-    const snap = await getDocs(q);
-    postsContainer.innerHTML = '';
-    if(snap.empty){ postsContainer.innerHTML = '<div style="color:#ddd">No posts yet.</div>'; return; }
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      const id = docSnap.id;
-      const date = d.timestamp ? d.timestamp.toDate().toLocaleString() : '';
-      const item = document.createElement('div');
-      item.className = 'post-item';
-      item.innerHTML = `
-        <div>
-          <div style="font-weight:600">${escapeHtml(d.title || 'Untitled')}</div>
-          <div class="post-meta">${escapeHtml(d.category || '')} • ${date}</div>
-        </div>
-        <div style="display:flex;gap:.5rem;align-items:center">
-          <button class="btn-ghost small" data-id="${id}" data-action="view">View</button>
-          <button class="btn-ghost small" data-id="${id}" data-action="delete">Delete</button>
-        </div>
-      `;
-      postsContainer.appendChild(item);
-    });
-  } catch(e){ postsContainer.innerHTML = '<div style="color:#f66">Error loading posts</div>'; console.error(e); }
-}
-
-document.getElementById('posts').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  const id = btn.dataset.id;
-  const action = btn.dataset.action;
-  if(action === 'delete'){
-    if(!confirm('Delete this post?')) return;
-    deleteDoc(doc(db,'blogPosts',id)).then(()=>{ loadPosts(); alert('Deleted') }).catch(err=>alert('Delete failed: '+err.message));
-  } else if(action === 'view'){
-    // fetch post and open new window with content (basic)
-    getDoc(doc(db,'blogPosts',id)).then(snap=>{
-      if(!snap.exists()) return alert('Not found');
-      const d = snap.data();
-      const w = window.open('', '_blank');
-      w.document.write(`<html><head><title>${escapeHtml(d.title)}</title></head><body style="background:#000;color:#fff;font-family:Arial;padding:20px">${d.cover ? `<img src="${escapeHtml(d.cover)}" style="max-width:200px;display:block;margin-bottom:10px">` : ''}<h1>${escapeHtml(d.title)}</h1><div>${d.content || ''}</div></body></html>`);
-    });
-  }
-});
-
-/* Publish blog post */
-document.getElementById('blog-form').addEventListener('submit', async (e)=>{
+// Publish blog post
+document.getElementById("blog-form").addEventListener("submit", async (e)=>{
   e.preventDefault();
-  const title = document.getElementById('post-title').value.trim();
-  const category = document.getElementById('post-category').value.trim();
-  const tags = document.getElementById('post-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
-  const cover = document.getElementById('post-image').value.trim();
+  const title = document.getElementById("post-title").value;
+  const category = document.getElementById("post-category").value;
+  const tags = document.getElementById("post-tags").value.split(",").map(t=>t.trim());
   const content = quill.root.innerHTML;
-  if(!title || !content){ alert('Title and content required'); return; }
+
   try {
-    await addDoc(collection(db,'blogPosts'), { title, category, tags, cover, content, timestamp: serverTimestamp() });
-    alert('Post published');
-    document.getElementById('blog-form').reset();
+    await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
+    alert("Post published!");
+    document.getElementById("blog-form").reset();
     quill.setContents([]);
-    loadPosts();
-  } catch(e){ alert('Publish failed: '+e.message) }
+  } catch(err){
+    alert("Error: "+err.message);
+  }
 });
-
-/* ---------------------------
-  WEBSITE: Save / Load
-  stored at collection 'website' doc 'content'
-----------------------------*/
-const WEBSITE_DOC = doc(db, 'website', 'content');
-const SOCIALS_DOC = doc(db, 'website', 'socials');
-const THEME_DOC = doc(db, 'website', 'theme');
-const ABOUT_DOC = doc(db, 'website', 'about');
-
-document.getElementById('save-home').addEventListener('click', async ()=>{
-  const hero = document.getElementById('site-hero-title').value.trim();
-  const subtitle = document.getElementById('site-hero-sub').value.trim();
-  const desc = document.getElementById('site-description').value.trim();
-  try {
-    await setDoc(WEBSITE_DOC, { hero, subtitle, desc }, { merge: true });
-    alert('Homepage saved');
-  } catch(e){ alert('Save failed: '+e.message) }
-});
-
-/* Socials */
-document.getElementById('save-socials').addEventListener('click', async ()=>{
-  const instagram = document.getElementById('social-instagram').value.trim();
-  const x = document.getElementById('social-x').value.trim();
-  const youtube = document.getElementById('social-youtube').value.trim();
-  const spotify = document.getElementById('social-spotify').value.trim();
-  try{
-    await setDoc(SOCIALS_DOC, { instagram, x, youtube, spotify }, { merge: true });
-    alert('Socials saved');
-  } catch(e){ alert('Save failed: '+e.message) }
-});
-
-/* Theme */
-document.getElementById('save-theme').addEventListener('click', async ()=>{
-  const accent = document.getElementById('theme-accent').value;
-  const bg = document.getElementById('theme-bg').value;
-  const font = document.getElementById('theme-font').value;
-  try {
-    await setDoc(THEME_DOC, { accent, bg, font }, { merge: true });
-    applyTheme({ accent, bg, font });
-    alert('Theme saved');
-  } catch(e){ alert('Save failed: '+e.message) }
-});
-
-/* About */
-document.getElementById('save-about').addEventListener('click', async ()=>{
-  const about = document.getElementById('about-content').value;
-  try { await setDoc(ABOUT_DOC, { about }, { merge:true }); alert('About saved'); }
-  catch(e){ alert('Save failed: '+e.message) }
-});
-
-/* ---------------------------
-  Load website settings into admin form (on login)
-----------------------------*/
-async function loadWebsiteSettings(){
-  try {
-    // content
-    const snapContent = await getDoc(WEBSITE_DOC);
-    if(snapContent.exists()){
-      const d = snapContent.data();
-      document.getElementById('site-hero-title').value = d.hero || '';
-      document.getElementById('site-hero-sub').value = d.subtitle || '';
-      document.getElementById('site-description').value = d.desc || '';
-    }
-    // socials
-    const snapSocials = await getDoc(SOCIALS_DOC);
-    if(snapSocials.exists()){
-      const s = snapSocials.data();
-      document.getElementById('social-instagram').value = s.instagram || '';
-      document.getElementById('social-x').value = s.x || '';
-      document.getElementById('social-youtube').value = s.youtube || '';
-      document.getElementById('social-spotify').value = s.spotify || '';
-    }
-    // theme
-    const snapTheme = await getDoc(THEME_DOC);
-    if(snapTheme.exists()){
-      const t = snapTheme.data();
-      document.getElementById('theme-accent').value = t.accent || '#ff4f81';
-      document.getElementById('theme-bg').value = t.bg || '#0f0f0f';
-      document.getElementById('theme-font').value = t.font || 'Friz Quadrata';
-      applyTheme(t);
-    }
-    // about
-    const snapAbout = await getDoc(ABOUT_DOC);
-    if(snapAbout.exists()){
-      document.getElementById('about-content').value = (snapAbout.data().about) || '';
-    }
-  } catch(e){ console.error('Load settings failed', e); }
-}
-
-/* ---------------------------
-  Utility: apply theme changes locally (admin preview)
-----------------------------*/
-function applyTheme({ accent, bg, font }){
-  if(accent) document.documentElement.style.setProperty('--accent', accent);
-  if(bg) document.documentElement.style.setProperty('--bg', bg);
-  if(font) document.body.style.fontFamily = `"${font}", serif`;
-}
-
-/* ---------------------------
-  Helpers
-----------------------------*/
-function escapeHtml(str){
-  if(!str) return '';
-  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-}
 </script>
 </body>
 </html>
