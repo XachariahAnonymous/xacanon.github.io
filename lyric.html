@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lyric | Xac Anon</title>
+<title>Lyrics | Xac Anon</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
 
@@ -27,8 +27,9 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 
 .lyrics-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-.lyrics-container h2 { color:#ff4f81; }
-.lyrics-container p { white-space: pre-wrap; }
+.lyric-item { margin-bottom:1.5rem; border-bottom:1px solid #ff4f81; padding-bottom:0.5rem; }
+.lyric-item h3 { margin:0; color:#ff4f81; }
+.lyric-item a { color:#f0f0f0; text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -52,12 +53,12 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 </nav>
 
 <div class="lyrics-container" id="lyrics-container">
-  <h2>Loading Lyric...</h2>
+  <h2>All Lyrics</h2>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -70,31 +71,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const lyricsContainer = document.getElementById("lyrics-container");
-const urlParams = new URLSearchParams(window.location.search);
-const lyricId = urlParams.get("id");
+const container = document.getElementById("lyrics-container");
 
-async function loadLyric() {
-  if(!lyricId) {
-    lyricsContainer.innerHTML = "<p>No lyric selected.</p>";
+async function loadLyrics() {
+  const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+
+  if(snapshot.empty){
+    container.innerHTML += "<p>No lyrics found.</p>";
     return;
   }
-  const docRef = doc(db, "lyrics", lyricId);
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()) {
-    const data = docSnap.data();
-    lyricsContainer.innerHTML = `
-      <h2>${data.title} <small>${data.artist || ""}</small></h2>
-      <p>${data.content.replace(/<\/?[^>]+(>|$)/g,"")}</p>
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const lyricEl = document.createElement("div");
+    lyricEl.className = "lyric-item";
+    lyricEl.innerHTML = `
+      <h3>${data.title} <small>${data.artist || ""}</small></h3>
+      <a href="lyric.html?id=${doc.id}">View Full Lyric</a>
     `;
-  } else {
-    lyricsContainer.innerHTML = "<p>Lyric not found.</p>";
-  }
+    container.appendChild(lyricEl);
+  });
 }
 
-loadLyric();
+loadLyrics();
 
-// Hamburger
+// Hamburger toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
