@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyrics | Xac Anon</title>
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+<style>
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; z-index:1001; }
+.nav-links.active { display:flex; }
+.nav-links li { margin:0.5rem 0; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+
+.container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+h1 { color:#ff4f81; margin-bottom:0.5rem; }
+.meta { color:#ccc; font-size:0.9rem; margin-bottom:1.5rem; }
+.lyrics { white-space:pre-wrap; color:#f0f0f0; font-size:1rem; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
+    <div class="nav-right">
+      <a href="lyrics.html" class="home-button">Back to Lyrics</a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
+      <ul class="nav-links">
+        <li><a href="music.html">Music</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="lyrics.html">Lyrics</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 id="song-title">Loading...</h1>
+  <div class="meta" id="song-meta"></div>
+  <div class="lyrics" id="song-lyrics"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Get song title from URL
+const params = new URLSearchParams(window.location.search);
+const songSlug = params.get("title");
+
+async function loadLyric() {
+  const snapshot = await getDocs(collection(db, "lyrics"));
+  let found = false;
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    const slug = data.songTitle?.toLowerCase().replace(/\s+/g, '-');
+    if (slug === songSlug) {
+      found = true;
+      document.title = data.songTitle + " | Lyrics | Xac Anon";
+      document.getElementById("song-title").textContent = data.songTitle;
+      document.getElementById("song-meta").textContent = 
+        `Genre: ${data.songGenre || "Unspecified"} | ${data.timestamp?.toDate().toLocaleString() || "Unknown"}`;
+      document.getElementById("song-lyrics").textContent = data.lyrics;
+    }
+  });
+  if (!found) {
+    document.getElementById("song-title").textContent = "Song Not Found";
+  }
+}
+
+loadLyric();
+
+// Hamburger
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+document.addEventListener('click', (e)=>{ if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
+</script>
+</body>
+</html>
