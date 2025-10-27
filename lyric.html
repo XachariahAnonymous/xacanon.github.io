@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lyrics | Xac Anon</title>
+<title>Lyric | Xac Anon</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4f81">
 
 <!-- Favicon & Fonts -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
@@ -13,25 +15,20 @@
 <style>
 body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-
-.nav-right { display:flex; align-items:center; gap:1rem; }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-
 .nav-links { list-style:none; display:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; z-index:999; }
+.nav-links.active { display:flex; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
-.nav-links.active { display:flex; }
 
 .lyrics-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-.lyrics-item { margin-bottom:2rem; }
-.lyrics-item h3 { color:#ff4f81; margin-bottom:0.5rem; }
-.lyrics-item p { white-space: pre-line; } /* preserves line breaks */
-
-footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+.lyrics-container h2 { color:#ff4f81; }
+.lyrics-container p { white-space: pre-wrap; }
 </style>
 </head>
 <body>
@@ -46,6 +43,7 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
       <ul class="nav-links">
         <li><a href="music.html">Music</a></li>
         <li><a href="blog.html">Blog</a></li>
+        <li><a href="lyrics.html">Lyrics</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
@@ -54,16 +52,12 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
 </nav>
 
 <div class="lyrics-container" id="lyrics-container">
-  <h2>Lyrics</h2>
+  <h2>Loading Lyric...</h2>
 </div>
-
-<footer>
-  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
-</footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -77,28 +71,34 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const lyricsContainer = document.getElementById("lyrics-container");
+const urlParams = new URLSearchParams(window.location.search);
+const lyricId = urlParams.get("id");
 
-async function loadLyrics() {
-  const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-  const snapshot = await getDocs(q);
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const lyricEl = document.createElement("div");
-    lyricEl.className = "lyrics-item";
-    lyricEl.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`; // normal text
-    lyricsContainer.appendChild(lyricEl);
-  });
+async function loadLyric() {
+  if(!lyricId) {
+    lyricsContainer.innerHTML = "<p>No lyric selected.</p>";
+    return;
+  }
+  const docRef = doc(db, "lyrics", lyricId);
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()) {
+    const data = docSnap.data();
+    lyricsContainer.innerHTML = `
+      <h2>${data.title} <small>${data.artist || ""}</small></h2>
+      <p>${data.content.replace(/<\/?[^>]+(>|$)/g,"")}</p>
+    `;
+  } else {
+    lyricsContainer.innerHTML = "<p>Lyric not found.</p>";
+  }
 }
 
-loadLyrics();
+loadLyric();
 
-// Hamburger toggle
+// Hamburger
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
-document.addEventListener('click', (e)=>{
-  if(!e.target.closest('.nav-right')) navLinks.classList.remove('active');
-});
+document.addEventListener('click', e => { if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
 </script>
 
 </body>
