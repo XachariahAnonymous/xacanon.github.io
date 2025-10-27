@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyrics Post | Xac Anon</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4f81">
+
+<!-- Favicon & Fonts -->
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+<style>
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+
+/* Navbar */
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+
+.nav-links {
+  list-style:none;
+  display:none;
+  flex-direction:column;
+  position:absolute;
+  top:100%;
+  right:0;
+  background:#0f0f0f;
+  border:1px solid #ff4f81;
+  border-radius:8px;
+  padding:0.5rem 1rem;
+  z-index:999;
+}
+.nav-links li { margin:0.5rem 0; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+
+.nav-links.active { display:flex; }
+
+/* Lyrics Post Container */
+.post-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+.post-container h2 { color:#ff4f81; margin-top:0; }
+.post-meta { font-size:0.9rem; color:#ccc; margin-bottom:1rem; }
+.lyrics { white-space:pre-wrap; line-height:1.6; font-size:1rem; color:#f0f0f0; }
+
+.back-link { display:inline-block; margin-top:2rem; color:#ff4f81; text-decoration:none; font-weight:bold; }
+
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+
+/* Mobile */
+@media(max-width:576px){
+  .navbar-container { flex-wrap: nowrap; padding:0.5rem 1rem; }
+  .nav-logo img { height:30px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="nav-logo">
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+    </a>
+    <div class="nav-right">
+      <a href="index.html" class="home-button">Home</a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
+      <ul class="nav-links">
+        <li><a href="music.html">Music</a></li>
+        <li><a href="lyrics.html">Lyrics</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Lyrics Post Content -->
+<div class="post-container" id="post-container">
+  <h2>Loading...</h2>
+</div>
+
+<footer>
+  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+</footer>
+
+<!-- Firebase + JS -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Get ID from URL
+const urlParams = new URLSearchParams(window.location.search);
+const postId = urlParams.get("id");
+
+// Load lyric post
+async function loadLyric() {
+  if (!postId) {
+    document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+    return;
+  }
+
+  const docRef = doc(db, "lyricsPosts", postId);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    const date = data.timestamp?.toDate().toLocaleString() || "";
+    document.getElementById("post-container").innerHTML = `
+      <h2>${data.title}</h2>
+      <div class="post-meta"><strong>Track:</strong> ${data.track || "Untitled"} | <strong>Date:</strong> ${date}</div>
+      <div class="lyrics">${data.lyrics || "No lyrics available."}</div>
+      <a href="lyrics.html" class="back-link">← Back to Lyrics</a>
+    `;
+  } else {
+    document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+  }
+}
+loadLyric();
+
+// Hamburger toggle
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('active');
+});
+</script>
+
+</body>
+</html>
