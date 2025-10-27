@@ -32,12 +32,18 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 /* Login & Admin Panel */
 #login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 #admin-content { display:none; }
+
 input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; }
 button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; }
 button:hover { background:#f066a0; }
-#editor, #lyrics-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
-.toggle-buttons { display:flex; gap:1rem; margin-bottom:1rem; }
-.toggle-buttons button { flex:1; }
+#editor, #lyric-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
+
+/* Tabs */
+.tabs { display:flex; gap:1rem; margin-bottom:1rem; }
+.tab-button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ff4f81; background:#2E2D2B; cursor:pointer; }
+.tab-button.active { background:#ff4f81; color:#0f0f0f; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
 </style>
 </head>
 <body>
@@ -70,27 +76,34 @@ button:hover { background:#f066a0; }
 
 <!-- Admin Panel -->
 <div id="admin-content">
-  <div class="toggle-buttons">
-    <button id="show-blog">Edit Blog Posts</button>
-    <button id="show-lyrics">Edit Lyrics</button>
+  <h2>Welcome to Admin Panel</h2>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-button active" data-tab="blog-tab">Blog</button>
+    <button class="tab-button" data-tab="lyrics-tab">Lyrics</button>
   </div>
 
-  <form id="blog-form">
-    <h2>Blog Posts</h2>
-    <input type="text" id="post-title" placeholder="Post Title" required />
-    <input type="text" id="post-category" placeholder="Category" />
-    <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
-    <div id="editor"></div>
-    <button type="submit">Publish Post</button>
-  </form>
+  <!-- Blog Tab -->
+  <div id="blog-tab" class="tab-content active">
+    <form id="blog-form">
+      <input type="text" id="post-title" placeholder="Post Title" required />
+      <input type="text" id="post-category" placeholder="Category" />
+      <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
+      <div id="editor"></div>
+      <button type="submit">Publish Blog Post</button>
+    </form>
+  </div>
 
-  <form id="lyrics-form" style="display:none;">
-    <h2>Lyrics Manager</h2>
-    <input type="text" id="lyric-title" placeholder="Lyric Title" required />
-    <input type="text" id="lyric-artist" placeholder="Artist / Album (optional)" />
-    <div id="lyrics-editor"></div>
-    <button type="submit">Publish Lyric</button>
-  </form>
+  <!-- Lyrics Tab -->
+  <div id="lyrics-tab" class="tab-content">
+    <form id="lyrics-form">
+      <input type="text" id="lyric-title" placeholder="Song Title" required />
+      <input type="text" id="lyric-artist" placeholder="Artist" />
+      <div id="lyric-editor"></div>
+      <button type="submit">Publish Lyric</button>
+    </form>
+  </div>
 </div>
 
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
@@ -99,47 +112,44 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-// Firebase config
+// Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
-  authDomain: "xacanonblog.firebaseapp.com",
-  projectId: "xacanonblog",
-  storageBucket: "xacanonblog.firebasestorage.app",
-  messagingSenderId: "319182532803",
-  appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Quill editors
+// Quill Editors
 const blogQuill = new Quill('#editor', { theme: 'snow' });
-const lyricsQuill = new Quill('#lyrics-editor', { theme: 'snow' });
+const lyricQuill = new Quill('#lyric-editor', { theme: 'snow' });
 
-// Toggle forms
-const blogForm = document.getElementById("blog-form");
-const lyricsForm = document.getElementById("lyrics-form");
-document.getElementById("show-blog").addEventListener("click", () => {
-  blogForm.style.display = "block";
-  lyricsForm.style.display = "none";
-});
-document.getElementById("show-lyrics").addEventListener("click", () => {
-  blogForm.style.display = "none";
-  lyricsForm.style.display = "block";
-});
-
-// Hamburger
+// Hamburger toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
 document.addEventListener('click', e => { if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
 
+// Tabs toggle
+const tabButtons = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+tabButtons.forEach(btn => btn.addEventListener('click', () => {
+  tabButtons.forEach(b => b.classList.remove('active'));
+  tabContents.forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+}));
+
 // Login
 document.getElementById("login-btn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  try { await signInWithEmailAndPassword(auth, email, password); } 
+  try { await signInWithEmailAndPassword(auth, email, password); }
   catch(err) { alert("Login failed: "+err.message); }
 });
 
@@ -147,7 +157,7 @@ document.getElementById("login-btn").addEventListener("click", async () => {
 document.querySelector(".logout-button").addEventListener("click", () => signOut(auth));
 
 // Auth state
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, user => {
   if(user){
     document.getElementById("login-container").style.display = "none";
     document.getElementById("admin-content").style.display = "block";
@@ -159,32 +169,32 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Blog submit
-blogForm.addEventListener("submit", async (e)=>{
+// Publish Blog
+document.getElementById("blog-form").addEventListener("submit", async e=>{
   e.preventDefault();
   const title = document.getElementById("post-title").value;
   const category = document.getElementById("post-category").value;
   const tags = document.getElementById("post-tags").value.split(",").map(t=>t.trim());
   const content = blogQuill.root.innerHTML;
   try {
-    await addDoc(collection(db,"blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
+    await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
     alert("Blog post published!");
-    blogForm.reset();
+    document.getElementById("blog-form").reset();
     blogQuill.setContents([]);
   } catch(err){ alert("Error: "+err.message); }
 });
 
-// Lyrics submit
-lyricsForm.addEventListener("submit", async (e)=>{
+// Publish Lyrics
+document.getElementById("lyrics-form").addEventListener("submit", async e=>{
   e.preventDefault();
   const title = document.getElementById("lyric-title").value;
   const artist = document.getElementById("lyric-artist").value;
-  const content = lyricsQuill.root.innerHTML;
+  const content = lyricQuill.root.innerHTML;
   try {
-    const docRef = await addDoc(collection(db,"lyrics"), { title, artist, content, timestamp: serverTimestamp() });
-    alert(`Lyric published! ID: ${docRef.id}`);
-    lyricsForm.reset();
-    lyricsQuill.setContents([]);
+    const docRef = await addDoc(collection(db, "lyrics"), { title, artist, content, timestamp: serverTimestamp() });
+    alert(`Lyric published! Access it at: lyric.html?id=${docRef.id}`);
+    document.getElementById("lyrics-form").reset();
+    lyricQuill.setContents([]);
   } catch(err){ alert("Error: "+err.message); }
 });
 </script>
