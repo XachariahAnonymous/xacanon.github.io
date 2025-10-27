@@ -13,40 +13,47 @@
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
 <style>
-body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+/* Flex layout to keep footer at bottom */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #0f0f0f;
+  color: #f0f0f0;
+  font-family: 'Friz Quadrata', serif;
+  margin: 0;
+}
 
 /* Navbar */
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-
-.nav-links {
-  list-style:none;
-  display:none;
-  flex-direction:column;
-  position:absolute;
-  top:100%;
-  right:0;
-  background:#0f0f0f;
-  border:1px solid #ff4f81;
-  border-radius:8px;
-  padding:0.5rem 1rem;
-  z-index:999;
-}
+.nav-links { list-style:none; display:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; z-index:999; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
-
 .nav-links.active { display:flex; }
 
-/* Lyric container */
-.lyric-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-.lyric-container h2 { color:#ff4f81; margin-bottom:1rem; }
-.lyric-body { line-height:1.6; }
+/* Lyrics container */
+.lyric-container {
+  flex: 1; /* fills space between navbar and footer */
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #2E2D2B;
+  border:1px solid #ff4f81;
+  border-radius: 10px;
+  box-shadow:0 0 20px #ff4f81;
+}
+.lyric-post { margin-bottom: 1.5rem; border-bottom:1px solid #ff4f81; padding-bottom: 0.8rem; }
+.lyric-post h3 { color:#ff4f81; margin:0; }
+.lyric-post a { color:#f0f0f0; text-decoration: underline; cursor:pointer; }
+
+/* Footer */
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
 
 /* Mobile */
 @media(max-width:576px){
@@ -60,9 +67,7 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 <!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo">
-      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
-    </a>
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" /></a>
     <div class="nav-right">
       <a href="index.html" class="home-button">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
@@ -70,27 +75,25 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
         <li><a href="music.html">Music</a></li>
         <li><a href="lyrics.html">Lyrics</a></li>
         <li><a href="blog.html">Blog</a></li>
-        <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- Lyric Container -->
-<div class="lyric-container">
-  <h2 id="lyric-title">Loading...</h2>
-  <div id="lyric-body" class="lyric-body">Please wait while we fetch the lyrics...</div>
+<!-- Lyrics Container -->
+<div class="lyric-container" id="lyric-container">
+  <h2>Lyrics</h2>
+  <div id="lyrics"></div>
 </div>
 
 <footer>
   <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
 </footer>
 
-<!-- Firebase + JS -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -103,37 +106,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Hamburger toggle
+const lyricsDiv = document.getElementById("lyrics");
+
+async function loadLyrics() {
+  const q = query(collection(db, "lyricsPosts"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const postEl = document.createElement("div");
+    postEl.className = "lyric-post";
+    postEl.innerHTML = `
+      <h3>${data.title}</h3>
+      <p><strong>Category:</strong> ${data.category || "Uncategorized"} | <strong>Tags:</strong> ${data.tags?.join(", ") || "None"}</p>
+      <a href="lyricPost.html?id=${doc.id}">Read Full Lyrics</a>
+    `;
+    lyricsDiv.appendChild(postEl);
+  });
+}
+loadLyrics();
+
+// Hamburger menu toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
-document.addEventListener('click', e => {
-  if(!e.target.closest('.nav-right')) navLinks.classList.remove('active');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('active');
 });
-
-// Get ID from URL
-const params = new URLSearchParams(window.location.search);
-const id = params.get('id');
-
-async function loadLyric() {
-  if(!id){
-    document.getElementById('lyric-title').innerText = "No Lyric Selected";
-    document.getElementById('lyric-body').innerText = "Please go back and select a lyric.";
-    return;
-  }
-  const docRef = doc(db, "lyrics", id);
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()){
-    const data = docSnap.data();
-    document.getElementById('lyric-title').innerText = data.title || "Untitled";
-    document.getElementById('lyric-body').innerHTML = data.content || "No lyrics available.";
-  } else {
-    document.getElementById('lyric-title').innerText = "Lyric Not Found";
-    document.getElementById('lyric-body').innerText = "The lyric you are looking for does not exist.";
-  }
-}
-
-loadLyric();
 </script>
+
 </body>
 </html>
