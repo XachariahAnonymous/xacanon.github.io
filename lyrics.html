@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lyric | Xac Anon</title>
+<title>Lyrics | Xac Anon</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
 
@@ -14,6 +14,8 @@
 
 <style>
 body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+
+/* Navbar */
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
@@ -22,13 +24,23 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; display:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; z-index:999; }
-.nav-links.active { display:flex; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+.nav-links.active { display:flex; }
 
-.lyric-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-.lyric-container h2 { color:#ff4f81; margin-top:0; }
-.lyric-content { white-space:pre-wrap; line-height:1.6; margin-top:1rem; }
+/* Lyrics container */
+.lyrics-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+.lyric-item { margin-bottom:1.5rem; border-bottom:1px solid #ff4f81; padding-bottom:0.8rem; }
+.lyric-item h3 { color:#ff4f81; margin:0; }
+.lyric-item a { color:#f0f0f0; text-decoration:underline; cursor:pointer; }
+
+/* Footer */
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+
+@media(max-width:576px){
+  .navbar-container { flex-wrap: nowrap; padding:0.5rem 1rem; }
+  .nav-logo img { height:30px; }
+}
 </style>
 </head>
 <body>
@@ -36,14 +48,16 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 <!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
-    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
+    <a href="index.html" class="nav-logo">
+      <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+    </a>
     <div class="nav-right">
       <a href="index.html" class="home-button">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
         <li><a href="music.html">Music</a></li>
-        <li><a href="blog.html">Blog</a></li>
         <li><a href="lyrics.html">Lyrics</a></li>
+        <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
@@ -51,14 +65,20 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
   </div>
 </nav>
 
-<div class="lyric-container" id="lyric-container">
-  <h2 id="lyric-title">Loading...</h2>
-  <p class="lyric-content" id="lyric-content"></p>
+<!-- Lyrics Container -->
+<div class="lyrics-container" id="lyrics-container">
+  <h2>All Lyrics</h2>
+  <div id="lyrics-list"></div>
 </div>
 
+<footer>
+  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+</footer>
+
+<!-- Firebase + JS -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -71,40 +91,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Get ID from URL
-const params = new URLSearchParams(window.location.search);
-const id = params.get('id');
+const lyricsList = document.getElementById("lyrics-list");
 
-const titleEl = document.getElementById("lyric-title");
-const contentEl = document.getElementById("lyric-content");
-
-async function loadLyric() {
-  if(!id){
-    titleEl.textContent = "Lyric Not Found";
-    contentEl.textContent = "No lyric ID provided.";
-    return;
-  }
-
-  const docRef = doc(db, "lyrics", id);
-  const docSnap = await getDoc(docRef);
-
-  if(docSnap.exists()){
-    const data = docSnap.data();
-    titleEl.textContent = data.title || "Untitled";
-    contentEl.textContent = data.content || "No content available.";
-  } else {
-    titleEl.textContent = "Lyric Not Found";
-    contentEl.textContent = "This lyric does not exist.";
-  }
+async function loadLyrics() {
+  const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const lyricEl = document.createElement("div");
+    lyricEl.className = "lyric-item";
+    lyricEl.innerHTML = `
+      <h3>${data.title}</h3>
+      <a href="lyric.html?id=${doc.id}">View Full Lyrics</a>
+    `;
+    lyricsList.appendChild(lyricEl);
+  });
 }
 
-loadLyric();
+loadLyrics();
 
 // Hamburger toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
-document.addEventListener('click', e => { if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('active');
+});
 </script>
 
 </body>
