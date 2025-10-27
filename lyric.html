@@ -13,36 +13,61 @@
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
 <style>
-body {
-  background:#0f0f0f;
-  color:#f0f0f0;
-  font-family:'Friz Quadrata', serif;
-  margin:0;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
 
 /* Navbar */
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-.nav-links { list-style:none; display:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; z-index:999; }
+
+.nav-links {
+  list-style:none;
+  display:none;
+  flex-direction:column;
+  position:absolute;
+  top:100%;
+  right:0;
+  background:#0f0f0f;
+  border:1px solid #ff4f81;
+  border-radius:8px;
+  padding:0.5rem 1rem;
+  z-index:999;
+}
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+
 .nav-links.active { display:flex; }
 
 /* Lyric container */
-.lyric-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; flex:1; }
+.lyric-container {
+  max-width:900px;
+  margin:2rem auto;
+  padding:2rem;
+  background:#2E2D2B;
+  border:1px solid #ff4f81;
+  border-radius:10px;
+  box-shadow:0 0 20px #ff4f81;
+  min-height: 400px;      /* ensures container is tall enough */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
 .lyric-container h2 { color:#ff4f81; margin-bottom:1rem; }
 .lyric-body { line-height:1.6; }
 
 /* Footer */
-footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
+footer {
+  padding:1rem;
+  text-align:center;
+  background:#111;
+  border-top:1px solid #ff4f81;
+  margin-top:2rem;
+}
 
 /* Mobile */
 @media(max-width:576px){
@@ -122,7 +147,7 @@ async function loadLyric() {
   if(docSnap.exists()){
     const data = docSnap.data();
     document.getElementById('lyric-title').innerText = data.title || "Untitled";
-    document.getElementById('lyric-body').innerText = data.content || "No lyrics available.";
+    document.getElementById('lyric-body').innerHTML = data.content || "No lyrics available."; // Render HTML properly
   } else {
     document.getElementById('lyric-title').innerText = "Lyric Not Found";
     document.getElementById('lyric-body').innerText = "The lyric you are looking for does not exist.";
