@@ -29,17 +29,15 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 
-#login-container, #admin-content { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+/* Login & Admin Panel */
+#login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 #admin-content { display:none; }
-
-input, textarea { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; background:#1c1c1c; color:#f0f0f0; }
+input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; }
 button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; }
 button:hover { background:#f066a0; }
-
 #editor, #lyrics-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
-
-.hidden { display:none; }
-.mode-switch { background:#1c1c1c; color:#ff4f81; border:1px solid #ff4f81; }
+.toggle-buttons { display:flex; gap:1rem; margin-bottom:1rem; }
+.toggle-buttons button { flex:1; }
 </style>
 </head>
 <body>
@@ -53,6 +51,7 @@ button:hover { background:#f066a0; }
       <ul class="nav-links">
         <li><a href="music.html">Music</a></li>
         <li><a href="blog.html">Blog</a></li>
+        <li><a href="lyrics.html">Lyrics</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
@@ -71,31 +70,27 @@ button:hover { background:#f066a0; }
 
 <!-- Admin Panel -->
 <div id="admin-content">
-  <h2>Welcome to Admin Panel</h2>
-  <button id="mode-toggle" class="mode-switch">Switch to Lyrics Mode</button>
-
-  <!-- Blog Mode -->
-  <div id="blog-mode">
-    <h3>Blog Post Editor</h3>
-    <form id="blog-form">
-      <input type="text" id="post-title" placeholder="Post Title" required />
-      <input type="text" id="post-category" placeholder="Category" />
-      <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
-      <div id="editor"></div>
-      <button type="submit">Publish Blog Post</button>
-    </form>
+  <div class="toggle-buttons">
+    <button id="show-blog">Edit Blog Posts</button>
+    <button id="show-lyrics">Edit Lyrics</button>
   </div>
 
-  <!-- Lyrics Mode -->
-  <div id="lyrics-mode" class="hidden">
-    <h3>Lyrics Editor</h3>
-    <form id="lyrics-form">
-      <input type="text" id="song-title" placeholder="Song Title" required />
-      <input type="text" id="song-genre" placeholder="Genre" />
-      <div id="lyrics-editor"></div>
-      <button type="submit">Save Lyrics</button>
-    </form>
-  </div>
+  <form id="blog-form">
+    <h2>Blog Posts</h2>
+    <input type="text" id="post-title" placeholder="Post Title" required />
+    <input type="text" id="post-category" placeholder="Category" />
+    <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
+    <div id="editor"></div>
+    <button type="submit">Publish Post</button>
+  </form>
+
+  <form id="lyrics-form" style="display:none;">
+    <h2>Lyrics Manager</h2>
+    <input type="text" id="lyric-title" placeholder="Lyric Title" required />
+    <input type="text" id="lyric-artist" placeholder="Artist / Album (optional)" />
+    <div id="lyrics-editor"></div>
+    <button type="submit">Publish Lyric</button>
+  </form>
 </div>
 
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
@@ -104,41 +99,54 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-// Firebase Config
+// Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
-    authDomain: "xacanonblog.firebaseapp.com",
-    projectId: "xacanonblog",
-    storageBucket: "xacanonblog.firebasestorage.app",
-    messagingSenderId: "319182532803",
-    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+  apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+  authDomain: "xacanonblog.firebaseapp.com",
+  projectId: "xacanonblog",
+  storageBucket: "xacanonblog.firebasestorage.app",
+  messagingSenderId: "319182532803",
+  appId: "1:319182532803:web:3a4d33372643dd71d5f276",
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Editors
-const blogEditor = new Quill('#editor', { theme: 'snow' });
-const lyricsEditor = new Quill('#lyrics-editor', { theme: 'snow' });
+// Quill editors
+const blogQuill = new Quill('#editor', { theme: 'snow' });
+const lyricsQuill = new Quill('#lyrics-editor', { theme: 'snow' });
 
-// Hamburger menu
+// Toggle forms
+const blogForm = document.getElementById("blog-form");
+const lyricsForm = document.getElementById("lyrics-form");
+document.getElementById("show-blog").addEventListener("click", () => {
+  blogForm.style.display = "block";
+  lyricsForm.style.display = "none";
+});
+document.getElementById("show-lyrics").addEventListener("click", () => {
+  blogForm.style.display = "none";
+  lyricsForm.style.display = "block";
+});
+
+// Hamburger
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
-document.addEventListener('click', (e)=>{ if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
+document.addEventListener('click', e => { if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
 
 // Login
 document.getElementById("login-btn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  try { await signInWithEmailAndPassword(auth, email, password); }
+  try { await signInWithEmailAndPassword(auth, email, password); } 
   catch(err) { alert("Login failed: "+err.message); }
 });
 
 // Logout
 document.querySelector(".logout-button").addEventListener("click", () => signOut(auth));
 
-// Auth State
+// Auth state
 onAuthStateChanged(auth, (user) => {
   if(user){
     document.getElementById("login-container").style.display = "none";
@@ -151,52 +159,32 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Toggle Modes
-const modeToggle = document.getElementById("mode-toggle");
-const blogMode = document.getElementById("blog-mode");
-const lyricsMode = document.getElementById("lyrics-mode");
-let currentMode = "blog";
-
-modeToggle.addEventListener("click", () => {
-  if(currentMode === "blog"){
-    blogMode.classList.add("hidden");
-    lyricsMode.classList.remove("hidden");
-    modeToggle.textContent = "Switch to Blog Mode";
-    currentMode = "lyrics";
-  } else {
-    lyricsMode.classList.add("hidden");
-    blogMode.classList.remove("hidden");
-    modeToggle.textContent = "Switch to Lyrics Mode";
-    currentMode = "blog";
-  }
-});
-
-// Publish Blog Post
-document.getElementById("blog-form").addEventListener("submit", async (e)=>{
+// Blog submit
+blogForm.addEventListener("submit", async (e)=>{
   e.preventDefault();
   const title = document.getElementById("post-title").value;
   const category = document.getElementById("post-category").value;
   const tags = document.getElementById("post-tags").value.split(",").map(t=>t.trim());
-  const content = blogEditor.root.innerHTML;
+  const content = blogQuill.root.innerHTML;
   try {
-    await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
+    await addDoc(collection(db,"blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
     alert("Blog post published!");
-    document.getElementById("blog-form").reset();
-    blogEditor.setContents([]);
+    blogForm.reset();
+    blogQuill.setContents([]);
   } catch(err){ alert("Error: "+err.message); }
 });
 
-// Save Lyrics
-document.getElementById("lyrics-form").addEventListener("submit", async (e)=>{
+// Lyrics submit
+lyricsForm.addEventListener("submit", async (e)=>{
   e.preventDefault();
-  const songTitle = document.getElementById("song-title").value;
-  const songGenre = document.getElementById("song-genre").value;
-  const lyrics = lyricsEditor.root.innerHTML;
+  const title = document.getElementById("lyric-title").value;
+  const artist = document.getElementById("lyric-artist").value;
+  const content = lyricsQuill.root.innerHTML;
   try {
-    await addDoc(collection(db, "lyrics"), { songTitle, songGenre, lyrics, timestamp: serverTimestamp() });
-    alert("Lyrics saved!");
-    document.getElementById("lyrics-form").reset();
-    lyricsEditor.setContents([]);
+    const docRef = await addDoc(collection(db,"lyrics"), { title, artist, content, timestamp: serverTimestamp() });
+    alert(`Lyric published! ID: ${docRef.id}`);
+    lyricsForm.reset();
+    lyricsQuill.setContents([]);
   } catch(err){ alert("Error: "+err.message); }
 });
 </script>
