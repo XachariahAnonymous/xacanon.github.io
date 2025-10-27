@@ -4,8 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Lyrics | Xac Anon</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff4f81">
 
 <!-- Favicon & Fonts -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
@@ -14,38 +12,26 @@
 
 <style>
 body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
-
-/* Navbar */
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
 
-.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.nav-right { display:flex; align-items:center; gap:1rem; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+
 .nav-links { list-style:none; display:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; z-index:999; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
 .nav-links.active { display:flex; }
 
-/* Lyrics & Blog */
-.content-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-.content-container h2 { margin-top:0; color:#ff4f81; }
-.lyrics, .blog-post { margin-bottom:2rem; }
-.lyrics p { white-space:pre-line; }
-
-/* Swap button */
-#swap-button { margin-bottom:1rem; background:#ff4f81; color:#0f0f0f; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; transition:0.3s; }
-#swap-button:hover { background:#f066a0; }
+.lyrics-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+.lyrics-item { margin-bottom:2rem; }
+.lyrics-item h3 { color:#ff4f81; margin-bottom:0.5rem; }
+.lyrics-item p { white-space: pre-line; } /* preserves line breaks */
 
 footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
-
-/* Mobile */
-@media(max-width:576px){
-  .navbar-container { flex-wrap: nowrap; padding:0.5rem 1rem; }
-  .nav-logo img { height:30px; }
-}
 </style>
 </head>
 <body>
@@ -67,10 +53,8 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
   </div>
 </nav>
 
-<div class="content-container">
-  <button id="swap-button">Switch to Blog</button>
-  <div id="lyrics-container" class="lyrics"></div>
-  <div id="blog-container" class="blog-post" style="display:none;"></div>
+<div class="lyrics-container" id="lyrics-container">
+  <h2>Lyrics</h2>
 </div>
 
 <footer>
@@ -93,54 +77,22 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const lyricsContainer = document.getElementById("lyrics-container");
-const blogContainer = document.getElementById("blog-container");
-const swapButton = document.getElementById("swap-button");
 
 async function loadLyrics() {
   const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
   const snapshot = await getDocs(q);
-  lyricsContainer.innerHTML = "";
   snapshot.forEach(doc => {
     const data = doc.data();
-    const lyricsEl = document.createElement("div");
-    lyricsEl.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`;
-    lyricsContainer.appendChild(lyricsEl);
+    const lyricEl = document.createElement("div");
+    lyricEl.className = "lyrics-item";
+    lyricEl.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p>`; // normal text
+    lyricsContainer.appendChild(lyricEl);
   });
 }
 
-async function loadBlog() {
-  const q = query(collection(db, "blogPosts"), orderBy("timestamp", "desc"));
-  const snapshot = await getDocs(q);
-  blogContainer.innerHTML = "";
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const date = data.timestamp?.toDate().toLocaleString() || "";
-    const postEl = document.createElement("div");
-    postEl.innerHTML = `<h3>${data.title}</h3>
-      <p><strong>Category:</strong> ${data.category || "Uncategorized"} | <strong>Tags:</strong> ${data.tags?.join(", ") || "None"} | <strong>Date:</strong> ${date}</p>
-      <p>${data.content}</p>`;
-    blogContainer.appendChild(postEl);
-  });
-}
-
-// Load initial lyrics
 loadLyrics();
 
-// Swap button
-swapButton.addEventListener("click", () => {
-  if(lyricsContainer.style.display === "none") {
-    lyricsContainer.style.display = "block";
-    blogContainer.style.display = "none";
-    swapButton.textContent = "Switch to Blog";
-  } else {
-    lyricsContainer.style.display = "none";
-    blogContainer.style.display = "block";
-    swapButton.textContent = "Switch to Lyrics";
-    loadBlog();
-  }
-});
-
-// Hamburger menu
+// Hamburger toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
