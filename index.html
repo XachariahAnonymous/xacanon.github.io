@@ -1,10 +1,53 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xac Anon — Official Website</title>
+<title>Xac Anon</title>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4f81">
 
+
+<!-- Favicon -->
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+<!-- OG & Twitter -->
+<meta property="og:title" content="Xac Anon – Official Site" />
+<meta property="og:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
+<meta property="og:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
+<meta property="og:url" content="https://xacanonmusic.com" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Xac Anon – Official Site" />
+<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
+<meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
+<meta name="description" content="Discover Xac Anon’s music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MusicGroup",
+  "name": "Xac Anon",
+  "url": "https://xacanonmusic.com",
+  "sameAs": [
+    "https://instagram.com/xacanon/",
+    "https://x.com/XacAnonMusic",
+    "https://youtube.com/@XacAnon"
+  ],
+  "image": "https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg",
+  "description": "Discover Xac Anon’s music, latest releases, and press kit. Lo-fi and emo rap that speaks from the heart.",
+  "genre": ["Lo-fi Rap", "Emo Rap"]
+}
+</script>
+  
 <style>
 /* ===== BODY ===== */
 body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
@@ -27,7 +70,7 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   align-items:center;
   flex-wrap:wrap;
   padding:0.8rem 2rem;
-  height:60px;
+  height:60px; /* fixed navbar height for alignment */
 }
 
 .nav-logo img {
@@ -42,7 +85,7 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 
 .nav-right {
   display:flex;
-  align-items:center;
+  align-items:center; /* vertical center */
   gap:1rem;
   position:relative;
 }
@@ -71,8 +114,46 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
+/* Hamburger menu */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-.nav-links { list-style:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:0 0 8px 8px; padding:0.5rem 1rem; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
+.nav-links li { margin:0.5rem 0; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.nav-links li a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+.nav-links.active { display:flex; }
+
+}
+
+.nav-links {
+  list-style:none;
+  padding:0;
+  margin:0;
+  position:absolute;
+  top:100%; /* below navbar */
+  right:0;
+  background:#0f0f0f;
+  border:1px solid #ff4f81;
+  border-top:none;
+  border-radius:0 0 8px 8px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 0.4s ease;
+  min-width:max-content;
+  z-index:1000;
+}
+
+.nav-links.show {
+  display:flex;       /* ensures links are visible */
+  max-height:500px;   /* animate height */
+}
+
+
+.nav-links.show { max-height:500px; }
+
 .nav-links li a {
   padding:0.8rem 1.2rem;
   display:block;
@@ -81,6 +162,7 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   font-size:1.1rem;
   position:relative;
 }
+
 .nav-links li a::before, .nav-links li a::after {
   content: attr(data-text);
   position:absolute;
@@ -90,9 +172,9 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   overflow:hidden;
   clip: rect(0,0,0,0);
 }
+
 .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-.nav-links.show { max-height:500px; }
 
 @keyframes glitchTop {
   0%{clip:rect(0,9999px,0,0);}
@@ -134,6 +216,7 @@ header .tagline { font-size:1rem; }
 footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
 footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
 footer .ticker:hover { animation-play-state: paused; color:#ff4f81; text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81; }
+@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
 footer .socials { margin-top:1rem; text-align:center; }
 footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
 footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
@@ -158,7 +241,6 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 }
 </style>
 </head>
-
 <body>
 
 <!-- NAVBAR -->
@@ -179,64 +261,85 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
   </div>
 </nav>
 
-<section class="hero">
-  <h1>Xac Anon</h1>
-  <p class="tagline">Welcome to the sound of the future.</p>
-  <div class="countdown-container">
-    <h2>Next Release Countdown</h2>
-    <p id="countdown">Loading...</p>
-    <p>Release Date: <span id="release-date"></span></p>
-  </div>
-</section>
+<div id="main-content">
+<header style="text-align:center; padding:2rem 1rem;">
+<img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+<h1>Xac Anon</h1>
+<p class="tagline">Welcome to the sound of the future.</p>
+<div class="countdown-container">
+<h2>Next Release Countdown</h2>
+<p id="countdown">Loading...</p>
+<p>Release Date: <span id="release-date"></span></p>
+</div>
+</header>
 
+<!-- MUSIC SECTIONS -->
 <section class="music-section">
 <h2>Popular Tracks</h2>
 <div class="music-grid">
-  <a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
-  <a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
-  <a class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
 </div>
 </section>
 
 <section class="music-section">
 <h2>Recent Releases</h2>
 <div class="music-grid">
-  <a class="music-card" data-track-url="https://open.spotify.com/album/4h0iATP9ZcRlvDPJ1cnoeK?si=zPwQ67bUSAmo6_0_8aQLkQ"></a>
-  <a class="music-card" data-track-url="https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1?si=YCMMa99YSkyfHG29rI2imw"></a>
-  <a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=7e2d377d763e40e1"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/album/4h0iATP9ZcRlvDPJ1cnoeK?si=zPwQ67bUSAmo6_0_8aQLkQ"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1?si=YCMMa99YSkyfHG29rI2imw"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=7e2d377d763e40e1"></a>
 </div>
 </section>
 
 <section id="featured-music" class="music-section">
 <h2>Featured Music</h2>
 <div class="music-grid">
-  <a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
-  <a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
-  <a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
 </div>
 </section>
 
+<!-- EPK SECTION -->
+<section class="epk-section">
+<h2>Check Out My EPK</h2>
+<p>Everything you need to know about my music, achievements, and press kit.</p>
+<a href="epk.html" data-text="View My EPK">View My EPK</a>
+</section>
+
+<!-- MODAL -->
 <div id="spotify-modal" class="modal">
-  <div class="modal-content">
-    <span class="modal-close">&times;</span>
-    <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-  </div>
+<div class="modal-content">
+<span class="modal-close">&times;</span>
+<iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+</div>
 </div>
 
+<!-- FOOTER -->
+<footer>
+<div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
+<div class="socials">
+<a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+<a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+<a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+</div>
+</footer>
+
 <script>
-// Hamburger
+// ===== NAVBAR HAMBURGER =====
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => navLinks.classList.toggle('show'));
+hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
-// Countdown
+// ===== COUNTDOWN =====
 const countdownElement = document.getElementById("countdown");
 const releaseElement = document.getElementById("release-date");
-const releaseTime = "2025-10-25T00:00:00"; 
+const releaseTime = "2025-10-25T00:00:00"; // AEDT
 const timeZone = "Australia/Sydney";
 const releaseDateAEDT = new Date(releaseTime);
 const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US',{timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone}));
-releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:timeZone})} | Your Time: ${releaseDateLocal}`;
+releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
 
 function updateCountdown(){
   const now = new Date();
@@ -251,7 +354,7 @@ function updateCountdown(){
 setInterval(updateCountdown,1000);
 updateCountdown();
 
-// Spotify cards
+// ===== SPOTIFY TRACK & ALBUM CARDS =====
 async function loadSpotifyData(){
   const cards = document.querySelectorAll(".music-card");
   for(let card of cards){
@@ -271,7 +374,7 @@ async function loadSpotifyData(){
 }
 loadSpotifyData();
 
-// Modal
+// ===== MODAL =====
 document.querySelector('.modal-close').onclick = function(){
   document.getElementById('spotify-modal').style.display='none';
   document.getElementById('spotify-player').src='';
