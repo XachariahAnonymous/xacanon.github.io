@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,9 +7,13 @@
 <title>Admin Panel | Xac Anon</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
+
+<!-- Favicon & Fonts -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+<!-- Quill -->
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 
 <style>
@@ -24,12 +29,17 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .nav-links.active { display:flex; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+
+/* Login & Admin Panel */
 #login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 #admin-content { display:none; }
-input, select { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; }
+
+input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; }
 button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; }
 button:hover { background:#f066a0; }
 #editor, #lyric-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
+
+/* Tabs */
 .tabs { display:flex; gap:1rem; margin-bottom:1rem; }
 .tab-button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ff4f81; background:#2E2D2B; cursor:pointer; }
 .tab-button.active { background:#ff4f81; color:#0f0f0f; }
@@ -57,7 +67,7 @@ button:hover { background:#f066a0; }
   </div>
 </nav>
 
-<!-- Login -->
+<!-- Login Form -->
 <div id="login-container">
   <h2>Admin Login</h2>
   <input type="email" id="email" placeholder="Email" required />
@@ -65,17 +75,17 @@ button:hover { background:#f066a0; }
   <button id="login-btn">Login</button>
 </div>
 
-<!-- Admin -->
+<!-- Admin Panel -->
 <div id="admin-content">
   <h2>Welcome to Admin Panel</h2>
 
+  <!-- Tabs -->
   <div class="tabs">
     <button class="tab-button active" data-tab="blog-tab">Blog</button>
     <button class="tab-button" data-tab="lyrics-tab">Lyrics</button>
-    <button class="tab-button" data-tab="countdown-tab">Countdown</button>
   </div>
 
-  <!-- Blog -->
+  <!-- Blog Tab -->
   <div id="blog-tab" class="tab-content active">
     <form id="blog-form">
       <input type="text" id="post-title" placeholder="Post Title" required />
@@ -86,7 +96,7 @@ button:hover { background:#f066a0; }
     </form>
   </div>
 
-  <!-- Lyrics -->
+  <!-- Lyrics Tab -->
   <div id="lyrics-tab" class="tab-content">
     <form id="lyrics-form">
       <input type="text" id="lyric-title" placeholder="Song Title" required />
@@ -95,70 +105,53 @@ button:hover { background:#f066a0; }
       <button type="submit">Publish Lyric</button>
     </form>
   </div>
-
-  <!-- Countdown -->
-  <div id="countdown-tab" class="tab-content">
-    <h3>Set New Countdown</h3>
-    <input type="datetime-local" id="release-time" required />
-    <select id="timezone">
-      <option value="Australia/Sydney">Australia/Sydney</option>
-      <option value="UTC">UTC</option>
-      <option value="America/New_York">America/New_York</option>
-      <option value="Europe/London">Europe/London</option>
-    </select>
-    <button id="save-countdown">Save Countdown</button>
-  </div>
-
 </div>
 
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
-// Firebase setup
+// Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBmbIXdW7H0YQkXZL34rYJDOzuah9JfbXM",
-  authDomain: "xacanonblog2.firebaseapp.com",
-  projectId: "xacanonblog2",
-  storageBucket: "xacanonblog2.firebasestorage.app",
-  messagingSenderId: "596521867544",
-  appId: "1:596521867544:web:82592a24ce2480472e666d"
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Quill
+// Quill Editors
 const blogQuill = new Quill('#editor', { theme: 'snow' });
 const lyricQuill = new Quill('#lyric-editor', { theme: 'snow' });
 
-// Navigation
+// Hamburger toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+document.addEventListener('click', e => { if(!e.target.closest('.nav-right')) navLinks.classList.remove('active'); });
 
-// Tabs
-document.querySelectorAll('.tab-button').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    button.classList.add('active');
-    document.getElementById(button.dataset.tab).classList.add('active');
-  });
-});
+// Tabs toggle
+const tabButtons = document.querySelectorAll('.tab-button');
+const tabContents = document.querySelectorAll('.tab-content');
+tabButtons.forEach(btn => btn.addEventListener('click', () => {
+  tabButtons.forEach(b => b.classList.remove('active'));
+  tabContents.forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+}));
 
 // Login
 document.getElementById("login-btn").addEventListener("click", async () => {
-  try {
-    await signInWithEmailAndPassword(auth,
-      document.getElementById("email").value,
-      document.getElementById("password").value
-    );
-  } catch (err) {
-    alert("Login failed: " + err.message);
-  }
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  try { await signInWithEmailAndPassword(auth, email, password); }
+  catch(err) { alert("Login failed: "+err.message); }
 });
 
 // Logout
@@ -166,61 +159,44 @@ document.querySelector(".logout-button").addEventListener("click", () => signOut
 
 // Auth state
 onAuthStateChanged(auth, user => {
-  document.getElementById("login-container").style.display = user ? "none" : "block";
-  document.getElementById("admin-content").style.display = user ? "block" : "none";
-  document.querySelector(".logout-button").style.display = user ? "inline-block" : "none";
+  if(user){
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("admin-content").style.display = "block";
+    document.querySelector(".logout-button").style.display = "inline-block";
+  } else {
+    document.getElementById("login-container").style.display = "block";
+    document.getElementById("admin-content").style.display = "none";
+    document.querySelector(".logout-button").style.display = "none";
+  }
 });
 
-// BLOG publish
-document.getElementById("blog-form").addEventListener("submit", async e => {
+// Publish Blog
+document.getElementById("blog-form").addEventListener("submit", async e=>{
   e.preventDefault();
+  const title = document.getElementById("post-title").value;
+  const category = document.getElementById("post-category").value;
+  const tags = document.getElementById("post-tags").value.split(",").map(t=>t.trim());
+  const content = blogQuill.root.innerHTML;
   try {
-    await addDoc(collection(db, "blogPosts"), {
-      title: document.getElementById("post-title").value,
-      category: document.getElementById("post-category").value,
-      tags: document.getElementById("post-tags").value.split(",").map(t => t.trim()),
-      content: blogQuill.root.innerHTML,
-      timestamp: serverTimestamp()
-    });
+    await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
     alert("Blog post published!");
-  } catch (err) {
-    alert("Error: " + err.message);
-  }
+    document.getElementById("blog-form").reset();
+    blogQuill.setContents([]);
+  } catch(err){ alert("Error: "+err.message); }
 });
 
-// LYRICS publish
-document.getElementById("lyrics-form").addEventListener("submit", async e => {
+// Publish Lyrics
+document.getElementById("lyrics-form").addEventListener("submit", async e=>{
   e.preventDefault();
+  const title = document.getElementById("lyric-title").value;
+  const artist = document.getElementById("lyric-artist").value;
+  const content = lyricQuill.root.innerHTML;
   try {
-    await addDoc(collection(db, "lyrics"), {
-      title: document.getElementById("lyric-title").value,
-      artist: document.getElementById("lyric-artist").value,
-      content: lyricQuill.root.innerHTML,
-      timestamp: serverTimestamp()
-    });
-    alert(`Lyric published!`);
-  } catch (err) {
-    alert("Error: " + err.message);
-  }
-});
-
-// COUNTDOWN save
-document.getElementById("save-countdown").addEventListener("click", async () => {
-  const releaseTime = document.getElementById("release-time").value;
-  const timezone = document.getElementById("timezone").value;
-
-  if (!releaseTime) return alert("Please select a date/time");
-
-  try {
-    await setDoc(doc(db, "settings", "countdown"), {
-      releaseTime: new Date(releaseTime).toISOString(),
-      timezone
-    });
-
-    alert("Countdown updated!");
-  } catch (err) {
-    alert("Error: " + err.message);
-  }
+    const docRef = await addDoc(collection(db, "lyrics"), { title, artist, content, timestamp: serverTimestamp() });
+    alert(`Lyric published! Access it at: lyric.html?id=${docRef.id}`);
+    document.getElementById("lyrics-form").reset();
+    lyricQuill.setContents([]);
+  } catch(err){ alert("Error: "+err.message); }
 });
 </script>
 </body>
