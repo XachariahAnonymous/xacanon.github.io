@@ -51,15 +51,63 @@
 body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
 
 /* ===== NAVBAR ===== */
-.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:0.8rem 2rem; height:60px; }
+.navbar {
+  position: sticky;
+  top:0;
+  z-index:1000;
+  background:#0f0f0f;
+  border-bottom:1px solid #ff4f81;
+  box-shadow:0 0 10px #ff4f81;
+}
+
+.navbar-container {
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:0.8rem 2rem;
+  height:60px;
+}
+
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
-.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
-.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+
+@keyframes pulseGlitch {
+  0%,100%{filter:none;}
+  50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);}
+}
+
+.nav-right {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  position:relative;
+}
+
+.home-button {
+  color:#f0f0f0;
+  text-decoration:none;
+  font-size:1.1rem;
+  padding:0.4rem 0.8rem;
+  border:1px solid #ff4f81;
+  border-radius:6px;
+  position:relative;
+  transition:0.3s;
+}
+.home-button::before, .home-button::after {
+  content:attr(data-text);
+  position:absolute;
+  left:0;
+  width:100%;
+  color:#ff4f81;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+}
 .home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+/* Hamburger menu */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
 .nav-links li { margin:0.5rem 0; }
@@ -69,15 +117,41 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 .nav-links.active { display:flex; }
 
-.nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.nav-links {
+  list-style:none;
+  padding:0;
+  margin:0;
+  position:absolute;
+  top:100%;
+  right:0;
+  background:#0f0f0f;
+  border:1px solid #ff4f81;
+  border-top:none;
+  border-radius:0 0 8px 8px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 0.4s ease;
+  min-width:max-content;
+  z-index:1000;
+}
 .nav-links.show { display:flex; max-height:500px; }
 .nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
 .nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
 .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
-@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchTop {
+  0%{clip:rect(0,9999px,0,0);}
+  50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}
+  100%{clip:rect(0,9999px,0,0);}
+}
+@keyframes glitchBottom {
+  0%{clip:rect(0,9999px,0,0);}
+  50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}
+  100%{clip:rect(0,9999px,0,0);}
+}
 
 /* ===== COUNTDOWN ===== */
 #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -129,9 +203,16 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
 .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
 
+#featured-music { padding-bottom:150px; }
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){ .hamburger { display:block; } }
-@media(max-width:576px){ .navbar-container { padding:0.5rem 1rem; } .nav-logo img { height:30px; } .home-button { font-size:0.9rem; } .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; } }
+@media(max-width:576px){
+  .navbar-container { padding:0.5rem 1rem; }
+  .nav-logo img { height:30px; }
+  .home-button { font-size:0.9rem; }
+  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
+}
 </style>
 </head>
 <body>
@@ -201,85 +282,106 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <a href="epk.html" data-text="View My EPK">View My EPK</a>
 </section>
 
-<!-- MODAL -->
-<div id="spotify-modal" class="modal">
-<div class="modal-content">
-<span class="modal-close">&times;</span>
-<iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-</div>
-</div>
+<!-- SUBSCRIBE BOX -->
+<section class="subscribe-section">
+  <div class="subscribe-box">
+    <h3>Subscribe for Updates</h3>
+    <input id="sub-email" type="email" placeholder="Enter your email" />
+    <button id="sub-button">Subscribe</button>
+    <p id="sub-msg"></p>
+  </div>
+</section>
 
 <!-- FOOTER -->
 <footer>
-<div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
+<div class="ticker">© 2025 Xac Anon • All Rights Reserved • Follow me on socials</div>
 <div class="socials">
-<a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-<a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-<a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+<a href="https://instagram.com/xacanon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+<a href="https://x.com/XacAnonMusic" aria-label="X"><i class="fab fa-x-twitter"></i></a>
+<a href="https://youtube.com/@XacAnon" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
 </div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script type="module">
-// ===== NAVBAR HAMBURGER =====
+<script>
+// ===== NAVBAR MENU =====
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
-// ===== COUNTDOWN =====
-const countdownElement = document.getElementById("countdown");
-const releaseElement = document.getElementById("release-date");
-const releaseTime = "2025-10-25T00:00:00"; // AEDT
-const timeZone = "Australia/Sydney";
-const releaseDateAEDT = new Date(releaseTime);
-const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US',{timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone}));
-releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
+// ===== SPOTIFY CARDS =====
+const cards = document.querySelectorAll('.music-card');
+cards.forEach(card=>{
+  const trackUrl = card.dataset.trackUrl;
+  if(trackUrl){
+    const iframe = document.createElement('iframe');
+    iframe.src = trackUrl.replace("track","embed/track").replace("album","embed/album");
+    iframe.width = "100%";
+    iframe.height = "80";
+    iframe.frameBorder = "0";
+    iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+    iframe.loading = "lazy";
+    card.appendChild(iframe);
+  }
+});
 
-function updateCountdown(){
+// ===== COUNTDOWN =====
+const countdownElement = document.getElementById('countdown');
+const releaseDateElement = document.getElementById('release-date');
+const releaseDate = new Date("2026-01-15T00:00:00"); // Example date
+releaseDateElement.textContent = releaseDate.toDateString();
+
+function updateCountdown() {
   const now = new Date();
-  const diff = releaseDateAEDT - now;
-  if(diff <= 0){ countdownElement.textContent="Out Now!"; return; }
-  const days = Math.floor(diff/(1000*60*60*24));
-  const hours = Math.floor((diff/(1000*60*60))%24);
-  const mins = Math.floor((diff/(1000*60))%60);
-  const secs = Math.floor((diff/1000)%60);
-  countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
+  const diff = releaseDate - now;
+  if(diff <= 0){ countdownElement.textContent = "Released!"; return; }
+  const d = Math.floor(diff/1000/60/60/24);
+  const h = Math.floor(diff/1000/60/60)%24;
+  const m = Math.floor(diff/1000/60)%60;
+  const s = Math.floor(diff/1000)%60;
+  countdownElement.textContent = `${d}d ${h}h ${m}m ${s}s`;
 }
 setInterval(updateCountdown,1000);
 updateCountdown();
 
-// ===== SPOTIFY TRACK & ALBUM CARDS =====
-const cards = document.querySelectorAll(".music-card");
-cards.forEach(async (card) => {
-  const trackUrl = card.dataset.trackUrl;
-  let apiUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`;
+// ===== SUBSCRIBE BOX =====
+const subButton = document.getElementById('sub-button');
+const subEmail = document.getElementById('sub-email');
+const subMsg = document.getElementById('sub-msg');
+const BREVO_API_KEY = 'YOUR_BREVO_API_KEY';
+const LIST_ID = 2;
+
+subButton.addEventListener('click', async () => {
+  const email = subEmail.value.trim();
+  if(!email || !email.includes("@")){
+    subMsg.textContent = "Please enter a valid email.";
+    subMsg.style.color = "#ff4f81";
+    return;
+  }
   try {
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
-    const type = trackUrl.includes('/album/')?'album':'track';
-    const id = trackUrl.split('/').pop().split('?')[0];
-    card.addEventListener('click', ()=> {
-      document.getElementById('spotify-player').src=`https://open.spotify.com/embed/${type}/${id}`;
-      document.getElementById('spotify-modal').style.display='flex';
+    const response = await fetch(`https://api.brevo.com/v3/contacts`, {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'api-key': BREVO_API_KEY
+      },
+      body: JSON.stringify({ email: email, listIds: [LIST_ID], updateEnabled: true })
     });
+    if(response.ok){
+      subMsg.textContent = `Thanks for subscribing, ${email}!`;
+      subMsg.style.color = "#ff4f81";
+      subEmail.value = "";
+    } else {
+      const data = await response.json();
+      subMsg.textContent = data.message || "Subscription failed, try again.";
+      subMsg.style.color = "#ff4f81";
+    }
   } catch(err){
-    console.error("Failed to load Spotify card", err);
-    card.innerHTML = `<h3>Spotify Link</h3>`;
+    console.error(err);
+    subMsg.textContent = "An error occurred. Try again later.";
+    subMsg.style.color = "#ff4f81";
   }
 });
-
-// ===== MODAL =====
-document.querySelector('.modal-close').onclick = function(){
-  document.getElementById('spotify-modal').style.display='none';
-  document.getElementById('spotify-player').src='';
-};
-window.onclick = function(e){
-  if(e.target==document.getElementById('spotify-modal')){
-    document.getElementById('spotify-modal').style.display='none';
-    document.getElementById('spotify-player').src='';
-  }
-};
 </script>
 
 </body>
