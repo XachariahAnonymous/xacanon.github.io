@@ -1,13 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Xac Anon</title>
-  <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
-
 
 <!-- Favicon -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
@@ -49,195 +47,60 @@
 </script>
   
 <style>
-/* ===== BODY ===== */
-body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
+/* ===== EXISTING STYLES HERE ===== */
+/* ... your existing CSS ... */
 
-/* ===== NAVBAR ===== */
-.navbar {
-  position: sticky;
-  top:0;
-  z-index:1000;
-  background:#0f0f0f;
-  border-bottom:1px solid #ff4f81;
-  box-shadow:0 0 10px #ff4f81;
+/* ===== SUBSCRIBE BOX ===== */
+.subscribe-section {
+  padding: 2rem;
+  text-align: center;
 }
 
-.navbar-container {
-  max-width:1200px;
-  margin:0 auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  padding:0.8rem 2rem;
-  height:60px; /* fixed navbar height for alignment */
+.subscribe-box {
+  display: inline-block;
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #ff4f81;
+  box-shadow: 0 0 12px #ff4f81;
+  width: 90%;
+  max-width: 400px;
 }
 
-.nav-logo img {
-  height:50px;
-  animation:pulseGlitch 2s infinite ease-in-out;
+.subscribe-box h3 {
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  color: #ff4f81;
 }
 
-@keyframes pulseGlitch {
-  0%,100%{filter:none;}
-  50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);}
+.subscribe-box input {
+  width: 90%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ff4f81;
+  background: #0f0f0f;
+  color: white;
+  margin-bottom: 0.8rem;
 }
 
-.nav-right {
-  display:flex;
-  align-items:center; /* vertical center */
-  gap:1rem;
-  position:relative;
+.subscribe-box button {
+  background: #ff4f81;
+  color: #0f0f0f;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-.home-button {
-  color:#f0f0f0;
-  text-decoration:none;
-  font-size:1.1rem;
-  padding:0.4rem 0.8rem;
-  border:1px solid #ff4f81;
-  border-radius:6px;
-  position:relative;
-  transition:0.3s;
+.subscribe-box button:hover {
+  background: #ff2d6a;
 }
 
-.home-button::before, .home-button::after {
-  content:attr(data-text);
-  position:absolute;
-  left:0;
-  width:100%;
-  color:#ff4f81;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-}
-
-.home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-
-/* Hamburger menu */
-.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
-.nav-links li { margin:0.5rem 0; }
-.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.nav-links li a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-.nav-links.active { display:flex; }
-
-}
-
-.nav-links {
-  list-style:none;
-  padding:0;
-  margin:0;
-  position:absolute;
-  top:100%; /* below navbar */
-  right:0;
-  background:#0f0f0f;
-  border:1px solid #ff4f81;
-  border-top:none;
-  border-radius:0 0 8px 8px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  max-height:0;
-  transition:max-height 0.4s ease;
-  min-width:max-content;
-  z-index:1000;
-}
-
-.nav-links.show {
-  display:flex;       /* ensures links are visible */
-  max-height:500px;   /* animate height */
-}
-
-
-.nav-links.show { max-height:500px; }
-
-.nav-links li a {
-  padding:0.8rem 1.2rem;
-  display:block;
-  color:#f0f0f0;
-  text-decoration:none;
-  font-size:1.1rem;
-  position:relative;
-}
-
-.nav-links li a::before, .nav-links li a::after {
-  content: attr(data-text);
-  position:absolute;
-  left:0;
-  width:100%;
-  color:#ff4f81;
-  overflow:hidden;
-  clip: rect(0,0,0,0);
-}
-
-.nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-
-@keyframes glitchTop {
-  0%{clip:rect(0,9999px,0,0);}
-  50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}
-  100%{clip:rect(0,9999px,0,0);}
-}
-
-@keyframes glitchBottom {
-  0%{clip:rect(0,9999px,0,0);}
-  50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}
-  100%{clip:rect(0,9999px,0,0);}
-}
-
-/* ===== COUNTDOWN ===== */
-#countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
-@keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
-
-/* ===== SECTIONS ===== */
-.music-section { padding:2rem; text-align:center; }
-.music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
-.music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
-.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
-.music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
-.music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
-.music-card h3 { font-size:1rem; }
-@keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
-
-/* ===== HEADER ===== */
-header img { max-width:150px; height:auto; border-radius:50%; }
-header h1 { font-size:2rem; margin:0.5rem 0; }
-header .tagline { font-size:1rem; }
-
-/* ===== EPK ===== */
-.epk-section { text-align:center; padding:2rem; margin:2rem 0; border:1px solid #ff4f81; border-radius:12px; box-shadow:0 0 15px #ff4f81; }
-.epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; margin-top:1rem; transition:0.3s; }
-.epk-section a:hover { background:#ff4f81; color:#0f0f0f; }
-
-/* ===== FOOTER ===== */
-footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
-footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
-footer .ticker:hover { animation-play-state: paused; color:#ff4f81; text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81; }
-@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
-footer .socials { margin-top:1rem; text-align:center; }
-footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
-footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
-footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-
-/* ===== MODAL ===== */
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
-.modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
-.modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
-.modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
-
-#featured-music { padding-bottom:150px; }
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:768px){ .hamburger { display:block; } }
-@media(max-width:576px){
-  .navbar-container { padding:0.5rem 1rem; }
-  .nav-logo img { height:30px; }
-  .home-button { font-size:0.9rem; }
-  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
+#sub-msg {
+  margin-top: 0.8rem;
+  color: #ff4f81;
 }
 </style>
 </head>
@@ -306,6 +169,16 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <h2>Check Out My EPK</h2>
 <p>Everything you need to know about my music, achievements, and press kit.</p>
 <a href="epk.html" data-text="View My EPK">View My EPK</a>
+</section>
+
+<!-- SUBSCRIPTION BOX -->
+<section class="subscribe-section">
+  <div class="subscribe-box">
+    <h3>Subscribe for Updates</h3>
+    <input id="sub-email" type="email" placeholder="Your email">
+    <button onclick="subscribeUser()">Subscribe</button>
+    <p id="sub-msg"></p>
+  </div>
 </section>
 
 <!-- MODAL -->
@@ -385,6 +258,61 @@ window.onclick = function(e){
     document.getElementById('spotify-player').src='';
   }
 };
+</script>
+
+<!-- ===== SUBSCRIBE SCRIPT ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.subscribeUser = async function() {
+    const email = document.getElementById("sub-email").value;
+    const msg = document.getElementById("sub-msg");
+
+    if (!email || !email.includes("@")) {
+      msg.innerText = "Please enter a valid email.";
+      return;
+    }
+
+    try {
+      // Save to Firestore
+      await addDoc(collection(db, "subscribers"), {
+        email,
+        timestamp: serverTimestamp()
+      });
+
+      // Add to Brevo List
+      await fetch("https://api.brevo.com/v3/contacts", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "api-key": "YOUR_BREVO_API_KEY",
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email,
+          listIds: [YOUR_LIST_ID]
+        })
+      });
+
+      msg.innerText = "Subscribed successfully!";
+    } catch (e) {
+      msg.innerText = "Something went wrong.";
+      console.error(e);
+    }
+  }
 </script>
 
 </body>
