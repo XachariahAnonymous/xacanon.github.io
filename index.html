@@ -24,7 +24,7 @@
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Xac Anon – Official Site" />
-<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
+<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, and press kit." />
 <meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
 <meta name="description" content="Discover Xac Anon’s music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
 
@@ -59,7 +59,6 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   border-bottom:1px solid #ff4f81;
   box-shadow:0 0 10px #ff4f81;
 }
-
 .navbar-container {
   max-width:1200px;
   margin:0 auto;
@@ -70,38 +69,17 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   padding:0.8rem 2rem;
   height:60px;
 }
-
-.nav-logo img {
-  height:50px;
-  animation:pulseGlitch 2s infinite ease-in-out;
-}
-
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch {
   0%,100%{filter:none;}
   50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);}
 }
-
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-
 .home-button {
-  color:#f0f0f0;
-  text-decoration:none;
-  font-size:1.1rem;
-  padding:0.4rem 0.8rem;
-  border:1px solid #ff4f81;
-  border-radius:6px;
-  position:relative;
-  transition:0.3s;
+  color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem;
+  border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s;
 }
-.home-button::before, .home-button::after {
-  content:attr(data-text);
-  position:absolute;
-  left:0;
-  width:100%;
-  color:#ff4f81;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
-}
+.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
 .home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
@@ -135,11 +113,13 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .music-section { padding:2rem; text-align:center; }
 .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
 .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
-.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
+.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); transition:0.5s; }
 .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
 .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
 .music-card h3 { font-size:1rem; }
-@keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
+
+/* ===== FADE-IN ANIMATION ===== */
+.fade-in { opacity:1 !important; transform: translateY(0) !important; transition: all 0.8s ease-out; }
 
 /* ===== HEADER ===== */
 header img { max-width:150px; height:auto; border-radius:50%; }
@@ -153,7 +133,8 @@ header .tagline { font-size:1rem; }
 
 /* ===== SUBSCRIBE BOX ===== */
 .subscribe-section { padding: 2rem; text-align: center; }
-.subscribe-box { display: inline-block; background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #ff4f81; box-shadow: 0 0 12px #ff4f81; width: 90%; max-width: 400px; }
+.subscribe-box { display: inline-block; background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #ff4f81; box-shadow: 0 0 12px #ff4f81; width: 90%; max-width: 400px; opacity:0; transform:translateY(15px); transition:0.8s ease-out; }
+.subscribe-box.fade-in { opacity:1; transform:translateY(0);}
 .subscribe-box h3 { margin-bottom: 1rem; font-size: 1.4rem; color: #ff4f81; }
 .subscribe-box input { width: 90%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ff4f81; background: #0f0f0f; color: white; margin-bottom: 0.8rem; }
 .subscribe-box button { background: #ff4f81; color: #0f0f0f; padding: 0.6rem 1.4rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: 0.3s; }
@@ -258,7 +239,7 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 
 <!-- SUBSCRIBE BOX -->
 <section class="subscribe-section">
-  <div class="subscribe-box">
+  <div class="subscribe-box" id="subscribe-box">
     <h3>Subscribe for Updates</h3>
     <form id="subscribe-form">
       <input id="sub-email" type="email" placeholder="Your email" required />
@@ -349,10 +330,8 @@ updateCountdown();
 const form = document.getElementById("subscribe-form");
 const emailInput = document.getElementById("sub-email");
 const msg = document.getElementById("sub-msg");
-
-// Replace with your Brevo API key and List ID
 const BREVO_API_KEY = "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";
-const BREVO_LIST_ID = 2; // <-- Replace with your list ID
+const BREVO_LIST_ID = 2;
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -372,6 +351,15 @@ form.addEventListener("submit", async (e) => {
     else{ const data=await res.json(); msg.textContent="Error: "+(data.message||"Unknown"); console.error(data); }
   } catch(err){ msg.textContent="Something went wrong."; console.error(err); }
 });
+
+// ===== FADE-IN ANIMATION ON LOAD =====
+window.addEventListener("load", () => {
+  const fadeEls = document.querySelectorAll(".music-card, .subscribe-box");
+  fadeEls.forEach((el,i)=>{
+    setTimeout(()=>{ el.classList.add("fade-in"); }, i*150);
+  });
+});
 </script>
+
 </body>
 </html>
