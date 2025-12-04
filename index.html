@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +6,6 @@
 <title>Xac Anon</title>
   <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
-
 
 <!-- Favicon -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
@@ -213,6 +210,59 @@ header .tagline { font-size:1rem; }
 .epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; margin-top:1rem; transition:0.3s; }
 .epk-section a:hover { background:#ff4f81; color:#0f0f0f; }
 
+/* ===== SUBSCRIBE BOX ===== */
+.subscribe-section {
+  padding: 2rem;
+  text-align: center;
+}
+
+.subscribe-box {
+  display: inline-block;
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #ff4f81;
+  box-shadow: 0 0 12px #ff4f81;
+  width: 90%;
+  max-width: 400px;
+}
+
+.subscribe-box h3 {
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  color: #ff4f81;
+}
+
+.subscribe-box input {
+  width: 90%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ff4f81;
+  background: #0f0f0f;
+  color: white;
+  margin-bottom: 0.8rem;
+}
+
+.subscribe-box button {
+  background: #ff4f81;
+  color: #0f0f0f;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.subscribe-box button:hover {
+  background: #ff2d6a;
+}
+
+#sub-msg {
+  margin-top: 0.8rem;
+  color: #ff4f81;
+}
+
 /* ===== FOOTER ===== */
 footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
 footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
@@ -333,6 +383,70 @@ const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
+//===== Email List =====
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.subscribeUser = async function() {
+  const email = document.getElementById("sub-email").value;
+  const msg = document.getElementById("sub-msg");
+
+  if (!email || !email.includes("@")) {
+    msg.innerText = "Please enter a valid email.";
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "subscribers"), { email, timestamp: serverTimestamp() });
+    await fetch("https://api.brevo.com/v3/contacts", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": "YOUR_BREVO_API_KEY",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({ email, listIds: [YOUR_LIST_ID] })
+    });
+    msg.innerText = "Subscribed successfully!";
+  } catch (e) {
+    msg.innerText = "Something went wrong.";
+    console.error(e);
+
+    document.getElementById("subscribe-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("subscriber-email").value.trim();
+
+  const res = await fetch("https://api.brevo.com/v3/contacts", {
+    method: "POST",
+    headers: {
+      "api-key": "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",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (res.ok) {
+    message.textContent = "Subscribed!";
+  } else {
+    message.textContent = "Error subscribing.";
+  }
+});
+  }
+}
 // ===== COUNTDOWN =====
 const countdownElement = document.getElementById("countdown");
 const releaseElement = document.getElementById("release-date");
