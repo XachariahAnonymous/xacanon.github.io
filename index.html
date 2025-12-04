@@ -24,7 +24,7 @@
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Xac Anon – Official Site" />
-<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, and press kit." />
+<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
 <meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
 <meta name="description" content="Discover Xac Anon’s music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
 
@@ -51,39 +51,15 @@
 body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
 
 /* ===== NAVBAR ===== */
-.navbar {
-  position: sticky;
-  top:0;
-  z-index:1000;
-  background:#0f0f0f;
-  border-bottom:1px solid #ff4f81;
-  box-shadow:0 0 10px #ff4f81;
-}
-.navbar-container {
-  max-width:1200px;
-  margin:0 auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  padding:0.8rem 2rem;
-  height:60px;
-}
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:0.8rem 2rem; height:60px; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch {
-  0%,100%{filter:none;}
-  50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);}
-}
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.home-button {
-  color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem;
-  border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s;
-}
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
 .home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
 .home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-
-/* Hamburger menu */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
 .nav-links li { margin:0.5rem 0; }
@@ -91,19 +67,17 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
 .nav-links li a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-.nav-links.show { display:flex; max-height:500px; }
+.nav-links.active { display:flex; }
 
-/* ===== GLITCH ANIMATIONS ===== */
-@keyframes glitchTop {
-  0%{clip:rect(0,9999px,0,0);}
-  50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);}
-  100%{clip:rect(0,9999px,0,0);}
-}
-@keyframes glitchBottom {
-  0%{clip:rect(0,9999px,0,0);}
-  50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);}
-  100%{clip:rect(0,9999px,0,0);}
-}
+.nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.nav-links.show { display:flex; max-height:500px; }
+.nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+.nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+.nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
 
 /* ===== COUNTDOWN ===== */
 #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -113,13 +87,11 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .music-section { padding:2rem; text-align:center; }
 .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
 .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
-.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); transition:0.5s; }
+.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
 .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
 .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
 .music-card h3 { font-size:1rem; }
-
-/* ===== FADE-IN ANIMATION ===== */
-.fade-in { opacity:1 !important; transform: translateY(0) !important; transition: all 0.8s ease-out; }
+@keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
 
 /* ===== HEADER ===== */
 header img { max-width:150px; height:auto; border-radius:50%; }
@@ -133,8 +105,7 @@ header .tagline { font-size:1rem; }
 
 /* ===== SUBSCRIBE BOX ===== */
 .subscribe-section { padding: 2rem; text-align: center; }
-.subscribe-box { display: inline-block; background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #ff4f81; box-shadow: 0 0 12px #ff4f81; width: 90%; max-width: 400px; opacity:0; transform:translateY(15px); transition:0.8s ease-out; }
-.subscribe-box.fade-in { opacity:1; transform:translateY(0);}
+.subscribe-box { display: inline-block; background: #1a1a1a; padding: 1.5rem; border-radius: 12px; border: 1px solid #ff4f81; box-shadow: 0 0 12px #ff4f81; width: 90%; max-width: 400px; }
 .subscribe-box h3 { margin-bottom: 1rem; font-size: 1.4rem; color: #ff4f81; }
 .subscribe-box input { width: 90%; padding: 0.6rem; border-radius: 6px; border: 1px solid #ff4f81; background: #0f0f0f; color: white; margin-bottom: 0.8rem; }
 .subscribe-box button { background: #ff4f81; color: #0f0f0f; padding: 0.6rem 1.4rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: 0.3s; }
@@ -158,16 +129,9 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
 .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
 
-#featured-music { padding-bottom:150px; }
-
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){ .hamburger { display:block; } }
-@media(max-width:576px){
-  .navbar-container { padding:0.5rem 1rem; }
-  .nav-logo img { height:30px; }
-  .home-button { font-size:0.9rem; }
-  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
-}
+@media(max-width:576px){ .navbar-container { padding:0.5rem 1rem; } .nav-logo img { height:30px; } .home-button { font-size:0.9rem; } .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; } }
 </style>
 </head>
 <body>
@@ -237,18 +201,6 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <a href="epk.html" data-text="View My EPK">View My EPK</a>
 </section>
 
-<!-- SUBSCRIBE BOX -->
-<section class="subscribe-section">
-  <div class="subscribe-box" id="subscribe-box">
-    <h3>Subscribe for Updates</h3>
-    <form id="subscribe-form">
-      <input id="sub-email" type="email" placeholder="Your email" required />
-      <button type="submit">Subscribe</button>
-    </form>
-    <p id="sub-msg"></p>
-  </div>
-</section>
-
 <!-- MODAL -->
 <div id="spotify-modal" class="modal">
 <div class="modal-content">
@@ -267,98 +219,67 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 </div>
 </footer>
 
-<!-- SCRIPTS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+// ===== NAVBAR HAMBURGER =====
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
-// Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
-  authDomain: "xacanonblog.firebaseapp.com",
-  projectId: "xacanonblog",
-  storageBucket: "xacanonblog.firebasestorage.app",
-  messagingSenderId: "319182532803",
-  appId: "1:319182532803:web:3a4d33372643dd71d5f276"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// NAVBAR HAMBURGER
-const hamburger = document.querySelector(".hamburger");
-const navLinks = document.querySelector(".nav-links");
-hamburger.addEventListener("click", ()=>{ navLinks.classList.toggle("show"); });
-
-// SPOTIFY CARDS MODAL
-const cards = document.querySelectorAll(".music-card");
-const modal = document.getElementById("spotify-modal");
-const modalClose = document.querySelector(".modal-close");
-const player = document.getElementById("spotify-player");
-
-cards.forEach(card => {
-  card.addEventListener("click", () => {
-    const trackUrl = card.dataset.trackUrl;
-    const embedUrl = trackUrl.replace("track","embed/track").replace("album","embed/album");
-    player.src = embedUrl;
-    modal.style.display = "flex";
-  });
-});
-modalClose.addEventListener("click", ()=>{ modal.style.display = "none"; player.src=""; });
-window.addEventListener("click", e => { if(e.target==modal){ modal.style.display="none"; player.src=""; } });
-
-// COUNTDOWN
-const countdownEl = document.getElementById("countdown");
-const releaseDateEl = document.getElementById("release-date");
-const releaseDate = new Date("2026-01-01T00:00:00"); // <-- Replace your next release date
-releaseDateEl.textContent = releaseDate.toDateString();
+// ===== COUNTDOWN =====
+const countdownElement = document.getElementById("countdown");
+const releaseElement = document.getElementById("release-date");
+const releaseTime = "2025-10-25T00:00:00"; // AEDT
+const timeZone = "Australia/Sydney";
+const releaseDateAEDT = new Date(releaseTime);
+const releaseDateLocal = new Date(releaseDateAEDT.toLocaleString('en-US',{timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone}));
+releaseElement.textContent = `AEDT: ${releaseDateAEDT.toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:timeZone})} | Your Time: ${releaseDateLocal.toLocaleString()}`;
 
 function updateCountdown(){
   const now = new Date();
-  const diff = releaseDate - now;
-  if(diff<=0){ countdownEl.textContent = "Out Now!"; return; }
-  const days = Math.floor(diff/1000/60/60/24);
-  const hours = Math.floor((diff/1000/60/60)%24);
-  const minutes = Math.floor((diff/1000/60)%60);
-  const seconds = Math.floor((diff/1000)%60);
-  countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+  const diff = releaseDateAEDT - now;
+  if(diff <= 0){ countdownElement.textContent="Out Now!"; return; }
+  const days = Math.floor(diff/(1000*60*60*24));
+  const hours = Math.floor((diff/(1000*60*60))%24);
+  const mins = Math.floor((diff/(1000*60))%60);
+  const secs = Math.floor((diff/1000)%60);
+  countdownElement.textContent = `${days}d ${hours}h ${mins}m ${secs}s`;
 }
-setInterval(updateCountdown, 1000);
+setInterval(updateCountdown,1000);
 updateCountdown();
 
-// SUBSCRIBE BOX
-const form = document.getElementById("subscribe-form");
-const emailInput = document.getElementById("sub-email");
-const msg = document.getElementById("sub-msg");
-const BREVO_API_KEY = "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";
-const BREVO_LIST_ID = 2;
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = emailInput.value.trim();
-  if (!email || !email.includes("@")) {
-    msg.textContent = "Please enter a valid email.";
-    return;
-  }
+// ===== SPOTIFY TRACK & ALBUM CARDS =====
+const cards = document.querySelectorAll(".music-card");
+cards.forEach(async (card) => {
+  const trackUrl = card.dataset.trackUrl;
+  let apiUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`;
   try {
-    await addDoc(collection(db, "subscribers"), { email, timestamp: serverTimestamp() });
-    const res = await fetch("https://api.brevo.com/v3/contacts", {
-      method: "POST",
-      headers: { "api-key": BREVO_API_KEY, "Content-Type":"application/json", "accept":"application/json" },
-      body: JSON.stringify({ email: email, listIds: [BREVO_LIST_ID], updateEnabled:true })
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`;
+    const type = trackUrl.includes('/album/')?'album':'track';
+    const id = trackUrl.split('/').pop().split('?')[0];
+    card.addEventListener('click', ()=> {
+      document.getElementById('spotify-player').src=`https://open.spotify.com/embed/${type}/${id}`;
+      document.getElementById('spotify-modal').style.display='flex';
     });
-    if(res.ok){ msg.textContent="Subscribed successfully!"; emailInput.value=""; }
-    else{ const data=await res.json(); msg.textContent="Error: "+(data.message||"Unknown"); console.error(data); }
-  } catch(err){ msg.textContent="Something went wrong."; console.error(err); }
+  } catch(err){
+    console.error("Failed to load Spotify card", err);
+    card.innerHTML = `<h3>Spotify Link</h3>`;
+  }
 });
 
-// ===== FADE-IN ANIMATION ON LOAD =====
-window.addEventListener("load", () => {
-  const fadeEls = document.querySelectorAll(".music-card, .subscribe-box");
-  fadeEls.forEach((el,i)=>{
-    setTimeout(()=>{ el.classList.add("fade-in"); }, i*150);
-  });
-});
+// ===== MODAL =====
+document.querySelector('.modal-close').onclick = function(){
+  document.getElementById('spotify-modal').style.display='none';
+  document.getElementById('spotify-player').src='';
+};
+window.onclick = function(e){
+  if(e.target==document.getElementById('spotify-modal')){
+    document.getElementById('spotify-modal').style.display='none';
+    document.getElementById('spotify-player').src='';
+  }
+};
 </script>
 
 </body>
