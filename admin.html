@@ -148,7 +148,8 @@ button:hover { background:#f066a0; }
 
         <button type="submit" id="countdown-save-btn">Save Countdown</button>
         <span class="save-msg" id="save-msg">✓ Saved!</span>
-        <button type="button" id="countdown-clear-btn" class="btn-danger">Hide Countdown</button>
+        <button type="button" id="countdown-delete-btn" class="btn-danger">&#128465; Delete Countdown</button>
+        <p style="color:#aaa; font-size:0.8rem; margin-top:0.5rem;">Deleting will remove the timer but keep &quot;Out Now!&quot; on the homepage.</p>
       </form>
 
       <div class="countdown-current" id="countdown-current" style="display:none;">
@@ -305,17 +306,24 @@ const showCurrentCountdown = (data) => {
   document.getElementById("current-label-display").textContent = data.label || "Next Release Countdown";
 
   const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
-  document.getElementById("current-date-display").textContent = d.toLocaleString();
 
   const statusEl = document.getElementById("current-status");
   const now = new Date();
-  if (!data.visible) {
+
+  if (data.outNow) {
+    document.getElementById("current-date-display").textContent = "Manually set to Out Now!";
+    statusEl.textContent = "Showing 'Out Now!' — set a new countdown to replace";
+    statusEl.className = "countdown-status status-expired";
+  } else if (!data.visible) {
+    document.getElementById("current-date-display").textContent = d.toLocaleString();
     statusEl.textContent = "Hidden";
     statusEl.className = "countdown-status status-hidden";
   } else if (d <= now) {
+    document.getElementById("current-date-display").textContent = d.toLocaleString();
     statusEl.textContent = "Expired — showing 'Out Now!'";
     statusEl.className = "countdown-status status-expired";
   } else {
+    document.getElementById("current-date-display").textContent = d.toLocaleString();
     statusEl.textContent = "Active";
     statusEl.className = "countdown-status status-active";
   }
@@ -339,11 +347,21 @@ document.getElementById("countdown-form").addEventListener("submit", async e => 
   } catch (err) { alert("Error saving: " + err.message); }
 });
 
-document.getElementById("countdown-clear-btn").addEventListener("click", async () => {
-  if (confirm("This will hide the countdown on your homepage. Continue?")) {
+document.getElementById("countdown-delete-btn").addEventListener("click", async () => {
+  if (confirm("This will remove the countdown timer and show 'Out Now!' on your homepage. Continue?")) {
     try {
-      await setDoc(countdownDocRef, { visible: false, updatedAt: serverTimestamp() }, { merge: true });
-      document.getElementById("countdown-visible").checked = false;
+      // Set releaseDate to the past so the homepage shows "Out Now!" permanently
+      await setDoc(countdownDocRef, {
+        label: document.getElementById("countdown-label").value || "Next Release Countdown",
+        releaseDate: new Date(0), // epoch = always expired
+        visible: true,
+        outNow: true,
+        updatedAt: serverTimestamp()
+      });
+      const saveMsg = document.getElementById("save-msg");
+      saveMsg.textContent = "✓ Countdown deleted — showing Out Now!";
+      saveMsg.style.display = "inline";
+      setTimeout(() => { saveMsg.style.display = "none"; saveMsg.textContent = "✓ Saved!"; }, 4000);
       loadCountdown();
     } catch (err) { alert("Error: " + err.message); }
   }
