@@ -282,16 +282,16 @@ const countdownContainer = document.querySelector('.countdown-container');
 
 let countdownInterval = null;
 
-function startCountdown(releaseDate, label) {
+function startCountdown(releaseDateMs, label) {
   // Update heading label if provided
   const heading = countdownContainer.querySelector('h2');
   if (heading && label) heading.textContent = label;
 
-  releaseDateEl.textContent = releaseDate.toDateString();
+  releaseDateEl.textContent = new Date(releaseDateMs).toDateString();
 
   // Run once immediately, then every second
   const tick = () => {
-    const distance = releaseDate - new Date().getTime();
+    const distance = releaseDateMs - new Date().getTime();
     if (distance <= 0) {
       clearInterval(countdownInterval);
       countdownEl.textContent = "Out Now!";
