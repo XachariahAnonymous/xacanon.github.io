@@ -10,7 +10,6 @@
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
-
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 
 <style>
@@ -30,22 +29,40 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 #login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
 #admin-content { display:none; }
 
-input { width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; background: #1a1a1a; color: white; box-sizing: border-box; }
-button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; font-weight: bold; }
+input[type="text"], input[type="email"], input[type="password"], input[type="datetime-local"] {
+  width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; background:#1a1a1a; color:white; box-sizing:border-box;
+}
+button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; font-weight:bold; }
 button:hover { background:#f066a0; }
 #editor, #lyric-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
 
-/* Management List Styles */
-.post-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #444; margin-top: 10px; }
-.post-actions { display: flex; gap: 5px; }
-.btn-edit { background: #44aaff; }
-.btn-delete { background: #ff4444; }
+.post-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #444; margin-top:10px; }
+.post-actions { display:flex; gap:5px; }
+.btn-edit { background:#44aaff; }
+.btn-delete { background:#ff4444; }
 
-.tabs { display:flex; gap:1rem; margin-bottom:1rem; }
-.tab-button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ff4f81; background:#2E2D2B; color: white; cursor:pointer; }
+.tabs { display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+.tab-button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ff4f81; background:#2E2D2B; color:white; cursor:pointer; }
 .tab-button.active { background:#ff4f81; color:#0f0f0f; }
 .tab-content { display:none; }
 .tab-content.active { display:block; }
+
+/* Countdown tab styles */
+.countdown-manager { padding: 0.5rem 0; }
+.countdown-manager h3 { color:#ff4f81; margin-bottom:0.5rem; }
+.countdown-manager label { display:block; margin-bottom:0.3rem; font-size:0.95rem; color:#ccc; }
+.countdown-manager input[type="text"] { margin-bottom:0.8rem; }
+.countdown-current { background:#1a1a1a; border:1px solid #ff4f81; border-radius:8px; padding:1rem; margin-top:1.5rem; }
+.countdown-current h4 { color:#ff4f81; margin:0 0 0.5rem 0; }
+.countdown-current p { margin:0.3rem 0; font-size:0.95rem; }
+.countdown-current .current-label { font-size:1.1rem; font-weight:bold; color:#f0f0f0; }
+.countdown-status { display:inline-block; margin-top:0.5rem; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.85rem; }
+.status-active { background:#1a5c2a; color:#4cff7a; border:1px solid #4cff7a; }
+.status-expired { background:#5c1a1a; color:#ff4c4c; border:1px solid #ff4c4c; }
+.status-hidden { background:#3a3a1a; color:#ffcc44; border:1px solid #ffcc44; }
+.btn-danger { background:#ff4444; margin-left:0.5rem; }
+.btn-danger:hover { background:#cc2222; }
+.save-msg { display:none; color:#4cff7a; margin-left:1rem; font-size:0.9rem; }
 </style>
 </head>
 <body>
@@ -81,23 +98,26 @@ button:hover { background:#f066a0; }
   <div class="tabs">
     <button class="tab-button active" data-tab="blog-tab">Blog</button>
     <button class="tab-button" data-tab="lyrics-tab">Lyrics</button>
+    <button class="tab-button" data-tab="countdown-tab">Countdown</button>
   </div>
 
+  <!-- BLOG TAB -->
   <div id="blog-tab" class="tab-content active">
     <form id="blog-form">
-      <input type="hidden" id="edit-id" /> <input type="text" id="post-title" placeholder="Post Title" required />
+      <input type="hidden" id="edit-id" />
+      <input type="text" id="post-title" placeholder="Post Title" required />
       <input type="text" id="post-category" placeholder="Category" />
       <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
       <div id="editor"></div>
       <button type="submit" id="blog-submit-btn">Publish Blog Post</button>
       <button type="button" id="cancel-edit" style="display:none; background:#666;">Cancel Edit</button>
     </form>
-
-    <hr style="margin: 2rem 0; border:0; border-top:1px solid #ff4f81;">
+    <hr style="margin:2rem 0; border:0; border-top:1px solid #ff4f81;">
     <h3>Manage Blog Posts</h3>
     <div id="posts-list">Loading posts...</div>
   </div>
 
+  <!-- LYRICS TAB -->
   <div id="lyrics-tab" class="tab-content">
     <form id="lyrics-form">
       <input type="text" id="lyric-title" placeholder="Song Title" required />
@@ -106,24 +126,57 @@ button:hover { background:#f066a0; }
       <button type="submit">Publish Lyric</button>
     </form>
   </div>
+
+  <!-- COUNTDOWN TAB -->
+  <div id="countdown-tab" class="tab-content">
+    <div class="countdown-manager">
+      <h3>Manage Release Countdown</h3>
+      <p style="color:#ccc; font-size:0.9rem; margin-bottom:1.5rem;">Set the countdown that appears on your homepage. The timer will automatically show "Out Now!" when the date passes.</p>
+
+      <form id="countdown-form">
+        <label for="countdown-label">Label (e.g. "Next Release Countdown")</label>
+        <input type="text" id="countdown-label" placeholder="Next Release Countdown" />
+
+        <label for="countdown-date">Release Date & Time</label>
+        <input type="datetime-local" id="countdown-date" required />
+
+        <label for="countdown-visible">
+          <input type="checkbox" id="countdown-visible" style="width:auto; margin-right:0.4rem;" checked />
+          Show countdown on homepage
+        </label>
+        <br /><br />
+
+        <button type="submit" id="countdown-save-btn">Save Countdown</button>
+        <span class="save-msg" id="save-msg">✓ Saved!</span>
+        <button type="button" id="countdown-clear-btn" class="btn-danger">Hide Countdown</button>
+      </form>
+
+      <div class="countdown-current" id="countdown-current" style="display:none;">
+        <h4>Current Countdown</h4>
+        <p class="current-label" id="current-label-display">—</p>
+        <p id="current-date-display">—</p>
+        <span class="countdown-status" id="current-status"></span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import { 
-    getFirestore, collection, addDoc, serverTimestamp, 
-    getDocs, deleteDoc, doc, updateDoc, query, orderBy, getDoc 
+import {
+  getFirestore, collection, addDoc, serverTimestamp,
+  getDocs, deleteDoc, doc, updateDoc, query, orderBy, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
-    authDomain: "xacanonblog.firebaseapp.com",
-    projectId: "xacanonblog",
-    storageBucket: "xacanonblog.firebasestorage.app",
-    messagingSenderId: "319182532803",
-    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+  apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+  authDomain: "xacanonblog.firebaseapp.com",
+  projectId: "xacanonblog",
+  storageBucket: "xacanonblog.firebasestorage.app",
+  messagingSenderId: "319182532803",
+  appId: "1:319182532803:web:3a4d33372643dd71d5f276",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -133,7 +186,7 @@ const db = getFirestore(app);
 const blogQuill = new Quill('#editor', { theme: 'snow' });
 const lyricQuill = new Quill('#lyric-editor', { theme: 'snow' });
 
-// --- UTILITIES ---
+// ===== BLOG =====
 const loadPosts = async () => {
   const postsContainer = document.getElementById("posts-list");
   try {
@@ -149,24 +202,21 @@ const loadPosts = async () => {
         <div class="post-actions">
           <button class="btn-edit" onclick="editPost('${docSnap.id}')">Edit</button>
           <button class="btn-delete" onclick="deletePost('${docSnap.id}')">Delete</button>
-        </div>
-      `;
+        </div>`;
       postsContainer.appendChild(div);
     });
   } catch (err) { postsContainer.innerHTML = "Error loading posts."; }
 };
 
-// Expose functions to window because of module scope
 window.deletePost = async (id) => {
-  if(confirm("Delete this post?")) {
+  if (confirm("Delete this post?")) {
     await deleteDoc(doc(db, "blogPosts", id));
     loadPosts();
   }
 };
 
 window.editPost = async (id) => {
-  const docRef = doc(db, "blogPosts", id);
-  const docSnap = await getDoc(docRef);
+  const docSnap = await getDoc(doc(db, "blogPosts", id));
   if (docSnap.exists()) {
     const post = docSnap.data();
     document.getElementById("edit-id").value = id;
@@ -174,7 +224,6 @@ window.editPost = async (id) => {
     document.getElementById("post-category").value = post.category;
     document.getElementById("post-tags").value = (post.tags || []).join(", ");
     blogQuill.root.innerHTML = post.content;
-    
     document.getElementById("blog-submit-btn").innerText = "Update Post";
     document.getElementById("cancel-edit").style.display = "inline-block";
     window.scrollTo(0, 0);
@@ -189,53 +238,15 @@ document.getElementById("cancel-edit").addEventListener("click", () => {
   document.getElementById("cancel-edit").style.display = "none";
 });
 
-// --- AUTH & TABS (Your Original Logic) ---
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
-
-const tabButtons = document.querySelectorAll('.tab-button');
-const tabContents = document.querySelectorAll('.tab-content');
-tabButtons.forEach(btn => btn.addEventListener('click', () => {
-  tabButtons.forEach(b => b.classList.remove('active'));
-  tabContents.forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(btn.dataset.tab).classList.add('active');
-}));
-
-document.getElementById("login-btn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  try { await signInWithEmailAndPassword(auth, email, password); }
-  catch(err) { alert("Login failed: "+err.message); }
-});
-
-document.querySelector(".logout-button").addEventListener("click", () => signOut(auth));
-
-onAuthStateChanged(auth, user => {
-  if(user){
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("admin-content").style.display = "block";
-    document.querySelector(".logout-button").style.display = "inline-block";
-    loadPosts();
-  } else {
-    document.getElementById("login-container").style.display = "block";
-    document.getElementById("admin-content").style.display = "none";
-    document.querySelector(".logout-button").style.display = "none";
-  }
-});
-
-// --- SUBMIT LOGIC (Updated for Edit/Add) ---
-document.getElementById("blog-form").addEventListener("submit", async e=>{
+document.getElementById("blog-form").addEventListener("submit", async e => {
   e.preventDefault();
   const editId = document.getElementById("edit-id").value;
   const title = document.getElementById("post-title").value;
   const category = document.getElementById("post-category").value;
-  const tags = document.getElementById("post-tags").value.split(",").map(t=>t.trim());
+  const tags = document.getElementById("post-tags").value.split(",").map(t => t.trim());
   const content = blogQuill.root.innerHTML;
-
   try {
-    if(editId) {
+    if (editId) {
       await updateDoc(doc(db, "blogPosts", editId), { title, category, tags, content });
       alert("Post updated!");
     } else {
@@ -244,11 +255,11 @@ document.getElementById("blog-form").addEventListener("submit", async e=>{
     }
     document.getElementById("cancel-edit").click();
     loadPosts();
-  } catch(err){ alert("Error: "+err.message); }
+  } catch (err) { alert("Error: " + err.message); }
 });
 
-// Publish Lyrics (Your Original Logic)
-document.getElementById("lyrics-form").addEventListener("submit", async e=>{
+// ===== LYRICS =====
+document.getElementById("lyrics-form").addEventListener("submit", async e => {
   e.preventDefault();
   const title = document.getElementById("lyric-title").value;
   const artist = document.getElementById("lyric-artist").value;
@@ -258,7 +269,120 @@ document.getElementById("lyrics-form").addEventListener("submit", async e=>{
     alert(`Lyric published! id=${docRef.id}`);
     document.getElementById("lyrics-form").reset();
     lyricQuill.setContents([]);
-  } catch(err){ alert("Error: "+err.message); }
+  } catch (err) { alert("Error: " + err.message); }
+});
+
+// ===== COUNTDOWN =====
+const countdownDocRef = doc(db, "siteSettings", "countdown");
+
+const loadCountdown = async () => {
+  try {
+    const snap = await getDoc(countdownDocRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      // Populate form
+      document.getElementById("countdown-label").value = data.label || "";
+      if (data.releaseDate) {
+        // Convert Firestore timestamp or ISO string to datetime-local format
+        const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
+        // datetime-local needs format: YYYY-MM-DDTHH:MM
+        const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById("countdown-date").value = local;
+      }
+      document.getElementById("countdown-visible").checked = data.visible !== false;
+
+      // Show current info card
+      showCurrentCountdown(data);
+    }
+  } catch (err) { console.error("Error loading countdown:", err); }
+};
+
+const showCurrentCountdown = (data) => {
+  const card = document.getElementById("countdown-current");
+  if (!data || !data.releaseDate) { card.style.display = "none"; return; }
+
+  card.style.display = "block";
+  document.getElementById("current-label-display").textContent = data.label || "Next Release Countdown";
+
+  const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
+  document.getElementById("current-date-display").textContent = d.toLocaleString();
+
+  const statusEl = document.getElementById("current-status");
+  const now = new Date();
+  if (!data.visible) {
+    statusEl.textContent = "Hidden";
+    statusEl.className = "countdown-status status-hidden";
+  } else if (d <= now) {
+    statusEl.textContent = "Expired — showing 'Out Now!'";
+    statusEl.className = "countdown-status status-expired";
+  } else {
+    statusEl.textContent = "Active";
+    statusEl.className = "countdown-status status-active";
+  }
+};
+
+document.getElementById("countdown-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const label = document.getElementById("countdown-label").value || "Next Release Countdown";
+  const dateVal = document.getElementById("countdown-date").value;
+  const visible = document.getElementById("countdown-visible").checked;
+
+  if (!dateVal) { alert("Please set a release date."); return; }
+  const releaseDate = new Date(dateVal);
+
+  try {
+    await setDoc(countdownDocRef, { label, releaseDate, visible, updatedAt: serverTimestamp() });
+    const saveMsg = document.getElementById("save-msg");
+    saveMsg.style.display = "inline";
+    setTimeout(() => saveMsg.style.display = "none", 3000);
+    loadCountdown();
+  } catch (err) { alert("Error saving: " + err.message); }
+});
+
+document.getElementById("countdown-clear-btn").addEventListener("click", async () => {
+  if (confirm("This will hide the countdown on your homepage. Continue?")) {
+    try {
+      await setDoc(countdownDocRef, { visible: false, updatedAt: serverTimestamp() }, { merge: true });
+      document.getElementById("countdown-visible").checked = false;
+      loadCountdown();
+    } catch (err) { alert("Error: " + err.message); }
+  }
+});
+
+// ===== NAV & TABS =====
+document.querySelector('.hamburger').addEventListener('click', () => {
+  document.querySelector('.nav-links').classList.toggle('active');
+});
+
+document.querySelectorAll('.tab-button').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.tab).classList.add('active');
+}));
+
+// ===== AUTH =====
+document.getElementById("login-btn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  try { await signInWithEmailAndPassword(auth, email, password); }
+  catch (err) { alert("Login failed: " + err.message); }
+});
+
+document.querySelector(".logout-button").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("admin-content").style.display = "block";
+    document.querySelector(".logout-button").style.display = "inline-block";
+    loadPosts();
+    loadCountdown();
+  } else {
+    document.getElementById("login-container").style.display = "block";
+    document.getElementById("admin-content").style.display = "none";
+    document.querySelector(".logout-button").style.display = "none";
+  }
 });
 </script>
 </body>
