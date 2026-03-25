@@ -47,33 +47,47 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 
 /* ===== NAVBAR ===== */
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; height:60px; }
+.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:0.8rem 2rem; height:60px; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
-
 .nav-right { display:flex; align-items:center; gap:1.2rem; position:relative; }
 
-/* FIXED BUTTON 1: HOME BUTTON (Rounded pink border) */
+/* FIXED: HOME BUTTON (PILL SHAPE & NO UNDERLINE) */
 .home-button { 
     color:#f0f0f0; 
     text-decoration:none; 
     font-size:1.1rem; 
-    padding:0.4rem 1rem; 
+    padding:0.4rem 1.2rem; 
     border:1.5px solid #ff4f81; 
-    border-radius:12px; 
-    transition:0.3s; 
+    border-radius:50px; 
+    transition:0.3s;
+    display: inline-block;
 }
-.home-button:hover { background: rgba(255, 79, 129, 0.1); }
+.home-button:hover { 
+    background: rgba(255, 79, 129, 0.1); 
+    text-decoration: none;
+}
 
-/* FIXED BUTTON 2: HAMBURGER (Three-line icon) */
+/* FIXED: HAMBURGER MENU (3 LINES) */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; display: flex; align-items: center; }
 
 .nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
-.nav-links.show { max-height:500px; }
-.nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+.nav-links.show { display:flex; max-height:500px; }
+.nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+.nav-links li a:hover { color:#ff4f81; }
 
-/* ===== MUSIC SECTIONS - ALIGNED FAR LEFT ===== */
-.music-section { padding:2rem; text-align:left; width: 100%; box-sizing: border-box; }
+/* ===== COUNTDOWN ===== */
+#countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
+@keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
+#countdown.expired { animation:none; color:#ff4f81; font-weight:bold; }
+
+/* ===== MAINTENANCE OVERLAY ===== */
+#maintenance-overlay { display:none; position:fixed; inset:0; z-index:9999; background:#0f0f0f; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:2rem; }
+#maintenance-overlay.active { display:flex; }
+.maint-logo { max-width:120px; border-radius:50%; margin-bottom:1.5rem; animation:pulseGlitch 2s infinite ease-in-out; }
+
+/* ===== SECTIONS ===== */
+.music-section { padding:2rem; text-align:left; }
 .music-section h2 { 
     font-size:2rem; 
     margin-bottom:1.5rem; 
@@ -82,7 +96,6 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
     align-items: center; 
     gap: 12px;
 }
-/* Section Arrows from image */
 .music-section h2::before { 
     content: "\f105"; 
     font-family: "Font Awesome 5 Free"; 
@@ -92,43 +105,45 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .features-header::before { content: "\f107" !important; }
 
 .music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:1rem; }
-.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; border: 1px solid transparent; }
-.music-card:hover{ border-color: #ff4f81; box-shadow:0 0 10px #ff4f81; transform: scale(1.02); }
+.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
+.music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
 .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
-.music-card h3 { font-size:1rem; margin: 0; text-align: center; }
-
+.music-card h3 { font-size:1rem; text-align: center; }
 @keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
 
-/* ===== MAINTENANCE OVERLAY ===== */
-#maintenance-overlay { display:none; position:fixed; inset:0; z-index:9999; background:#0f0f0f; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:2rem; }
-#maintenance-overlay.active { display:flex; }
-.maint-logo { max-width:120px; border-radius:50%; margin-bottom:1.5rem; animation:pulseGlitch 2s infinite ease-in-out; }
+/* ===== HEADER ===== */
+header img { max-width:150px; height:auto; border-radius:50%; border: 2px solid #ff4f81; }
 
-/* ===== EPK, SUBSCRIBE, FOOTER ===== */
-.epk-section { text-align:center; padding:2rem; margin:2rem; border:1px solid #ff4f81; border-radius:12px; }
-.epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; transition:0.3s; }
+/* ===== EPK ===== */
+.epk-section { text-align:center; padding:2rem; margin:2rem 0; border:1px solid #ff4f81; border-radius:12px; }
+.epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; margin-top:1rem; transition:0.3s; }
 .epk-section a:hover { background:#ff4f81; color:#0f0f0f; }
 
+/* ===== SUBSCRIBE BOX ===== */
 .subscribe-section { padding:2rem; text-align:center; }
-.subscribe-box { display:inline-block; background:#1a1a1a; padding:1.5rem; border-radius:12px; border:1px solid #ff4f81; width:90%; max-width:400px; }
-#subscribe-button { display:inline-block; text-decoration:none; color:#0f0f0f; background:#ff4f81; padding:0.8rem 1.6rem; border-radius:6px; font-weight:bold; }
+.subscribe-box { display:inline-block; background:#1a1a1a; padding:1.5rem; border-radius:12px; border:1px solid #ff4f81; box-shadow:0 0 12px #ff4f81; width:90%; max-width:400px; }
+#subscribe-button { display:inline-block; text-decoration:none; color:#0f0f0f; background:#ff4f81; padding:0.8rem 1.6rem; border-radius:6px; font-weight:bold; transition:0.3s; }
 
-footer { padding:2rem 1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; }
-.socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; transition: 0.3s; }
-.socials a:hover { color: #ff4f81; }
+/* ===== FOOTER ===== */
+footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; position:relative; text-align: center; }
+.socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; transition: color 0.3s ease; }
+.socials a:hover { color:#ff4f81; }
 
 /* ===== MODAL ===== */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
 .modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
 .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){ .hamburger { display:block; } }
 </style>
 </head>
 <body>
 
 <div id="maintenance-overlay">
   <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon" class="maint-logo" />
-  <h1 style="color:#ff4f81;">Back Soon</h1>
-  <div id="maint-message-text" style="color:#f0f0f0;">The site is currently undergoing maintenance.</div>
+  <h1 class="maint-title" style="color:#ff4f81;">Back Soon</h1>
+  <div class="maint-message" id="maint-message-text" style="color:#f0f0f0;">We'll be back soon. Thanks for your patience!</div>
 </div>
 
 <nav class="navbar">
@@ -149,71 +164,77 @@ footer { padding:2rem 1rem; background:#111; border-top:1px solid #ff4f81; text-
 </nav>
 
 <div id="main-content">
-  <header style="text-align:center; padding:3rem 1rem;">
-    <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" style="max-width:150px; border-radius:50%; border: 2px solid #ff4f81;"/>
-    <h1>Xac Anon</h1>
-    <p>Welcome to the sound of the future.</p>
-  </header>
-
-  <section class="music-section">
-    <h2>Popular Tracks</h2>
-    <div class="music-grid">
-      <div class="music-card" data-track-url="https://open.spotify.com/track/4GP0fsN0JShmCb2emoO7PD"></div>
-      <div class="music-card" data-track-url="https://open.spotify.com/track/0sF1xBC8jlt88Ah8AuLpY5"></div>
-      <div class="music-card" data-track-url="https://open.spotify.com/track/4ynq1anTiySqq7NcAEOxoj"></div>
-    </div>
-  </section>
-
-  <section class="music-section">
-    <h2>Recent Releases</h2>
-    <div class="music-grid">
-      <div class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e4867"></div>
-      <div class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></div>
-      <div class="music-card" data-track-url="https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b468402b66d142ca"></div>
-    </div>
-  </section>
-
-  <section class="music-section">
-    <h2 class="features-header">Featured Music</h2>
-    <div class="music-grid">
-      <div class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></div>
-      <div class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></div>
-      <div class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></div>
-    </div>
-  </section>
-
-  <section class="epk-section">
-    <h2>Check Out My EPK</h2>
-    <a href="epk.html">View My EPK</a>
-  </section>
-
-  <section class="subscribe-section">
-    <div class="subscribe-box">
-      <h3>Subscribe for Updates</h3>
-      <a href="https://mailchi.mp/583d00f97121/xac-anon-newsletter" target="_blank" id="subscribe-button">Subscribe</a>
-    </div>
-  </section>
+<header style="text-align:center; padding:2rem 1rem;">
+<img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+<h1>Xac Anon</h1>
+<p class="tagline">Welcome to the sound of the future.</p>
+<div class="countdown-container">
+<h2>Next Release Countdown</h2>
+<p id="countdown">Loading...</p>
+<p>Release Date: <span id="release-date"></span></p>
 </div>
+</header>
+
+<section class="music-section">
+<h2>Popular Tracks</h2>
+<div class="music-grid">
+<div class="music-card" data-track-url="https://open.spotify.com/track/4GP0fsN0JShmCb2emoO7PD"></div>
+<div class="music-card" data-track-url="https://open.spotify.com/track/0sF1xBC8jlt88Ah8AuLpY5"></div>
+<div class="music-card" data-track-url="https://open.spotify.com/track/4ynq1anTiySqq7NcAEOxoj"></div>
+</div>
+</section>
+
+<section class="music-section">
+<h2>Recent Releases</h2>
+<div class="music-grid">
+<div class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e4867"></div>
+<div class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></div>
+<div class="music-card" data-track-url="https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b468402b66d142ca"></div>
+</div>
+</section>
+
+<section id="featured-music" class="music-section">
+<h2 class="features-header">Featured Music</h2>
+<div class="music-grid">
+<div class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></div>
+<div class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></div>
+<div class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></div>
+</div>
+</section>
+
+<section class="epk-section">
+<h2>Check Out My EPK</h2>
+<p>Everything you need to know about my music, achievements, and press kit.</p>
+<a href="epk.html">View My EPK</a>
+</section>
+
+<section class="subscribe-section">
+  <div class="subscribe-box">
+    <h3>Subscribe for Updates</h3>
+    <a href="https://mailchi.mp/583d00f97121/xac-anon-newsletter" target="_blank" id="subscribe-button">Subscribe</a>
+  </div>
+</section>
 
 <div id="spotify-modal" class="modal">
-  <div class="modal-content">
-    <span class="modal-close">×</span>
-    <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="width:100%; height:152px; border:none; border-radius:8px;"></iframe>
-  </div>
+<div class="modal-content">
+<span class="modal-close">×</span>
+<iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="width:100%; height:152px; border:none; border-radius:8px;"></iframe>
+</div>
 </div>
 
 <footer>
-  <div class="socials">
-    <a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
-    <a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
-    <a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
-  </div>
-  <p>© 2026 Xac Anon</p>
+<div class="socials">
+<a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+<a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+<a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+</div>
+<p>© 2026 Xac Anon</p>
 </footer>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -226,13 +247,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // Maintenance check
 (async () => {
-  const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
-  if (snap.exists() && snap.data().enabled === true) {
-    document.getElementById("maintenance-overlay").classList.add("active");
-  }
+  try {
+    const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
+    if (snap.exists() && snap.data().enabled === true) {
+      const overlay = document.getElementById("maintenance-overlay");
+      overlay.classList.add("active");
+      onAuthStateChanged(auth, (user) => { if (user) overlay.classList.remove("active"); });
+    }
+  } catch (err) { console.warn(err); }
 })();
 
 // Nav toggle
@@ -244,20 +270,25 @@ const modal = document.getElementById('spotify-modal');
 const player = document.getElementById('spotify-player');
 
 cards.forEach(card => {
-  const url = card.getAttribute('data-track-url');
-  fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
-    .then(res => res.json())
-    .then(d => { card.innerHTML = `<img src="${d.thumbnail_url}"><h3>${d.title}</h3>`; });
+  const trackUrl = card.getAttribute('data-track-url');
+  if (trackUrl) {
+    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`)
+      .then(res => res.json())
+      .then(data => {
+        card.innerHTML = `<img src="${data.thumbnail_url}" alt="Track"/><h3>${data.title}</h3>`;
+      });
 
-  card.onclick = () => {
-    const id = url.split('/').pop().split('?')[0];
-    const type = url.includes('/album/') ? 'album' : 'track';
-    player.src = `https://open.spotify.com/embed/${type}/${id}`;
-    modal.style.display = 'flex';
-  };
+    card.addEventListener('click', () => {
+      const type = trackUrl.includes('/album/') ? 'album' : 'track';
+      const id = trackUrl.split('/').pop().split('?')[0];
+      player.src = `https://open.spotify.com/embed/${type}/${id}`;
+      modal.style.display = 'flex';
+    });
+  }
 });
 
-document.querySelector('.modal-close').onclick = () => { modal.style.display='none'; player.src=''; };
+document.querySelector('.modal-close').onclick = () => { modal.style.display = 'none'; player.src = ''; };
 </script>
+
 </body>
 </html>
