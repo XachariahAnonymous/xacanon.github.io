@@ -20,56 +20,23 @@ body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; ma
 .navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
-
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-
-.nav-links {
-  list-style:none;
-  display:none;
-  flex-direction:column;
-  position:absolute;
-  top:100%;
-  right:0;
-  background:#0f0f0f;
-  border:1px solid #ff4f81;
-  border-radius:8px;
-  padding:0.5rem 1rem;
-  z-index:999;
-}
+.nav-links { list-style:none; display:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; z-index:999; }
 .nav-links li { margin:0.5rem 0; }
 .nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
-
 .nav-links.active { display:flex; }
 
-/* Lyric container */
-.lyric-container {
-  max-width:900px;
-  margin:2rem auto;
-  padding:2rem;
-  background:#2E2D2B;
-  border:1px solid #ff4f81;
-  border-radius:10px;
-  box-shadow:0 0 20px #ff4f81;
-  min-height: 400px;      /* ensures container is tall enough */
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-word;
-}
-.lyric-container h2 { color:#ff4f81; margin-bottom:1rem; }
-.lyric-body { line-height:1.6; }
+/* Lyrics container */
+.lyrics-container { max-width:900px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
+.lyric-item { margin-bottom:1.5rem; border-bottom:1px solid #ff4f81; padding-bottom:0.8rem; }
+.lyric-item h3 { color:#ff4f81; margin:0; }
+.lyric-item a { color:#f0f0f0; text-decoration:underline; cursor:pointer; }
 
 /* Footer */
-footer {
-  padding:1rem;
-  text-align:center;
-  background:#111;
-  border-top:1px solid #ff4f81;
-  margin-top:2rem;
-}
+footer { padding:1rem; text-align:center; background:#111; border-top:1px solid #ff4f81; }
 
-/* Mobile */
 @media(max-width:576px){
   .navbar-container { flex-wrap: nowrap; padding:0.5rem 1rem; }
   .nav-logo img { height:30px; }
@@ -77,6 +44,19 @@ footer {
 </style>
 </head>
 <body>
+
+<!-- MAINTENANCE OVERLAY -->
+<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0f0f0f;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:2rem;">
+  <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" style="max-width:100px;border-radius:50%;margin-bottom:1.5rem;" />
+  <h1 style="color:#ff4f81;margin:0 0 0.5rem;">Back Soon</h1>
+  <p style="color:#aaa;margin:0 0 1.5rem;">The site is currently undergoing maintenance.</p>
+  <div id="maint-message-text" style="color:#f0f0f0;background:#1a1a1a;border:1px solid #ff4f81;border-radius:10px;padding:1rem 2rem;box-shadow:0 0 15px #ff4f81;max-width:480px;line-height:1.7;">We'll be back soon. Thanks for your patience!</div>
+  <div style="margin-top:2rem;display:flex;gap:1.2rem;justify-content:center;">
+    <a href="https://instagram.com/xacanon/" target="_blank" style="color:#f0f0f0;font-size:1.6rem;"><i class="fab fa-instagram"></i></a>
+    <a href="https://x.com/XacAnonMusic" target="_blank" style="color:#f0f0f0;font-size:1.6rem;"><i class="fab fa-twitter"></i></a>
+    <a href="https://youtube.com/@XacAnon" target="_blank" style="color:#f0f0f0;font-size:1.6rem;"><i class="fab fa-youtube"></i></a>
+  </div>
+</div>
 
 <!-- Navbar -->
 <nav class="navbar">
@@ -93,25 +73,29 @@ footer {
         <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
+        <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
+        <li><a href="https://shop.xacanonmusic.com" target="_blank" data-text="Shop">Shop</a></li>
+        <li><a href="https://shop.xacanonmusic.com/members" target="_blank" data-text="Members">Members</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- Lyric Container -->
-<div class="lyric-container">
-  <h2 id="lyric-title">Loading...</h2>
-  <div id="lyric-body" class="lyric-body">Please wait while we fetch the lyrics...</div>
+<!-- Lyrics Container -->
+<div class="lyrics-container" id="lyrics-container">
+  <h2>All Lyrics</h2>
+  <div id="lyrics-list"></div>
 </div>
 
 <footer>
-  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+  <p>&copy; 2026 Xac Anon. All Rights Reserved.</p>
 </footer>
 
 <!-- Firebase + JS -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -123,38 +107,49 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const _auth = getAuth(app);
+
+// ── MAINTENANCE CHECK ──────────────────────────────────────────
+const _maintSnap = await getDoc(doc(db, "siteSettings", "maintenance"));
+if (_maintSnap.exists() && _maintSnap.data().enabled === true) {
+  const _ov = document.getElementById("maintenance-overlay");
+  const _msg = _maintSnap.data().message;
+  if (_ov) {
+    if (_msg) { const _el = document.getElementById("maint-message-text"); if (_el) _el.textContent = _msg; }
+    _ov.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    onAuthStateChanged(_auth, (user) => {
+      if (user) { _ov.style.display = "none"; document.body.style.overflow = ""; }
+    });
+  }
+}
+
+const lyricsList = document.getElementById("lyrics-list");
+
+async function loadLyrics() {
+  const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+  const snapshot = await getDocs(q);
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const lyricEl = document.createElement("div");
+    lyricEl.className = "lyric-item";
+    lyricEl.innerHTML = `
+      <h3>${data.title}</h3>
+      <a href="lyric.html?id=${doc.id}">View Full Lyrics</a>
+    `;
+    lyricsList.appendChild(lyricEl);
+  });
+}
+
+loadLyrics();
 
 // Hamburger toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
-document.addEventListener('click', e => {
-  if(!e.target.closest('.nav-right')) navLinks.classList.remove('active');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('active');
 });
-
-// Get ID from URL
-const params = new URLSearchParams(window.location.search);
-const id = params.get('id');
-
-async function loadLyric() {
-  if(!id){
-    document.getElementById('lyric-title').innerText = "No Lyric Selected";
-    document.getElementById('lyric-body').innerText = "Please go back and select a lyric.";
-    return;
-  }
-  const docRef = doc(db, "lyrics", id);
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists()){
-    const data = docSnap.data();
-    document.getElementById('lyric-title').innerText = data.title || "Untitled";
-    document.getElementById('lyric-body').innerHTML = data.content || "No lyrics available."; // Render HTML properly
-  } else {
-    document.getElementById('lyric-title').innerText = "Lyric Not Found";
-    document.getElementById('lyric-body').innerText = "The lyric you are looking for does not exist.";
-  }
-}
-
-loadLyric();
 </script>
+
 </body>
 </html>
