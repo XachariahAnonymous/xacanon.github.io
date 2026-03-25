@@ -18,15 +18,15 @@
 
 <!-- OG & Twitter -->
 <meta property="og:title" content="Xac Anon – Official Site" />
-<meta property="og:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
+<meta property="og:description" content="Discover Xac Anon's music, latest releases, press kit and more." />
 <meta property="og:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
 <meta property="og:url" content="https://xacanonmusic.com" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Xac Anon – Official Site" />
-<meta name="twitter:description" content="Discover Xac Anon’s music, latest releases, press kit and more." />
+<meta name="twitter:description" content="Discover Xac Anon's music, latest releases, press kit and more." />
 <meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
-<meta name="description" content="Discover Xac Anon’s music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
+<meta name="description" content="Discover Xac Anon's music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
 
 <!-- Structured Data -->
 <script type="application/ld+json">
@@ -41,7 +41,7 @@
     "https://youtube.com/@XacAnon"
   ],
   "image": "https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg",
-  "description": "Discover Xac Anon’s music, latest releases, and press kit. Lo-fi and emo rap that speaks from the heart.",
+  "description": "Discover Xac Anon's music, latest releases, and press kit. Lo-fi and emo rap that speaks from the heart.",
   "genre": ["Lo-fi Rap", "Emo Rap"]
 }
 </script>
@@ -63,14 +63,6 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 
 /* Hamburger menu */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
-.nav-links li { margin:0.5rem 0; }
-.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a::before, .nav-links li a::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
-.nav-links li a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-.nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-.nav-links.active { display:flex; }
-
 .nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
 .nav-links.show { display:flex; max-height:500px; }
 .nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
@@ -83,6 +75,7 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 /* ===== COUNTDOWN ===== */
 #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
 @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
+#countdown.expired { animation:none; color:#ff4f81; font-weight:bold; }
 
 /* ===== SECTIONS ===== */
 .music-section { padding:2rem; text-align:center; }
@@ -248,7 +241,6 @@ const player = document.getElementById('spotify-player');
 cards.forEach(card => {
   const trackUrl = card.getAttribute('data-track-url');
   if(trackUrl){
-    // Fetch thumbnail using Spotify oEmbed
     fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`)
     .then(response => response.json())
     .then(data => {
@@ -259,9 +251,7 @@ cards.forEach(card => {
       card.innerHTML = '<h3>Listen on Spotify</h3>';
     });
 
-    // Modal player
     card.addEventListener('click', () => {
-      // Detect if it's a track or album
       let type = trackUrl.includes('/track/') ? 'track' : 'album';
       const id = trackUrl.split('/').pop().split('?')[0];
       player.src = `https://open.spotify.com/embed/${type}/${id}`;
@@ -276,15 +266,26 @@ window.addEventListener('click', (e)=> { if(e.target==modal){ modal.style.displa
 // ===== COUNTDOWN =====
 const releaseDate = new Date("2026-01-01T00:00:00");
 document.getElementById('release-date').textContent = releaseDate.toDateString();
-setInterval(()=>{
+
+const countdownEl = document.getElementById('countdown');
+
+const countdownInterval = setInterval(() => {
   const now = new Date().getTime();
   const distance = releaseDate - now;
-  const days = Math.floor(distance/(1000*60*60*24));
-  const hours = Math.floor((distance%(1000*60*60*24))/(1000*60*60));
-  const minutes = Math.floor((distance%(1000*60*60))/(1000*60));
-  const seconds = Math.floor((distance%(1000*60))/1000);
-  document.getElementById('countdown').textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-},1000);
+
+  if (distance <= 0) {
+    clearInterval(countdownInterval);
+    countdownEl.textContent = "Out Now!";
+    countdownEl.classList.add('expired');
+    return;
+  }
+
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}, 1000);
 </script>
 
 </body>
