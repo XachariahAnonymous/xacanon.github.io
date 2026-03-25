@@ -77,6 +77,17 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 @keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
 #countdown.expired { animation:none; color:#ff4f81; font-weight:bold; }
 
+/* ===== MAINTENANCE OVERLAY ===== */
+#maintenance-overlay { display:none; position:fixed; inset:0; z-index:9999; background:#0f0f0f; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:2rem; }
+#maintenance-overlay.active { display:flex; }
+.maint-logo { max-width:120px; border-radius:50%; margin-bottom:1.5rem; animation:pulseGlitch 2s infinite ease-in-out; }
+.maint-title { font-size:2.5rem; color:#ff4f81; margin:0 0 0.5rem; }
+.maint-sub { font-size:1rem; color:#aaa; margin:0 0 1.5rem; max-width:500px; }
+.maint-message { font-size:1.1rem; color:#f0f0f0; background:#1a1a1a; border:1px solid #ff4f81; border-radius:10px; padding:1rem 2rem; box-shadow:0 0 15px #ff4f81; max-width:480px; line-height:1.7; }
+.maint-socials { margin-top:2rem; display:flex; gap:1.2rem; justify-content:center; }
+.maint-socials a { color:#f0f0f0; font-size:1.6rem; transition:color 0.3s; }
+.maint-socials a:hover { color:#ff4f81; }
+
 /* ===== SECTIONS ===== */
 .music-section { padding:2rem; text-align:center; }
 .music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
@@ -134,6 +145,19 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 </style>
 </head>
 <body>
+
+<!-- MAINTENANCE OVERLAY -->
+<div id="maintenance-overlay">
+  <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon" class="maint-logo" />
+  <h1 class="maint-title">Back Soon</h1>
+  <p class="maint-sub">The site is currently undergoing maintenance.</p>
+  <div class="maint-message" id="maint-message-text">We'll be back soon. Thanks for your patience!</div>
+  <div class="maint-socials">
+    <a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+    <a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+  </div>
+</div>
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -229,6 +253,7 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -241,6 +266,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ===== MAINTENANCE MODE CHECK =====
+(async () => {
+  try {
+    const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
+    if (snap.exists() && snap.data().enabled === true) {
+      // Check if current user is admin — if so, skip maintenance screen
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          const overlay = document.getElementById("maintenance-overlay");
+          const msgEl = document.getElementById("maint-message-text");
+          const customMsg = snap.data().message;
+          if (customMsg) msgEl.textContent = customMsg;
+          overlay.classList.add("active");
+          document.body.style.overflow = "hidden";
+        }
+      });
+    }
+  } catch (err) { console.warn("Could not check maintenance mode:", err); }
+})();
 
 // ===== NAV TOGGLE =====
 const hamburger = document.querySelector('.hamburger');
