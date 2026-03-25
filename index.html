@@ -1,175 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin Panel | Xac Anon</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xac Anon</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
 
+<!-- Favicon -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
-<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
+<!-- OG & Twitter -->
+<meta property="og:title" content="Xac Anon – Official Site" />
+<meta property="og:description" content="Discover Xac Anon's music, latest releases, press kit and more." />
+<meta property="og:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
+<meta property="og:url" content="https://xacanonmusic.com" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Xac Anon – Official Site" />
+<meta name="twitter:description" content="Discover Xac Anon's music, latest releases, press kit and more." />
+<meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
+<meta name="description" content="Discover Xac Anon's music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MusicGroup",
+  "name": "Xac Anon",
+  "url": "https://xacanonmusic.com",
+  "sameAs": [
+    "https://instagram.com/xacanon/",
+    "https://x.com/XacAnonMusic",
+    "https://youtube.com/@XacAnon"
+  ],
+  "image": "https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg",
+  "description": "Discover Xac Anon's music, latest releases, and press kit. Lo-fi and emo rap that speaks from the heart.",
+  "genre": ["Lo-fi Rap", "Emo Rap"]
+}
+</script>
 
 <style>
-body { background:#0f0f0f; color:#f0f0f0; font-family:'Friz Quadrata', serif; margin:0; }
+/* ===== BODY ===== */
+body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
+
+/* ===== NAVBAR ===== */
 .navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
-.navbar-container { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:0.8rem 2rem; height:60px; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
-@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81) scale(1.05);} }
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.home-button, .logout-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; cursor:pointer; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
+.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+/* Hamburger menu */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-.nav-links { list-style:none; flex-direction:column; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; z-index:1001; }
-.nav-links.active { display:flex; }
-.nav-links li { margin:0.5rem 0; }
-.nav-links li a { color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+.nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.nav-links.show { display:flex; max-height:500px; }
+.nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
+.nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+.nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
 
-#login-container, #admin-content { max-width:800px; margin:2rem auto; padding:2rem; background:#2E2D2B; border:1px solid #ff4f81; border-radius:10px; box-shadow:0 0 20px #ff4f81; }
-#admin-content { display:none; }
+/* ===== COUNTDOWN ===== */
+#countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
+@keyframes pulseCountdown{0%,100%{opacity:1; transform:scale(1);}50%{opacity:0.6; transform:scale(1.05);}}
+#countdown.expired { animation:none; color:#ff4f81; font-weight:bold; }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="datetime-local"] {
-  width:100%; padding:0.6rem; margin-bottom:1rem; border-radius:6px; border:1px solid #ff4f81; background:#1a1a1a; color:white; box-sizing:border-box;
+/* ===== SECTIONS ===== */
+.music-section { padding:2rem; text-align:center; }
+.music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
+.music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
+.music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
+.music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
+.music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
+.music-card h3 { font-size:1rem; }
+@keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
+
+/* ===== HEADER ===== */
+header img { max-width:150px; height:auto; border-radius:50%; }
+header h1 { font-size:2rem; margin:0.5rem 0; }
+header .tagline { font-size:1rem; }
+
+/* ===== EPK ===== */
+.epk-section { text-align:center; padding:2rem; margin:2rem 0; border:1px solid #ff4f81; border-radius:12px; box-shadow:0 0 15px #ff4f81; }
+.epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; margin-top:1rem; transition:0.3s; }
+.epk-section a:hover { background:#ff4f81; color:#0f0f0f; }
+
+/* ===== SUBSCRIBE BOX ===== */
+.subscribe-section { padding:2rem; text-align:center; }
+.subscribe-box { display:inline-block; background:#1a1a1a; padding:1.5rem; border-radius:12px; border:1px solid #ff4f81; box-shadow:0 0 12px #ff4f81; width:90%; max-width:400px; }
+.subscribe-box h3 { margin-bottom:1rem; font-size:1.4rem; color:#ff4f81; }
+#subscribe-button { display:inline-block; text-decoration:none; color:#0f0f0f; background:#ff4f81; padding:0.8rem 1.6rem; border-radius:6px; font-weight:bold; transition:0.3s; }
+#subscribe-button:hover { background:#ff2d6a; }
+
+/* ===== FOOTER ===== */
+footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
+footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
+footer .ticker:hover { animation-play-state: paused; color:#ff4f81; text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81; }
+@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
+footer .socials { margin-top:1rem; text-align:center; }
+footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
+footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+
+/* ===== MODAL ===== */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
+.modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
+.modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
+.modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+
+#featured-music { padding-bottom:150px; }
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){ .hamburger { display:block; } }
+@media(max-width:576px){
+  .navbar-container { padding:0.5rem 1rem; }
+  .nav-logo img { height:30px; }
+  .home-button { font-size:0.9rem; }
+  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
 }
-button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81; color:#0f0f0f; cursor:pointer; transition:0.3s; font-weight:bold; }
-button:hover { background:#f066a0; }
-#editor, #lyric-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
-
-.post-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #444; margin-top:10px; }
-.post-actions { display:flex; gap:5px; }
-.btn-edit { background:#44aaff; }
-.btn-delete { background:#ff4444; }
-
-.tabs { display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
-.tab-button { padding:0.5rem 1rem; border-radius:6px; border:1px solid #ff4f81; background:#2E2D2B; color:white; cursor:pointer; }
-.tab-button.active { background:#ff4f81; color:#0f0f0f; }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
-
-/* Countdown tab styles */
-.countdown-manager { padding: 0.5rem 0; }
-.countdown-manager h3 { color:#ff4f81; margin-bottom:0.5rem; }
-.countdown-manager label { display:block; margin-bottom:0.3rem; font-size:0.95rem; color:#ccc; }
-.countdown-manager input[type="text"] { margin-bottom:0.8rem; }
-.countdown-current { background:#1a1a1a; border:1px solid #ff4f81; border-radius:8px; padding:1rem; margin-top:1.5rem; }
-.countdown-current h4 { color:#ff4f81; margin:0 0 0.5rem 0; }
-.countdown-current p { margin:0.3rem 0; font-size:0.95rem; }
-.countdown-current .current-label { font-size:1.1rem; font-weight:bold; color:#f0f0f0; }
-.countdown-status { display:inline-block; margin-top:0.5rem; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.85rem; }
-.status-active { background:#1a5c2a; color:#4cff7a; border:1px solid #4cff7a; }
-.status-expired { background:#5c1a1a; color:#ff4c4c; border:1px solid #ff4c4c; }
-.status-hidden { background:#3a3a1a; color:#ffcc44; border:1px solid #ffcc44; }
-.btn-danger { background:#ff4444; margin-left:0.5rem; }
-.btn-danger:hover { background:#cc2222; }
-.save-msg { display:none; color:#4cff7a; margin-left:1rem; font-size:0.9rem; }
 </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar">
   <div class="navbar-container">
     <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
     <div class="nav-right">
-      <a href="index.html" class="home-button">Home</a>
+      <a href="index.html" class="home-button" data-text="Home">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
         <li><a href="music.html">Music</a></li>
-        <li><a href="blog.html">Blog</a></li>
         <li><a href="lyrics.html">Lyrics</a></li>
+        <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
-      <button class="logout-button" style="display:none;">Logout</button>
     </div>
   </div>
 </nav>
 
-<div id="login-container">
-  <h2>Admin Login</h2>
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="password" placeholder="Password" required />
-  <button id="login-btn">Login</button>
+<div id="main-content">
+<header style="text-align:center; padding:2rem 1rem;">
+<img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+<h1>Xac Anon</h1>
+<p class="tagline">Welcome to the sound of the future.</p>
+<div class="countdown-container">
+<h2>Next Release Countdown</h2>
+<p id="countdown">Loading...</p>
+<p>Release Date: <span id="release-date"></span></p>
+</div>
+</header>
+
+<!-- MUSIC SECTIONS -->
+<section class="music-section">
+<h2>Popular Tracks</h2>
+<div class="music-grid">
+<a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/4cjPxibtS86esnvVdrVF5G"></a>
+</div>
+</section>
+
+<section class="music-section">
+<h2>Recent Releases</h2>
+<div class="music-grid">
+<a class="music-card" data-track-url="https://open.spotify.com/album/4h0iATP9ZcRlvDPJ1cnoeK?si=zPwQ67bUSAmo6_0_8aQLkQ"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1?si=YCMMa99YSkyfHG29rI2imw"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=7e2d377d763e40e1"></a>
+</div>
+</section>
+
+<section id="featured-music" class="music-section">
+<h2>Featured Music</h2>
+<div class="music-grid">
+<a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
+</div>
+</section>
+
+<!-- EPK SECTION -->
+<section class="epk-section">
+<h2>Check Out My EPK</h2>
+<p>Everything you need to know about my music, achievements, and press kit.</p>
+<a href="epk.html" data-text="View My EPK">View My EPK</a>
+</section>
+
+<!-- SUBSCRIBE SECTION -->
+<section class="subscribe-section">
+  <div class="subscribe-box">
+    <h3>Subscribe for Updates</h3>
+    <a href="https://mailchi.mp/583d00f97121/xac-anon-newsletter" target="_blank" id="subscribe-button">Subscribe to Mail List</a>
+  </div>
+</section>
+
+<!-- MODAL -->
+<div id="spotify-modal" class="modal">
+<div class="modal-content">
+<span class="modal-close">&times;</span>
+<iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+</div>
 </div>
 
-<div id="admin-content">
-  <h2>Admin Panel</h2>
-
-  <div class="tabs">
-    <button class="tab-button active" data-tab="blog-tab">Blog</button>
-    <button class="tab-button" data-tab="lyrics-tab">Lyrics</button>
-    <button class="tab-button" data-tab="countdown-tab">Countdown</button>
-  </div>
-
-  <!-- BLOG TAB -->
-  <div id="blog-tab" class="tab-content active">
-    <form id="blog-form">
-      <input type="hidden" id="edit-id" />
-      <input type="text" id="post-title" placeholder="Post Title" required />
-      <input type="text" id="post-category" placeholder="Category" />
-      <input type="text" id="post-tags" placeholder="Tags (comma separated)" />
-      <div id="editor"></div>
-      <button type="submit" id="blog-submit-btn">Publish Blog Post</button>
-      <button type="button" id="cancel-edit" style="display:none; background:#666;">Cancel Edit</button>
-    </form>
-    <hr style="margin:2rem 0; border:0; border-top:1px solid #ff4f81;">
-    <h3>Manage Blog Posts</h3>
-    <div id="posts-list">Loading posts...</div>
-  </div>
-
-  <!-- LYRICS TAB -->
-  <div id="lyrics-tab" class="tab-content">
-    <form id="lyrics-form">
-      <input type="text" id="lyric-title" placeholder="Song Title" required />
-      <input type="text" id="lyric-artist" placeholder="Artist" />
-      <div id="lyric-editor"></div>
-      <button type="submit">Publish Lyric</button>
-    </form>
-  </div>
-
-  <!-- COUNTDOWN TAB -->
-  <div id="countdown-tab" class="tab-content">
-    <div class="countdown-manager">
-      <h3>Manage Release Countdown</h3>
-      <p style="color:#ccc; font-size:0.9rem; margin-bottom:1.5rem;">Set the countdown that appears on your homepage. The timer will automatically show "Out Now!" when the date passes.</p>
-
-      <form id="countdown-form">
-        <label for="countdown-label">Label (e.g. "Next Release Countdown")</label>
-        <input type="text" id="countdown-label" placeholder="Next Release Countdown" />
-
-        <label for="countdown-date">Release Date & Time</label>
-        <input type="datetime-local" id="countdown-date" required />
-
-        <label for="countdown-visible">
-          <input type="checkbox" id="countdown-visible" style="width:auto; margin-right:0.4rem;" checked />
-          Show countdown on homepage
-        </label>
-        <br /><br />
-
-        <button type="submit" id="countdown-save-btn">Save Countdown</button>
-        <span class="save-msg" id="save-msg">✓ Saved!</span>
-        <button type="button" id="countdown-delete-btn" class="btn-danger">&#128465; Delete Countdown</button>
-        <p style="color:#aaa; font-size:0.8rem; margin-top:0.5rem;">Deleting will remove the timer but keep &quot;Out Now!&quot; on the homepage.</p>
-      </form>
-
-      <div class="countdown-current" id="countdown-current" style="display:none;">
-        <h4>Current Countdown</h4>
-        <p class="current-label" id="current-label-display">—</p>
-        <p id="current-date-display">—</p>
-        <span class="countdown-status" id="current-status"></span>
-      </div>
-    </div>
-  </div>
+<!-- FOOTER -->
+<footer>
+<div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
+<div class="socials">
+<a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+<a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+<a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
 </div>
+</footer>
 
-<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, serverTimestamp,
-  getDocs, deleteDoc, doc, updateDoc, query, orderBy, getDoc, setDoc
-} from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -181,227 +240,109 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-const blogQuill = new Quill('#editor', { theme: 'snow' });
-const lyricQuill = new Quill('#lyric-editor', { theme: 'snow' });
+// ===== NAV TOGGLE =====
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
-// ===== BLOG =====
-const loadPosts = async () => {
-  const postsContainer = document.getElementById("posts-list");
-  try {
-    const q = query(collection(db, "blogPosts"), orderBy("timestamp", "desc"));
-    const querySnapshot = await getDocs(q);
-    postsContainer.innerHTML = "";
-    querySnapshot.forEach((docSnap) => {
-      const post = docSnap.data();
-      const div = document.createElement("div");
-      div.className = "post-item";
-      div.innerHTML = `
-        <span>${post.title}</span>
-        <div class="post-actions">
-          <button class="btn-edit" onclick="editPost('${docSnap.id}')">Edit</button>
-          <button class="btn-delete" onclick="deletePost('${docSnap.id}')">Delete</button>
-        </div>`;
-      postsContainer.appendChild(div);
+// ===== SPOTIFY MODAL WITH REAL THUMBNAILS =====
+const cards = document.querySelectorAll('.music-card');
+const modal = document.getElementById('spotify-modal');
+const modalClose = document.querySelector('.modal-close');
+const player = document.getElementById('spotify-player');
+
+cards.forEach(card => {
+  const trackUrl = card.getAttribute('data-track-url');
+  if (trackUrl) {
+    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`)
+      .then(response => response.json())
+      .then(data => {
+        card.innerHTML = `<img src="${data.thumbnail_url}" alt="Track"/><h3>${data.title}</h3>`;
+      })
+      .catch(() => { card.innerHTML = '<h3>Listen on Spotify</h3>'; });
+
+    card.addEventListener('click', () => {
+      let type = trackUrl.includes('/track/') ? 'track' : 'album';
+      const id = trackUrl.split('/').pop().split('?')[0];
+      player.src = `https://open.spotify.com/embed/${type}/${id}`;
+      modal.style.display = 'flex';
     });
-  } catch (err) { postsContainer.innerHTML = "Error loading posts."; }
-};
-
-window.deletePost = async (id) => {
-  if (confirm("Delete this post?")) {
-    await deleteDoc(doc(db, "blogPosts", id));
-    loadPosts();
   }
-};
-
-window.editPost = async (id) => {
-  const docSnap = await getDoc(doc(db, "blogPosts", id));
-  if (docSnap.exists()) {
-    const post = docSnap.data();
-    document.getElementById("edit-id").value = id;
-    document.getElementById("post-title").value = post.title;
-    document.getElementById("post-category").value = post.category;
-    document.getElementById("post-tags").value = (post.tags || []).join(", ");
-    blogQuill.root.innerHTML = post.content;
-    document.getElementById("blog-submit-btn").innerText = "Update Post";
-    document.getElementById("cancel-edit").style.display = "inline-block";
-    window.scrollTo(0, 0);
-  }
-};
-
-document.getElementById("cancel-edit").addEventListener("click", () => {
-  document.getElementById("blog-form").reset();
-  blogQuill.setContents([]);
-  document.getElementById("edit-id").value = "";
-  document.getElementById("blog-submit-btn").innerText = "Publish Blog Post";
-  document.getElementById("cancel-edit").style.display = "none";
 });
 
-document.getElementById("blog-form").addEventListener("submit", async e => {
-  e.preventDefault();
-  const editId = document.getElementById("edit-id").value;
-  const title = document.getElementById("post-title").value;
-  const category = document.getElementById("post-category").value;
-  const tags = document.getElementById("post-tags").value.split(",").map(t => t.trim());
-  const content = blogQuill.root.innerHTML;
-  try {
-    if (editId) {
-      await updateDoc(doc(db, "blogPosts", editId), { title, category, tags, content });
-      alert("Post updated!");
-    } else {
-      await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
-      alert("Blog post published!");
+modalClose.addEventListener('click', () => { modal.style.display = 'none'; player.src = ''; });
+window.addEventListener('click', (e) => { if (e.target == modal) { modal.style.display = 'none'; player.src = ''; } });
+
+// ===== COUNTDOWN (loaded from Firebase) =====
+const countdownEl = document.getElementById('countdown');
+const releaseDateEl = document.getElementById('release-date');
+const countdownContainer = document.querySelector('.countdown-container');
+
+let countdownInterval = null;
+
+function startCountdown(releaseDateMs, label) {
+  // Update heading label if provided
+  const heading = countdownContainer.querySelector('h2');
+  if (heading && label) heading.textContent = label;
+
+  releaseDateEl.textContent = new Date(releaseDateMs).toDateString();
+
+  // Run once immediately, then every second
+  const tick = () => {
+    const distance = releaseDateMs - new Date().getTime();
+    if (distance <= 0) {
+      clearInterval(countdownInterval);
+      countdownEl.textContent = "Out Now!";
+      countdownEl.classList.add('expired');
+      return;
     }
-    document.getElementById("cancel-edit").click();
-    loadPosts();
-  } catch (err) { alert("Error: " + err.message); }
-});
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+  };
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
 
-// ===== LYRICS =====
-document.getElementById("lyrics-form").addEventListener("submit", async e => {
-  e.preventDefault();
-  const title = document.getElementById("lyric-title").value;
-  const artist = document.getElementById("lyric-artist").value;
-  const content = lyricQuill.root.innerHTML;
+async function loadCountdown() {
   try {
-    const docRef = await addDoc(collection(db, "lyrics"), { title, artist, content, timestamp: serverTimestamp() });
-    alert(`Lyric published! id=${docRef.id}`);
-    document.getElementById("lyrics-form").reset();
-    lyricQuill.setContents([]);
-  } catch (err) { alert("Error: " + err.message); }
-});
-
-// ===== COUNTDOWN =====
-const countdownDocRef = doc(db, "siteSettings", "countdown");
-
-const loadCountdown = async () => {
-  try {
-    const snap = await getDoc(countdownDocRef);
+    const snap = await getDoc(doc(db, "siteSettings", "countdown"));
     if (snap.exists()) {
       const data = snap.data();
-      // Populate form
-      document.getElementById("countdown-label").value = data.label || "";
-      if (data.releaseDate) {
-        // Convert Firestore timestamp or ISO string to datetime-local format
-        const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
-        // datetime-local needs format: YYYY-MM-DDTHH:MM
-        const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        document.getElementById("countdown-date").value = local;
+      // Hide entirely if not visible
+      if (data.visible === false) {
+        countdownContainer.style.display = "none";
+        return;
       }
-      document.getElementById("countdown-visible").checked = data.visible !== false;
-
-      // Show current info card
-      showCurrentCountdown(data);
+      // Admin manually deleted countdown — show Out Now! immediately
+      if (data.outNow) {
+        const heading = countdownContainer.querySelector('h2');
+        if (heading && data.label) heading.textContent = data.label;
+        releaseDateEl.parentElement.style.display = "none";
+        countdownEl.textContent = "Out Now!";
+        countdownEl.classList.add('expired');
+        return;
+      }
+      if (data.releaseDate) {
+        const releaseDate = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
+        startCountdown(releaseDate.getTime(), data.label);
+        return;
+      }
     }
-  } catch (err) { console.error("Error loading countdown:", err); }
-};
-
-const showCurrentCountdown = (data) => {
-  const card = document.getElementById("countdown-current");
-  if (!data || !data.releaseDate) { card.style.display = "none"; return; }
-
-  card.style.display = "block";
-  document.getElementById("current-label-display").textContent = data.label || "Next Release Countdown";
-
-  const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
-
-  const statusEl = document.getElementById("current-status");
-  const now = new Date();
-
-  if (data.outNow) {
-    document.getElementById("current-date-display").textContent = "Manually set to Out Now!";
-    statusEl.textContent = "Showing 'Out Now!' — set a new countdown to replace";
-    statusEl.className = "countdown-status status-expired";
-  } else if (!data.visible) {
-    document.getElementById("current-date-display").textContent = d.toLocaleString();
-    statusEl.textContent = "Hidden";
-    statusEl.className = "countdown-status status-hidden";
-  } else if (d <= now) {
-    document.getElementById("current-date-display").textContent = d.toLocaleString();
-    statusEl.textContent = "Expired — showing 'Out Now!'";
-    statusEl.className = "countdown-status status-expired";
-  } else {
-    document.getElementById("current-date-display").textContent = d.toLocaleString();
-    statusEl.textContent = "Active";
-    statusEl.className = "countdown-status status-active";
+    // No Firebase data — hide the countdown section
+    countdownContainer.style.display = "none";
+  } catch (err) {
+    console.warn("Could not load countdown from Firebase:", err);
+    countdownContainer.style.display = "none";
   }
-};
+}
 
-document.getElementById("countdown-form").addEventListener("submit", async e => {
-  e.preventDefault();
-  const label = document.getElementById("countdown-label").value || "Next Release Countdown";
-  const dateVal = document.getElementById("countdown-date").value;
-  const visible = document.getElementById("countdown-visible").checked;
-
-  if (!dateVal) { alert("Please set a release date."); return; }
-  const releaseDate = new Date(dateVal);
-
-  try {
-    await setDoc(countdownDocRef, { label, releaseDate, visible, updatedAt: serverTimestamp() });
-    const saveMsg = document.getElementById("save-msg");
-    saveMsg.style.display = "inline";
-    setTimeout(() => saveMsg.style.display = "none", 3000);
-    loadCountdown();
-  } catch (err) { alert("Error saving: " + err.message); }
-});
-
-document.getElementById("countdown-delete-btn").addEventListener("click", async () => {
-  if (confirm("This will remove the countdown timer and show 'Out Now!' on your homepage. Continue?")) {
-    try {
-      // Set releaseDate to the past so the homepage shows "Out Now!" permanently
-      await setDoc(countdownDocRef, {
-        label: document.getElementById("countdown-label").value || "Next Release Countdown",
-        releaseDate: new Date(0), // epoch = always expired
-        visible: true,
-        outNow: true,
-        updatedAt: serverTimestamp()
-      });
-      const saveMsg = document.getElementById("save-msg");
-      saveMsg.textContent = "✓ Countdown deleted — showing Out Now!";
-      saveMsg.style.display = "inline";
-      setTimeout(() => { saveMsg.style.display = "none"; saveMsg.textContent = "✓ Saved!"; }, 4000);
-      loadCountdown();
-    } catch (err) { alert("Error: " + err.message); }
-  }
-});
-
-// ===== NAV & TABS =====
-document.querySelector('.hamburger').addEventListener('click', () => {
-  document.querySelector('.nav-links').classList.toggle('active');
-});
-
-document.querySelectorAll('.tab-button').forEach(btn => btn.addEventListener('click', () => {
-  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(btn.dataset.tab).classList.add('active');
-}));
-
-// ===== AUTH =====
-document.getElementById("login-btn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  try { await signInWithEmailAndPassword(auth, email, password); }
-  catch (err) { alert("Login failed: " + err.message); }
-});
-
-document.querySelector(".logout-button").addEventListener("click", () => signOut(auth));
-
-onAuthStateChanged(auth, user => {
-  if (user) {
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("admin-content").style.display = "block";
-    document.querySelector(".logout-button").style.display = "inline-block";
-    loadPosts();
-    loadCountdown();
-  } else {
-    document.getElementById("login-container").style.display = "block";
-    document.getElementById("admin-content").style.display = "none";
-    document.querySelector(".logout-button").style.display = "none";
-  }
-});
+loadCountdown();
 </script>
+
 </body>
 </html>
