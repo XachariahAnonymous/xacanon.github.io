@@ -17,13 +17,16 @@ body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f
 .navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
 .navbar-container { display:flex; align-items:center; justify-content:space-between; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch {0%,100%{filter:none;}50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);}}
 
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
-.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; transition: 0.3s; }
+.home-button:hover { background: rgba(255, 79, 129, 0.1); }
 
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
-.nav-links.active { display:flex; flex-direction:column; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; z-index: 1001; }
+.nav-links.active { display:flex; }
+.nav-links li a { color:#f0f0f0; text-decoration:none; display: block; padding: 0.5rem 0; }
 
 /* Header */
 header { text-align:center; padding:3rem 1rem 1rem; }
@@ -51,26 +54,30 @@ header h1 { font-size:2.8rem; letter-spacing:2px; text-transform:uppercase; colo
 }
 
 /* Music Sections */
-.music-section { padding:1rem 1rem; }
-.collapsible { position: relative; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding-left: 1rem; }
+.music-section { padding:1rem 1rem; max-width: 1000px; margin: 0 auto; }
+.collapsible { position: relative; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; padding: 1rem; border-bottom: 1px solid rgba(255, 79, 129, 0.2); margin-bottom: 0.5rem; transition: 0.3s; }
+.collapsible:hover { background: rgba(255, 79, 129, 0.05); }
 .collapsible::before { content: "\f105"; font-family: "Font Awesome 5 Free"; font-weight: 900; color: #ff4f81; transition: 0.3s; }
 .collapsible.active::before { transform: rotate(90deg); }
 
-.music-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; margin-bottom:1rem; }
-.music-card { background:#1a1a1a; border-radius:8px; padding:0.6rem; text-align:center; cursor:pointer; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
-.music-card img { width:100%; border-radius:6px; margin-bottom:0.3rem; }
+.music-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+.music-card { background:#1a1a1a; border-radius:8px; padding:0.8rem; text-align:center; cursor:pointer; transition: 0.3s; border: 1px solid transparent; }
+.music-card:hover { border-color: #ff4f81; transform: translateY(-3px); }
+.music-card img { width:100%; border-radius:6px; margin-bottom:0.5rem; }
+.music-card h3 { font-size: 0.9rem; margin: 0; color: #eee; }
 
 .loader-text { font-size: 0.8rem; color: #ff4f81; text-transform: uppercase; animation: loaderPulse 1s infinite alternate; }
 @keyframes loaderPulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
 
 /* Modal */
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
-.modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
-.modal-content iframe { width:100%; height:80px; border:none; }
-.modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; z-index:2000; }
+.modal-content { background:#111; padding:1.5rem; border-radius:12px; max-width:500px; width:90%; position:relative; border: 1px solid #ff4f81; }
+.modal-content iframe { width:100%; height:152px; border:none; border-radius: 8px; }
+.modal-close { position:absolute; top:-45px; right:0; font-size:1.2rem; cursor:pointer; color:#ff4f81; text-transform: uppercase; letter-spacing: 1px; }
 
-footer { padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; }
-@media(max-width:576px){ .music-grid { grid-template-columns:repeat(1,1fr); } }
+footer { padding:3rem 1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; margin-top: 4rem; }
+@media(max-width:768px){ .music-grid { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:480px){ .music-grid { grid-template-columns:repeat(1,1fr); } }
 </style>
 </head>
 <body>
@@ -96,18 +103,18 @@ footer { padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align
 </header>
 
 <div class="featured-container">
-  <a href="#" class="presave-btn" target="_blank">Presave The Next Release Here!</a>
+  <a href="https://distrokid.com/hyperfollow/xacanon/olympus" class="presave-btn" target="_blank">Presave OLYMPUS Here!</a>
 </div>
 
 <section class="music-section">
+  <h2 class="collapsible" data-section="singles-2026">2026 Singles</h2>
+  <div class="music-grid" id="singles-2026"></div>
+
   <h2 class="collapsible" data-section="albums-2025">2025 Albums</h2>
   <div class="music-grid" id="albums-2025"></div>
 
   <h2 class="collapsible" data-section="singles-2025">2025 Singles</h2>
   <div class="music-grid" id="singles-2025"></div>
-
-  <h2 class="collapsible" data-section="albums-2024">2024 Albums</h2>
-  <div class="music-grid" id="albums-2024"></div>
 
   <h2 class="collapsible" data-section="singles-2024">2024 Singles</h2>
   <div class="music-grid" id="singles-2024"></div>
@@ -124,24 +131,37 @@ footer { padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align
 
 <div id="spotify-modal" class="modal">
   <div class="modal-content">
-    <span class="modal-close">×</span>
-    <iframe id="spotify-player" src="" allow="autoplay; encrypted-media; fullscreen;"></iframe>
+    <span class="modal-close"><i class="fas fa-times"></i> Close Player</span>
+    <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
   </div>
 </div>
 
 <footer>
-  <div>© 2026 Xac Anon | Website by Xachariah Anonymous</div>
+  <div>© 2026 Xac Anon | Musical Artist | Newcastle, NSW</div>
 </footer>
 
 <script>
 const data = {
-  "albums-2025": ["https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns9","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr70"],
-  "singles-2025": ["https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr71","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr72","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr73","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr74"],
-  "albums-2024": ["https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr75"],
-  "singles-2024": ["https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr76","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr77","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr78","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr79","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR0","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR1"],
-  "albums-2023": ["https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR2"],
-  "singles-2023": ["https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR3","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR4","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR5","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR6","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR7","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR8"],
-  "features": ["https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR9","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq0","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq1","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq2"]
+  "singles-2026": ["https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=b3ef1ad616fa4fba"],
+  "singles-2025": [
+    "https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=bf802a93fdda4cab", "https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b17c1562dfc84ec1", "https://open.spotify.com/track/6JeA3ahQtwqiTYpQhk73It?si=fd18ef3c01d14d1f",
+    "https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT?si=8eb03ac33ea04af9", "https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5?si=559809734fc248f8", "https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e?si=dce2399513244913",
+    "https://open.spotify.com/track/35SUMrkWFSstVfVj1yZDAU?si=8f7f8c7d2472455b", "https://open.spotify.com/track/65RXN2gyR6e5TAYEVojjOb?si=c4ecef8448714f44", "https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5?si=83e8507df9a847be"
+  ],
+  "albums-2025": ["https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l?si=mtiqJEksSgulqzbOG5drhA", "https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj?si=wB2J-7tRQ9ayXH6ypXlSXg"],
+  "singles-2024": [
+    "https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI?si=sTTTtVbtTBmWDpE8ThdoNg", "https://open.spotify.com/track/2QaNEbrinrTsK1ocqzJTF4?si=28f3124a4c7c4c47", "https://open.spotify.com/track/6taqGZqAVPGMF34OKa7gtw?si=1824e71fb9444dae",
+    "https://open.spotify.com/track/3lTFMqTzBquDAUPT6xdZoJ?si=673faecfe5134015", "https://open.spotify.com/track/6VIOZte1t0272iYGHTiSQn?si=0d9d63aae60d4234", "https://open.spotify.com/track/6h28ylu9b46el9Ip2s8NjF?si=0861d815b66a439b"
+  ],
+  "albums-2023": ["https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg?si=Zi3IMR00SX6Gyn5s5yMwXg"],
+  "singles-2023": [
+    "https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl?si=c4043c3ec3f24f18", "https://open.spotify.com/track/58eSvECCBRtKOvO40Ggqtn?si=cd47f0a89d3b42c9", "https://open.spotify.com/track/3U2xMtET0FouWvjGU9T84w?si=cb54ac6ac69041e7",
+    "https://open.spotify.com/album/28sD8sF8CB7ob5axslH1GY?si=H1rFkhyzQdijPapLkf2naQ", "https://open.spotify.com/track/3QOWUrh6visVPsCXL2tS2q?si=9f6743b354bb45de", "https://open.spotify.com/track/7lPlToTpeMHDRtSNyvkUme?si=587ef6ca752c4992",
+    "https://open.spotify.com/track/4ynq1anTiySqq7NcAEOxoj?si=9a8016586d874898", "https://open.spotify.com/track/4GP0fsN0JShmCb2emoO7PD?si=95d7855a7e7e47f4", "https://open.spotify.com/track/7IO2gwEzWKctpyHbAhXnHU?si=f5dafecbc8cc49b1"
+  ],
+  "features": [
+    "https://open.spotify.com/album/2474dx7YQNKk3mePKMgHa5?si=kZ20KBLqTQCds9rdb_2prA", "https://open.spotify.com/album/5I0yTU3B7BgZvZrev6JgZN?si=JNRLP6vOT9ahfs2t7Cky1A", "https://open.spotify.com/album/65aPvU6JYjRrG0PjfMvQtf?si=cmAJ2_H0Tt-Q34AoxIC6Qw", "https://open.spotify.com/album/2LyNkDn72H2bUgLWWkRgS1?si=7Wcg2oo3QN-bQOsOfUk5Iw"
+  ]
 };
 
 document.querySelector('.hamburger').addEventListener('click', () => {
@@ -163,7 +183,7 @@ async function loadGrid(containerId, urls) {
         card.innerHTML = `<img src="${d.thumbnail_url}"><h3>${d.title}</h3>`;
       })
       .catch(() => {
-        card.innerHTML = `<h3>Track Data</h3>`;
+        card.innerHTML = `<h3 style="color:#ff4f81;">Access Granted</h3>`;
       });
     
     card.addEventListener('click', () => openModal(url));
@@ -184,10 +204,22 @@ document.querySelectorAll('.collapsible').forEach(header => {
   });
 });
 
-function openModal(url){
-  const id = url.split('/').pop().split('?')[0];
-  const type = url.includes("/track/") ? "track" : "album";
-  document.getElementById("spotify-player").src = `https://open.spotify.com/embed/${type}/${id}`;
+function openModal(url) {
+  let id = "";
+  let type = "track";
+
+  if (url.includes("/album/")) {
+    type = "album";
+    id = url.split("/album/")[1].split("?")[0];
+  } else if (url.includes("/track/")) {
+    type = "track";
+    id = url.split("/track/")[1].split("?")[0];
+  } else {
+    id = url.split('/').pop().split('?')[0];
+  }
+
+  const player = document.getElementById("spotify-player");
+  player.src = `https://open.spotify.com/embed/${type}/${id}`;
   document.getElementById("spotify-modal").style.display = "flex";
 }
 
