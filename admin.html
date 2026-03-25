@@ -99,7 +99,7 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
-      <button class="logout-button" style="display:none;">Logout</button>
+      <button id="logout-btn" class="logout-button" style="display:none;">Logout</button>
     </div>
   </div>
 </nav>
@@ -473,20 +473,26 @@ document.getElementById("login-btn").addEventListener("click", async () => {
   catch (err) { alert("Login failed: " + err.message); }
 });
 
-document.querySelector(".logout-button").addEventListener("click", () => signOut(auth));
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+  } catch (err) {
+    alert("Logout failed: " + err.message);
+  }
+});
 
 onAuthStateChanged(auth, user => {
   if (user) {
     document.getElementById("login-container").style.display = "none";
     document.getElementById("admin-content").style.display = "block";
-    document.querySelector(".logout-button").style.display = "inline-block";
+    document.getElementById("logout-btn").style.display = "inline-block";
     loadPosts();
     loadCountdown();
     loadMaintenance();
   } else {
     document.getElementById("login-container").style.display = "block";
     document.getElementById("admin-content").style.display = "none";
-    document.querySelector(".logout-button").style.display = "none";
+    document.getElementById("logout-btn").style.display = "none";
   }
 });
 </script>
