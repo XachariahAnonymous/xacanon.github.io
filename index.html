@@ -7,12 +7,16 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
 
+<!-- Favicon -->
 <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
 
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
+<!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
+<!-- OG & Twitter -->
 <meta property="og:title" content="Xac Anon – Official Site" />
 <meta property="og:description" content="Discover Xac Anon's music, latest releases, press kit and more." />
 <meta property="og:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
@@ -24,6 +28,7 @@
 <meta name="twitter:image" content="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
 <meta name="description" content="Discover Xac Anon's music, latest releases, and press kit. Dive into lo-fi and emo rap that speaks from the heart." />
 
+<!-- Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -50,31 +55,22 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:0.8rem 2rem; height:60px; }
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
-.nav-right { display:flex; align-items:center; gap:1.2rem; position:relative; }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
+.home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
+.home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-/* FIXED: HOME BUTTON (PILL SHAPE & NO UNDERLINE) */
-.home-button { 
-    color:#f0f0f0; 
-    text-decoration:none; 
-    font-size:1.1rem; 
-    padding:0.4rem 1.2rem; 
-    border:1.5px solid #ff4f81; 
-    border-radius:50px; 
-    transition:0.3s;
-    display: inline-block;
-}
-.home-button:hover { 
-    background: rgba(255, 79, 129, 0.1); 
-    text-decoration: none;
-}
-
-/* FIXED: HAMBURGER MENU (3 LINES) */
-.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; display: flex; align-items: center; }
-
+/* Hamburger menu */
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
 .nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-top:none; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
 .nav-links.show { display:flex; max-height:500px; }
 .nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
-.nav-links li a:hover { color:#ff4f81; }
+.nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+.nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+.nav-links li a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+@keyframes glitchTop { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(0,9999px,5px,0); transform:translate(-2px,-2px);} 100%{clip:rect(0,9999px,0,0);} }
+@keyframes glitchBottom { 0%{clip:rect(0,9999px,0,0);} 50%{clip:rect(5px,9999px,10px,0); transform:translate(2px,2px);} 100%{clip:rect(0,9999px,0,0);} }
 
 /* ===== COUNTDOWN ===== */
 #countdown {animation:pulseCountdown 1.5s infinite ease-in-out;}
@@ -85,72 +81,90 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 #maintenance-overlay { display:none; position:fixed; inset:0; z-index:9999; background:#0f0f0f; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:2rem; }
 #maintenance-overlay.active { display:flex; }
 .maint-logo { max-width:120px; border-radius:50%; margin-bottom:1.5rem; animation:pulseGlitch 2s infinite ease-in-out; }
+.maint-title { font-size:2.5rem; color:#ff4f81; margin:0 0 0.5rem; }
+.maint-sub { font-size:1rem; color:#aaa; margin:0 0 1.5rem; max-width:500px; }
+.maint-message { font-size:1.1rem; color:#f0f0f0; background:#1a1a1a; border:1px solid #ff4f81; border-radius:10px; padding:1rem 2rem; box-shadow:0 0 15px #ff4f81; max-width:480px; line-height:1.7; }
+.maint-socials { margin-top:2rem; display:flex; gap:1.2rem; justify-content:center; }
+.maint-socials a { color:#f0f0f0; font-size:1.6rem; transition:color 0.3s; }
+.maint-socials a:hover { color:#ff4f81; }
 
 /* ===== SECTIONS ===== */
-.music-section { padding:2rem; text-align:left; }
-.music-section h2 { 
-    font-size:2rem; 
-    margin-bottom:1.5rem; 
-    color:#f0f0f0; 
-    display: flex; 
-    align-items: center; 
-    gap: 12px;
-}
-.music-section h2::before { 
-    content: "\f105"; 
-    font-family: "Font Awesome 5 Free"; 
-    font-weight: 900; 
-    color: #ff4f81; 
-}
-.features-header::before { content: "\f107" !important; }
-
-.music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:1rem; }
+.music-section { padding:2rem; text-align:center; }
+.music-section h2 { font-size:2rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; }
+.music-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-top:2rem; }
 .music-card { display:block; background:#1a1a1a; border-radius:12px; padding:1rem; text-decoration:none; color:white; cursor:pointer; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
 .music-card:hover{transform:scale(1.03); box-shadow:0 0 10px #ff4f81;}
 .music-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1rem; }
-.music-card h3 { font-size:1rem; text-align: center; }
+.music-card h3 { font-size:1rem; }
 @keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
 
 /* ===== HEADER ===== */
-header img { max-width:150px; height:auto; border-radius:50%; border: 2px solid #ff4f81; }
+header img { max-width:150px; height:auto; border-radius:50%; }
+header h1 { font-size:2rem; margin:0.5rem 0; }
+header .tagline { font-size:1rem; }
 
 /* ===== EPK ===== */
-.epk-section { text-align:center; padding:2rem; margin:2rem 0; border:1px solid #ff4f81; border-radius:12px; }
+.epk-section { text-align:center; padding:2rem; margin:2rem 0; border:1px solid #ff4f81; border-radius:12px; box-shadow:0 0 15px #ff4f81; }
 .epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; margin-top:1rem; transition:0.3s; }
 .epk-section a:hover { background:#ff4f81; color:#0f0f0f; }
 
 /* ===== SUBSCRIBE BOX ===== */
 .subscribe-section { padding:2rem; text-align:center; }
 .subscribe-box { display:inline-block; background:#1a1a1a; padding:1.5rem; border-radius:12px; border:1px solid #ff4f81; box-shadow:0 0 12px #ff4f81; width:90%; max-width:400px; }
+.subscribe-box h3 { margin-bottom:1rem; font-size:1.4rem; color:#ff4f81; }
 #subscribe-button { display:inline-block; text-decoration:none; color:#0f0f0f; background:#ff4f81; padding:0.8rem 1.6rem; border-radius:6px; font-weight:bold; transition:0.3s; }
+#subscribe-button:hover { background:#ff2d6a; }
 
 /* ===== FOOTER ===== */
-footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; position:relative; text-align: center; }
-.socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; transition: color 0.3s ease; }
-.socials a:hover { color:#ff4f81; }
+footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
+footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
+footer .ticker:hover { animation-play-state: paused; color:#ff4f81; text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81; }
+@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
+footer .socials { margin-top:1rem; text-align:center; }
+footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
+footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
+footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
+footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
 /* ===== MODAL ===== */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
 .modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
+.modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
 .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+
+#featured-music { padding-bottom:150px; }
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){ .hamburger { display:block; } }
+@media(max-width:576px){
+  .navbar-container { padding:0.5rem 1rem; }
+  .nav-logo img { height:30px; }
+  .home-button { font-size:0.9rem; }
+  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
+}
 </style>
 </head>
 <body>
 
+<!-- MAINTENANCE OVERLAY -->
 <div id="maintenance-overlay">
   <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon" class="maint-logo" />
-  <h1 class="maint-title" style="color:#ff4f81;">Back Soon</h1>
-  <div class="maint-message" id="maint-message-text" style="color:#f0f0f0;">We'll be back soon. Thanks for your patience!</div>
+  <h1 class="maint-title">Back Soon</h1>
+  <p class="maint-sub">The site is currently undergoing maintenance.</p>
+  <div class="maint-message" id="maint-message-text">We'll be back soon. Thanks for your patience!</div>
+  <div class="maint-socials">
+    <a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+    <a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+  </div>
 </div>
 
+<!-- NAVBAR -->
 <nav class="navbar">
   <div class="navbar-container">
     <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
     <div class="nav-right">
-      <a href="index.html" class="home-button">Home</a>
+      <a href="index.html" class="home-button" data-text="Home">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
         <li><a href="music.html">Music</a></li>
@@ -175,60 +189,65 @@ footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #f
 </div>
 </header>
 
+<!-- MUSIC SECTIONS -->
 <section class="music-section">
 <h2>Popular Tracks</h2>
 <div class="music-grid">
-<div class="music-card" data-track-url="https://open.spotify.com/track/4GP0fsN0JShmCb2emoO7PD"></div>
-<div class="music-card" data-track-url="https://open.spotify.com/track/0sF1xBC8jlt88Ah8AuLpY5"></div>
-<div class="music-card" data-track-url="https://open.spotify.com/track/4ynq1anTiySqq7NcAEOxoj"></div>
+<a class="music-card" data-track-url="https://open.spotify.com/track/4GP0fsN0JShmCb2emoO7PD"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/0sF1xBC8jlt88Ah8AuLpY5"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/4ynq1anTiySqq7NcAEOxoj"></a>
 </div>
 </section>
 
 <section class="music-section">
 <h2>Recent Releases</h2>
 <div class="music-grid">
-<div class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e4867"></div>
-<div class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></div>
-<div class="music-card" data-track-url="https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b468402b66d142ca"></div>
+<a class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e4867"></a>
+<a class="music-card" data-track-url=https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b468402b66d142ca"></a>
 </div>
 </section>
 
 <section id="featured-music" class="music-section">
-<h2 class="features-header">Featured Music</h2>
+<h2>Featured Music</h2>
 <div class="music-grid">
-<div class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></div>
-<div class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></div>
-<div class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></div>
+<a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
 </div>
 </section>
 
+<!-- EPK SECTION -->
 <section class="epk-section">
 <h2>Check Out My EPK</h2>
 <p>Everything you need to know about my music, achievements, and press kit.</p>
-<a href="epk.html">View My EPK</a>
+<a href="epk.html" data-text="View My EPK">View My EPK</a>
 </section>
 
+<!-- SUBSCRIBE SECTION -->
 <section class="subscribe-section">
   <div class="subscribe-box">
     <h3>Subscribe for Updates</h3>
-    <a href="https://mailchi.mp/583d00f97121/xac-anon-newsletter" target="_blank" id="subscribe-button">Subscribe</a>
+    <a href="https://mailchi.mp/583d00f97121/xac-anon-newsletter" target="_blank" id="subscribe-button">Subscribe to Mail List</a>
   </div>
 </section>
 
+<!-- MODAL -->
 <div id="spotify-modal" class="modal">
 <div class="modal-content">
-<span class="modal-close">×</span>
-<iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" style="width:100%; height:152px; border:none; border-radius:8px;"></iframe>
+<span class="modal-close">&times;</span>
+<iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 </div>
 </div>
 
+<!-- FOOTER -->
 <footer>
+<div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
 <div class="socials">
-<a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
-<a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
-<a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+<a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+<a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+<a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
 </div>
-<p>© 2026 Xac Anon</p>
 </footer>
 
 <script type="module">
@@ -249,37 +268,54 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Maintenance check
+// ===== MAINTENANCE MODE CHECK =====
 (async () => {
   try {
     const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
     if (snap.exists() && snap.data().enabled === true) {
       const overlay = document.getElementById("maintenance-overlay");
+      const msgEl = document.getElementById("maint-message-text");
+      const customMsg = snap.data().message;
+      if (customMsg) msgEl.textContent = customMsg;
+
+      // Show overlay immediately — hide only if admin is logged in
       overlay.classList.add("active");
-      onAuthStateChanged(auth, (user) => { if (user) overlay.classList.remove("active"); });
+      document.body.style.overflow = "hidden";
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          // Admin is logged in — let them see the site
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+        }
+      });
     }
-  } catch (err) { console.warn(err); }
+  } catch (err) { console.warn("Could not check maintenance mode:", err); }
 })();
 
-// Nav toggle
-document.querySelector('.hamburger').onclick = () => document.querySelector('.nav-links').classList.toggle('show');
+// ===== NAV TOGGLE =====
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
 
-// Spotify logic
+// ===== SPOTIFY MODAL WITH REAL THUMBNAILS =====
 const cards = document.querySelectorAll('.music-card');
 const modal = document.getElementById('spotify-modal');
+const modalClose = document.querySelector('.modal-close');
 const player = document.getElementById('spotify-player');
 
 cards.forEach(card => {
   const trackUrl = card.getAttribute('data-track-url');
   if (trackUrl) {
     fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`)
-      .then(res => res.json())
+      .then(response => response.json())
       .then(data => {
         card.innerHTML = `<img src="${data.thumbnail_url}" alt="Track"/><h3>${data.title}</h3>`;
-      });
+      })
+      .catch(() => { card.innerHTML = '<h3>Listen on Spotify</h3>'; });
 
     card.addEventListener('click', () => {
-      const type = trackUrl.includes('/album/') ? 'album' : 'track';
+      let type = trackUrl.includes('/track/') ? 'track' : 'album';
       const id = trackUrl.split('/').pop().split('?')[0];
       player.src = `https://open.spotify.com/embed/${type}/${id}`;
       modal.style.display = 'flex';
@@ -287,7 +323,76 @@ cards.forEach(card => {
   }
 });
 
-document.querySelector('.modal-close').onclick = () => { modal.style.display = 'none'; player.src = ''; };
+modalClose.addEventListener('click', () => { modal.style.display = 'none'; player.src = ''; });
+window.addEventListener('click', (e) => { if (e.target == modal) { modal.style.display = 'none'; player.src = ''; } });
+
+// ===== COUNTDOWN (loaded from Firebase) =====
+const countdownEl = document.getElementById('countdown');
+const releaseDateEl = document.getElementById('release-date');
+const countdownContainer = document.querySelector('.countdown-container');
+
+let countdownInterval = null;
+
+function startCountdown(releaseDateMs, label) {
+  // Update heading label if provided
+  const heading = countdownContainer.querySelector('h2');
+  if (heading && label) heading.textContent = label;
+
+  releaseDateEl.textContent = new Date(releaseDateMs).toDateString();
+
+  // Run once immediately, then every second
+  const tick = () => {
+    const distance = releaseDateMs - new Date().getTime();
+    if (distance <= 0) {
+      clearInterval(countdownInterval);
+      countdownEl.textContent = "Out Now!";
+      countdownEl.classList.add('expired');
+      return;
+    }
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+  };
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+async function loadCountdown() {
+  try {
+    const snap = await getDoc(doc(db, "siteSettings", "countdown"));
+    if (snap.exists()) {
+      const data = snap.data();
+      // Hide entirely if not visible
+      if (data.visible === false) {
+        countdownContainer.style.display = "none";
+        return;
+      }
+      // Admin manually deleted countdown — show Out Now! immediately
+      if (data.outNow) {
+        const heading = countdownContainer.querySelector('h2');
+        if (heading && data.label) heading.textContent = data.label;
+        releaseDateEl.parentElement.style.display = "none";
+        countdownEl.textContent = "Out Now!";
+        countdownEl.classList.add('expired');
+        return;
+      }
+      if (data.releaseDate) {
+        const releaseDate = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
+        startCountdown(releaseDate.getTime(), data.label);
+        return;
+      }
+    }
+    // No Firebase data — hide the countdown section
+    countdownContainer.style.display = "none";
+  } catch (err) {
+    console.warn("Could not load countdown from Firebase:", err);
+    countdownContainer.style.display = "none";
+  }
+}
+
+loadCountdown();
 </script>
 
 </body>
