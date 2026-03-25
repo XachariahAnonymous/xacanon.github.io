@@ -51,7 +51,7 @@ header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse;
 /* Music Sections */
 .music-section { padding:2rem 1rem; }
 
-/* Collapsible headers with arrows */
+/* Collapsible headers */
 .collapsible {
   position: relative;
   cursor: pointer;
@@ -63,9 +63,8 @@ header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse;
   padding-left: 1rem;
 }
 
-/* Arrow icon on left */
 .collapsible::before {
-  content: "\f105"; /* Font Awesome chevron-right */
+  content: "\f105"; 
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
   display: inline-block;
@@ -73,17 +72,29 @@ header h1::after { animation: glitchBottom 1s infinite linear alternate-reverse;
   color: #ff4f81;
 }
 
-/* Rotate arrow when expanded */
 .collapsible.active::before {
   transform: rotate(90deg);
 }
 
 /* Music Grid */
 .music-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; margin-bottom:1rem; }
-.music-card { background:#1a1a1a; border-radius:8px; padding:0.6rem; text-align:center; color:#fff; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.music-card { background:#1a1a1a; border-radius:8px; padding:0.6rem; text-align:center; color:#fff; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s; min-height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .music-card:hover { transform: scale(1.02); box-shadow:0 0 8px #ff4f81; }
 .music-card img { width:100%; border-radius:6px; margin-bottom:0.3rem; }
 .music-card h3 { font-size:0.85rem; margin:0; }
+
+/* New Loader Styles */
+.loader-text {
+  font-size: 0.8rem;
+  color: #ff4f81;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: loaderPulse 1s infinite alternate;
+}
+@keyframes loaderPulse {
+  0% { opacity: 0.4; text-shadow: 2px 0 #00fff9; }
+  100% { opacity: 1; text-shadow: -2px 0 #ff4f81; }
+}
 
 /* Modal */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
@@ -135,28 +146,28 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 </header>
 
 <section class="music-section">
-  <h2 class="collapsible">2026 Singles</h2>
+  <h2 class="collapsible" data-section="singles-2026">2026 Singles</h2>
   <div class="music-grid" id="singles-2026"></div>
 
-  <h2 class="collapsible">2025 Albums</h2>
+  <h2 class="collapsible" data-section="albums-2025">2025 Albums</h2>
   <div class="music-grid" id="albums-2025"></div>
 
-  <h2 class="collapsible">2025 Singles</h2>
+  <h2 class="collapsible" data-section="singles-2025">2025 Singles</h2>
   <div class="music-grid" id="singles-2025"></div>
 
-  <h2 class="collapsible">2024 Albums</h2>
+  <h2 class="collapsible" data-section="albums-2024">2024 Albums</h2>
   <div class="music-grid" id="albums-2024"></div>
 
-  <h2 class="collapsible">2024 Singles</h2>
+  <h2 class="collapsible" data-section="singles-2024">2024 Singles</h2>
   <div class="music-grid" id="singles-2024"></div>
 
-  <h2 class="collapsible">2023 Albums</h2>
+  <h2 class="collapsible" data-section="albums-2023">2023 Albums</h2>
   <div class="music-grid" id="albums-2023"></div>
 
-  <h2 class="collapsible">2023 Singles</h2>
+  <h2 class="collapsible" data-section="singles-2023">2023 Singles</h2>
   <div class="music-grid" id="singles-2023"></div>
 
-  <h2 class="collapsible">Features</h2>
+  <h2 class="collapsible" data-section="features">Features</h2>
   <div class="music-grid" id="features"></div>
 </section>
 
@@ -177,51 +188,74 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 </footer>
 
 <script>
-// Hamburger toggle
+const data = {
+  "singles-2026": ["https://open.spotify.com/track/0"],
+  "albums-2025": ["https://open.spotify.com/album/2","https://open.spotify.com/album/3"],
+  "singles-2025": ["https://open.spotify.com/track/1","https://open.spotify.com/track/4","https://open.spotify.com/track/5","https://open.spotify.com/track/6","https://open.spotify.com/track/7"],
+  "albums-2024": ["https://open.spotify.com/album/8"],
+  "singles-2024": ["https://open.spotify.com/track/9","https://open.spotify.com/track/10","https://open.spotify.com/track/11","https://open.spotify.com/track/12","https://open.spotify.com/track/13","https://open.spotify.com/track/14"],
+  "albums-2023": ["https://open.spotify.com/album/15"],
+  "singles-2023": ["https://open.spotify.com/track/16","https://open.spotify.com/track/17","https://open.spotify.com/track/18","https://open.spotify.com/track/19","https://open.spotify.com/track/20","https://open.spotify.com/track/21"],
+  "features": [] 
+};
+
 document.querySelector('.hamburger').addEventListener('click', () => {
   document.querySelector('.nav-links').classList.toggle('active');
 });
 
-// Collapsible sections with arrow
+async function loadGrid(containerId, urls) {
+  const container = document.getElementById(containerId);
+  if (!container || !urls.length) {
+    if (containerId === "features" && container) {
+      container.innerHTML = `<p style="padding:1rem; font-style:italic; font-size:0.9rem; opacity:0.6;">Upcoming features loading soon...</p>`;
+    }
+    return;
+  }
+
+  container.innerHTML = ""; 
+
+  for (const url of urls) {
+    const card = document.createElement("div");
+    card.className = "music-card";
+    card.innerHTML = `<div class="loader-text">Analyzing...</div>`;
+    container.appendChild(card);
+
+    await new Promise(res => setTimeout(res, 180)); // Slightly longer delay for stability
+
+    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(item => {
+        card.innerHTML = `<img src="${item.thumbnail_url}" alt="${item.title}"><h3>${item.title}</h3>`;
+      })
+      .catch(() => {
+        card.innerHTML = `<div style="padding:1rem; font-size:0.8rem; color:#ff4f81; text-transform:uppercase;">Data Redacted</div>`;
+      });
+
+    card.addEventListener('click', () => openModal(url));
+  }
+}
+
 document.querySelectorAll('.collapsible').forEach(header => {
   const content = header.nextElementSibling;
-  content.style.display = "none"; // collapsed initially
+  content.style.display = "none";
+  
   header.addEventListener('click', () => {
     const isActive = content.style.display === "grid";
     content.style.display = isActive ? "none" : "grid";
     header.classList.toggle("active", !isActive);
+
+    if (!isActive && content.innerHTML === "") {
+      const sectionKey = header.getAttribute('data-section');
+      if (data[sectionKey]) {
+        loadGrid(sectionKey, data[sectionKey]);
+      }
+    }
   });
 });
 
-// Spotify grids data
-const data = {
-  "singles-2026": ["https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=f36d668db8464198"],
-  "albums-2025": ["https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l","https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"],
-  "singles-2025": ["https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=0b3e20d840ce4478","https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1","https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT","https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5","https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"],
-  "albums-2024": ["https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"],
-  "singles-2024": ["https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI","https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq","https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"],
-  "albums-2023": ["https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg"],
-  "singles-2023": ["https://open.spotify.com/album/5za6AYgvlnmT0W0Sa0p7Fa","https://open.spotify.com/album/3gjNxpXMiwdv02FhEVlS5x","https://open.spotify.com/album/1Ixr0UYfnpPzCHoJA7jCcS","https://open.spotify.com/album/6Gwf7YX7ZACMzooU0AjuRp","https://open.spotify.com/album/6NhDsLCg4ysYRMPgEUePZ4","https://open.spotify.com/album/5U8Tn78SKRzHYAldy6AK9S"],
-  "features": ["https://open.spotify.com/track/2gxjxq0gZVNYK0I6gOpJFt","https://open.spotify.com/track/2dg2nNwM4L7mAUCd8JjXHZ","https://open.spotify.com/track/0D2Uyg1BGUaU7ldo20F2Cx","https://open.spotify.com/track/1LRQTQVBALH4UR7ypLLsb7"]
-};
-
-// Populate grids
-function loadGrid(containerId, urls){
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  urls.forEach(url=>{
-    const card = document.createElement("div");
-    card.className = "music-card";
-    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
-      .then(res=>res.json())
-      .then(data=>{ card.innerHTML = `<img src="${data.thumbnail_url}" alt="${data.title}"><h3>${data.title}</h3>`; })
-      .catch(()=>{ card.innerHTML = `<div style="padding:1rem; font-size:0.9rem; color:#ff4f81;">Spotify unavailable</div>`; });
-    card.addEventListener('click', ()=>openModal(url));
-    container.appendChild(card);
-  });
-}
-
-// Open modal
 function openModal(url){
   const id = url.split('/')[4];
   const type = url.includes("/track/") ? "track" : "album";
@@ -229,7 +263,6 @@ function openModal(url){
   document.getElementById("spotify-modal").style.display = "flex";
 }
 
-// Close modal
 function closeModal(){
   document.getElementById("spotify-modal").style.display="none"; 
   document.getElementById("spotify-player").src="";
@@ -237,9 +270,6 @@ function closeModal(){
 document.querySelectorAll(".modal-close").forEach(btn=>{ btn.onclick = closeModal; });
 window.onclick = e=>{ if(e.target==document.getElementById("spotify-modal")) closeModal(); };
 document.addEventListener('keydown', (e)=>{ if(e.key === "Escape") closeModal(); });
-
-// Load all grids
-for(const key in data){ loadGrid(key,data[key]); }
 </script>
 
 </body>
