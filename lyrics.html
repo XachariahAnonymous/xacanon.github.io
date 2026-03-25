@@ -45,6 +45,19 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
 </head>
 <body>
 
+<!-- MAINTENANCE OVERLAY -->
+<div id="maintenance-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#0f0f0f;justify-content:center;align-items:center;flex-direction:column;text-align:center;padding:2rem;">
+  <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" style="max-width:100px;border-radius:50%;margin-bottom:1.5rem;" />
+  <h1 style="color:#ff4f81;margin:0 0 0.5rem;">Back Soon</h1>
+  <p style="color:#aaa;margin:0 0 1.5rem;">The site is currently undergoing maintenance.</p>
+  <div id="maint-message-text" style="color:#f0f0f0;background:#1a1a1a;border:1px solid #ff4f81;border-radius:10px;padding:1rem 2rem;box-shadow:0 0 15px #ff4f81;max-width:480px;line-height:1.7;">We'll be back soon. Thanks for your patience!</div>
+  <div style="margin-top:2rem;display:flex;gap:1.2rem;justify-content:center;">
+    <a href="https://instagram.com/xacanon/" target="_blank" style="color:#f0f0f0;font-size:1.6rem;"><i class="fab fa-instagram"></i></a>
+    <a href="https://x.com/XacAnonMusic" target="_blank" style="color:#f0f0f0;font-size:1.6rem;"><i class="fab fa-twitter"></i></a>
+    <a href="https://youtube.com/@XacAnon" target="_blank" style="color:#f0f0f0;font-size:1.6rem;"><i class="fab fa-youtube"></i></a>
+  </div>
+</div>
+
 <!-- Navbar -->
 <nav class="navbar">
   <div class="navbar-container">
@@ -60,6 +73,9 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
         <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
+        <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
+        <li><a href="https://shop.xacanonmusic.com" target="_blank" data-text="Shop">Shop</a></li>
+        <li><a href="https://shop.xacanonmusic.com/members" target="_blank" data-text="Members">Members</a></li>
       </ul>
     </div>
   </div>
@@ -72,13 +88,14 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
 </div>
 
 <footer>
-  <p>&copy; 2025 Xac Anon. All Rights Reserved.</p>
+  <p>&copy; 2026 Xac Anon. All Rights Reserved.</p>
 </footer>
 
 <!-- Firebase + JS -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
@@ -90,6 +107,22 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const _auth = getAuth(app);
+
+// ── MAINTENANCE CHECK ──────────────────────────────────────────
+const _maintSnap = await getDoc(doc(db, "siteSettings", "maintenance"));
+if (_maintSnap.exists() && _maintSnap.data().enabled === true) {
+  const _ov = document.getElementById("maintenance-overlay");
+  const _msg = _maintSnap.data().message;
+  if (_ov) {
+    if (_msg) { const _el = document.getElementById("maint-message-text"); if (_el) _el.textContent = _msg; }
+    _ov.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    onAuthStateChanged(_auth, (user) => {
+      if (user) { _ov.style.display = "none"; document.body.style.overflow = ""; }
+    });
+  }
+}
 
 const lyricsList = document.getElementById("lyrics-list");
 
