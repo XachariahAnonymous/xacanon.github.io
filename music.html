@@ -1,70 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music | Xac Anon</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4f81">
+
+<style>
+body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
+
+/* NAVBAR */
+.navbar { position:sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { display:flex; align-items:center; justify-content:space-between; padding:1rem 2rem; max-width:1200px; margin:0 auto; flex-wrap:wrap; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; }
+
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.nav-links { list-style:none; flex-direction:column; position:absolute; top:120%; right:0; background:#0f0f0f; border:1px solid #ff4f81; border-radius:8px; padding:0.5rem 1rem; display:none; }
+.nav-links.active { display:flex; flex-direction:column; }
+
+/* Header */
+header { text-align:center; padding:3rem 1rem 1rem; }
+header h1 { font-size:2.8rem; letter-spacing:2px; text-transform:uppercase; color:#f0f0f0; }
+
+/* PRESAVE BUTTON */
+.featured-container { text-align: center; padding: 1.5rem 0 3rem; width: 100%; }
+.presave-btn {
+  display: inline-block;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border: 2px solid #ff4f81;
+  background: rgba(255, 79, 129, 0.05);
+  box-shadow: 0 0 10px rgba(255, 79, 129, 0.2);
+  animation: btnPulse 2s infinite;
+}
+@keyframes btnPulse {
+  0% { box-shadow: 0 0 0 0px rgba(255, 79, 129, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(255, 79, 129, 0); }
+  100% { box-shadow: 0 0 0 0px rgba(255, 79, 129, 0); }
+}
+
+/* Music Sections */
+.music-section { padding:1rem 1rem; }
+.collapsible { position: relative; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding-left: 1rem; }
+.collapsible::before { content: "\f105"; font-family: "Font Awesome 5 Free"; font-weight: 900; color: #ff4f81; transition: 0.3s; }
+.collapsible.active::before { transform: rotate(90deg); }
+
+.music-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem; margin-bottom:1rem; }
+.music-card { background:#1a1a1a; border-radius:8px; padding:0.6rem; text-align:center; cursor:pointer; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
+.music-card img { width:100%; border-radius:6px; margin-bottom:0.3rem; }
+
+.loader-text { font-size: 0.8rem; color: #ff4f81; text-transform: uppercase; animation: loaderPulse 1s infinite alternate; }
+@keyframes loaderPulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+
+/* Modal */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
+.modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
+.modal-content iframe { width:100%; height:80px; border:none; }
+.modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
+
+footer { padding:1rem; background:#111; border-top:1px solid #ff4f81; text-align:center; font-size:0.9rem; }
+@media(max-width:576px){ .music-grid { grid-template-columns:repeat(1,1fr); } }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
+    <div class="nav-right">
+      <a href="index.html" class="home-button">Home</a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
+      <ul class="nav-links">
+        <li><a href="music.html">Music</a></li>
+        <li><a href="lyrics.html">Lyrics</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <h1>Xac Anon Music</h1>
+</header>
+
+<div class="featured-container">
+  <a href="#" class="presave-btn" target="_blank">Presave The Next Release Here!</a>
+</div>
+
+<section class="music-section">
+  <h2 class="collapsible" data-section="albums-2025">2025 Albums</h2>
+  <div class="music-grid" id="albums-2025"></div>
+
+  <h2 class="collapsible" data-section="singles-2025">2025 Singles</h2>
+  <div class="music-grid" id="singles-2025"></div>
+
+  <h2 class="collapsible" data-section="albums-2024">2024 Albums</h2>
+  <div class="music-grid" id="albums-2024"></div>
+
+  <h2 class="collapsible" data-section="singles-2024">2024 Singles</h2>
+  <div class="music-grid" id="singles-2024"></div>
+
+  <h2 class="collapsible" data-section="albums-2023">2023 Albums</h2>
+  <div class="music-grid" id="albums-2023"></div>
+
+  <h2 class="collapsible" data-section="singles-2023">2023 Singles</h2>
+  <div class="music-grid" id="singles-2023"></div>
+
+  <h2 class="collapsible" data-section="features">Features</h2>
+  <div class="music-grid" id="features"></div>
+</section>
+
+<div id="spotify-modal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close">×</span>
+    <iframe id="spotify-player" src="" allow="autoplay; encrypted-media; fullscreen;"></iframe>
+  </div>
+</div>
+
+<footer>
+  <div>© 2026 Xac Anon | Website by Xachariah Anonymous</div>
+</footer>
+
 <script>
-// RESTORED ORIGINAL WORKING URLS
 const data = {
-  "singles-2026": [
-    "https://open.spotify.com/track/4Oun2rBpfUrMZ9pXfioAas" // Placeholder for Olympus - update this!
-  ],
-  "albums-2025": [
-    "https://open.spotify.com/album/43977995",
-    "https://open.spotify.com/album/43977996"
-  ],
-  "singles-2025": [
-    "https://open.spotify.com/track/43977997",
-    "https://open.spotify.com/track/43977998",
-    "https://open.spotify.com/track/43977999",
-    "https://open.spotify.com/track/44000000"
-  ],
-  "albums-2024": [
-    "https://open.spotify.com/album/43978001"
-  ],
-  "singles-2024": [
-    "https://open.spotify.com/track/43978002",
-    "https://open.spotify.com/track/43978003",
-    "https://open.spotify.com/track/43978004",
-    "https://open.spotify.com/track/43978005",
-    "https://open.spotify.com/track/43978006",
-    "https://open.spotify.com/track/43978007"
-  ],
-  "albums-2023": [
-    "https://open.spotify.com/album/43978008"
-  ],
-  "singles-2023": [
-    "https://open.spotify.com/track/43978009",
-    "https://open.spotify.com/track/43978010",
-    "https://open.spotify.com/track/43978011",
-    "https://open.spotify.com/track/43978012",
-    "https://open.spotify.com/track/43978013",
-    "https://open.spotify.com/track/43978014"
-  ],
-  "features": [
-    "https://open.spotify.com/track/43978015",
-    "https://open.spotify.com/track/43978016",
-    "https://open.spotify.com/track/43978017",
-    "https://open.spotify.com/track/43978018"
-  ]
+  "albums-2025": ["https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns9","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr70"],
+  "singles-2025": ["https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr71","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr72","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr73","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr74"],
+  "albums-2024": ["https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr75"],
+  "singles-2024": ["https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr76","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr77","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr78","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr79","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR0","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR1"],
+  "albums-2023": ["https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR2"],
+  "singles-2023": ["https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR3","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR4","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR5","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR6","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR7","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR8"],
+  "features": ["https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR9","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq0","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq1","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq2"]
 };
 
-// Hamburger Toggle
 document.querySelector('.hamburger').addEventListener('click', () => {
   document.querySelector('.nav-links').classList.toggle('active');
 });
 
-// Protection: Fetch with Retry (Prevents the 429 IP block)
-async function fetchWithRetry(url, retries = 3, backoff = 1500) {
-  try {
-    const res = await fetch(`https://embed.spotify.com/oembed/?url=${encodeURIComponent(url)}`);
-    if (res.status === 429 && retries > 0) {
-      await new Promise(r => setTimeout(r, backoff));
-      return fetchWithRetry(url, retries - 1, backoff * 2);
-    }
-    return res.ok ? await res.json() : null;
-  } catch { return null; }
-}
-
-// Lazy Load Grid (Only loads music when you click the year)
 async function loadGrid(containerId, urls) {
   const container = document.getElementById(containerId);
-  if (!container || !urls.length) return;
   container.innerHTML = ""; 
   for (const url of urls) {
     const card = document.createElement("div");
@@ -72,18 +157,19 @@ async function loadGrid(containerId, urls) {
     card.innerHTML = `<div class="loader-text">Decrypting...</div>`;
     container.appendChild(card);
     
-    await new Promise(r => setTimeout(r, 200)); 
-    const item = await fetchWithRetry(url);
-    if (item) {
-      card.innerHTML = `<img src="${item.thumbnail_url}"><h3>${item.title}</h3>`;
-    } else {
-      card.innerHTML = `<div style="color:#ff4f81; font-size:0.8rem;">REDACTED</div>`;
-    }
+    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`)
+      .then(res => res.json())
+      .then(d => {
+        card.innerHTML = `<img src="${d.thumbnail_url}"><h3>${d.title}</h3>`;
+      })
+      .catch(() => {
+        card.innerHTML = `<h3>Track Data</h3>`;
+      });
+    
     card.addEventListener('click', () => openModal(url));
   }
 }
 
-// Collapsible Logic
 document.querySelectorAll('.collapsible').forEach(header => {
   const content = header.nextElementSibling;
   content.style.display = "none";
@@ -92,14 +178,14 @@ document.querySelectorAll('.collapsible').forEach(header => {
     content.style.display = isActive ? "none" : "grid";
     header.classList.toggle("active", !isActive);
     if (!isActive && content.innerHTML === "") {
-      const sectionKey = header.getAttribute('data-section') || header.textContent.toLowerCase().replace(" ", "-");
+      const sectionKey = header.getAttribute('data-section');
       if (data[sectionKey]) loadGrid(sectionKey, data[sectionKey]);
     }
   });
 });
 
 function openModal(url){
-  const id = url.split('/')[4].split('?')[0];
+  const id = url.split('/').pop().split('?')[0];
   const type = url.includes("/track/") ? "track" : "album";
   document.getElementById("spotify-player").src = `https://open.spotify.com/embed/${type}/${id}`;
   document.getElementById("spotify-modal").style.display = "flex";
@@ -109,6 +195,8 @@ function closeModal(){
   document.getElementById("spotify-modal").style.display="none"; 
   document.getElementById("spotify-player").src="";
 }
-document.querySelectorAll(".modal-close").forEach(b => b.onclick = closeModal);
+document.querySelector(".modal-close").onclick = closeModal;
 window.onclick = e => { if(e.target==document.getElementById("spotify-modal")) closeModal(); };
 </script>
+</body>
+</html>
