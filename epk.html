@@ -96,6 +96,9 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
         <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
+        <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
+        <li><a href="https://shop.xacanonmusic.com" target="_blank" data-text="Shop">Shop</a></li>
+        <li><a href="https://shop.xacanonmusic.com/members" target="_blank" data-text="Members">Members</a></li>
       </ul>
     </div>
   </div>
@@ -143,13 +146,13 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 
 <section class="contact-section">
   <h2>Press & Contact</h2>
-  <p>Management: <a href="mailto:xacanonmusic@gmail.com">xacanonmusic@gmail.com</a></p>
+  <p>Management: <a href="/cdn-cgi/l/email-protection#afd7cecccec1c0c1c2dadcc6ccefc8c2cec6c381ccc0c2"><span class="__cf_email__" data-cfemail="a2dac3c1c3cccdcccfd7d1cbc1e2c5cfc3cbce8cc1cdcf">[email&#160;protected]</span></a></p>
   <p>Instagram: <a href="https://instagram.com/xacanon" target="_blank">@xacanon</a></p>
   <p>Spotify: <a href="https://open.spotify.com/artist/2u0UlmbzNuKCBNfueWuqsx?si=Vi0WR7P1QYyCrR5q_0DJLA" target="_blank">Listen Here</a></p>
 </section>
 
 <footer>
-  <div class="footer-scroll">© 2025 Xac Anon | Website by Xachariah Anonymous</div>
+  <div class="footer-scroll">© 2026 Xac Anon | Website by Xachariah Anonymous</div>
   <div class="socials-footer">
     <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
     <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
@@ -162,7 +165,7 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
   <div class="modal-content" id="modalContent"></div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Hamburger toggle
 document.querySelector('.hamburger').addEventListener('click', () => {
   document.querySelector('.nav-links').classList.toggle('active');
@@ -189,13 +192,4 @@ tracks.forEach(url => {
 
 function openModal(trackId){
   document.getElementById("trackModal").style.display="flex";
-  document.getElementById("modalContent").innerHTML=`<iframe src="https://open.spotify.com/embed/track/${trackId}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>`;
-}
-function closeModal(){
-  document.getElementById("trackModal").style.display="none";
-  document.getElementById("modalContent").innerHTML="";
-}
-</script>
-
-</body>
-</html>
+  document.getElementById("modalContent").innerHTML=`<iframe src="https://open.spotify.com/embed/track/${trackId}" allow="autoplay; c
