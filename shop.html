@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop | Xac Anon</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff4f81">
+
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+
+<style>
+/* ===== REUSING CORE STYLES ===== */
+body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
+
+/* ===== NAVBAR ===== */
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:0.8rem 2rem; height:60px; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
+.nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+.home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
+.home-button:hover { background: #ff4f81; color: #000; }
+
+.hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
+.nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border: 1px solid transparent; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.nav-links.show { display:flex; max-height:500px; border: 1px solid #ff4f81; border-top: none; }
+.nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; }
+.nav-links li a:hover { color: #ff4f81; }
+
+/* ===== SHOP SPECIFIC SECTIONS ===== */
+.shop-section { padding:2rem; text-align:center; min-height: 60vh; }
+.shop-section h2 { font-size:2.5rem; margin-bottom:1rem; color:#ff4f81; text-transform:uppercase; letter-spacing: 2px; }
+.product-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:2.5rem; margin-top:3rem; max-width: 1200px; margin-left: auto; margin-right: auto; }
+
+.product-card { display:block; background:#1a1a1a; border-radius:12px; padding:1.5rem; text-decoration:none; color:white; border: 1px solid #333; transition: 0.3s; opacity:0; transform:translateY(15px); animation:fadeUp 0.8s forwards; }
+.product-card:hover { transform:scale(1.03); border-color:#ff4f81; box-shadow:0 0 20px rgba(255, 79, 129, 0.2); }
+.product-card img { width:100%; height:auto; border-radius:8px; margin-bottom:1.5rem; }
+.product-card h3 { font-size:1.2rem; margin: 0.5rem 0; }
+.product-price { color: #ff4f81; font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 1rem; }
+
+.buy-now-btn { display:inline-block; text-decoration:none; color:#0f0f0f; background:#ff4f81; padding:0.6rem 1.2rem; border-radius:6px; font-weight:bold; transition:0.3s; }
+.buy-now-btn:hover { background:#fff; box-shadow: 0 0 10px #ff4f81; }
+
+/* ===== VIP BANNER ===== */
+.vip-teaser { background: #1a1a1a; border: 2px dashed #ff4f81; padding: 2rem; border-radius: 12px; margin: 4rem auto; max-width: 800px; }
+.vip-teaser h3 { color: #ff4f81; margin-top: 0; }
+
+@keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
+
+/* ===== MAINTENANCE OVERLAY ===== */
+#maintenance-overlay { display:none; position:fixed; inset:0; z-index:9999; background:#0f0f0f; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:2rem; }
+#maintenance-overlay.active { display:flex; }
+.maint-logo { max-width:120px; border-radius:50%; margin-bottom:1.5rem; animation:pulseGlitch 2s infinite ease-in-out; }
+
+/* ===== FOOTER ===== */
+footer { margin-top:4rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; text-align: center;}
+footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
+@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
+footer .socials { margin-top:1rem; }
+footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; transition: color 0.3s ease; }
+footer .socials a:hover { color: #ff4f81; }
+
+@media(max-width:768px){ .hamburger { display:block; } }
+</style>
+</head>
+<body>
+
+<div id="maintenance-overlay">
+  <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon" class="maint-logo" />
+  <h1 class="maint-title">Restocking...</h1>
+  <p class="maint-sub">The shop is currently undergoing maintenance.</p>
+</div>
+
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
+    <div class="nav-right">
+      <a href="index.html" class="home-button">Home</a>
+      <div class="hamburger"><i class="fas fa-bars"></i></div>
+      <ul class="nav-links">
+        <li><a href="music.html">Music</a></li>
+        <li><a href="lyrics.html">Lyrics</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div id="main-content">
+  <header style="text-align:center; padding:3rem 1rem;">
+    <h1>The Vault</h1>
+    <p class="tagline">Official Xac Anon Apparel & Rarities.</p>
+  </header>
+
+  <section class="shop-section">
+    <h2>Featured Merch</h2>
+    
+    <div class="product-grid">
+      <a href="https://shop.xacanonmusic.com/products/example-id" class="product-card">
+        <img src="https://via.placeholder.com/400/1a1a1a/ff4f81?text=Xac+Anon+Glitch+Tee" alt="T-Shirt">
+        <h3>Glitch Logo Tee</h3>
+        <span class="product-price">$30.00</span>
+        <span class="buy-now-btn">View Item</span>
+      </a>
+
+      <a href="https://shop.xacanonmusic.com/products/example-id" class="product-card">
+        <img src="https://via.placeholder.com/400/1a1a1a/ff4f81?text=Olympus+Hoodie" alt="Hoodie">
+        <h3>"Olympus" Era Hoodie</h3>
+        <span class="product-price">$55.00</span>
+        <span class="buy-now-btn">View Item</span>
+      </a>
+
+      <a href="https://shop.xacanonmusic.com/products/example-id" class="product-card">
+        <img src="https://via.placeholder.com/400/1a1a1a/ff4f81?text=Anon+Beanie" alt="Beanie">
+        <h3>Anon Cuffed Beanie</h3>
+        <span class="product-price">$25.00</span>
+        <span class="buy-now-btn">View Item</span>
+      </a>
+    </div>
+
+    <div class="vip-teaser">
+        <h3>VIP Early Access</h3>
+        <p>Subscribe to our membership tiers for 15% off all merch and access to the "Ghost Pink" limited drop.</p>
+        <a href="contact.html" class="home-button">Learn More</a>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="ticker">New Drops Every Season — Free Shipping on orders over $100 — stay tuned!</div>
+  <div class="socials">
+    <a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+    <a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+  </div>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+  authDomain: "xacanonblog.firebaseapp.com",
+  projectId: "xacanonblog",
+  storageBucket: "xacanonblog.firebasestorage.app",
+  messagingSenderId: "319182532803",
+  appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Maintenance Mode Logic
+(async () => {
+  try {
+    const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
+    if (snap.exists() && snap.data().enabled === true) {
+      const overlay = document.getElementById("maintenance-overlay");
+      overlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+        }
+      });
+    }
+  } catch (err) { console.warn(err); }
+})();
+
+// Nav Toggle
+const hamburger = document.querySelector('.hamburger');
+const navLinks = document.querySelector('.nav-links');
+hamburger.addEventListener('click', () => { navLinks.classList.toggle('show'); });
+</script>
+
+</body>
+</html>
