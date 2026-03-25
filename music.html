@@ -32,7 +32,7 @@ body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f
 header { text-align:center; padding:3rem 1rem 1rem; }
 header h1 { font-size:2.8rem; letter-spacing:2px; text-transform:uppercase; color:#f0f0f0; }
 
-/* PRESAVE BUTTON */
+/* PRESAVE BUTTON - STAYS CENTERED */
 .featured-container { text-align: center; padding: 1.5rem 0 3rem; width: 100%; }
 .presave-btn {
   display: inline-block;
@@ -53,9 +53,26 @@ header h1 { font-size:2.8rem; letter-spacing:2px; text-transform:uppercase; colo
   100% { box-shadow: 0 0 0 0px rgba(255, 79, 129, 0); }
 }
 
-/* Music Sections */
-.music-section { padding:1rem 1rem; max-width: 1000px; margin: 0 auto; }
-.collapsible { position: relative; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; padding: 1rem; border-bottom: 1px solid rgba(255, 79, 129, 0.2); margin-bottom: 0.5rem; transition: 0.3s; }
+/* MUSIC SECTIONS - UPDATED TO FAR LEFT */
+.music-section { 
+  padding: 1rem 2rem; 
+  max-width: 100%; 
+  margin: 0; 
+}
+
+.collapsible { 
+  position: relative; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  gap: 0.8rem; 
+  padding: 1rem 0; 
+  border-bottom: 1px solid rgba(255, 79, 129, 0.2); 
+  margin-bottom: 0.5rem; 
+  transition: 0.3s;
+  justify-content: flex-start;
+}
+
 .collapsible:hover { background: rgba(255, 79, 129, 0.05); }
 .collapsible::before { content: "\f105"; font-family: "Font Awesome 5 Free"; font-weight: 900; color: #ff4f81; transition: 0.3s; }
 .collapsible.active::before { transform: rotate(90deg); }
@@ -103,7 +120,7 @@ footer { padding:3rem 1rem; background:#111; border-top:1px solid #ff4f81; text-
 </header>
 
 <div class="featured-container">
-  <a href="https://distrokid.com/hyperfollow/xacanon/olympus" class="presave-btn" target="_blank">Presave OLYMPUS Here!</a>
+  <a href="https://distrokid.com/hyperfollow/xacanon/olympus" class="presave-btn" target="_blank">Presave Latest Song/Album</a>
 </div>
 
 <section class="music-section">
