@@ -7,9 +7,8 @@
 <link rel="icon" type="image/png" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
-  <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff4f81">
-
 
 <style>
 body { margin:0; padding:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; }
@@ -113,7 +112,6 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <div class="navbar-container">
     <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo"></a>
@@ -136,8 +134,10 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
   <p>Explore the latest releases and features</p>
 </header>
 
-<!-- Music Sections -->
 <section class="music-section">
+  <h2 class="collapsible">2026 Singles</h2>
+  <div class="music-grid" id="singles-2026"></div>
+
   <h2 class="collapsible">2025 Albums</h2>
   <div class="music-grid" id="albums-2025"></div>
 
@@ -160,16 +160,15 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
   <div class="music-grid" id="features"></div>
 </section>
 
-<!-- Spotify Modal -->
 <div id="spotify-modal" class="modal">
   <div class="modal-content">
-    <span class="modal-close">&times;</span>
+    <span class="modal-close">×</span>
     <iframe id="spotify-player" src="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
   </div>
 </div>
 
 <footer>
-  <div class="footer-scroll">© 2025 Xac Anon | Website by Xachariah Anonymous</div>
+  <div class="footer-scroll">© 2026 Xac Anon | Website by Xachariah Anonymous</div>
   <div class="socials-footer">
     <a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
     <a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
@@ -196,8 +195,9 @@ document.querySelectorAll('.collapsible').forEach(header => {
 
 // Spotify grids data
 const data = {
+  "singles-2026": ["https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=f36d668db8464198"],
   "albums-2025": ["https://open.spotify.com/album/33Wlii1dREnBXoFTFiS67l","https://open.spotify.com/album/6UGlPh0NYeiwI0n0zhFZIj"],
-  "singles-2025": ["https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1","https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT","https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5","https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"],
+  "singles-2025": ["https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=0b3e20d840ce4478","https://open.spotify.com/album/6h3vtYq7BmnVmG9hCGVsP1","https://open.spotify.com/track/7nXEbI0APAz5A0Eu5WplqT","https://open.spotify.com/track/1DhSKkbS2mJUiFydh4hIR5","https://open.spotify.com/track/0KMw00xCTfO2DknghdAm5e"],
   "albums-2024": ["https://open.spotify.com/album/2xz3IRqwAySrFPiYcl0a0l"],
   "singles-2024": ["https://open.spotify.com/album/6TSlktfiVCdWZhch7YpKEI","https://open.spotify.com/album/0EJqWBbj4gq4oO2ls9q9ns","https://open.spotify.com/album/6sIegLMLO9emdOvbNEzIr7","https://open.spotify.com/album/5s8N7QkRDRDcb9hjjLmSVR","https://open.spotify.com/album/3bDV8BmFQmIt3oAt7G0KWq","https://open.spotify.com/album/2pjDn7jjA8Zb2qYTihhi5I"],
   "albums-2023": ["https://open.spotify.com/album/1ChmCOKHZm2zjWsdTfLnRg"],
@@ -208,6 +208,7 @@ const data = {
 // Populate grids
 function loadGrid(containerId, urls){
   const container = document.getElementById(containerId);
+  if(!container) return;
   urls.forEach(url=>{
     const card = document.createElement("div");
     card.className = "music-card";
