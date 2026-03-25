@@ -88,9 +88,9 @@ footer .socials a:hover { color: #ff4f81; }
         <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
-        <li><a href="shop.html">Shop (Site)</a></li>
-        <li><a href="https://shop.xacanonmusic.com" target="_blank">Shop</a></li>
-        <li><a href="https://shop.xacanonmusic.com/members" target="_blank">Members</a></li>
+        <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
+        <li><a href="https://shop.xacanonmusic.com" target="_blank" data-text="Shop">Shop</a></li>
+        <li><a href="https://shop.xacanonmusic.com/members" target="_blank" data-text="Members">Members</a></li>
       </ul>
     </div>
   </div>
@@ -162,24 +162,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const _auth = auth;
 
 // Maintenance Mode Logic
-(async () => {
-  try {
-    const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
-    if (snap.exists() && snap.data().enabled === true) {
-      const overlay = document.getElementById("maintenance-overlay");
-      overlay.classList.add("active");
-      document.body.style.overflow = "hidden";
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          overlay.classList.remove("active");
-          document.body.style.overflow = "";
-        }
-      });
-    }
-  } catch (err) { console.warn(err); }
-})();
+// ── MAINTENANCE CHECK ──────────────────────────────────────────
+const _maintSnap = await getDoc(doc(db, "siteSettings", "maintenance"));
+if (_maintSnap.exists() && _maintSnap.data().enabled === true) {
+  const _ov = document.getElementById("maintenance-overlay");
+  const _msg = _maintSnap.data().message;
+  if (_ov) {
+    if (_msg) { const _el = document.getElementById("maint-message-text"); if (_el) _el.textContent = _msg; }
+    _ov.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    onAuthStateChanged(_auth, (user) => {
+      if (user) { _ov.style.display = "none"; document.body.style.overflow = ""; }
+    });
+  }
+}
 
 // Nav Toggle
 const hamburger = document.querySelector('.hamburger');
