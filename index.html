@@ -273,15 +273,20 @@ const auth = getAuth(app);
   try {
     const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
     if (snap.exists() && snap.data().enabled === true) {
-      // Check if current user is admin — if so, skip maintenance screen
+      const overlay = document.getElementById("maintenance-overlay");
+      const msgEl = document.getElementById("maint-message-text");
+      const customMsg = snap.data().message;
+      if (customMsg) msgEl.textContent = customMsg;
+
+      // Show overlay immediately — hide only if admin is logged in
+      overlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+
       onAuthStateChanged(auth, (user) => {
-        if (!user) {
-          const overlay = document.getElementById("maintenance-overlay");
-          const msgEl = document.getElementById("maint-message-text");
-          const customMsg = snap.data().message;
-          if (customMsg) msgEl.textContent = customMsg;
-          overlay.classList.add("active");
-          document.body.style.overflow = "hidden";
+        if (user) {
+          // Admin is logged in — let them see the site
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
         }
       });
     }
