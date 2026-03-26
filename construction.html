@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Construction | Xac Anon</title>
+    <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&display=swap" rel="stylesheet" />
+    
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Friz Quadrata', serif; 
+            background: #0f0f0f; 
+            color: #f0f0f0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .container { 
+            max-width: 600px; 
+            padding: 2rem;
+            position: relative;
+        }
+
+        /* Glitchy Pulse Logo */
+        .logo { 
+            width: 150px; 
+            height: 150px; 
+            border-radius: 50%; 
+            margin-bottom: 2rem; 
+            border: 2px solid #ff4f81;
+            box-shadow: 0 0 20px #ff4f81;
+            animation: glitchPulse 3s infinite ease-in-out;
+        }
+
+        @keyframes glitchPulse {
+            0%, 100% { transform: scale(1); filter: hue-rotate(0deg); box-shadow: 0 0 20px #ff4f81; }
+            50% { transform: scale(1.05); filter: hue-rotate(10deg); box-shadow: 0 0 40px #ff4f81; }
+        }
+
+        h1 { 
+            font-size: 3rem; 
+            color: #ff4f81; 
+            text-transform: uppercase; 
+            margin: 0; 
+            letter-spacing: 5px;
+            text-shadow: 2px 2px #000;
+        }
+
+        .status-box {
+            background: #1a1a1a;
+            border: 1px solid #ff4f81;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            box-shadow: 0 0 15px rgba(255, 79, 129, 0.2);
+        }
+
+        p { color: #aaa; font-size: 1.1rem; line-height: 1.6; }
+
+        .socials { margin-top: 2rem; display: flex; gap: 1.5rem; justify-content: center; }
+        .socials a { color: #f0f0f0; font-size: 1.8rem; transition: 0.3s; }
+        .socials a:hover { color: #ff4f81; transform: translateY(-5px); }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 2rem;
+            text-decoration: none;
+            color: #ff4f81;
+            border: 1px solid #ff4f81;
+            padding: 0.6rem 1.5rem;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover { background: #ff4f81; color: #000; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" class="logo">
+    
+    <h1>System Loading</h1>
+    
+    <div class="status-box">
+        <p>This section of the <strong>Xac Anon</strong> collective is currently under construction. We are optimizing the experience for the <strong>Olympus</strong> era.</p>
+    </div>
+
+    <div class="socials">
+        <a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+        <a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+    </div>
+
+    <a href="index.html" class="back-btn">Return to Home</a>
+</div>
+
+</body>
+</html>
