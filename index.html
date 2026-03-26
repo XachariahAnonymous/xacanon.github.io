@@ -331,18 +331,23 @@ const player = document.getElementById('spotify-player');
 
 cards.forEach(card => {
   const trackUrl = card.getAttribute('data-track-url');
+  
   if (trackUrl) {
-    fetch(`https://open.spotify.com/track/YOUR_ID_54{encodeURIComponent(trackUrl)}`)
+    // 1. Correct the thumbnail fetch (Using Spotify's OEmbed API directly)
+    fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trackUrl)}`)
       .then(response => response.json())
       .then(data => {
         card.innerHTML = `<img src="${data.thumbnail_url}" alt="Track"/><h3>${data.title}</h3>`;
       })
       .catch(() => { card.innerHTML = '<h3>Listen on Spotify</h3>'; });
 
+    // 2. Correct the player URL construction
     card.addEventListener('click', () => {
       let type = trackUrl.includes('/track/') ? 'track' : 'album';
       const id = trackUrl.split('/').pop().split('?')[0];
-      player.src = `https://open.spotify.com/track/YOUR_ID_55{type}/${id}`;
+      
+      // Corrected embed link format
+      player.src = `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
       modal.style.display = 'flex';
     });
   }
