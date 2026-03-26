@@ -1,204 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shop | Xac Anon</title>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff4f81">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Vault | Xac Anon</title>
+<link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
 
-  <!-- Favicon -->
-  <link rel="icon" href="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" type="image/png" />
+<style>
+/* ===== CORE BRANDING ===== */
+body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#f0f0f0; overflow-x: hidden; }
 
-  <!-- Font Awesome & Google Fonts -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Friz+Quadrata&family=Medici&display=swap" rel="stylesheet" />
+/* ===== NAVBAR (Matches Index) ===== */
+.navbar { position: sticky; top:0; z-index:1000; background:#0f0f0f; border-bottom:1px solid #ff4f81; box-shadow:0 0 10px #ff4f81; }
+.navbar-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:0.8rem 2rem; height:60px; }
+.nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
+.back-home { color:#f0f0f0; text-decoration:none; border:1px solid #ff4f81; padding:0.4rem 0.8rem; border-radius:6px; transition:0.3s; }
+.back-home:hover { background: #ff4f81; color: #000; }
 
-  <style>
-    body {
-      background: #0f0f0f;
-      color: #f0f0f0;
-      font-family: 'Friz Quadrata', serif;
-      margin: 0;
-      padding: 0;
-    }
+/* ===== SHOP HEADER ===== */
+header { text-align:center; padding:4rem 1rem; background: linear-gradient(to bottom, #1a1a1a, #0f0f0f); }
+header h1 { font-size:3rem; color:#ff4f81; text-transform:uppercase; letter-spacing:4px; margin:0; }
+header p { color:#888; margin-top:10px; }
 
-    /* Navbar */
-    .navbar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: #0f0f0f;
-      border-bottom: 1px solid #ff4f81;
-      box-shadow: 0 0 10px #ff4f81;
-    }
-    .navbar-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      flex-wrap: wrap;
-    }
-    .nav-logo img {
-      height: 50px;
-      animation: pulseGlitch 2s infinite ease-in-out;
-    }
-    @keyframes pulseGlitch {
-      0%, 100% { filter: none; }
-      50% { filter: drop-shadow(0 0 6px #ff4f81) scale(1.05); }
-    }
+/* ===== PRODUCT GRID ===== */
+.shop-container { max-width:1200px; margin:0 auto; padding:3rem 2rem; }
+.product-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:2.5rem; }
 
-    .nav-right { display: flex; align-items: center; gap: 1rem; position: relative; }
-    .home-button {
-      color: #f0f0f0;
-      text-decoration: none;
-      font-size: 1.1rem;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid #ff4f81;
-      border-radius: 6px;
-      position: relative;
-    }
-    .home-button::before, .home-button::after {
-      content: attr(data-text);
-      position: absolute;
-      left: 0; width: 100%;
-      color: #ff4f81;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
-    }
-    .home-button:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-    .home-button:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
+.product-card { 
+    background:#161616; 
+    border:1px solid #333; 
+    border-radius:12px; 
+    padding:1.5rem; 
+    text-align:center; 
+    transition:0.4s; 
+    text-decoration:none; 
+    color:white;
+    display: flex;
+    flex-direction: column;
+}
 
-    /* Hamburger & Links */
-    .hamburger { font-size: 1.8rem; cursor: pointer; color: #f0f0f0; }
-    .nav-links {
-      list-style: none;
-      flex-direction: column;
-      position: absolute;
-      top: 120%;
-      right: 0;
-      background: #0f0f0f;
-      border: 1px solid #ff4f81;
-      border-radius: 8px;
-      padding: 0.5rem 1rem;
-      display: none;
-    }
-    .nav-links li { margin: 0.5rem 0; }
-    .nav-links li a {
-      color: #f0f0f0;
-      text-decoration: none;
-      font-size: 1.1rem;
-      position: relative;
-    }
-    .nav-links li a::before, .nav-links li a::after {
-      content: attr(data-text);
-      position: absolute;
-      left:0;
-      width:100%;
-      color:#ff4f81;
-      overflow:hidden;
-      clip:rect(0,0,0,0);
-    }
-    .nav-links li a:hover::before{ animation: glitchTop 0.6s infinite linear alternate-reverse; }
-    .nav-links li a:hover::after{ animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-    .nav-links.active { display: flex; flex-direction: column; }
+.product-card:hover { 
+    border-color:#ff4f81; 
+    transform:translateY(-8px); 
+    box-shadow:0 10px 30px rgba(255, 79, 129, 0.2); 
+}
 
-    @keyframes glitchTop {
-      0% { clip: rect(0, 9999px, 0, 0); }
-      50% { clip: rect(0, 9999px, 5px, 0); transform: translate(-2px, -2px); }
-      100% { clip: rect(0, 9999px, 0, 0); }
-    }
-    @keyframes glitchBottom {
-      0% { clip: rect(0, 9999px, 0, 0); }
-      50% { clip: rect(5px, 9999px, 10px, 0); transform: translate(2px, 2px); }
-      100% { clip: rect(0, 9999px, 0, 0); }
-    }
+.product-image { width:100%; border-radius:8px; margin-bottom:1.5rem; }
+.product-title { font-size:1.3rem; margin:0.5rem 0; color:#fff; }
+.product-price { font-size:1.2rem; color:#ff4f81; margin-bottom:1.5rem; font-weight:bold; }
 
-    /* About Section */
-    .about-container {
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 2rem;
-      background: #2E2D2B;
-      border: 1px solid #ff4f81;
-      border-radius: 10px;
-      box-shadow: 0 0 20px #ff4f81;
-      line-height: 1.8;
-    }
-    .about-container h1 { text-align: center; color: #ff4f81; margin-bottom: 1.5rem; font-size: 2.2rem; }
-    .about-container p { margin-bottom: 1.5rem; font-size: 1rem; text-align: justify; }
+/* ===== BUY BUTTONS ===== */
+.buy-btn { 
+    background:#ff4f81; 
+    color:#000; 
+    padding:0.8rem; 
+    border-radius:5px; 
+    font-weight:bold; 
+    text-transform:uppercase; 
+    transition:0.3s; 
+    margin-top: auto;
+}
 
-    footer {
-      padding: 1rem;
-      text-align: center;
-      background: #111;
-      border-top: 1px solid #ff4f81;
-      position: relative;
-      bottom: 0;
-      width: 100%;
-    }
+.product-card:hover .buy-btn { background:#fff; box-shadow:0 0 15px #ff4f81; }
 
-    /* Mobile */
-    @media(max-width: 576px){
-      .navbar-container { flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: nowrap; padding:0.5rem 1rem; }
-      .nav-logo img { height: 30px; }
-      .about-container { padding: 1.2rem; margin: 2rem 1rem; }
-    }
-  </style>
+/* ===== MEMBERSHIP PROMO ===== */
+.vip-gate { 
+    background:#1a1a1a; 
+    border:2px dashed #ff4f81; 
+    padding:2.5rem; 
+    text-align:center; 
+    margin-top:5rem; 
+    border-radius:15px; 
+}
+.vip-gate h2 { color:#ff4f81; margin-bottom:10px; }
+
+@keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
+</style>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar">
+<nav class="navbar">
     <div class="navbar-container">
-      <a href="index.html" class="nav-logo">
-        <img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
-      </a>
-      <div class="nav-right">
-        <a href="index.html" class="home-button" data-text="Home">Home</a>
-        <div class="hamburger"><i class="fas fa-bars"></i></div>
-      <ul class="nav-links">
-        <li><a href="music.html">Music</a></li>
-        <li><a href="lyrics.html">Lyrics</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
-        <li><a href="https://shop.xacanonmusic.com" target="_blank" data-text="Shop">Shop</a></li>
-        <li><a href="https://shop.xacanonmusic.com/members" target="_blank" data-text="Members">Members</a></li>
-        </ul>
-      </div>
+        <a href="index.html" class="nav-logo"><img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Logo"></a>
+        <a href="index.html" class="back-home">Back to Music</a>
     </div>
-  </nav>
+</nav>
 
-   <section class="about-container">
-    <h1>Site Shop</h1>
-    <p>Welcome to the Xac Anon site shop. For official merchandise and exclusive content, please visit our main shop:</p>
-    <p style="text-align: center; margin-top: 2rem;">
-      <a href="https://shop.xacanonmusic.com" target="_blank" style="color: #ff4f81; font-size: 1.2rem; text-decoration: none; border: 1px solid #ff4f81; padding: 0.8rem 1.5rem; border-radius: 6px; display: inline-block; transition: 0.3s;">
-        Visit Main Shop
-      </a>
-    </p>
-    <p style="text-align: center; margin-top: 1rem;">
-      <a href="https://shop.xacanonmusic.com/members" target="_blank" style="color: #ff4f81; font-size: 1.2rem; text-decoration: none; border: 1px solid #ff4f81; padding: 0.8rem 1.5rem; border-radius: 6px; display: inline-block; transition: 0.3s;">
-        Exclusive Members
-      </a>
-    </p>
-  </section>
+<header>
+    <h1>The Vault</h1>
+    <p>Exclusive Apparel & Limited Aesthetics</p>
+</header>
 
-  <footer>
-    <p>&copy; 2026 Xac Anon. All Rights Reserved.</p>
-  </footer>
+<div class="shop-container">
+    <div class="product-grid">
+        
+        <a href="https://shop.xacanonmusic.com/products/your-product-link" class="product-card">
+            <img src="https://via.placeholder.com/400/1a1a1a/ff4f81?text=Xac+Anon+Tee" class="product-image" alt="Tee">
+            <h3 class="product-title">Glitch Logo Tee</h3>
+            <span class="product-price">$32.00</span>
+            <div class="buy-btn">Add to Cart</div>
+        </a>
 
-  <!-- Hamburger Script -->
-  <script>
-    document.querySelector('.hamburger').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('active');
-    });
-  </script>
+        <a href="https://shop.xacanonmusic.com/products/your-product-link" class="product-card">
+            <img src="https://via.placeholder.com/400/1a1a1a/ff4f81?text=Olympus+Hoodie" class="product-image" alt="Hoodie">
+            <h3 class="product-title">"Olympus" Heavyweight Hoodie</h3>
+            <span class="product-price">$55.00</span>
+            <div class="buy-btn">Add to Cart</div>
+        </a>
+
+        <a href="https://shop.xacanonmusic.com/products/your-product-link" class="product-card">
+            <img src="https://via.placeholder.com/400/1a1a1a/ff4f81?text=Anon+Beanie" class="product-image" alt="Beanie">
+            <h3 class="product-title">Anon Embroidered Beanie</h3>
+            <span class="product-price">$25.00</span>
+            <div class="buy-btn">Add to Cart</div>
+        </a>
+
+    </div>
+
+    <div class="vip-gate">
+        <h2>Members Only Access</h2>
+        <p>Unlock 15% off all orders and access the "Ghost Pink" secret collection.</p>
+        <a href="https://shop.xacanonmusic.com/memberships" class="back-home" style="display:inline-block; margin-top:15px;">Join the Collective</a>
+    </div>
+</div>
 
 </body>
 </html>
