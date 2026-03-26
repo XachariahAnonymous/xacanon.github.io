@@ -13,82 +13,125 @@
             margin: 0; 
             padding: 0; 
             font-family: 'Friz Quadrata', serif; 
-            background: #000; 
+            background: #080808; 
             color: #f0f0f0; 
             height: 100vh; 
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* ===== BACKGROUND IMAGE SETUP ===== */
-        .bg-overlay {
+        /* Ambient Glow in background */
+        .glow-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Your link converted to a direct image link */
-            background: url('https://i.ibb.co/39thWLHm/Xac-Anon-Shadow.jpg') no-repeat center center;
-            background-size: cover;
-            filter: grayscale(100%) brightness(30%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: #ff4f81;
+            filter: blur(150px);
+            opacity: 0.15;
             z-index: -1;
-            animation: slowZoom 20s infinite alternate ease-in-out;
-        }
-
-        @keyframes slowZoom {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
         }
 
         .content { 
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
             text-align: center;
             padding: 2rem;
-            background: radial-gradient(circle, rgba(15,15,15,0) 0%, rgba(15,15,15,0.8) 100%);
+            max-width: 600px;
+            z-index: 1;
+        }
+
+        /* THE FLOATING IMAGE */
+        .feature-img {
+            max-width: 280px;
+            height: auto;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 15px rgba(255, 79, 129, 0.4));
+            animation: float 4s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
         }
 
         h1 { 
-            font-size: clamp(2rem, 8vw, 4rem); 
+            font-size: clamp(1.8rem, 6vw, 3rem); 
             color: #ff4f81; 
             text-transform: uppercase; 
             margin: 0; 
-            letter-spacing: 8px;
-            text-shadow: 0 0 15px #ff4f81;
-            animation: flicker 4s infinite;
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px rgba(255, 79, 129, 0.3);
         }
 
-        .status-box {
-            border-left: 3px solid #ff4f81;
-            padding-left: 1.5rem;
-            margin-top: 2rem;
-            max-width: 500px;
-            text-align: left;
+        .status-msg {
+            color: #888;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
         }
 
-        p { color: #ccc; font-size: 1.1rem; line-height: 1.6; margin: 0; }
+        .socials { 
+            margin-top: 2.5rem; 
+            display: flex; 
+            gap: 1.5rem; 
+            justify-content: center; 
+        }
+        .socials a { 
+            color: #f0f0f0; 
+            font-size: 1.8rem; 
+            transition: 0.3s; 
+            opacity: 0.5; 
+        }
+        .socials a:hover { 
+            color: #ff4f81; 
+            opacity: 1; 
+            transform: scale(1.1); 
+        }
 
-        .socials { margin-top: 3rem; display: flex; gap: 2rem; }
-        .socials a { color: #f0f0f0; font-size: 2rem; transition: 0.3s; opacity: 0.7; }
-        .socials a:hover { color: #ff4f81; opacity: 1; transform: scale(1.2); }
-
-        .btn-home {
+        .btn-return {
+            display: inline-block;
             margin-top: 3rem;
             text-decoration: none;
-            color: #fff;
+            color: #ff4f81;
             border: 1px solid #ff4f81;
-            padding: 0.8rem 2rem;
+            padding: 0.7rem 1.8rem;
             border-radius: 4px;
-            transition: 0.3s;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            font-size: 0.9rem;
+            transition: 0.3s;
         }
 
-        .btn-home:hover { background: #ff4f81; color: #000; box-shadow: 0 0 20px #ff4f81; }
+        .btn-return:hover { 
+            background: #ff4f81; 
+            color: #000; 
+            box-shadow: 0 0 20px #ff4f81; 
+        }
+    </style>
+</head>
+<body>
 
-        @keyframes flicker {
-            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
-            20%, 22%, 24%,
+<div class="glow-bg"></div>
+
+<div class="content">
+    <img src="https://i.ibb.co/S4qv09pw/de2ed9d3-4a8a-479c-9fff-08d155871fa2-removalai-preview.png" 
+         alt="Xac Anon Feature" 
+         class="feature-img">
+
+    <h1>System Loading</h1>
+    <p class="status-msg">Optimizing this sector for the <strong>Olympus</strong> era.</p>
+
+    <div class="socials">
+        <a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
+        <a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+    </div>
+
+    <a href="index.html" class="btn-return">Back to Main Hub</a>
+</div>
+
+</body>
+</html>
