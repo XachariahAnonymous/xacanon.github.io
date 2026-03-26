@@ -51,40 +51,16 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .nav-logo img { height:50px; animation:pulseGlitch 2s infinite ease-in-out; }
 @keyframes pulseGlitch { 0%,100%{filter:none;} 50%{filter:drop-shadow(0 0 6px #ff4f81); transform:scale(1.05);} }
 .nav-right { display:flex; align-items:center; gap:1rem; position:relative; }
+
+/* Styles for Syncable Menu */
 .home-button { color:#f0f0f0; text-decoration:none; font-size:1.1rem; padding:0.4rem 0.8rem; border:1px solid #ff4f81; border-radius:6px; position:relative; transition:0.3s; }
 .home-button::before, .home-button::after { content:attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip:rect(0,0,0,0); }
 .home-button:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
 .home-button:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
 
-/* Hamburger menu */
 .hamburger { font-size:1.8rem; cursor:pointer; color:#f0f0f0; }
-
-.nav-links { 
-  list-style:none; 
-  padding:0; 
-  margin:0; 
-  position:absolute; 
-  top:100%; 
-  right:0; 
-  background:#0f0f0f; 
-  border: 1px solid transparent; 
-  border-radius:0 0 8px 8px; 
-  display:flex; 
-  flex-direction:column; 
-  overflow:hidden; 
-  max-height:0; 
-  transition:max-height 0.4s ease; 
-  min-width:max-content; 
-  z-index:1000; 
-}
-
-.nav-links.show { 
-  display:flex; 
-  max-height:500px; 
-  border: 1px solid #ff4f81;
-  border-top: none; 
-}
-
+.nav-links { list-style:none; padding:0; margin:0; position:absolute; top:100%; right:0; background:#0f0f0f; border: 1px solid transparent; border-radius:0 0 8px 8px; display:flex; flex-direction:column; overflow:hidden; max-height:0; transition:max-height 0.4s ease; min-width:max-content; z-index:1000; }
+.nav-links.show { display:flex; max-height:500px; border: 1px solid #ff4f81; border-top: none; }
 .nav-links li a { padding:0.8rem 1.2rem; display:block; color:#f0f0f0; text-decoration:none; font-size:1.1rem; position:relative; }
 .nav-links li a::before, .nav-links li a::after { content: attr(data-text); position:absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
 .nav-links li a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
@@ -119,50 +95,21 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
 .music-card h3 { font-size:1rem; }
 @keyframes fadeUp{to{opacity:1; transform:translateY(0);} }
 
-/* ===== HEADER ===== */
-header img { max-width:150px; height:auto; border-radius:50%; }
-header h1 { font-size:2rem; margin:0.5rem 0; }
-header .tagline { font-size:1rem; }
-
-/* ===== EPK ===== */
-.epk-section { text-align:center; padding:2rem; margin:2rem 0; border:1px solid #ff4f81; border-radius:12px; box-shadow:0 0 15px #ff4f81; }
-.epk-section a { text-decoration:none; color:#ff4f81; border:1px solid #ff4f81; padding:0.6rem 1.2rem; border-radius:6px; display:inline-block; margin-top:1rem; transition:0.3s; }
-.epk-section a:hover { background:#ff4f81; color:#0f0f0f; }
-
-/* ===== SUBSCRIBE BOX ===== */
-.subscribe-section { padding:2rem; text-align:center; }
-.subscribe-box { display:inline-block; background:#1a1a1a; padding:1.5rem; border-radius:12px; border:1px solid #ff4f81; box-shadow:0 0 12px #ff4f81; width:90%; max-width:400px; }
-.subscribe-box h3 { margin-bottom:1rem; font-size:1.4rem; color:#ff4f81; }
-#subscribe-button { display:inline-block; text-decoration:none; color:#0f0f0f; background:#ff4f81; padding:0.8rem 1.6rem; border-radius:6px; font-weight:bold; transition:0.3s; }
-#subscribe-button:hover { background:#ff2d6a; }
-
-/* ===== FOOTER ===== */
-footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
-footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
-footer .ticker:hover { animation-play-state: paused; color:#ff4f81; text-shadow: 1px 0 #ff4f81, -1px 0 #ff4f81; }
-@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
-footer .socials { margin-top:1rem; text-align:center; }
-footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; position: relative; transition: color 0.3s ease; }
-footer .socials a::before, footer .socials a::after { content: attr(aria-label); position: absolute; left:0; width:100%; color:#ff4f81; overflow:hidden; clip: rect(0,0,0,0); }
-footer .socials a:hover::before { animation: glitchTop 0.6s infinite linear alternate-reverse; }
-footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear alternate-reverse; }
-
 /* ===== MODAL ===== */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:2000; }
 .modal-content { background:#111; padding:1rem; border-radius:12px; max-width:500px; width:90%; position:relative; }
 .modal-content iframe { width:100%; height:80px; border:none; border-radius:12px; }
 .modal-close { position:absolute; top:0.5rem; right:0.5rem; font-size:1.5rem; cursor:pointer; color:#ff4f81; }
 
-#featured-music { padding-bottom:150px; }
+/* ===== FOOTER ===== */
+footer { margin-top:2rem; padding:1rem; background:#111; border-top:1px solid #ff4f81; font-size:0.9rem; overflow:hidden; position:relative; }
+footer .ticker { white-space: nowrap; display: inline-block; padding-left: 100%; animation: scrollText 20s linear infinite; color:#fff; }
+@keyframes scrollText { 0% { transform: translateX(0%); } 100% { transform: translateX(-100%); } }
+footer .socials { margin-top:1rem; text-align:center; }
+footer .socials a { margin:0 0.5rem; color:#f0f0f0; font-size:1.5rem; transition: color 0.3s ease; }
+footer .socials a:hover { color:#ff4f81; }
 
-/* ===== RESPONSIVE ===== */
 @media(max-width:768px){ .hamburger { display:block; } }
-@media(max-width:576px){
-  .navbar-container { padding:0.5rem 1rem; }
-  .nav-logo img { height:30px; }
-  .home-button { font-size:0.9rem; }
-  .nav-links li a { font-size:0.9rem; padding:0.6rem 1rem; }
-}
 </style>
 </head>
 <body>
@@ -186,12 +133,8 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
       <a href="index.html" class="home-button" data-text="Home">Home</a>
       <div class="hamburger"><i class="fas fa-bars"></i></div>
       <ul class="nav-links">
-        <li><a href="music.html">Music</a></li>
-        <li><a href="lyrics.html">Lyrics</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="shop.html">Shop (Site)</a></li>
+        <li><a href="music.html" data-text="Music">Music</a></li>
+        <li><a href="lyrics.html" data-text="Lyrics">Lyrics</a></li>
       </ul>
     </div>
   </div>
@@ -199,11 +142,11 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 
 <div id="main-content">
 <header style="text-align:center; padding:2rem 1rem;">
-<img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" />
+<img src="https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg" alt="Xac Anon Logo" style="max-width:150px; border-radius:50%;"/>
 <h1>Xac Anon</h1>
 <p class="tagline">Welcome to the sound of the future.</p>
 <div class="countdown-container">
-<h2>Next Release Countdown</h2>
+<h2>Next Release</h2>
 <p id="countdown">Loading...</p>
 <p>Release Date: <span id="release-date"></span></p>
 </div>
@@ -212,41 +155,19 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <section class="music-section">
 <h2>Popular Tracks</h2>
 <div class="music-grid">
-<a class="music-card" data-track-url="https://open.spotify.com/track/4GP0fsN0JShmCb2emoO7PD"></a>
-<a class="music-card" data-track-url="https://open.spotify.com/track/0sF1xBC8jlt88Ah8AuLpY5"></a>
-<a class="music-card" data-track-url="https://open.spotify.com/track/4ynq1anTiySqq7NcAEOxoj"></a>
+  <a class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e48677"></a>
+  <a class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e48678"></a>
+  <a class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e48679"></a>
 </div>
 </section>
 
 <section class="music-section">
 <h2>Recent Releases</h2>
 <div class="music-grid">
-<a class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e4867"></a>
-<a class="music-card" data-track-url=https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></a>
-<a class="music-card" data-track-url="https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b468402b66d142ca"></a>
+  <a class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c40560"></a>
+  <a class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c40561"></a>
+  <a class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c40562"></a>
 </div>
-</section>
-
-<section id="featured-music" class="music-section">
-<h2>Featured Music</h2>
-<div class="music-grid">
-<a class="music-card" data-track-url="https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr"></a>
-<a class="music-card" data-track-url="https://open.spotify.com/track/2kBQzsiHEeBFwKnEDo13Rl"></a>
-<a class="music-card" data-track-url="https://open.spotify.com/track/6Dk1WBTgXAcCtY9lGwMIw5"></a>
-</div>
-</section>
-
-<section class="epk-section">
-<h2>Check Out My EPK</h2>
-<p>Everything you need to know about my music, achievements, and press kit.</p>
-<a href="epk.html" data-text="View My EPK">View My EPK</a>
-</section>
-
-<section class="subscribe-section">
-  <div class="subscribe-box">
-    <h3>Subscribe for Updates</h3>
-    <a href="https://mailchi.mp/583d00f97121/xac-anon-newsletter" target="_blank" id="subscribe-button">Subscribe to Mail List</a>
-  </div>
 </section>
 
 <div id="spotify-modal" class="modal">
@@ -259,9 +180,9 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <footer>
 <div class="ticker">Breaking News: New single dropping soon — stay tuned!</div>
 <div class="socials">
-<a href="https://instagram.com/xacanon/" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-<a href="https://x.com/XacAnonMusic" target="_blank" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-<a href="https://youtube.com/@XacAnon" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+<a href="https://instagram.com/xacanon/" target="_blank"><i class="fab fa-instagram"></i></a>
+<a href="https://x.com/XacAnonMusic" target="_blank"><i class="fab fa-twitter"></i></a>
+<a href="https://youtube.com/@XacAnon" target="_blank"><i class="fab fa-youtube"></i></a>
 </div>
 </footer>
 
@@ -283,141 +204,100 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ── 1. SYNC GLOBAL NAV ──────────────────────────────────────────
+// ── 1. SYNC GLOBAL NAV FROM FIRESTORE ────────────────────────────
 async function loadGlobalNav() {
     const navPoint = document.getElementById("global-nav-point");
     try {
         const navSnap = await getDoc(doc(db, "siteSettings", "globalMenu"));
         if (navSnap.exists()) {
             navPoint.innerHTML = navSnap.data().htmlCode;
-
-            // Re-attach Hamburger Toggle after injection
             const burger = navPoint.querySelector('.hamburger');
             const links = navPoint.querySelector('.nav-links');
             if (burger && links) {
-                burger.onclick = () => {
-                    links.classList.toggle('show');
-                };
+                burger.addEventListener('click', () => links.classList.toggle('show'));
             }
-        } else {
-            // Re-attach listener to fallback if doc doesn't exist
-            const fallbackBurger = document.querySelector('.hamburger');
-            const fallbackLinks = document.querySelector('.nav-links');
-            if(fallbackBurger) fallbackBurger.onclick = () => fallbackLinks.classList.toggle('show');
         }
-    } catch (err) {
-        console.warn("Nav sync failed:", err);
+    } catch (err) { console.warn("Nav sync failed:", err); }
+}
+
+// ── 2. MAINTENANCE MODE ──────────────────────────────────────────
+(async () => {
+  try {
+    const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
+    if (snap.exists() && snap.data().enabled === true) {
+      const overlay = document.getElementById("maintenance-overlay");
+      const msgEl = document.getElementById("maint-message-text");
+      if (snap.data().message) msgEl.textContent = snap.data().message;
+
+      overlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+        }
+      });
     }
-}
+  } catch (err) { console.warn("Maintenance check failed:", err); }
+})();
 
-// ── 2. MAINTENANCE CHECK ──────────────────────────────────────────
-const _maintSnap = await getDoc(doc(db, "siteSettings", "maintenance"));
-if (_maintSnap.exists() && _maintSnap.data().enabled === true) {
-  const _ov = document.getElementById("maintenance-overlay");
-  const _msg = _maintSnap.data().message;
-  if (_ov) {
-    if (_msg) { const _el = document.getElementById("maint-message-text"); if (_el) _el.textContent = _msg; }
-    _ov.style.display = "flex";
-    document.body.style.overflow = "hidden";
-    onAuthStateChanged(auth, (user) => {
-      if (user) { _ov.style.display = "none"; document.body.style.overflow = ""; }
-    });
-  }
-}
-
-// ── 3. SPOTIFY MODAL WITH REAL THUMBNAILS ─────────────────────────
+// ── 3. SPOTIFY PLAYER (NO FETCH / NO 404s) ──────────────────────
 const cards = document.querySelectorAll('.music-card');
 const modal = document.getElementById('spotify-modal');
-const modalClose = document.querySelector('.modal-close');
 const player = document.getElementById('spotify-player');
 
 cards.forEach(card => {
   const trackUrl = card.getAttribute('data-track-url');
-  if (trackUrl) {
-    fetch(`https://open.spotify.com/oembed?url=$${encodeURIComponent(trackUrl)}`)
-      .then(response => response.json())
-      .then(data => {
-        card.innerHTML = `<img src="${data.thumbnail_url}" alt="Track"/><h3>${data.title}</h3>`;
-      })
-      .catch(() => { card.innerHTML = '<h3>Listen on Spotify</h3>'; });
+  if (trackUrl && trackUrl.includes('/track/')) {
+    const id = trackUrl.split('/').pop().split('?')[0];
+    
+    // Direct CDN Artwork
+    card.innerHTML = `<img src="https://i.scdn.co/image/ab67616d0000b273${id}" onerror="this.src='https://i.ibb.co/jPxV6BvR/Xac-Anon640x640.jpg'"><h3>Listen Now</h3>`;
 
-    card.addEventListener('click', () => {
-      let type = trackUrl.includes('/track/') ? 'track' : 'album';
-      const id = trackUrl.split('/').pop().split('?')[0];
-      player.src = `https://open.spotify.com/embed/$${type}/${id}`;
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      player.src = `https://open.spotify.com/embed/$track/${id}?utm_source=generator&theme=0`;
       modal.style.display = 'flex';
     });
   }
 });
 
-modalClose.addEventListener('click', () => { modal.style.display = 'none'; player.src = ''; });
-window.addEventListener('click', (e) => { if (e.target == modal) { modal.style.display = 'none'; player.src = ''; } });
+document.querySelector('.modal-close').onclick = () => { modal.style.display = 'none'; player.src = ''; };
+window.onclick = (e) => { if (e.target == modal) { modal.style.display = 'none'; player.src = ''; } };
 
-// ── 4. COUNTDOWN (loaded from Firebase) ─────────────────────────
-const countdownEl = document.getElementById('countdown');
-const releaseDateEl = document.getElementById('release-date');
-const countdownContainer = document.querySelector('.countdown-container');
-
-let countdownInterval = null;
-
-function startCountdown(releaseDateMs, label) {
-  const heading = countdownContainer.querySelector('h2');
-  if (heading && label) heading.textContent = label;
-
-  releaseDateEl.textContent = new Date(releaseDateMs).toDateString();
-
-  const tick = () => {
-    const distance = releaseDateMs - new Date().getTime();
-    if (distance <= 0) {
-      clearInterval(countdownInterval);
-      countdownEl.textContent = "Out Now!";
-      countdownEl.classList.add('expired');
-      return;
-    }
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-  };
-  tick();
-  countdownInterval = setInterval(tick, 1000);
-}
-
+// ── 4. COUNTDOWN ────────────────────────────────────────────────
 async function loadCountdown() {
+  const countdownEl = document.getElementById('countdown');
+  const releaseDateEl = document.getElementById('release-date');
   try {
     const snap = await getDoc(doc(db, "siteSettings", "countdown"));
-    if (snap.exists()) {
+    if (snap.exists() && snap.data().visible !== false) {
       const data = snap.data();
-      if (data.visible === false) {
-        countdownContainer.style.display = "none";
-        return;
-      }
-      if (data.outNow) {
-        const heading = countdownContainer.querySelector('h2');
-        if (heading && data.label) heading.textContent = data.label;
-        releaseDateEl.parentElement.style.display = "none";
-        countdownEl.textContent = "Out Now!";
-        countdownEl.classList.add('expired');
-        return;
-      }
-      if (data.releaseDate) {
-        const releaseDate = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
-        startCountdown(releaseDate.getTime(), data.label);
-        return;
-      }
+      const releaseDate = data.releaseDate.toDate();
+      
+      setInterval(() => {
+        const distance = releaseDate - new Date();
+        if (distance < 0) {
+          countdownEl.textContent = "Out Now!";
+          return;
+        }
+        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const h = Math.floor((distance % (86400000)) / (3600000));
+        const m = Math.floor((distance % 3600000) / 60000);
+        const s = Math.floor((distance % 60000) / 1000);
+        countdownEl.textContent = `${d}d ${h}h ${m}m ${s}s`;
+      }, 1000);
+      releaseDateEl.textContent = releaseDate.toDateString();
+    } else {
+      document.querySelector('.countdown-container').style.display = 'none';
     }
-    countdownContainer.style.display = "none";
-  } catch (err) {
-    console.warn("Could not load countdown from Firebase:", err);
-    countdownContainer.style.display = "none";
-  }
+  } catch (err) { console.warn("Countdown failed:", err); }
 }
 
-// RUN
+// INITIALIZE
 loadGlobalNav();
 loadCountdown();
 </script>
-
 </body>
 </html>
