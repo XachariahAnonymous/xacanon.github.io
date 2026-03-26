@@ -36,6 +36,9 @@ button { padding:0.5rem 1rem; border-radius:6px; border:none; background:#ff4f81
 button:hover { background:#f066a0; }
 #editor, #lyric-editor { height:300px; background:#fff; color:#000; border-radius:8px; margin-bottom:1rem; }
 
+/* Navigation Tab Specific */
+#nav-code-editor { width:100%; height:250px; background:#1a1a1a; color:#4cff7a; font-family: 'Courier New', monospace; padding:1rem; border:1px solid #ff4f81; border-radius:8px; box-sizing: border-box; resize: vertical; }
+
 .post-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #444; margin-top:10px; }
 .post-actions { display:flex; gap:5px; }
 .btn-edit { background:#44aaff; }
@@ -47,21 +50,15 @@ button:hover { background:#f066a0; }
 .tab-content { display:none; }
 .tab-content.active { display:block; }
 
-/* Countdown tab styles */
 .countdown-manager { padding: 0.5rem 0; }
 .countdown-manager h3 { color:#ff4f81; margin-bottom:0.5rem; }
 .countdown-manager label { display:block; margin-bottom:0.3rem; font-size:0.95rem; color:#ccc; }
-.countdown-manager input[type="text"] { margin-bottom:0.8rem; }
 .countdown-current { background:#1a1a1a; border:1px solid #ff4f81; border-radius:8px; padding:1rem; margin-top:1.5rem; }
-.countdown-current h4 { color:#ff4f81; margin:0 0 0.5rem 0; }
-.countdown-current p { margin:0.3rem 0; font-size:0.95rem; }
-.countdown-current .current-label { font-size:1.1rem; font-weight:bold; color:#f0f0f0; }
 .countdown-status { display:inline-block; margin-top:0.5rem; padding:0.3rem 0.8rem; border-radius:20px; font-size:0.85rem; }
 .status-active { background:#1a5c2a; color:#4cff7a; border:1px solid #4cff7a; }
 .status-expired { background:#5c1a1a; color:#ff4c4c; border:1px solid #ff4c4c; }
 .status-hidden { background:#3a3a1a; color:#ffcc44; border:1px solid #ffcc44; }
 .btn-danger { background:#ff4444; margin-left:0.5rem; }
-.btn-danger:hover { background:#cc2222; }
 .save-msg { display:none; color:#4cff7a; margin-left:1rem; font-size:0.9rem; }
 
 /* Maintenance mode */
@@ -72,16 +69,11 @@ button:hover { background:#f066a0; }
 .toggle-slider:before { content:""; position:absolute; width:24px; height:24px; left:4px; bottom:3px; background:#f0f0f0; border-radius:50%; transition:0.3s; }
 input:checked + .toggle-slider { background:#ff4444; border-color:#ff4444; }
 input:checked + .toggle-slider:before { transform:translateX(32px); }
-.toggle-label { font-size:1rem; }
-.toggle-label strong { color:#ff4f81; }
 .maintenance-status { display:inline-block; padding:0.3rem 0.9rem; border-radius:20px; font-size:0.85rem; margin-top:0.5rem; }
-.maint-on  { background:#5c1a1a; color:#ff4c4c; border:1px solid #ff4c4c; }
+.maint-on { background:#5c1a1a; color:#ff4c4c; border:1px solid #ff4c4c; }
 .maint-off { background:#1a5c2a; color:#4cff7a; border:1px solid #4cff7a; }
-.maintenance-msg-box { margin-top:1rem; }
-.maintenance-msg-box label { display:block; margin-bottom:0.3rem; font-size:0.9rem; color:#ccc; }
-.maintenance-msg-box textarea { width:100%; padding:0.6rem; border-radius:6px; border:1px solid #ff4f81; background:#1a1a1a; color:white; box-sizing:border-box; resize:vertical; min-height:80px; font-family:inherit; font-size:0.95rem; }
+.maintenance-msg-box textarea { width:100%; padding:0.6rem; border-radius:6px; border:1px solid #ff4f81; background:#1a1a1a; color:white; box-sizing:border-box; resize:vertical; min-height:80px; }
 .maint-save-msg { display:none; color:#4cff7a; margin-left:1rem; font-size:0.9rem; }
-.maint-warning { background:#3a1a00; border:1px solid #ff8800; border-radius:8px; padding:0.8rem 1rem; margin-bottom:1.5rem; color:#ffaa44; font-size:0.9rem; }
 </style>
 </head>
 <body>
@@ -98,9 +90,6 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
         <li><a href="lyrics.html">Lyrics</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
-        <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
-        <li><a href="construction.html" target="_blank" data-text="Shop">Shop</a></li>
-        <li><a href="construction.html" target="_blank" data-text="Members">Members</a></li>
       </ul>
       <button id="logout-btn" class="logout-button" style="display:none;">Logout</button>
     </div>
@@ -120,11 +109,11 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
   <div class="tabs">
     <button class="tab-button active" data-tab="blog-tab">Blog</button>
     <button class="tab-button" data-tab="lyrics-tab">Lyrics</button>
+    <button class="tab-button" data-tab="nav-tab">Navigation</button>
     <button class="tab-button" data-tab="countdown-tab">Countdown</button>
     <button class="tab-button" data-tab="maintenance-tab">⚠ Maintenance</button>
   </div>
 
-  <!-- BLOG TAB -->
   <div id="blog-tab" class="tab-content active">
     <form id="blog-form">
       <input type="hidden" id="edit-id" />
@@ -140,7 +129,6 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
     <div id="posts-list">Loading posts...</div>
   </div>
 
-  <!-- LYRICS TAB -->
   <div id="lyrics-tab" class="tab-content">
     <form id="lyrics-form">
       <input type="text" id="lyric-title" placeholder="Song Title" required />
@@ -150,14 +138,18 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
     </form>
   </div>
 
-  <!-- MAINTENANCE TAB -->
+  <div id="nav-tab" class="tab-content">
+    <h3>Manage Global Navigation</h3>
+    <p style="color:#ccc; font-size:0.9rem;">Editing this HTML will update the menu across your entire website.</p>
+    <textarea id="nav-code-editor" spellcheck="false"></textarea>
+    <br><br>
+    <button id="nav-save-btn">Update Global Menu</button>
+    <span class="save-msg" id="nav-save-msg">✓ Menu Updated!</span>
+  </div>
+
   <div id="maintenance-tab" class="tab-content">
     <div class="countdown-manager">
       <h3>Maintenance Mode</h3>
-      <div class="maint-warning">
-        ⚠ When enabled, <strong>all pages</strong> will show a maintenance screen to visitors. The admin page remains accessible.
-      </div>
-
       <div class="maintenance-toggle">
         <label class="toggle-switch">
           <input type="checkbox" id="maint-toggle" />
@@ -165,51 +157,30 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
         </label>
         <span class="toggle-label">Maintenance mode is <strong id="maint-toggle-label">OFF</strong></span>
       </div>
-
       <span class="maintenance-status maint-off" id="maint-status">Site is LIVE</span>
-
       <div class="maintenance-msg-box">
-        <label for="maint-message">Custom message shown to visitors (optional)</label>
-        <textarea id="maint-message" placeholder="We&#39;ll be back soon. Thanks for your patience!"></textarea>
+        <textarea id="maint-message" placeholder="We'll be back soon."></textarea>
       </div>
-
       <br />
       <button id="maint-save-btn">Save Maintenance Settings</button>
       <span class="maint-save-msg" id="maint-save-msg">✓ Saved!</span>
     </div>
   </div>
 
-  <!-- COUNTDOWN TAB -->
   <div id="countdown-tab" class="tab-content">
     <div class="countdown-manager">
       <h3>Manage Release Countdown</h3>
-      <p style="color:#ccc; font-size:0.9rem; margin-bottom:1.5rem;">Set the countdown that appears on your homepage. The timer will automatically show "Out Now!" when the date passes.</p>
-
       <form id="countdown-form">
-        <label for="countdown-label">Label (e.g. "Next Release Countdown")</label>
+        <label for="countdown-label">Label</label>
         <input type="text" id="countdown-label" placeholder="Next Release Countdown" />
-
         <label for="countdown-date">Release Date & Time</label>
         <input type="datetime-local" id="countdown-date" required />
-
-        <label for="countdown-visible">
-          <input type="checkbox" id="countdown-visible" style="width:auto; margin-right:0.4rem;" checked />
-          Show countdown on homepage
-        </label>
-        <br /><br />
-
-        <button type="submit" id="countdown-save-btn">Save Countdown</button>
+        <label><input type="checkbox" id="countdown-visible" style="width:auto;" checked /> Show on homepage</label>
+        <br><br>
+        <button type="submit">Save Countdown</button>
         <span class="save-msg" id="save-msg">✓ Saved!</span>
-        <button type="button" id="countdown-delete-btn" class="btn-danger">&#128465; Delete Countdown</button>
-        <p style="color:#aaa; font-size:0.8rem; margin-top:0.5rem;">Deleting will remove the timer but keep &quot;Out Now!&quot; on the homepage.</p>
+        <button type="button" id="countdown-delete-btn" class="btn-danger">Delete Countdown</button>
       </form>
-
-      <div class="countdown-current" id="countdown-current" style="display:none;">
-        <h4>Current Countdown</h4>
-        <p class="current-label" id="current-label-display">—</p>
-        <p id="current-date-display">—</p>
-        <span class="countdown-status" id="current-status"></span>
-      </div>
     </div>
   </div>
 </div>
@@ -239,7 +210,29 @@ const db = getFirestore(app);
 const blogQuill = new Quill('#editor', { theme: 'snow' });
 const lyricQuill = new Quill('#lyric-editor', { theme: 'snow' });
 
-// ===== BLOG =====
+// ===== NAVIGATION SYNC =====
+const navDocRef = doc(db, "siteSettings", "globalMenu");
+
+const loadNavMenu = async () => {
+    try {
+        const snap = await getDoc(navDocRef);
+        if (snap.exists()) {
+            document.getElementById("nav-code-editor").value = snap.data().htmlCode;
+        }
+    } catch (err) { console.error("Error loading Nav:", err); }
+};
+
+document.getElementById("nav-save-btn").addEventListener("click", async () => {
+    const htmlCode = document.getElementById("nav-code-editor").value;
+    try {
+        await setDoc(navDocRef, { htmlCode, updatedAt: serverTimestamp() });
+        const msg = document.getElementById("nav-save-msg");
+        msg.style.display = "inline";
+        setTimeout(() => msg.style.display = "none", 3000);
+    } catch (err) { alert("Error: " + err.message); }
+});
+
+// ===== BLOG LOGIC (Simplified) =====
 const loadPosts = async () => {
   const postsContainer = document.getElementById("posts-list");
   try {
@@ -250,217 +243,34 @@ const loadPosts = async () => {
       const post = docSnap.data();
       const div = document.createElement("div");
       div.className = "post-item";
-      div.innerHTML = `
-        <span>${post.title}</span>
-        <div class="post-actions">
-          <button class="btn-edit" onclick="editPost('${docSnap.id}')">Edit</button>
-          <button class="btn-delete" onclick="deletePost('${docSnap.id}')">Delete</button>
-        </div>`;
+      div.innerHTML = `<span>${post.title}</span><div class="post-actions"><button class="btn-edit" onclick="editPost('${docSnap.id}')">Edit</button><button class="btn-delete" onclick="deletePost('${docSnap.id}')">Delete</button></div>`;
       postsContainer.appendChild(div);
     });
   } catch (err) { postsContainer.innerHTML = "Error loading posts."; }
 };
-
-window.deletePost = async (id) => {
-  if (confirm("Delete this post?")) {
-    await deleteDoc(doc(db, "blogPosts", id));
-    loadPosts();
-  }
-};
-
+window.deletePost = async (id) => { if (confirm("Delete?")) { await deleteDoc(doc(db, "blogPosts", id)); loadPosts(); } };
 window.editPost = async (id) => {
   const docSnap = await getDoc(doc(db, "blogPosts", id));
   if (docSnap.exists()) {
     const post = docSnap.data();
     document.getElementById("edit-id").value = id;
     document.getElementById("post-title").value = post.title;
-    document.getElementById("post-category").value = post.category;
-    document.getElementById("post-tags").value = (post.tags || []).join(", ");
     blogQuill.root.innerHTML = post.content;
     document.getElementById("blog-submit-btn").innerText = "Update Post";
     document.getElementById("cancel-edit").style.display = "inline-block";
-    window.scrollTo(0, 0);
   }
 };
-
-document.getElementById("cancel-edit").addEventListener("click", () => {
-  document.getElementById("blog-form").reset();
-  blogQuill.setContents([]);
-  document.getElementById("edit-id").value = "";
-  document.getElementById("blog-submit-btn").innerText = "Publish Blog Post";
-  document.getElementById("cancel-edit").style.display = "none";
-});
 
 document.getElementById("blog-form").addEventListener("submit", async e => {
   e.preventDefault();
   const editId = document.getElementById("edit-id").value;
-  const title = document.getElementById("post-title").value;
-  const category = document.getElementById("post-category").value;
-  const tags = document.getElementById("post-tags").value.split(",").map(t => t.trim());
-  const content = blogQuill.root.innerHTML;
-  try {
-    if (editId) {
-      await updateDoc(doc(db, "blogPosts", editId), { title, category, tags, content });
-      alert("Post updated!");
-    } else {
-      await addDoc(collection(db, "blogPosts"), { title, category, tags, content, timestamp: serverTimestamp() });
-      alert("Blog post published!");
-    }
-    document.getElementById("cancel-edit").click();
-    loadPosts();
-  } catch (err) { alert("Error: " + err.message); }
+  const data = { title: document.getElementById("post-title").value, content: blogQuill.root.innerHTML };
+  if (editId) { await updateDoc(doc(db, "blogPosts", editId), data); }
+  else { await addDoc(collection(db, "blogPosts"), { ...data, timestamp: serverTimestamp() }); }
+  loadPosts();
 });
 
-// ===== LYRICS =====
-document.getElementById("lyrics-form").addEventListener("submit", async e => {
-  e.preventDefault();
-  const title = document.getElementById("lyric-title").value;
-  const artist = document.getElementById("lyric-artist").value;
-  const content = lyricQuill.root.innerHTML;
-  try {
-    const docRef = await addDoc(collection(db, "lyrics"), { title, artist, content, timestamp: serverTimestamp() });
-    alert(`Lyric published! id=${docRef.id}`);
-    document.getElementById("lyrics-form").reset();
-    lyricQuill.setContents([]);
-  } catch (err) { alert("Error: " + err.message); }
-});
-
-// ===== COUNTDOWN =====
-const countdownDocRef = doc(db, "siteSettings", "countdown");
-
-const loadCountdown = async () => {
-  try {
-    const snap = await getDoc(countdownDocRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      // Populate form
-      document.getElementById("countdown-label").value = data.label || "";
-      if (data.releaseDate) {
-        // Convert Firestore timestamp or ISO string to datetime-local format
-        const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
-        // datetime-local needs format: YYYY-MM-DDTHH:MM
-        const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        document.getElementById("countdown-date").value = local;
-      }
-      document.getElementById("countdown-visible").checked = data.visible !== false;
-
-      // Show current info card
-      showCurrentCountdown(data);
-    }
-  } catch (err) { console.error("Error loading countdown:", err); }
-};
-
-const showCurrentCountdown = (data) => {
-  const card = document.getElementById("countdown-current");
-  if (!data || !data.releaseDate) { card.style.display = "none"; return; }
-
-  card.style.display = "block";
-  document.getElementById("current-label-display").textContent = data.label || "Next Release Countdown";
-
-  const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
-
-  const statusEl = document.getElementById("current-status");
-  const now = new Date();
-
-  if (data.outNow) {
-    document.getElementById("current-date-display").textContent = "Manually set to Out Now!";
-    statusEl.textContent = "Showing 'Out Now!' — set a new countdown to replace";
-    statusEl.className = "countdown-status status-expired";
-  } else if (!data.visible) {
-    document.getElementById("current-date-display").textContent = d.toLocaleString();
-    statusEl.textContent = "Hidden";
-    statusEl.className = "countdown-status status-hidden";
-  } else if (d <= now) {
-    document.getElementById("current-date-display").textContent = d.toLocaleString();
-    statusEl.textContent = "Expired — showing 'Out Now!'";
-    statusEl.className = "countdown-status status-expired";
-  } else {
-    document.getElementById("current-date-display").textContent = d.toLocaleString();
-    statusEl.textContent = "Active";
-    statusEl.className = "countdown-status status-active";
-  }
-};
-
-document.getElementById("countdown-form").addEventListener("submit", async e => {
-  e.preventDefault();
-  const label = document.getElementById("countdown-label").value || "Next Release Countdown";
-  const dateVal = document.getElementById("countdown-date").value;
-  const visible = document.getElementById("countdown-visible").checked;
-
-  if (!dateVal) { alert("Please set a release date."); return; }
-  const releaseDate = new Date(dateVal);
-
-  try {
-    await setDoc(countdownDocRef, { label, releaseDate, visible, updatedAt: serverTimestamp() });
-    const saveMsg = document.getElementById("save-msg");
-    saveMsg.style.display = "inline";
-    setTimeout(() => saveMsg.style.display = "none", 3000);
-    loadCountdown();
-  } catch (err) { alert("Error saving: " + err.message); }
-});
-
-document.getElementById("countdown-delete-btn").addEventListener("click", async () => {
-  if (confirm("This will remove the countdown timer and show 'Out Now!' on your homepage. Continue?")) {
-    try {
-      // Set releaseDate to the past so the homepage shows "Out Now!" permanently
-      await setDoc(countdownDocRef, {
-        label: document.getElementById("countdown-label").value || "Next Release Countdown",
-        releaseDate: new Date(0), // epoch = always expired
-        visible: true,
-        outNow: true,
-        updatedAt: serverTimestamp()
-      });
-      const saveMsg = document.getElementById("save-msg");
-      saveMsg.textContent = "✓ Countdown deleted — showing Out Now!";
-      saveMsg.style.display = "inline";
-      setTimeout(() => { saveMsg.style.display = "none"; saveMsg.textContent = "✓ Saved!"; }, 4000);
-      loadCountdown();
-    } catch (err) { alert("Error: " + err.message); }
-  }
-});
-
-// ===== MAINTENANCE MODE =====
-const maintDocRef = doc(db, "siteSettings", "maintenance");
-
-const loadMaintenance = async () => {
-  try {
-    const snap = await getDoc(maintDocRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      document.getElementById("maint-toggle").checked = !!data.enabled;
-      document.getElementById("maint-message").value = data.message || "";
-      updateMaintUI(!!data.enabled);
-    }
-  } catch (err) { console.error("Error loading maintenance:", err); }
-};
-
-const updateMaintUI = (enabled) => {
-  document.getElementById("maint-toggle-label").textContent = enabled ? "ON" : "OFF";
-  const statusEl = document.getElementById("maint-status");
-  statusEl.textContent = enabled ? "⚠ Site is in MAINTENANCE MODE" : "✓ Site is LIVE";
-  statusEl.className = "maintenance-status " + (enabled ? "maint-on" : "maint-off");
-};
-
-document.getElementById("maint-toggle").addEventListener("change", function() {
-  updateMaintUI(this.checked);
-});
-
-document.getElementById("maint-save-btn").addEventListener("click", async () => {
-  const enabled = document.getElementById("maint-toggle").checked;
-  const message = document.getElementById("maint-message").value.trim();
-  try {
-    await setDoc(maintDocRef, { enabled, message, updatedAt: serverTimestamp() });
-    const msg = document.getElementById("maint-save-msg");
-    msg.style.display = "inline";
-    setTimeout(() => msg.style.display = "none", 3000);
-  } catch (err) { alert("Error saving: " + err.message); }
-});
-
-// ===== NAV & TABS =====
-document.querySelector('.hamburger').addEventListener('click', () => {
-  document.querySelector('.nav-links').classList.toggle('active');
-});
-
+// ===== TAB SWITCHING =====
 document.querySelectorAll('.tab-button').forEach(btn => btn.addEventListener('click', () => {
   document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -472,17 +282,10 @@ document.querySelectorAll('.tab-button').forEach(btn => btn.addEventListener('cl
 document.getElementById("login-btn").addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  try { await signInWithEmailAndPassword(auth, email, password); }
-  catch (err) { alert("Login failed: " + err.message); }
+  try { await signInWithEmailAndPassword(auth, email, password); } catch (err) { alert(err.message); }
 });
 
-document.getElementById("logout-btn").addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-  } catch (err) {
-    alert("Logout failed: " + err.message);
-  }
-});
+document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
 
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -490,12 +293,10 @@ onAuthStateChanged(auth, user => {
     document.getElementById("admin-content").style.display = "block";
     document.getElementById("logout-btn").style.display = "inline-block";
     loadPosts();
-    loadCountdown();
-    loadMaintenance();
+    loadNavMenu();
   } else {
     document.getElementById("login-container").style.display = "block";
     document.getElementById("admin-content").style.display = "none";
-    document.getElementById("logout-btn").style.display = "none";
   }
 });
 </script>
