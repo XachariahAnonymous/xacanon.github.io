@@ -221,7 +221,7 @@ footer .socials a:hover::after { animation: glitchBottom 0.6s infinite linear al
 <h2>Recent Releases</h2>
 <div class="music-grid">
 <a class="music-card" data-track-url="https://open.spotify.com/track/4K0sC4yvqVhWAXZxSmQdOz?si=3ecc29f4915e4867"></a>
-<a class="music-card" data-track-url=https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></a>
+<a class="music-card" data-track-url="https://open.spotify.com/track/1cDklONzjw2qqYIzbMAOTc?si=39185f9d454c4056"></a>
 <a class="music-card" data-track-url="https://open.spotify.com/track/5OeuXkuoLdsqYpuHoqc350?si=b468402b66d142ca"></a>
 </div>
 </section>
@@ -282,31 +282,25 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ── 1. GLOBAL MENU SYNC & NAV TOGGLE ──────────────────────────
+// ── NEW GLOBAL MENU SYNC LOGIC ────────────────────────────────
 async function loadGlobalNav() {
     const navPoint = document.getElementById("global-nav-point");
     try {
         const navSnap = await getDoc(doc(db, "siteSettings", "globalMenu"));
         if (navSnap.exists()) {
             navPoint.innerHTML = navSnap.data().htmlCode;
-            // Attach toggle listener after injection
-            const hamburger = navPoint.querySelector('.hamburger');
-            const navLinks = navPoint.querySelector('.nav-links');
-            if (hamburger && navLinks) {
-                hamburger.addEventListener('click', () => navLinks.classList.toggle('show'));
-            }
-        } else {
-            // Local fallback toggle if Firestore document is missing
-            const localHamburger = document.querySelector('.hamburger');
-            const localNavLinks = document.querySelector('.nav-links');
-            if (localHamburger) {
-                localHamburger.addEventListener('click', () => localNavLinks.classList.toggle('show'));
-            }
+        }
+        // Always attach listener to the hamburger (whether from Firebase or Fallback)
+        const hamburger = navPoint.querySelector('.hamburger');
+        const navLinks = navPoint.querySelector('.nav-links');
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', () => navLinks.classList.toggle('show'));
         }
     } catch (err) { console.warn("Nav sync failed:", err); }
 }
+loadGlobalNav();
 
-// ── 2. MAINTENANCE MODE CHECK ─────────────────────────────────
+// ===== MAINTENANCE MODE CHECK =====
 (async () => {
   try {
     const snap = await getDoc(doc(db, "siteSettings", "maintenance"));
@@ -315,8 +309,10 @@ async function loadGlobalNav() {
       const msgEl = document.getElementById("maint-message-text");
       const customMsg = snap.data().message;
       if (customMsg) msgEl.textContent = customMsg;
+
       overlay.classList.add("active");
       document.body.style.overflow = "hidden";
+
       onAuthStateChanged(auth, (user) => {
         if (user) {
           overlay.classList.remove("active");
@@ -324,10 +320,10 @@ async function loadGlobalNav() {
         }
       });
     }
-  } catch (err) { console.warn("Maintenance check failed:", err); }
+  } catch (err) { console.warn("Could not check maintenance mode:", err); }
 })();
 
-// ── 3. SPOTIFY MODAL & THUMBNAILS ─────────────────────────────
+// ===== SPOTIFY MODAL WITH REAL THUMBNAILS =====
 const cards = document.querySelectorAll('.music-card');
 const modal = document.getElementById('spotify-modal');
 const modalClose = document.querySelector('.modal-close');
@@ -336,8 +332,7 @@ const player = document.getElementById('spotify-player');
 cards.forEach(card => {
   const trackUrl = card.getAttribute('data-track-url');
   if (trackUrl) {
-    // Corrected fetch URL for your middleware
-    fetch(`https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr2{encodeURIComponent(trackUrl)}`)
+    fetch(`https://open.spotify.com/track/YOUR_ID_54{encodeURIComponent(trackUrl)}`)
       .then(response => response.json())
       .then(data => {
         card.innerHTML = `<img src="${data.thumbnail_url}" alt="Track"/><h3>${data.title}</h3>`;
@@ -347,19 +342,21 @@ cards.forEach(card => {
     card.addEventListener('click', () => {
       let type = trackUrl.includes('/track/') ? 'track' : 'album';
       const id = trackUrl.split('/').pop().split('?')[0];
-      player.src = `https://open.spotify.com/track/0YbIjMC4dNebTEFwYJl2Mr3{type}/${id}`;
+      player.src = `https://open.spotify.com/track/YOUR_ID_55{type}/${id}`;
       modal.style.display = 'flex';
     });
   }
 });
 
-modalClose.onclick = () => { modal.style.display = 'none'; player.src = ''; };
-window.onclick = (e) => { if (e.target == modal) { modal.style.display = 'none'; player.src = ''; } };
+modalClose.addEventListener('click', () => { modal.style.display = 'none'; player.src = ''; });
+window.addEventListener('click', (e) => { if (e.target == modal) { modal.style.display = 'none'; player.src = ''; } });
 
-// ── 4. COUNTDOWN LOGIC ────────────────────────────────────────
+// ===== COUNTDOWN (loaded from Firebase) =====
 const countdownEl = document.getElementById('countdown');
 const releaseDateEl = document.getElementById('release-date');
 const countdownContainer = document.querySelector('.countdown-container');
+
+let countdownInterval = null;
 
 function startCountdown(releaseDateMs, label) {
   const heading = countdownContainer.querySelector('h2');
@@ -368,6 +365,7 @@ function startCountdown(releaseDateMs, label) {
   const tick = () => {
     const distance = releaseDateMs - new Date().getTime();
     if (distance <= 0) {
+      clearInterval(countdownInterval);
       countdownEl.textContent = "Out Now!";
       countdownEl.classList.add('expired');
       return;
@@ -379,7 +377,7 @@ function startCountdown(releaseDateMs, label) {
     countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
   };
   tick();
-  setInterval(tick, 1000);
+  countdownInterval = setInterval(tick, 1000);
 }
 
 async function loadCountdown() {
@@ -387,8 +385,14 @@ async function loadCountdown() {
     const snap = await getDoc(doc(db, "siteSettings", "countdown"));
     if (snap.exists()) {
       const data = snap.data();
-      if (data.visible === false) { countdownContainer.style.display = "none"; return; }
+      if (data.visible === false) {
+        countdownContainer.style.display = "none";
+        return;
+      }
       if (data.outNow) {
+        const heading = countdownContainer.querySelector('h2');
+        if (heading && data.label) heading.textContent = data.label;
+        releaseDateEl.parentElement.style.display = "none";
         countdownEl.textContent = "Out Now!";
         countdownEl.classList.add('expired');
         return;
@@ -396,13 +400,15 @@ async function loadCountdown() {
       if (data.releaseDate) {
         const releaseDate = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
         startCountdown(releaseDate.getTime(), data.label);
+        return;
       }
-    } else { countdownContainer.style.display = "none"; }
-  } catch (err) { countdownContainer.style.display = "none"; }
+    }
+    countdownContainer.style.display = "none";
+  } catch (err) {
+    countdownContainer.style.display = "none";
+  }
 }
 
-// Initialize Everything
-loadGlobalNav();
 loadCountdown();
 </script>
 
