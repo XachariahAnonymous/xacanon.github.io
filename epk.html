@@ -192,4 +192,10 @@ tracks.forEach(url => {
 
 function openModal(trackId){
   document.getElementById("trackModal").style.display="flex";
-  document.getElementById("modalContent").innerHTML=`<iframe src="https://open.spotify.com/embed/track/${trackId}" allow="autoplay; c
+  document.getElementById("modalContent").innerHTML=`<iframe src="https://open.spotify.com/embed/track/${trackId}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+}
+
+function closeModal(){
+  document.getElementById("trackModal").style.display="none";
+}
+</script>
