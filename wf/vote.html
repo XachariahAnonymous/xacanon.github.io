@@ -20,6 +20,7 @@
             color: var(--wf-white);
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* --- Navigation --- */
@@ -45,28 +46,36 @@
         .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
 
         /* --- Vote Content --- */
-        .container { padding: 140px 20px 60px; max-width: 800px; width: 100%; text-align: center; }
+        .container { padding: 160px 20px 60px; max-width: 800px; width: 100%; text-align: center; position: relative; }
         
-        .header-box { margin-bottom: 50px; }
-        .header-box h1 { font-size: 2.5rem; letter-spacing: 5px; text-transform: uppercase; margin: 0; }
-        .header-box p { color: var(--wf-cyan); font-weight: bold; letter-spacing: 2px; font-size: 0.9rem; }
-
-        .reward-grid {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--wf-red);
-            padding: 20px;
-            margin-bottom: 40px;
+        /* Hecklefish Intercept */
+        #hecklefish-tip {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: var(--wf-red);
+            color: white;
+            padding: 15px;
             border-radius: 4px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            max-width: 250px;
+            text-align: left;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+            border: 2px solid white;
+            animation: glitch 0.3s infinite;
         }
 
-        .reward-item { text-align: center; }
-        .reward-val { display: block; font-size: 1.5rem; font-weight: 900; color: var(--wf-red); }
-        .reward-label { font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
 
         .vote-list { display: grid; gap: 15px; }
 
@@ -75,42 +84,44 @@
             border: 1px solid rgba(153, 230, 255, 0.2);
             color: var(--wf-white);
             text-decoration: none;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             transition: 0.3s;
             position: relative;
             overflow: hidden;
+            text-transform: uppercase;
         }
 
         .vote-link::after {
             content: "TRANSMIT";
             position: absolute;
-            right: -100px;
+            right: -120px;
             background: var(--wf-cyan);
             color: var(--wf-navy);
-            padding: 5px 20px;
-            font-size: 0.7rem;
+            padding: 8px 25px;
+            font-size: 0.8rem;
             transition: 0.3s;
+            font-weight: 900;
         }
 
         .vote-link:hover {
             border-color: var(--wf-cyan);
-            box-shadow: 0 0 20px rgba(153, 230, 255, 0.1);
-            padding-right: 120px;
+            box-shadow: 0 0 25px rgba(153, 230, 255, 0.15);
+            padding-right: 140px;
         }
 
         .vote-link:hover::after { right: 0; }
 
         .status-badge {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--wf-cyan);
             border: 1px solid var(--wf-cyan);
-            padding: 2px 8px;
-            text-transform: uppercase;
+            padding: 3px 12px;
+            letter-spacing: 1px;
         }
 
         footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; }
@@ -138,32 +149,64 @@
         </div>
     </div>
 
+    <div id="hecklefish-tip">
+        <span style="display:block; font-size: 0.6rem; opacity: 0.8; margin-bottom: 5px;">[ENCRYPTED INTERCEPT]</span>
+        <span id="tip-text">LIZZID PEEPLE!</span>
+    </div>
 
+    <div class="container">
         <div class="vote-list">
-            <a href="#" class="vote-link">
+            <a href="#" class="vote-link" onmouseover="showTip()" onmouseout="hideTip()">
                 <span>SIGNAL SITE ALPHA</span>
                 <span class="status-badge">READY</span>
             </a>
-            <a href="#" class="vote-link">
+            <a href="#" class="vote-link" onmouseover="showTip()" onmouseout="hideTip()">
                 <span>SIGNAL SITE BETA</span>
                 <span class="status-badge">READY</span>
             </a>
-            <a href="#" class="vote-link">
+            <a href="#" class="vote-link" onmouseover="showTip()" onmouseout="hideTip()">
                 <span>SIGNAL SITE GAMMA</span>
                 <span class="status-badge">READY</span>
             </a>
-            <a href="#" class="vote-link">
+            <a href="#" class="vote-link" onmouseover="showTip()" onmouseout="hideTip()">
                 <span>SIGNAL SITE DELTA</span>
                 <span class="status-badge">READY</span>
             </a>
         </div>
 
-        <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.7; font-style: italic;">
+        <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.6; font-style: italic; letter-spacing: 1px;">
             *Signal resets every 24 hours. Check your coordinates daily.
         </p>
     </div>
 
     <footer>Another mystery solved... or is it?</footer>
+
+    <script>
+        const quotes = [
+            "LIZZID PEEPLE!",
+            "I don't trust the moon. It follows me.",
+            "GET YOUR TINFOIL HATS READY!",
+            "Mount Hayes! It's always Mount Hayes!",
+            "Don't click that! They're watching!",
+            "Check the numbers, AJ!",
+            "Is that a camel? I hate camels.",
+            "THE TRUTH IS HIDDEN IN THE DATA!",
+            "One vote for me, zero for the lizzids!"
+        ];
+
+        const tip = document.getElementById('hecklefish-tip');
+        const text = document.getElementById('tip-text');
+
+        function showTip() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            text.innerText = randomQuote;
+            tip.style.display = 'block';
+        }
+
+        function hideTip() {
+            tip.style.display = 'none';
+        }
+    </script>
 
 </body>
 </html>
