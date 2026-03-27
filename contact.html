@@ -137,7 +137,37 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 </footer>
 
 <script>
-// Hamburger toggle
+// ── GLOBAL NAV LOADER ──────────────────────────────────────────
+(async () => {
+  try {
+    const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js");
+    const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js");
+    const _fbConfig = {
+      apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+      authDomain: "xacanonblog.firebaseapp.com",
+      projectId: "xacanonblog",
+      storageBucket: "xacanonblog.firebasestorage.app",
+      messagingSenderId: "319182532803",
+      appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+    };
+    const _app = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
+    const _db = getFirestore(_app);
+    const _navSnap = await getDoc(doc(_db, "siteSettings", "globalMenu"));
+    if (_navSnap.exists() && _navSnap.data().htmlCode) {
+      const _nc = document.querySelector(".navbar-container");
+      if (_nc) {
+        const _logo = _nc.querySelector(".nav-logo");
+        _nc.innerHTML = _navSnap.data().htmlCode;
+        if (_logo && !_nc.querySelector(".nav-logo")) _nc.prepend(_logo);
+        const _hb = _nc.querySelector(".hamburger");
+        const _nl = _nc.querySelector(".nav-links");
+        if (_hb && _nl) _hb.addEventListener("click", () => _nl.classList.toggle("active"));
+      }
+    }
+  } catch(e) { console.warn("Nav loader:", e); }
+})();
+
+// Hamburger fallback
 document.querySelector('.hamburger').addEventListener('click', () => {
   document.querySelector('.nav-links').classList.toggle('active');
 });
