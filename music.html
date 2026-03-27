@@ -184,9 +184,13 @@ const data = {
   ]
 };
 
-document.querySelector('.hamburger').addEventListener('click', () => {
-  document.querySelector('.nav-links').classList.toggle('active');
-});
+// Hamburger fallback (only binds if nav loader didn't already)
+const _hbMusic = document.querySelector('.hamburger');
+const _nlMusic = document.querySelector('.nav-links');
+if (_hbMusic && _nlMusic && !_hbMusic._bound) {
+  _hbMusic._bound = true;
+  _hbMusic.addEventListener('click', () => _nlMusic.classList.toggle('active'));
+}
 
 async function loadGrid(containerId, urls) {
   const container = document.getElementById(containerId);
