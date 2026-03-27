@@ -199,3 +199,38 @@ function closeModal(){
   document.getElementById("trackModal").style.display="none";
 }
 </script>
+
+<!-- Global Nav Loader -->
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+const _fbConfig = {
+  apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+  authDomain: "xacanonblog.firebaseapp.com",
+  projectId: "xacanonblog",
+  storageBucket: "xacanonblog.firebasestorage.app",
+  messagingSenderId: "319182532803",
+  appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+};
+const _app = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
+const _db = getFirestore(_app);
+try {
+  const _navSnap = await getDoc(doc(_db, "siteSettings", "globalMenu"));
+  if (_navSnap.exists() && _navSnap.data().htmlCode) {
+    const _nc = document.querySelector(".navbar-container");
+    if (_nc) {
+      const _logo = _nc.querySelector(".nav-logo");
+      _nc.innerHTML = _navSnap.data().htmlCode;
+      if (_logo && !_nc.querySelector(".nav-logo")) _nc.prepend(_logo);
+      const _hb = _nc.querySelector(".hamburger");
+      const _nl = _nc.querySelector(".nav-links");
+      if (_hb && _nl && !_hb._bound) {
+        _hb._bound = true;
+        _hb.addEventListener("click", () => _nl.classList.toggle("active"));
+      }
+    }
+  }
+} catch(e) { console.warn("Nav loader:", e); }
+</script>
+</body>
+</html>
