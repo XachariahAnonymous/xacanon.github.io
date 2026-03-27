@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote | Why Files Research Division</title>
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+            --wf-dark-bg: #030f18;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
+            color: var(--wf-white);
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Navigation --- */
+        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; }
+        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5); backdrop-filter: blur(5px); font-size: 0.9rem; }
+        .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
+
+        /* --- Hamburger Menu --- */
+        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 200; }
+        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 202; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
+        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 201; }
+        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
+        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
+        .menu-wrap .hamburger > div::after { top: 10px; }
+        .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
+        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
+        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 150; }
+        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
+        .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
+        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
+        .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
+        .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
+        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
+
+        /* --- Vote Content --- */
+        .container { padding: 140px 20px 60px; max-width: 800px; width: 100%; text-align: center; }
+        
+        .header-box { margin-bottom: 50px; }
+        .header-box h1 { font-size: 2.5rem; letter-spacing: 5px; text-transform: uppercase; margin: 0; }
+        .header-box p { color: var(--wf-cyan); font-weight: bold; letter-spacing: 2px; font-size: 0.9rem; }
+
+        .reward-grid {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--wf-red);
+            padding: 20px;
+            margin-bottom: 40px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .reward-item { text-align: center; }
+        .reward-val { display: block; font-size: 1.5rem; font-weight: 900; color: var(--wf-red); }
+        .reward-label { font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+
+        .vote-list { display: grid; gap: 15px; }
+
+        .vote-link {
+            background: var(--wf-dark-bg);
+            border: 1px solid rgba(153, 230, 255, 0.2);
+            color: var(--wf-white);
+            text-decoration: none;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vote-link::after {
+            content: "TRANSMIT";
+            position: absolute;
+            right: -100px;
+            background: var(--wf-cyan);
+            color: var(--wf-navy);
+            padding: 5px 20px;
+            font-size: 0.7rem;
+            transition: 0.3s;
+        }
+
+        .vote-link:hover {
+            border-color: var(--wf-cyan);
+            box-shadow: 0 0 20px rgba(153, 230, 255, 0.1);
+            padding-right: 120px;
+        }
+
+        .vote-link:hover::after { right: 0; }
+
+        .status-badge {
+            font-size: 0.7rem;
+            color: var(--wf-cyan);
+            border: 1px solid var(--wf-cyan);
+            padding: 2px 8px;
+            text-transform: uppercase;
+        }
+
+        footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">HOME</a>
+    </nav>
+
+    <div class="menu-wrap">
+        <input type="checkbox" class="toggler">
+        <div class="hamburger"><div></div></div>
+        <div class="menu">
+            <div>
+                <ul>
+                    <li><a href="store.html">STORE</a></li>
+                    <li><a href="vote.html">VOTE</a></li>
+                    <li><a href="forum.html">FORUM</a></li>
+                    <li><a href="rules.html">RULES</a></li>
+                    <li><a href="staff.html">STAFF LIST</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+        <div class="vote-list">
+            <a href="#" class="vote-link">
+                <span>SIGNAL SITE ALPHA</span>
+                <span class="status-badge">READY</span>
+            </a>
+            <a href="#" class="vote-link">
+                <span>SIGNAL SITE BETA</span>
+                <span class="status-badge">READY</span>
+            </a>
+            <a href="#" class="vote-link">
+                <span>SIGNAL SITE GAMMA</span>
+                <span class="status-badge">READY</span>
+            </a>
+            <a href="#" class="vote-link">
+                <span>SIGNAL SITE DELTA</span>
+                <span class="status-badge">READY</span>
+            </a>
+        </div>
+
+        <p style="margin-top: 40px; font-size: 0.8rem; opacity: 0.7; font-style: italic;">
+            *Signal resets every 24 hours. Check your coordinates daily.
+        </p>
+    </div>
+
+    <footer>Another mystery solved... or is it?</footer>
+
+</body>
+</html>
