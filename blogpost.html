@@ -134,7 +134,13 @@ if (_navSnap && _navSnap.exists() && _navSnap.data().htmlCode) {
 }
 
 // Hamburger toggle
-document.querySelector('.hamburger').addEventListener('click',()=>{ document.querySelector('.nav-links').classList.toggle('active'); });
+// Hamburger fallback (only binds if nav loader didn't already)
+const _hbPost = document.querySelector('.hamburger');
+const _nlPost = document.querySelector('.nav-links');
+if (_hbPost && _nlPost && !_hbPost._bound) {
+  _hbPost._bound = true;
+  _hbPost.addEventListener('click', () => _nlPost.classList.toggle('active'));
+}
 
 // Get post ID from URL
 const urlParams = new URLSearchParams(window.location.search);
