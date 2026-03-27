@@ -58,10 +58,12 @@
         .item-card {
             background: var(--wf-dark-bg);
             border: 1px solid rgba(153, 230, 255, 0.1);
-            padding: 20px;
+            padding: 25px; /* Increased padding for better internal spacing */
             position: relative;
             transition: 0.3s;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .item-card:hover {
@@ -70,7 +72,6 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* "Restricted" Overlay */
         .item-card::before {
             content: "RESTRICTED";
             position: absolute;
@@ -82,41 +83,51 @@
             font-size: 0.6rem;
             font-weight: bold;
             transform: rotate(45deg);
+            z-index: 10;
         }
 
         .item-img {
             width: 100%;
             height: 180px;
             background: var(--wf-gray);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            font-size: 3.5rem;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .item-name { font-size: 1.2rem; font-weight: 900; margin: 0; color: var(--wf-cyan); }
-        .item-price { color: var(--wf-red); font-weight: bold; font-size: 0.9rem; margin: 5px 0 15px; }
-        .item-desc { font-size: 0.85rem; opacity: 0.7; line-height: 1.5; margin-bottom: 20px; min-height: 45px; }
+        .item-name { font-size: 1.3rem; font-weight: 900; margin: 0; color: var(--wf-cyan); letter-spacing: 1px; }
+        .item-price { color: var(--wf-red); font-weight: bold; font-size: 1rem; margin: 8px 0 15px; letter-spacing: 1px; }
+        .item-desc { font-size: 0.9rem; opacity: 0.7; line-height: 1.6; margin-bottom: 25px; min-height: 50px; }
 
+        /* --- THE FIXED BUTTON --- */
         .buy-btn {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 100%;
-            padding: 12px;
+            height: 54px; /* Slightly taller for better visual weight */
             background: transparent;
             border: 1px solid var(--wf-cyan);
             color: var(--wf-cyan);
-            text-align: center;
             text-decoration: none;
-            font-weight: bold;
-            letter-spacing: 1px;
-            transition: 0.3s;
+            font-weight: 900;
+            letter-spacing: 3px; /* More space for the "Secret Tech" look */
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-top: auto; /* Pushes button to bottom of card */
         }
 
         .buy-btn:hover {
-            background: var(--wf-cyan);
-            color: var(--wf-navy);
+            background: rgba(153, 230, 255, 0.1);
+            color: var(--wf-white);
+            border-color: var(--wf-white);
+            box-shadow: inset 0 0 15px var(--wf-cyan), 0 0 20px rgba(153, 230, 255, 0.3);
+            letter-spacing: 4px; /* Subtle expansion effect */
         }
 
         footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; text-align: center; }
@@ -150,7 +161,7 @@
 
             <div class="item-card">
                 <div class="item-img">🛸</div>
-                <h3 class="item-name">The 'Mount Hayes' Pass</h3>
+                <h3 class="item-name">Mount Hayes Pass</h3>
                 <p class="item-price">2500 CREDITS</p>
                 <p class="item-desc">A one-time access key to the underground base simulation. No questions asked.</p>
                 <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
