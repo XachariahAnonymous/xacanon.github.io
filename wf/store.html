@@ -25,28 +25,33 @@
         }
 
         /* --- Navigation --- */
-        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; background: rgba(5, 28, 44, 0.8); backdrop-filter: blur(10px); }
-        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; font-size: 0.9rem; }
+        .navbar { 
+            width: 100%; 
+            display: flex; 
+            align-items: center;
+            padding: 20px 40px; 
+            position: fixed; 
+            top: 0; 
+            z-index: 100; 
+            box-sizing: border-box; 
+            background: rgba(5, 28, 44, 0.8); 
+            backdrop-filter: blur(10px); 
+            height: 90px;
+        }
+
+        .nav-btn { 
+            color: var(--wf-white); 
+            text-decoration: none; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            padding: 8px 20px; 
+            transition: 0.3s; 
+            font-size: 0.9rem; 
+        }
         .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
 
-        /* --- Hamburger Menu --- */
-        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 200; }
-        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 202; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
-        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 201; }
-        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
-        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
-        .menu-wrap .hamburger > div::after { top: 10px; }
-        .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
-        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
-        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 150; }
-        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
-        .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
-        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
-        .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
-        .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
-        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
-
-        /* --- Cart Button --- */
+        /* --- Cart Button Fixed Position --- */
         .cart-btn {
             display: flex;
             align-items: center;
@@ -58,8 +63,10 @@
             font-weight: 900;
             letter-spacing: 2px;
             transition: 0.3s;
-            position: relative;
-            margin-right: 60px; /* Space for the hamburger */
+            position: absolute;
+            right: 120px; 
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .cart-btn:hover {
@@ -80,6 +87,64 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
             transition: transform 0.2s;
         }
+
+        /* --- Success Toast --- */
+        #notification-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--wf-navy);
+            border-left: 4px solid var(--wf-cyan);
+            color: var(--wf-white);
+            padding: 15px 25px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: slideIn 0.3s ease forwards;
+            min-width: 250px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.fade-out {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+
+        /* --- Hamburger Menu --- */
+        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 200; }
+        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 202; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
+        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 201; }
+        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
+        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
+        .menu-wrap .hamburger > div::after { top: 10px; }
+        .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
+        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
+        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 150; }
+        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
+        .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
+        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
+        .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
+        .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
+        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
 
         /* --- Store Content --- */
         .container { padding: 140px 20px 60px; max-width: 1100px; width: 100%; }
@@ -127,15 +192,9 @@
         }
 
         .item-img {
-            width: 100%;
-            height: 180px;
-            background: var(--wf-gray);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.5rem;
-            border: 1px solid rgba(255,255,255,0.05);
+            width: 100%; height: 180px; background: var(--wf-gray);
+            margin-bottom: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 3.5rem; border: 1px solid rgba(255,255,255,0.05);
         }
 
         .item-name { font-size: 1.3rem; font-weight: 900; margin: 0; color: var(--wf-cyan); letter-spacing: 1px; }
@@ -143,29 +202,17 @@
         .item-desc { font-size: 0.9rem; opacity: 0.7; line-height: 1.6; margin-bottom: 25px; min-height: 50px; }
 
         .buy-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 54px;
-            background: transparent;
-            border: 1px solid var(--wf-cyan);
-            color: var(--wf-cyan);
-            text-decoration: none;
-            font-weight: 900;
-            letter-spacing: 3px;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            margin-top: auto;
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; height: 54px; background: transparent;
+            border: 1px solid var(--wf-cyan); color: var(--wf-cyan);
+            text-decoration: none; font-weight: 900; letter-spacing: 3px;
+            transition: all 0.3s ease; box-sizing: border-box;
+            text-transform: uppercase; font-size: 0.8rem; margin-top: auto;
             cursor: pointer;
         }
 
         .buy-btn:hover {
-            background: rgba(153, 230, 255, 0.1);
-            color: var(--wf-white);
-            border-color: var(--wf-white);
+            background: rgba(153, 230, 255, 0.1); color: var(--wf-white); border-color: var(--wf-white);
             box-shadow: inset 0 0 15px var(--wf-cyan), 0 0 20px rgba(153, 230, 255, 0.3);
             letter-spacing: 4px;
         }
@@ -199,6 +246,8 @@
         </div>
     </div>
 
+    <div id="notification-container"></div>
+
     <div class="container">
         <div class="store-header">
             <div>
@@ -213,7 +262,7 @@
                 <h3 class="item-name">Tinfoil Helmet</h3>
                 <p class="item-price">$4.99</p>
                 <p class="item-desc">Provides 100% protection from telepathic lizzid people. Extremely shiny.</p>
-                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
+                <button class="buy-btn" onclick="addToCart('Tinfoil Helmet')">ADD TO CART</button>
             </div>
 
             <div class="item-card">
@@ -221,7 +270,7 @@
                 <h3 class="item-name">Mount Hayes Pass</h3>
                 <p class="item-price">$24.50</p>
                 <p class="item-desc">A one-time access key to the underground base simulation. No questions asked.</p>
-                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
+                <button class="buy-btn" onclick="addToCart('Mount Hayes Pass')">ADD TO CART</button>
             </div>
 
             <div class="item-card">
@@ -229,7 +278,7 @@
                 <h3 class="item-name">Anomaly Detector</h3>
                 <p class="item-price">$12.00</p>
                 <p class="item-desc">Detects nearby glitches and simulation errors within a 50-block radius.</p>
-                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
+                <button class="buy-btn" onclick="addToCart('Anomaly Detector')">ADD TO CART</button>
             </div>
 
             <div class="item-card">
@@ -237,7 +286,7 @@
                 <h3 class="item-name">Declassified Rank</h3>
                 <p class="item-price">$49.99</p>
                 <p class="item-desc">Permanent rank upgrade. Unlocks the /classified command and red chat glow.</p>
-                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
+                <button class="buy-btn" onclick="addToCart('Declassified Rank')">ADD TO CART</button>
             </div>
         </div>
     </div>
@@ -246,12 +295,31 @@
 
     <script>
         let count = 0;
-        function addToCart() {
+        const container = document.getElementById('notification-container');
+
+        function addToCart(itemName) {
+            // Update Counter
             count++;
             const badge = document.getElementById('cart-count');
             badge.innerText = count;
             badge.style.transform = 'scale(1.5)';
             setTimeout(() => badge.style.transform = 'scale(1)', 200);
+
+            // Create Notification
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span style="color: var(--wf-cyan)">[✔]</span> 
+                <span>${itemName} SECURED</span>
+            `;
+            
+            container.appendChild(toast);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
     </script>
 
