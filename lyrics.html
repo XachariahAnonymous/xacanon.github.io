@@ -119,8 +119,22 @@ if (_maintSnap.exists() && _maintSnap.data().enabled === true) {
     _ov.style.display = "flex";
     document.body.style.overflow = "hidden";
     onAuthStateChanged(_auth, (user) => {
-      if (user) { _ov.style.display = "none"; document.body.style.overflow = ""; }
+      if (user) { _ov.style.display = "none"; document.body.style.overflow = "auto"; }
     });
+  }
+}
+
+// ── GLOBAL NAV LOADER ──────────────────────────────────────────
+const _navSnap = await getDoc(doc(db, "siteSettings", "globalMenu")).catch(() => null);
+if (_navSnap && _navSnap.exists() && _navSnap.data().htmlCode) {
+  const _navContainer = document.querySelector('.navbar-container');
+  if (_navContainer) {
+    const _logo = _navContainer.querySelector('.nav-logo');
+    _navContainer.innerHTML = _navSnap.data().htmlCode;
+    if (_logo && !_navContainer.querySelector('.nav-logo')) _navContainer.prepend(_logo);
+    const _hb = _navContainer.querySelector('.hamburger');
+    const _nl = _navContainer.querySelector('.nav-links');
+    if (_hb && _nl) _hb.addEventListener('click', () => _nl.classList.toggle('active'));
   }
 }
 
@@ -143,12 +157,13 @@ async function loadLyrics() {
 
 loadLyrics();
 
-// Hamburger toggle
+// Hamburger fallback (nav loader handles it if menu was synced)
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => {
-  navLinks.classList.toggle('active');
-});
+if (hamburger && navLinks && !hamburger._bound) {
+  hamburger._bound = true;
+  hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+}
 </script>
 
 </body>
