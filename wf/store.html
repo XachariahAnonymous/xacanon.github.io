@@ -28,25 +28,50 @@
         .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; font-size: 0.9rem; }
         .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
 
+        /* --- Cart Button --- */
+        .cart-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(195, 0, 16, 0.15);
+            border: 1px solid var(--wf-red);
+            padding: 10px 25px;
+            color: var(--wf-red);
+            text-decoration: none;
+            font-weight: 900;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .cart-btn:hover {
+            background: var(--wf-red);
+            color: white;
+            box-shadow: 0 0 20px rgba(195, 0, 16, 0.4);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--wf-white);
+            color: var(--wf-navy);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
         /* --- Store Content --- */
-        .container { padding: 120px 20px 60px; max-width: 1100px; width: 100%; }
+        .container { padding: 140px 20px 60px; max-width: 1100px; width: 100%; }
 
         .store-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
             margin-bottom: 40px;
-            border-bottom: 1px solid var(--wf-red);
-            padding-bottom: 20px;
-        }
-
-        .credits-display {
-            background: rgba(195, 0, 16, 0.2);
-            border: 1px solid var(--wf-red);
-            padding: 10px 20px;
-            font-weight: 900;
-            color: var(--wf-red);
-            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(153, 230, 255, 0.2);
+            padding-bottom: 25px;
         }
 
         .item-grid {
@@ -58,7 +83,7 @@
         .item-card {
             background: var(--wf-dark-bg);
             border: 1px solid rgba(153, 230, 255, 0.1);
-            padding: 25px; /* Increased padding for better internal spacing */
+            padding: 25px;
             position: relative;
             transition: 0.3s;
             overflow: hidden;
@@ -99,27 +124,26 @@
         }
 
         .item-name { font-size: 1.3rem; font-weight: 900; margin: 0; color: var(--wf-cyan); letter-spacing: 1px; }
-        .item-price { color: var(--wf-red); font-weight: bold; font-size: 1rem; margin: 8px 0 15px; letter-spacing: 1px; }
+        .item-price { color: var(--wf-white); font-weight: bold; font-size: 1.1rem; margin: 8px 0 15px; letter-spacing: 1px; }
         .item-desc { font-size: 0.9rem; opacity: 0.7; line-height: 1.6; margin-bottom: 25px; min-height: 50px; }
 
-        /* --- THE FIXED BUTTON --- */
         .buy-btn {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
-            height: 54px; /* Slightly taller for better visual weight */
+            height: 54px;
             background: transparent;
             border: 1px solid var(--wf-cyan);
             color: var(--wf-cyan);
             text-decoration: none;
             font-weight: 900;
-            letter-spacing: 3px; /* More space for the "Secret Tech" look */
+            letter-spacing: 3px;
             transition: all 0.3s ease;
             box-sizing: border-box;
             text-transform: uppercase;
             font-size: 0.8rem;
-            margin-top: auto; /* Pushes button to bottom of card */
+            margin-top: auto;
         }
 
         .buy-btn:hover {
@@ -127,7 +151,7 @@
             color: var(--wf-white);
             border-color: var(--wf-white);
             box-shadow: inset 0 0 15px var(--wf-cyan), 0 0 20px rgba(153, 230, 255, 0.3);
-            letter-spacing: 4px; /* Subtle expansion effect */
+            letter-spacing: 4px;
         }
 
         footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; text-align: center; }
@@ -142,50 +166,64 @@
     <div class="container">
         <div class="store-header">
             <div>
-                <h1 style="margin:0; letter-spacing: 4px; text-transform: uppercase;">Black Market</h1>
-                <p style="margin:5px 0 0; color: var(--wf-cyan); font-size: 0.8rem;">UNAUTHORIZED PROCUREMENT DIVISION</p>
+                <h1 style="margin:0; letter-spacing: 4px; text-transform: uppercase;">The Black Market</h1>
+                <p style="margin:5px 0 0; color: var(--wf-cyan); font-size: 0.8rem; letter-spacing: 2px;">RESTRICTED ASSET PROCUREMENT</p>
             </div>
-            <div class="credits-display">
-                CREDITS: <span id="creditCount">0.00</span>
-            </div>
+            
+            <a href="checkout.html" class="cart-btn">
+                <span>VIEW CART</span>
+                <span class="cart-badge" id="cart-count">0</span>
+            </a>
         </div>
 
         <div class="item-grid">
             <div class="item-card">
                 <div class="item-img">🛡️</div>
                 <h3 class="item-name">Tinfoil Helmet</h3>
-                <p class="item-price">500 CREDITS</p>
+                <p class="item-price">$4.99</p>
                 <p class="item-desc">Provides 100% protection from telepathic lizzid people. Extremely shiny.</p>
-                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
             </div>
 
             <div class="item-card">
                 <div class="item-img">🛸</div>
                 <h3 class="item-name">Mount Hayes Pass</h3>
-                <p class="item-price">2500 CREDITS</p>
+                <p class="item-price">$24.50</p>
                 <p class="item-desc">A one-time access key to the underground base simulation. No questions asked.</p>
-                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
             </div>
 
             <div class="item-card">
                 <div class="item-img">🧪</div>
                 <h3 class="item-name">Anomaly Detector</h3>
-                <p class="item-price">1200 CREDITS</p>
+                <p class="item-price">$12.00</p>
                 <p class="item-desc">Detects nearby glitches and simulation errors within a 50-block radius.</p>
-                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
             </div>
 
             <div class="item-card">
                 <div class="item-img">📁</div>
                 <h3 class="item-name">Declassified Rank</h3>
-                <p class="item-price">5000 CREDITS</p>
+                <p class="item-price">$49.99</p>
                 <p class="item-desc">Permanent rank upgrade. Unlocks the /classified command and red chat glow.</p>
-                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
             </div>
         </div>
     </div>
 
     <footer>Be safe, be kind, and know that you are loved.</footer>
+
+    <script>
+        let count = 0;
+        function addToCart() {
+            count++;
+            document.getElementById('cart-count').innerText = count;
+            // Add a little bounce effect to the cart badge
+            const badge = document.getElementById('cart-count');
+            badge.style.transform = 'scale(1.5)';
+            setTimeout(() => badge.style.transform = 'scale(1)', 200);
+        }
+    </script>
 
 </body>
 </html>
