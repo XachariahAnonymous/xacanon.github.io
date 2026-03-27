@@ -11,163 +11,141 @@
             --wf-cyan: #99E6FF;
             --wf-white: #FFFFFF;
             --wf-gray: #1a3a4f;
+            --wf-dark: #030f18;
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', sans-serif;
             background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
             color: var(--wf-white);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            display: flex; flex-direction: column; min-height: 100vh;
         }
 
         /* --- Navigation --- */
-        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; }
-        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5); backdrop-filter: blur(5px); font-size: 0.9rem; }
+        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; background: rgba(5, 28, 44, 0.8); backdrop-filter: blur(10px); }
+        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; font-size: 0.9rem; }
         .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
 
-        .container { padding: 120px 20px 60px; max-width: 900px; width: 100%; }
+        /* --- Layout --- */
+        .forum-wrapper { display: flex; max-width: 1200px; width: 100%; margin: 100px auto 40px; gap: 30px; padding: 0 20px; box-sizing: border-box; }
+
+        /* --- Sidebar Menu --- */
+        .sidebar { width: 250px; flex-shrink: 0; }
+        .sidebar-title { font-size: 0.7rem; letter-spacing: 3px; color: var(--wf-red); font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid var(--wf-red); padding-bottom: 5px; }
+        .sector-list { list-style: none; padding: 0; margin: 0; }
+        .sector-item { 
+            padding: 12px 15px; background: rgba(255,255,255,0.05); margin-bottom: 8px; 
+            cursor: pointer; border: 1px solid transparent; transition: 0.3s;
+            font-weight: bold; font-size: 0.9rem; letter-spacing: 1px;
+        }
+        .sector-item:hover { background: rgba(153, 230, 255, 0.1); border-color: var(--wf-cyan); color: var(--wf-cyan); }
+        .sector-item.active { background: var(--wf-cyan); color: var(--wf-navy); border-color: var(--wf-cyan); box-shadow: 0 0 15px var(--wf-cyan); }
+
+        /* --- Main Archive Area --- */
+        .main-archive { flex-grow: 1; }
         
-        /* --- Post Creator --- */
-        .post-creator {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--wf-cyan);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 40px;
-        }
+        .admin-status { display: none; background: var(--wf-red); color: white; text-align: center; padding: 5px; font-size: 0.8rem; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; }
 
-        .post-creator input, .post-creator textarea {
-            width: 100%;
-            background: #000;
-            border: 1px solid #333;
-            color: var(--wf-cyan);
-            padding: 10px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
+        .post-creator { background: var(--wf-dark); border: 1px solid var(--wf-cyan); padding: 20px; border-radius: 4px; margin-bottom: 30px; }
+        .post-creator input, .post-creator select, .post-creator textarea {
+            width: 100%; background: #000; border: 1px solid #333; color: var(--wf-cyan); padding: 10px; margin-bottom: 10px; box-sizing: border-box; font-family: 'Courier New', monospace;
         }
+        .submit-btn { background: var(--wf-red); color: white; border: none; padding: 12px 25px; font-weight: bold; cursor: pointer; text-transform: uppercase; width: 100%; transition: 0.3s; }
+        .submit-btn:hover { box-shadow: 0 0 15px var(--wf-red); }
 
-        .submit-btn {
-            background: var(--wf-red);
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        /* --- Feed --- */
-        .forum-feed { display: flex; flex-direction: column; gap: 20px; }
+        /* --- Post Cards --- */
+        .post-card { background: var(--wf-gray); border-left: 4px solid var(--wf-cyan); padding: 20px; position: relative; margin-bottom: 20px; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .post-card {
-            background: var(--wf-gray);
-            border-left: 4px solid var(--wf-cyan);
-            padding: 20px;
-            position: relative;
-        }
+        .post-header { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--wf-cyan); margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
+        .post-content { line-height: 1.6; font-size: 0.95rem; }
+        .delete-btn { display: none; position: absolute; top: 10px; right: 10px; background: var(--wf-red); color: white; border: none; padding: 5px 10px; font-size: 0.6rem; cursor: pointer; }
 
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--wf-cyan);
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .post-content { line-height: 1.5; }
-
-        /* --- Admin Controls --- */
-        .admin-badge {
-            display: none;
-            color: var(--wf-red);
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .delete-btn {
-            display: none; /* Hidden unless Admin Mode is ON */
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--wf-red);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
-
-        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6; text-align: center; }
+        footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; text-align: center; }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
         <a href="index.html" class="nav-btn">HOME</a>
+        <div style="font-weight: 900; letter-spacing: 2px;">ARCHIVE <span style="color: var(--wf-cyan);">BETA</span></div>
     </nav>
 
-    <div class="container">
-        <h1 style="letter-spacing: 4px; text-transform: uppercase;">The Archive</h1>
-        <p id="adminStatus" class="admin-badge">[ADMIN OVERRIDE ACTIVE]</p>
-        
-        <div class="post-creator">
-            <input type="text" id="userName" placeholder="IDENTITY (USERNAME)">
-            <textarea id="postText" rows="4" placeholder="SUBMIT YOUR FINDINGS..."></textarea>
-            <button class="submit-btn" onclick="addPost()">Post to Archive</button>
-        </div>
+    <div class="forum-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-title">RESEARCH SECTORS</div>
+            <ul class="sector-list">
+                <li class="sector-item active" onclick="filterSector('ALL')">ALL FILES</li>
+                <li class="sector-item" onclick="filterSector('GENERAL')">GENERAL INTEL</li>
+                <li class="sector-item" onclick="filterSector('THEORIES')">THEORY ROOM</li>
+                <li class="sector-item" onclick="filterSector('BUGS')">GLITCH REPORTS</li>
+                <li class="sector-item" onclick="filterSector('MARKET')">TRADING HUB</li>
+            </ul>
+        </aside>
 
-        <div class="forum-feed" id="forumFeed">
+        <main class="main-archive">
+            <div id="adminBadge" class="admin-status">[ADMIN OVERRIDE ENABLED]</div>
+            
+            <div class="post-creator">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="userName" placeholder="AGENT NAME" style="flex: 2;">
+                    <select id="postSector" style="flex: 1;">
+                        <option value="GENERAL">GENERAL INTEL</option>
+                        <option value="THEORIES">THEORY ROOM</option>
+                        <option value="BUGS">GLITCH REPORTS</option>
+                        <option value="MARKET">TRADING HUB</option>
+                    </select>
+                </div>
+                <textarea id="postText" rows="3" placeholder="INPUT NEW INTELLIGENCE..."></textarea>
+                <button class="submit-btn" onclick="addPost()">UPLOAD FILE</button>
             </div>
+
+            <div id="forumFeed"></div>
+        </main>
     </div>
 
-    <footer>
-        Be safe, be kind, and know that you are loved.
-    </footer>
+    <footer>"Be safe, be kind, and know that you are loved."</footer>
 
     <script>
-        // FOR TESTING: We use LocalStorage so data persists on your computer
-        // For a live site, you would swap these functions for Firebase calls
         let posts = JSON.parse(localStorage.getItem('wf_posts')) || [];
+        let currentSector = 'ALL';
         let adminMode = false;
 
         function renderPosts() {
             const feed = document.getElementById('forumFeed');
             feed.innerHTML = '';
             
-            posts.slice().reverse().forEach((post, index) => {
-                const originalIndex = posts.length - 1 - index;
+            const filtered = currentSector === 'ALL' ? posts : posts.filter(p => p.sector === currentSector);
+
+            filtered.slice().reverse().forEach((post) => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
                     <div class="post-header">
-                        <span>SOURCE: ${post.user}</span>
+                        <span>AGENT: ${post.user}</span>
+                        <span>SECTOR: ${post.sector}</span>
                         <span>DATE: ${post.date}</span>
                     </div>
                     <div class="post-content">${post.content}</div>
-                    <button class="delete-btn" onclick="deletePost(${originalIndex})">TERMINATE FILE</button>
+                    <button class="delete-btn" onclick="deletePost('${post.id}')">TERMINATE</button>
                 `;
                 feed.appendChild(card);
             });
-            
-            updateAdminVisibility();
+            updateAdminUI();
         }
 
         function addPost() {
             const user = document.getElementById('userName').value || 'Anonymous';
+            const sector = document.getElementById('postSector').value;
             const content = document.getElementById('postText').value;
             
-            if(!content) return alert("Archive files cannot be empty.");
+            if(!content) return;
 
             const newPost = {
+                id: Date.now().toString(),
                 user: user.toUpperCase(),
+                sector: sector,
                 content: content,
                 date: new Date().toLocaleDateString()
             };
@@ -178,30 +156,44 @@
             renderPosts();
         }
 
-        function deletePost(index) {
-            if(confirm("Permanently delete this intelligence report?")) {
-                posts.splice(index, 1);
-                localStorage.setItem('wf_posts', JSON.stringify(posts));
-                renderPosts();
-            }
+        function deletePost(id) {
+            posts = posts.filter(p => p.id !== id);
+            localStorage.setItem('wf_posts', JSON.stringify(posts));
+            renderPosts();
         }
 
-        // --- SECRET ADMIN OVERRIDE ---
-        // Pressing "Shift + A + L" toggles Admin Mode
-        let keysPressed = {};
-        document.addEventListener('keydown', (e) => {
-            keysPressed[e.key] = true;
-            if (keysPressed['Shift'] && keysPressed['A'] && keysPressed['L']) {
+        function filterSector(sector) {
+            currentSector = sector;
+            document.querySelectorAll('.sector-item').forEach(el => {
+                el.classList.remove('active');
+                if(el.innerText === (sector === 'ALL' ? 'ALL FILES' : sector.replace('_', ' '))) el.classList.add('active');
+            });
+            // Update active state visually
+            const items = document.querySelectorAll('.sector-item');
+            items.forEach(item => {
+                if(item.innerText.includes(sector) || (sector === 'ALL' && item.innerText === 'ALL FILES')) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            renderPosts();
+        }
+
+        // --- ADMIN TOGGLE (Shift + A + L) ---
+        let keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (keys['Shift'] && keys['A'] && keys['L']) {
                 adminMode = !adminMode;
-                document.getElementById('adminStatus').style.display = adminMode ? 'block' : 'none';
-                updateAdminVisibility();
+                document.getElementById('adminBadge').style.display = adminMode ? 'block' : 'none';
+                updateAdminUI();
             }
         });
-        document.addEventListener('keyup', (e) => { keysPressed[e.key] = false; });
+        window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
-        function updateAdminVisibility() {
-            const btns = document.querySelectorAll('.delete-btn');
-            btns.forEach(btn => btn.style.display = adminMode ? 'block' : 'none');
+        function updateAdminUI() {
+            document.querySelectorAll('.delete-btn').forEach(btn => btn.style.display = adminMode ? 'block' : 'none');
         }
 
         renderPosts();
