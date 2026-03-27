@@ -72,7 +72,7 @@ footer { padding:1rem; text-align:center; background:#111; border-top:1px solid 
         <li><a href="contact.html">Contact</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="shop.html" data-text="Shop (Site)">Shop (Site)</a></li>
-        <li><a href="construction.html target="_blank" data-text="Shop">Shop</a></li>
+        <li><a href="construction.html" target="_blank" data-text="Shop">Shop</a></li>
         <li><a href="construction.html" target="_blank" data-text="Members">Members</a></li>
       </ul>
     </div>
@@ -114,8 +114,22 @@ if (_maintSnap.exists() && _maintSnap.data().enabled === true) {
     _ov.style.display = "flex";
     document.body.style.overflow = "hidden";
     onAuthStateChanged(_auth, (user) => {
-      if (user) { _ov.style.display = "none"; document.body.style.overflow = ""; }
+      if (user) { _ov.style.display = "none"; document.body.style.overflow = "auto"; }
     });
+  }
+}
+
+// ── GLOBAL NAV LOADER ──────────────────────────────────────────
+const _navSnap = await getDoc(doc(db, "siteSettings", "globalMenu")).catch(() => null);
+if (_navSnap && _navSnap.exists() && _navSnap.data().htmlCode) {
+  const _navContainer = document.querySelector('.navbar-container');
+  if (_navContainer) {
+    const _logo = _navContainer.querySelector('.nav-logo');
+    _navContainer.innerHTML = _navSnap.data().htmlCode;
+    if (_logo && !_navContainer.querySelector('.nav-logo')) _navContainer.prepend(_logo);
+    const _hb = _navContainer.querySelector('.hamburger');
+    const _nl = _navContainer.querySelector('.nav-links');
+    if (_hb && _nl) _hb.addEventListener('click', () => _nl.classList.toggle('active'));
   }
 }
 
