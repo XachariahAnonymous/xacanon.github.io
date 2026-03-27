@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store | Why Files Research Division</title>
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+            --wf-gray: #1a3a4f;
+            --wf-dark-bg: #030f18;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
+            color: var(--wf-white);
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Navigation --- */
+        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; background: rgba(5, 28, 44, 0.8); backdrop-filter: blur(10px); }
+        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; font-size: 0.9rem; }
+        .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
+
+        /* --- Store Content --- */
+        .container { padding: 120px 20px 60px; max-width: 1100px; width: 100%; }
+
+        .store-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--wf-red);
+            padding-bottom: 20px;
+        }
+
+        .credits-display {
+            background: rgba(195, 0, 16, 0.2);
+            border: 1px solid var(--wf-red);
+            padding: 10px 20px;
+            font-weight: 900;
+            color: var(--wf-red);
+            letter-spacing: 2px;
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .item-card {
+            background: var(--wf-dark-bg);
+            border: 1px solid rgba(153, 230, 255, 0.1);
+            padding: 20px;
+            position: relative;
+            transition: 0.3s;
+            overflow: hidden;
+        }
+
+        .item-card:hover {
+            border-color: var(--wf-cyan);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* "Restricted" Overlay */
+        .item-card::before {
+            content: "RESTRICTED";
+            position: absolute;
+            top: 15px;
+            right: -30px;
+            background: var(--wf-red);
+            color: white;
+            padding: 5px 40px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            transform: rotate(45deg);
+        }
+
+        .item-img {
+            width: 100%;
+            height: 180px;
+            background: var(--wf-gray);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .item-name { font-size: 1.2rem; font-weight: 900; margin: 0; color: var(--wf-cyan); }
+        .item-price { color: var(--wf-red); font-weight: bold; font-size: 0.9rem; margin: 5px 0 15px; }
+        .item-desc { font-size: 0.85rem; opacity: 0.7; line-height: 1.5; margin-bottom: 20px; min-height: 45px; }
+
+        .buy-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--wf-cyan);
+            color: var(--wf-cyan);
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .buy-btn:hover {
+            background: var(--wf-cyan);
+            color: var(--wf-navy);
+        }
+
+        footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">HOME</a>
+    </nav>
+
+    <div class="container">
+        <div class="store-header">
+            <div>
+                <h1 style="margin:0; letter-spacing: 4px; text-transform: uppercase;">Black Market</h1>
+                <p style="margin:5px 0 0; color: var(--wf-cyan); font-size: 0.8rem;">UNAUTHORIZED PROCUREMENT DIVISION</p>
+            </div>
+            <div class="credits-display">
+                CREDITS: <span id="creditCount">0.00</span>
+            </div>
+        </div>
+
+        <div class="item-grid">
+            <div class="item-card">
+                <div class="item-img">🛡️</div>
+                <h3 class="item-name">Tinfoil Helmet</h3>
+                <p class="item-price">500 CREDITS</p>
+                <p class="item-desc">Provides 100% protection from telepathic lizzid people. Extremely shiny.</p>
+                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+            </div>
+
+            <div class="item-card">
+                <div class="item-img">🛸</div>
+                <h3 class="item-name">The 'Mount Hayes' Pass</h3>
+                <p class="item-price">2500 CREDITS</p>
+                <p class="item-desc">A one-time access key to the underground base simulation. No questions asked.</p>
+                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+            </div>
+
+            <div class="item-card">
+                <div class="item-img">🧪</div>
+                <h3 class="item-name">Anomaly Detector</h3>
+                <p class="item-price">1200 CREDITS</p>
+                <p class="item-desc">Detects nearby glitches and simulation errors within a 50-block radius.</p>
+                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+            </div>
+
+            <div class="item-card">
+                <div class="item-img">📁</div>
+                <h3 class="item-name">Declassified Rank</h3>
+                <p class="item-price">5000 CREDITS</p>
+                <p class="item-desc">Permanent rank upgrade. Unlocks the /classified command and red chat glow.</p>
+                <a href="#" class="buy-btn">REQUEST CLEARANCE</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>Be safe, be kind, and know that you are loved.</footer>
+
+</body>
+</html>
