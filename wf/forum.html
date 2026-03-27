@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive | Why Files Research Division</title>
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+            --wf-gray: #1a3a4f;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
+            color: var(--wf-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Navigation --- */
+        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; }
+        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5); backdrop-filter: blur(5px); font-size: 0.9rem; }
+        .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
+
+        .container { padding: 120px 20px 60px; max-width: 900px; width: 100%; }
+        
+        /* --- Post Creator --- */
+        .post-creator {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--wf-cyan);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+        }
+
+        .post-creator input, .post-creator textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: var(--wf-cyan);
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .submit-btn {
+            background: var(--wf-red);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* --- Feed --- */
+        .forum-feed { display: flex; flex-direction: column; gap: 20px; }
+        
+        .post-card {
+            background: var(--wf-gray);
+            border-left: 4px solid var(--wf-cyan);
+            padding: 20px;
+            position: relative;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--wf-cyan);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .post-content { line-height: 1.5; }
+
+        /* --- Admin Controls --- */
+        .admin-badge {
+            display: none;
+            color: var(--wf-red);
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .delete-btn {
+            display: none; /* Hidden unless Admin Mode is ON */
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--wf-red);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">HOME</a>
+    </nav>
+
+    <div class="container">
+        <h1 style="letter-spacing: 4px; text-transform: uppercase;">The Archive</h1>
+        <p id="adminStatus" class="admin-badge">[ADMIN OVERRIDE ACTIVE]</p>
+        
+        <div class="post-creator">
+            <input type="text" id="userName" placeholder="IDENTITY (USERNAME)">
+            <textarea id="postText" rows="4" placeholder="SUBMIT YOUR FINDINGS..."></textarea>
+            <button class="submit-btn" onclick="addPost()">Post to Archive</button>
+        </div>
+
+        <div class="forum-feed" id="forumFeed">
+            </div>
+    </div>
+
+    <footer>
+        Be safe, be kind, and know that you are loved.
+    </footer>
+
+    <script>
+        // FOR TESTING: We use LocalStorage so data persists on your computer
+        // For a live site, you would swap these functions for Firebase calls
+        let posts = JSON.parse(localStorage.getItem('wf_posts')) || [];
+        let adminMode = false;
+
+        function renderPosts() {
+            const feed = document.getElementById('forumFeed');
+            feed.innerHTML = '';
+            
+            posts.slice().reverse().forEach((post, index) => {
+                const originalIndex = posts.length - 1 - index;
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="post-header">
+                        <span>SOURCE: ${post.user}</span>
+                        <span>DATE: ${post.date}</span>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    <button class="delete-btn" onclick="deletePost(${originalIndex})">TERMINATE FILE</button>
+                `;
+                feed.appendChild(card);
+            });
+            
+            updateAdminVisibility();
+        }
+
+        function addPost() {
+            const user = document.getElementById('userName').value || 'Anonymous';
+            const content = document.getElementById('postText').value;
+            
+            if(!content) return alert("Archive files cannot be empty.");
+
+            const newPost = {
+                user: user.toUpperCase(),
+                content: content,
+                date: new Date().toLocaleDateString()
+            };
+
+            posts.push(newPost);
+            localStorage.setItem('wf_posts', JSON.stringify(posts));
+            document.getElementById('postText').value = '';
+            renderPosts();
+        }
+
+        function deletePost(index) {
+            if(confirm("Permanently delete this intelligence report?")) {
+                posts.splice(index, 1);
+                localStorage.setItem('wf_posts', JSON.stringify(posts));
+                renderPosts();
+            }
+        }
+
+        // --- SECRET ADMIN OVERRIDE ---
+        // Pressing "Shift + A + L" toggles Admin Mode
+        let keysPressed = {};
+        document.addEventListener('keydown', (e) => {
+            keysPressed[e.key] = true;
+            if (keysPressed['Shift'] && keysPressed['A'] && keysPressed['L']) {
+                adminMode = !adminMode;
+                document.getElementById('adminStatus').style.display = adminMode ? 'block' : 'none';
+                updateAdminVisibility();
+            }
+        });
+        document.addEventListener('keyup', (e) => { keysPressed[e.key] = false; });
+
+        function updateAdminVisibility() {
+            const btns = document.querySelectorAll('.delete-btn');
+            btns.forEach(btn => btn.style.display = adminMode ? 'block' : 'none');
+        }
+
+        renderPosts();
+    </script>
+</body>
+</html>
