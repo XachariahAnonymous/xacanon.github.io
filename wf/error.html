@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | DATA REDACTED</title>
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+            --wf-dark-bg: #030f18;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--wf-dark-bg);
+            color: var(--wf-white);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        /* Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .error-container {
+            position: relative;
+            z-index: 3;
+            padding: 20px;
+        }
+
+        .glitch-code {
+            font-size: 8rem;
+            font-weight: 900;
+            margin: 0;
+            color: var(--wf-red);
+            position: relative;
+            letter-spacing: -5px;
+            animation: glitch 1s linear infinite;
+        }
+
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px, 0) skew(0deg); }
+            4%, 60% { transform: translate(-2px, 0) skew(0deg); }
+            62% { transform: translate(0, 0) skew(5deg); }
+        }
+
+        .glitch-code:before, .glitch-code:after {
+            content: "404";
+            position: absolute;
+            left: 0;
+        }
+
+        .glitch-code:before {
+            animation: glitchTop 1s linear infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+            -webkit-clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+        }
+
+        @keyframes glitchTop {
+            2%, 64% { transform: translate(2px, -2px); }
+            4%, 60% { transform: translate(-2px, 2px); }
+            62% { transform: translate(13px, -1px) skew(-13deg); }
+        }
+
+        h2 {
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            color: var(--wf-cyan);
+        }
+
+        p {
+            opacity: 0.6;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            border: 1px solid var(--wf-white);
+            color: var(--wf-white);
+            text-decoration: none;
+            font-weight: bold;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            background: transparent;
+        }
+
+        .back-btn:hover {
+            background: var(--wf-white);
+            color: var(--wf-navy);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+        }
+
+        .warning-footer {
+            position: fixed;
+            bottom: 30px;
+            width: 100%;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            opacity: 0.4;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <h1 class="glitch-code">404</h1>
+        <h2>Access Denied</h2>
+        <p>The coordinates you provided lead to a redacted sector. This incident has been logged by the Research Division. Please return to the surface immediately.</p>
+        
+        <a href="index.html" class="back-btn">Return to Base</a>
+    </div>
+
+    <div class="warning-footer">
+        This is a test error page
+    </div>
+
+    <script>
+        // Occasional screen flicker for effect
+        setInterval(() => {
+            if(Math.random() > 0.95) {
+                document.body.style.opacity = '0.5';
+                setTimeout(() => {
+                    document.body.style.opacity = '1';
+                }, 50);
+            }
+        }, 100);
+    </script>
+</body>
+</html>
