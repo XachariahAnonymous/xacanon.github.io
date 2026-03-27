@@ -21,6 +21,7 @@
             color: var(--wf-white);
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* --- Navigation --- */
@@ -28,11 +29,27 @@
         .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; font-size: 0.9rem; }
         .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
 
+        /* --- Hamburger Menu --- */
+        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 200; }
+        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 202; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
+        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 201; }
+        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
+        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
+        .menu-wrap .hamburger > div::after { top: 10px; }
+        .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
+        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
+        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 150; }
+        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
+        .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
+        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
+        .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
+        .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
+        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
+
         /* --- Cart Button --- */
         .cart-btn {
             display: flex;
             align-items: center;
-            gap: 10px;
             background: rgba(195, 0, 16, 0.15);
             border: 1px solid var(--wf-red);
             padding: 10px 25px;
@@ -42,6 +59,7 @@
             letter-spacing: 2px;
             transition: 0.3s;
             position: relative;
+            margin-right: 60px; /* Space for the hamburger */
         }
 
         .cart-btn:hover {
@@ -60,6 +78,7 @@
             padding: 2px 6px;
             border-radius: 2px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
         }
 
         /* --- Store Content --- */
@@ -91,11 +110,7 @@
             flex-direction: column;
         }
 
-        .item-card:hover {
-            border-color: var(--wf-cyan);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        .item-card:hover { border-color: var(--wf-cyan); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .item-card::before {
             content: "RESTRICTED";
@@ -144,6 +159,7 @@
             text-transform: uppercase;
             font-size: 0.8rem;
             margin-top: auto;
+            cursor: pointer;
         }
 
         .buy-btn:hover {
@@ -161,7 +177,27 @@
 
     <nav class="navbar">
         <a href="index.html" class="nav-btn">HOME</a>
+        <a href="checkout.html" class="cart-btn">
+            <span>VIEW CART</span>
+            <span class="cart-badge" id="cart-count">0</span>
+        </a>
     </nav>
+
+    <div class="menu-wrap">
+        <input type="checkbox" class="toggler">
+        <div class="hamburger"><div></div></div>
+        <div class="menu">
+            <div>
+                <ul>
+                    <li><a href="store.html">STORE</a></li>
+                    <li><a href="vote.html">VOTE</a></li>
+                    <li><a href="forum.html">FORUM</a></li>
+                    <li><a href="rules.html">RULES</a></li>
+                    <li><a href="staff.html">STAFF LIST</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <div class="store-header">
@@ -169,11 +205,6 @@
                 <h1 style="margin:0; letter-spacing: 4px; text-transform: uppercase;">The Black Market</h1>
                 <p style="margin:5px 0 0; color: var(--wf-cyan); font-size: 0.8rem; letter-spacing: 2px;">RESTRICTED ASSET PROCUREMENT</p>
             </div>
-            
-            <a href="checkout.html" class="cart-btn">
-                <span>VIEW CART</span>
-                <span class="cart-badge" id="cart-count">0</span>
-            </a>
         </div>
 
         <div class="item-grid">
@@ -182,7 +213,7 @@
                 <h3 class="item-name">Tinfoil Helmet</h3>
                 <p class="item-price">$4.99</p>
                 <p class="item-desc">Provides 100% protection from telepathic lizzid people. Extremely shiny.</p>
-                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
+                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
             </div>
 
             <div class="item-card">
@@ -190,7 +221,7 @@
                 <h3 class="item-name">Mount Hayes Pass</h3>
                 <p class="item-price">$24.50</p>
                 <p class="item-desc">A one-time access key to the underground base simulation. No questions asked.</p>
-                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
+                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
             </div>
 
             <div class="item-card">
@@ -198,7 +229,7 @@
                 <h3 class="item-name">Anomaly Detector</h3>
                 <p class="item-price">$12.00</p>
                 <p class="item-desc">Detects nearby glitches and simulation errors within a 50-block radius.</p>
-                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
+                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
             </div>
 
             <div class="item-card">
@@ -206,7 +237,7 @@
                 <h3 class="item-name">Declassified Rank</h3>
                 <p class="item-price">$49.99</p>
                 <p class="item-desc">Permanent rank upgrade. Unlocks the /classified command and red chat glow.</p>
-                <a href="#" class="buy-btn" onclick="addToCart()">ADD TO CART</a>
+                <button class="buy-btn" onclick="addToCart()">ADD TO CART</button>
             </div>
         </div>
     </div>
@@ -217,9 +248,8 @@
         let count = 0;
         function addToCart() {
             count++;
-            document.getElementById('cart-count').innerText = count;
-            // Add a little bounce effect to the cart badge
             const badge = document.getElementById('cart-count');
+            badge.innerText = count;
             badge.style.transform = 'scale(1.5)';
             setTimeout(() => badge.style.transform = 'scale(1)', 200);
         }
