@@ -9,14 +9,14 @@
         :root {
             --wf-navy: #051C2C;
             --wf-red: #C30010;
-            --wf-cyan: #99E6FF;
+            --wf-cyan: #99E6FF; /* Match the exact cyan glow */
             --wf-white: #FFFFFF;
         }
 
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif; /* General text stays Segoe */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
             color: var(--wf-white);
             display: flex;
@@ -50,82 +50,135 @@
             background: rgba(5, 28, 44, 0.5);
             backdrop-filter: blur(5px);
             text-transform: uppercase;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--wf-white);
+            color: var(--wf-navy);
+            box-shadow: 0 0 15px var(--wf-white);
         }
 
         /* --- Hamburger Menu --- */
-        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 200; }
-        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 202; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
-        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 201; }
-        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
-        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
+        .menu-wrap { 
+            position: fixed; 
+            top: 20px;
+            right: 40px;
+            z-index: 200; 
+        }
+
+        .menu-wrap .toggler {
+            position: absolute; top: 0; right: 0; z-index: 202;
+            cursor: pointer; width: 50px; height: 50px; opacity: 0;
+        }
+
+        .menu-wrap .hamburger {
+            width: 50px; height: 50px; padding: 10px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 201;
+        }
+
+        .menu-wrap .hamburger > div {
+            position: relative; flex: none; width: 100%; height: 3px;
+            background: var(--wf-cyan); transition: all 0.4s ease;
+        }
+
+        .menu-wrap .hamburger > div::before,
+        .menu-wrap .hamburger > div::after {
+            content: ''; position: absolute; z-index: 201; top: -10px;
+            width: 100%; height: 3px; background: inherit;
+        }
         .menu-wrap .hamburger > div::after { top: 10px; }
+
         .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
-        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
-        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 150; }
-        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
+        .menu-wrap .toggler:checked + .hamburger > div::before,
+        .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
+
+        .menu-wrap .menu {
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
+            visibility: hidden; display: flex; align-items: center; justify-content: flex-end;
+            z-index: 150;
+        }
+
+        .menu-wrap .menu > div {
+            background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red);
+            width: 300px; height: 100%; display: flex; align-items: center;
+            justify-content: center; transform: translateX(100%); transition: all 0.4s ease;
+        }
+
         .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
-        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
+        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
+
         .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
         .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
-        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
+        .menu-wrap .menu ul li a {
+            color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; transition: 0.3s;
+        }
+        .menu-wrap .menu ul li a:hover { color: var(--wf-cyan); }
 
-        /* --- LOGO: EXACT MATCH --- */
+        /* --- LOGO REPLICA SECTION --- */
         header { padding: 140px 20px 40px; text-align: center; }
 
         .logo-container {
-            display: flex;
-            align-items: center;
+            display: flex; 
+            align-items: center; 
             justify-content: center;
-            gap: 15px;
-            /* Applying the heavy condensed font */
-            font-family: 'Archivo Black', sans-serif;
-            font-size: 4rem;
-            letter-spacing: -2px; /* Tight spacing like the image */
+            gap: 12px; 
+            font-family: 'Archivo Black', sans-serif; 
+            font-size: 4rem; 
+            /* Negative spacing to close gaps between letters */
+            letter-spacing: -5px; 
             text-transform: uppercase;
-            /* The "Glow" effect from your image */
+            /* ScaleX(0.9) flattens the outer arms of the 'W' to match the source */
+            transform: scaleX(0.9);
             filter: drop-shadow(0 0 10px rgba(153, 230, 255, 0.3));
         }
 
         .wf-circle {
-            background-color: var(--wf-red);
-            width: 100px; height: 100px;
-            border-radius: 50%;
-            display: flex;
+            background-color: var(--wf-red); 
+            width: 95px; height: 95px;
+            border-radius: 50%; 
+            display: flex; 
             align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
+            justify-content: center; 
+            font-size: 2.2rem;
             color: white;
             letter-spacing: -1px;
-            /* Specific shadow for the red circle */
-            box-shadow: 0 0 30px rgba(195, 0, 16, 0.5);
+            /* Correcting the squeeze for the circle so it stays round */
+            transform: scaleX(1.11);
+            box-shadow: 0 0 25px rgba(195, 0, 16, 0.4);
         }
 
         .text-why { color: var(--wf-white); }
         .text-files { color: var(--wf-cyan); }
 
-        /* --- Server Card --- */
+        /* --- Main Content --- */
         .server-card {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(153, 230, 255, 0.15);
-            padding: 40px; border-radius: 4px; backdrop-filter: blur(10px);
-            text-align: center; max-width: 650px; width: 90%;
+            border: 1px solid rgba(153, 230, 255, 0.2);
+            padding: 40px; border-radius: 12px; backdrop-filter: blur(10px);
+            text-align: center; max-width: 650px; width: 90%; margin-top: 20px;
         }
 
         .ip-box {
-            background: #000; padding: 15px; border-radius: 4px;
-            font-family: 'Courier New', monospace; color: var(--wf-cyan);
+            background: #000; padding: 15px; border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace; color: var(--wf-cyan);
             font-size: 1.5rem; margin: 25px 0; border: 1px solid var(--wf-cyan);
-            cursor: pointer; transition: 0.3s;
-            text-transform: uppercase; font-weight: bold;
+            cursor: pointer; transition: 0.3s ease;
+        }
+        .ip-box:hover {
+            background: var(--wf-cyan); color: var(--wf-navy);
+            box-shadow: 0 0 20px var(--wf-cyan);
         }
 
-        .ip-box:hover { background: var(--wf-cyan); color: var(--wf-navy); box-shadow: 0 0 25px var(--wf-cyan); }
+        .btn {
+            display: inline-block; padding: 15px 35px; background: var(--wf-red);
+            color: white; text-decoration: none; border-radius: 4px;
+            font-weight: bold; transition: 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--wf-red); }
 
-        .btn { display: inline-block; padding: 15px 35px; background: var(--wf-red); color: white; text-decoration: none; border-radius: 2px; font-weight: bold; text-transform: uppercase; transition: 0.2s; letter-spacing: 1px; }
-        .btn:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--wf-red); }
-
-        footer { margin-top: auto; padding: 40px; font-size: 0.8rem; opacity: 0.5; text-align: center; letter-spacing: 1px; }
+        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6; text-align: center; }
     </style>
 </head>
 <body>
@@ -157,19 +210,19 @@
                 <span class="text-why">WHY</span><span class="text-files">FILES</span>
             </div>
         </div>
-        <p style="color: var(--wf-cyan); letter-spacing: 4px; font-weight: 900; margin-top: 15px; font-size: 0.9rem; text-transform: uppercase;">
+        <p style="color: var(--wf-cyan); letter-spacing: 4px; font-weight: bold; margin-top: 15px; font-size: 0.9rem;">
             MINECRAFT RESEARCH DIVISION
         </p>
     </header>
 
     <main class="server-card">
-        <h2 style="letter-spacing: 2px; text-transform: uppercase;">OBJECTIVE: UNCOVER THE TRUTH</h2>
-        <p style="opacity: 0.8;">The simulation is live. Collect data. Report findings to the archive.</p>
+        <h2 style="letter-spacing: 1px;">OBJECTIVE: UNCOVER THE TRUTH</h2>
+        <p>The simulation is live. Collect data. Report findings to the archive.</p>
         
         <div class="ip-box" onclick="copyIP()">
             PLAY.THEWHYFILES.IO
         </div>
-        <p style="font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">Click to copy coordinates</p>
+        <p style="font-size: 0.8rem; opacity: 0.7;">Click to copy the server address</p>
 
         <div style="margin-top: 30px;">
             <a href="#" class="btn">JOIN THE DISCORD</a>
@@ -177,22 +230,14 @@
     </main>
 
     <footer>
-        ANOTHER MYSTERY SOLVED... OR IS IT?
+        Another mystery solved... or is it?
     </footer>
 
     <script>
         function copyIP() {
             const ip = "PLAY.THEWHYFILES.IO";
             navigator.clipboard.writeText(ip);
-            // Subtle feedback instead of a jarring alert
-            const box = document.querySelector('.ip-box');
-            const originalText = box.innerText;
-            box.innerText = "COPIED TO CLIPBOARD";
-            box.style.borderColor = "#FFFFFF";
-            setTimeout(() => {
-                box.innerText = originalText;
-                box.style.borderColor = "var(--wf-cyan)";
-            }, 2000);
+            alert("Security clearance granted. IP copied!");
         }
     </script>
 
