@@ -168,9 +168,13 @@ footer .socials-footer a:hover::after { animation: glitchBottom 0.6s infinite li
 })();
 
 // Hamburger fallback
-document.querySelector('.hamburger').addEventListener('click', () => {
-  document.querySelector('.nav-links').classList.toggle('active');
-});
+// Hamburger fallback (only binds if nav loader didn't already)
+const _hbContact = document.querySelector('.hamburger');
+const _nlContact = document.querySelector('.nav-links');
+if (_hbContact && _nlContact && !_hbContact._bound) {
+  _hbContact._bound = true;
+  _hbContact.addEventListener('click', () => _nlContact.classList.toggle('active'));
+}
 
 // Contact form
 const form = document.getElementById('contact-form');
