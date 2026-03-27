@@ -136,6 +136,9 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
       <div id="lyric-editor"></div>
       <button type="submit">Publish Lyric</button>
     </form>
+    <hr style="margin:2rem 0; border:0; border-top:1px solid #ff4f81;">
+    <h3>Manage Lyrics</h3>
+    <div id="lyrics-list">Loading lyrics...</div>
   </div>
 
   <div id="nav-tab" class="tab-content">
@@ -190,7 +193,7 @@ input:checked + .toggle-slider:before { transform:translateX(32px); }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import {
-  getFirestore, collection, addDoc, serverTimestamp,
+  getFirestore, collection, addDoc, serverTimestamp, Timestamp,
   getDocs, deleteDoc, doc, updateDoc, query, orderBy, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
@@ -214,25 +217,35 @@ const lyricQuill = new Quill('#lyric-editor', { theme: 'snow' });
 const navDocRef = doc(db, "siteSettings", "globalMenu");
 
 const loadNavMenu = async () => {
-    try {
-        const snap = await getDoc(navDocRef);
-        if (snap.exists()) {
-            document.getElementById("nav-code-editor").value = snap.data().htmlCode;
-        }
-    } catch (err) { console.error("Error loading Nav:", err); }
+  try {
+    const snap = await getDoc(navDocRef);
+    if (snap.exists()) {
+      document.getElementById("nav-code-editor").value = snap.data().htmlCode;
+    }
+  } catch (err) { console.error("Error loading Nav:", err); }
 };
 
 document.getElementById("nav-save-btn").addEventListener("click", async () => {
-    const htmlCode = document.getElementById("nav-code-editor").value;
-    try {
-        await setDoc(navDocRef, { htmlCode, updatedAt: serverTimestamp() });
-        const msg = document.getElementById("nav-save-msg");
-        msg.style.display = "inline";
-        setTimeout(() => msg.style.display = "none", 3000);
-    } catch (err) { alert("Error: " + err.message); }
+  const htmlCode = document.getElementById("nav-code-editor").value;
+  try {
+    await setDoc(navDocRef, { htmlCode, updatedAt: serverTimestamp() });
+    const msg = document.getElementById("nav-save-msg");
+    msg.style.display = "inline";
+    setTimeout(() => msg.style.display = "none", 3000);
+  } catch (err) { alert("Error: " + err.message); }
 });
 
-// ===== BLOG LOGIC (Simplified) =====
+// ===== BLOG LOGIC =====
+const resetBlogForm = () => {
+  document.getElementById("edit-id").value = "";
+  document.getElementById("post-title").value = "";
+  document.getElementById("post-category").value = "";
+  document.getElementById("post-tags").value = "";
+  blogQuill.root.innerHTML = "";
+  document.getElementById("blog-submit-btn").innerText = "Publish Blog Post";
+  document.getElementById("cancel-edit").style.display = "none";
+};
+
 const loadPosts = async () => {
   const postsContainer = document.getElementById("posts-list");
   try {
@@ -248,26 +261,191 @@ const loadPosts = async () => {
     });
   } catch (err) { postsContainer.innerHTML = "Error loading posts."; }
 };
-window.deletePost = async (id) => { if (confirm("Delete?")) { await deleteDoc(doc(db, "blogPosts", id)); loadPosts(); } };
+
+window.deletePost = async (id) => {
+  if (confirm("Delete this post permanently?")) {
+    await deleteDoc(doc(db, "blogPosts", id));
+    loadPosts();
+  }
+};
+
 window.editPost = async (id) => {
   const docSnap = await getDoc(doc(db, "blogPosts", id));
   if (docSnap.exists()) {
     const post = docSnap.data();
     document.getElementById("edit-id").value = id;
-    document.getElementById("post-title").value = post.title;
-    blogQuill.root.innerHTML = post.content;
+    document.getElementById("post-title").value = post.title || "";
+    document.getElementById("post-category").value = post.category || "";
+    document.getElementById("post-tags").value = post.tags?.join(", ") || "";
+    blogQuill.root.innerHTML = post.content || "";
     document.getElementById("blog-submit-btn").innerText = "Update Post";
     document.getElementById("cancel-edit").style.display = "inline-block";
+    document.getElementById("blog-tab").scrollIntoView({ behavior: "smooth" });
   }
 };
+
+// FIX: Cancel Edit now works + form resets after every save/update
+document.getElementById("cancel-edit").addEventListener("click", resetBlogForm);
 
 document.getElementById("blog-form").addEventListener("submit", async e => {
   e.preventDefault();
   const editId = document.getElementById("edit-id").value;
-  const data = { title: document.getElementById("post-title").value, content: blogQuill.root.innerHTML };
-  if (editId) { await updateDoc(doc(db, "blogPosts", editId), data); }
-  else { await addDoc(collection(db, "blogPosts"), { ...data, timestamp: serverTimestamp() }); }
-  loadPosts();
+  const data = {
+    title: document.getElementById("post-title").value,
+    category: document.getElementById("post-category").value,
+    tags: document.getElementById("post-tags").value.split(",").map(t => t.trim()).filter(Boolean),
+    content: blogQuill.root.innerHTML,
+  };
+  try {
+    if (editId) {
+      await updateDoc(doc(db, "blogPosts", editId), data);
+    } else {
+      await addDoc(collection(db, "blogPosts"), { ...data, timestamp: serverTimestamp() });
+    }
+    resetBlogForm(); // FIX: always reset after save
+    loadPosts();
+  } catch (err) { alert("Error saving post: " + err.message); }
+});
+
+// ===== LYRICS LOGIC =====
+const loadLyrics = async () => {
+  const container = document.getElementById("lyrics-list");
+  if (!container) return;
+  try {
+    const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+    const snapshot = await getDocs(q);
+    container.innerHTML = "";
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const div = document.createElement("div");
+      div.className = "post-item";
+      div.innerHTML = `<span>${data.title}</span><div class="post-actions"><button class="btn-delete" onclick="window.deleteLyric('${docSnap.id}')">Delete</button></div>`;
+      container.appendChild(div);
+    });
+    if (snapshot.empty) container.innerHTML = "<p style='color:#aaa;'>No lyrics published yet.</p>";
+  } catch (err) { console.error("Error loading lyrics:", err); }
+};
+
+window.deleteLyric = async (id) => {
+  if (confirm("Delete this lyric permanently?")) {
+    await deleteDoc(doc(db, "lyrics", id));
+    loadLyrics();
+  }
+};
+
+// FIX: Lyrics form now actually saves to Firestore
+document.getElementById("lyrics-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const title = document.getElementById("lyric-title").value.trim();
+  const artist = document.getElementById("lyric-artist").value.trim();
+  const content = lyricQuill.root.innerHTML;
+  if (!title) { alert("Please enter a song title."); return; }
+  try {
+    await addDoc(collection(db, "lyrics"), {
+      title,
+      artist,
+      content,
+      timestamp: serverTimestamp(),
+    });
+    document.getElementById("lyric-title").value = "";
+    document.getElementById("lyric-artist").value = "";
+    lyricQuill.root.innerHTML = "";
+    loadLyrics();
+    alert("Lyric published!");
+  } catch (err) { alert("Error saving lyric: " + err.message); }
+});
+
+// ===== COUNTDOWN LOGIC =====
+const countdownDocRef = doc(db, "siteSettings", "countdown");
+
+const loadCountdown = async () => {
+  try {
+    const snap = await getDoc(countdownDocRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      document.getElementById("countdown-label").value = data.label || "";
+      document.getElementById("countdown-visible").checked = data.visible !== false;
+      if (data.releaseDate) {
+        const d = data.releaseDate.toDate ? data.releaseDate.toDate() : new Date(data.releaseDate);
+        // Format as local datetime-local value
+        const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById("countdown-date").value = local;
+      }
+    }
+  } catch (err) { console.error("Error loading countdown:", err); }
+};
+
+// FIX: Countdown form save now writes to Firestore
+document.getElementById("countdown-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const label = document.getElementById("countdown-label").value.trim();
+  const dateVal = document.getElementById("countdown-date").value;
+  const visible = document.getElementById("countdown-visible").checked;
+  if (!dateVal) { alert("Please set a release date."); return; }
+  try {
+    await setDoc(countdownDocRef, {
+      label: label || "Next Release",
+      releaseDate: Timestamp.fromDate(new Date(dateVal)),
+      visible,
+      updatedAt: serverTimestamp(),
+    });
+    const msg = document.getElementById("save-msg");
+    msg.style.display = "inline";
+    setTimeout(() => msg.style.display = "none", 3000);
+  } catch (err) { alert("Error saving countdown: " + err.message); }
+});
+
+// FIX: Countdown delete now works
+document.getElementById("countdown-delete-btn").addEventListener("click", async () => {
+  if (confirm("Delete the countdown? It will disappear from the homepage.")) {
+    try {
+      await setDoc(countdownDocRef, { visible: false, deletedAt: serverTimestamp() });
+      document.getElementById("countdown-date").value = "";
+      document.getElementById("countdown-label").value = "";
+      const msg = document.getElementById("save-msg");
+      msg.style.display = "inline";
+      msg.textContent = "✓ Countdown hidden!";
+      setTimeout(() => { msg.style.display = "none"; msg.textContent = "✓ Saved!"; }, 3000);
+    } catch (err) { alert("Error: " + err.message); }
+  }
+});
+
+// ===== MAINTENANCE LOGIC =====
+const maintDocRef = doc(db, "siteSettings", "maintenance");
+
+const loadMaintenance = async () => {
+  try {
+    const snap = await getDoc(maintDocRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      const isOn = data.enabled === true;
+      document.getElementById("maint-toggle").checked = isOn;
+      document.getElementById("maint-toggle-label").textContent = isOn ? "ON" : "OFF";
+      document.getElementById("maint-status").textContent = isOn ? "Site is in MAINTENANCE" : "Site is LIVE";
+      document.getElementById("maint-status").className = "maintenance-status " + (isOn ? "maint-on" : "maint-off");
+      document.getElementById("maint-message").value = data.message || "";
+    }
+  } catch (err) { console.error("Error loading maintenance:", err); }
+};
+
+// FIX: Maintenance toggle updates label live
+document.getElementById("maint-toggle").addEventListener("change", (e) => {
+  const isOn = e.target.checked;
+  document.getElementById("maint-toggle-label").textContent = isOn ? "ON" : "OFF";
+  document.getElementById("maint-status").textContent = isOn ? "Site is in MAINTENANCE" : "Site is LIVE";
+  document.getElementById("maint-status").className = "maintenance-status " + (isOn ? "maint-on" : "maint-off");
+});
+
+// FIX: Maintenance save now writes to Firestore
+document.getElementById("maint-save-btn").addEventListener("click", async () => {
+  const enabled = document.getElementById("maint-toggle").checked;
+  const message = document.getElementById("maint-message").value.trim();
+  try {
+    await setDoc(maintDocRef, { enabled, message, updatedAt: serverTimestamp() });
+    const msg = document.getElementById("maint-save-msg");
+    msg.style.display = "inline";
+    setTimeout(() => msg.style.display = "none", 3000);
+  } catch (err) { alert("Error saving maintenance settings: " + err.message); }
 });
 
 // ===== TAB SWITCHING =====
@@ -294,10 +472,14 @@ onAuthStateChanged(auth, user => {
     document.getElementById("logout-btn").style.display = "inline-block";
     document.body.style.overflow = "auto";
     loadPosts();
+    loadLyrics();
     loadNavMenu();
+    loadCountdown();
+    loadMaintenance();
   } else {
     document.getElementById("login-container").style.display = "block";
     document.getElementById("admin-content").style.display = "none";
+    document.getElementById("logout-btn").style.display = "none";
   }
 });
 </script>
