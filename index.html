@@ -78,7 +78,7 @@ body { margin:0; font-family:'Friz Quadrata', serif; background:#0f0f0f; color:#
   z-index:1000; 
 }
 
-.nav-links.show { 
+.nav-links.active { 
   display:flex; 
   max-height:500px; 
   border: 1px solid #ff4f81;
@@ -294,7 +294,7 @@ async function loadGlobalNav() {
         const hamburger = navPoint.querySelector('.hamburger');
         const navLinks = navPoint.querySelector('.nav-links');
         if (hamburger && navLinks) {
-            hamburger.addEventListener('click', () => navLinks.classList.toggle('show'));
+            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
         }
     } catch (err) { console.warn("Nav sync failed:", err); }
 }
@@ -316,7 +316,7 @@ loadGlobalNav();
       onAuthStateChanged(auth, (user) => {
         if (user) {
           overlay.classList.remove("active");
-          document.body.style.overflow = "";
+          document.body.style.overflow = "auto";
         }
       });
     }
