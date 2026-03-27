@@ -1,1 +1,156 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Why Files | Minecraft Server</title>
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
+            color: var(--wf-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header & Logo Area */
+        header {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 3rem;
+            letter-spacing: -1px;
+        }
+
+        .wf-circle {
+            background-color: var(--wf-red);
+            color: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            box-shadow: 0 0 20px rgba(195, 0, 16, 0.4);
+        }
+
+        .text-files { color: var(--wf-cyan); }
+
+        /* Server Status Box */
+        .server-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(153, 230, 255, 0.2);
+            padding: 30px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            margin-top: 20px;
+        }
+
+        .ip-box {
+            background: #000;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--wf-cyan);
+            font-size: 1.5rem;
+            margin: 20px 0;
+            border: 1px solid var(--wf-cyan);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ip-box:hover {
+            background: var(--wf-cyan);
+            color: var(--wf-navy);
+            box-shadow: 0 0 15px var(--wf-cyan);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--wf-red);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--wf-red);
+        }
+
+        /* Glitch Effect Subtle Animation */
+        .glitch {
+            animation: pulse 4s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <div class="wf-circle">WF?</div>
+            <div>WHY<span class="text-files">FILES</span></div>
+        </div>
+        <p class="glitch" style="color: var(--wf-cyan); letter-spacing: 2px;">MC RESEARCH DIVISION</p>
+    </header>
+
+    <main class="server-card">
+        <h2>OBJECTIVE: SURVIVE THE UNKNOWN</h2>
+        <p>Join our community of investigators and truth-seekers in a world where nothing is as it seems.</p>
+        
+        <div class="ip-box" onclick="copyIP()">
+            PLAY.WHYFILESMC.COM
+        </div>
+        <p style="font-size: 0.8rem; opacity: 0.7;">Click the IP above to copy</p>
+
+        <div style="margin-top: 30px;">
+            <a href="#" class="btn">JOIN THE DISCORD</a>
+        </div>
+    </main>
+
+    <footer style="margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6;">
+        Be safe, be kind, and know that you are loved.
+    </footer>
+
+    <script>
+        function copyIP() {
+            const ip = "PLAY.WHYFILESMC.COM";
+            navigator.clipboard.writeText(ip);
+            alert("Server IP copied to clipboard!");
+        }
+    </script>
+
+</body>
+</html>
