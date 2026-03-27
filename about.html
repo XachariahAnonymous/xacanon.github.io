@@ -191,11 +191,45 @@
     <p>&copy; 2026 Xac Anon. All Rights Reserved.</p>
   </footer>
 
-  <!-- Hamburger Script -->
-  <script>
-    document.querySelector('.hamburger').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('active');
-    });
+  <!-- Hamburger + Global Nav Loader -->
+  <script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+  const _fbConfig = {
+    apiKey: "AIzaSyCHWMstWD8QwoT_kz2lBW8ZNXNlXerl-9c",
+    authDomain: "xacanonblog.firebaseapp.com",
+    projectId: "xacanonblog",
+    storageBucket: "xacanonblog.firebasestorage.app",
+    messagingSenderId: "319182532803",
+    appId: "1:319182532803:web:3a4d33372643dd71d5f276",
+  };
+  const _app = getApps().length ? getApps()[0] : initializeApp(_fbConfig);
+  const _db = getFirestore(_app);
+
+  // ── GLOBAL NAV LOADER ──────────────────────────────────────────
+  try {
+    const _navSnap = await getDoc(doc(_db, "siteSettings", "globalMenu"));
+    if (_navSnap.exists() && _navSnap.data().htmlCode) {
+      const _navContainer = document.querySelector(".navbar-container");
+      if (_navContainer) {
+        const _logo = _navContainer.querySelector(".nav-logo");
+        _navContainer.innerHTML = _navSnap.data().htmlCode;
+        if (_logo && !_navContainer.querySelector(".nav-logo")) _navContainer.prepend(_logo);
+        const _hb = _navContainer.querySelector(".hamburger");
+        const _nl = _navContainer.querySelector(".nav-links");
+        if (_hb && _nl) _hb.addEventListener("click", () => _nl.classList.toggle("active"));
+      }
+    }
+  } catch(e) { console.warn("Nav loader:", e); }
+
+  // Hamburger fallback (if no Firestore menu saved yet)
+  const _hbFallback = document.querySelector('.hamburger');
+  const _nlFallback = document.querySelector('.nav-links');
+  if (_hbFallback && _nlFallback && !_hbFallback._bound) {
+    _hbFallback._bound = true;
+    _hbFallback.addEventListener('click', () => _nlFallback.classList.toggle('active'));
+  }
   </script>
 
 </body>
