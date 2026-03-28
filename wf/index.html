@@ -5,20 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <title>The Why Files | Minecraft Research Division</title>
+    
+    <link rel="icon" type="image/png" href="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
+
     <meta name="title" content="The Why Files | Minecraft Research Division">
-    <meta name="description" content="Official Minecraft Research Terminal. investigate the unknown, protect the timeline, and uncover the truth. Join the division.">
+    <meta name="description" content="Official Minecraft Research Terminal. Investigate the unknown, protect the timeline, and uncover the truth. Join the division.">
 
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://xacanon.github.io/"> <meta property="og:title" content="Why Files | Research Division MC">
+    <meta property="og:url" content="https://xacanon.github.io/"> 
+    <meta property="og:title" content="Why Files | Research Division MC">
     <meta property="og:description" content="Official Server Terminal. 📂 Status: Online. 🌐 Clearance: Level 0. Join the hunt for the truth.">
     <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
     
     <meta name="theme-color" content="#99E6FF">
-
-    <meta property="twitter:card" content="summary">
-    <meta property="twitter:title" content="Why Files | Research Division MC">
-    <meta property="twitter:description" content="The truth is out there... and it's blocky.">
-    <meta property="twitter:image" content="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
 
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <style>
@@ -30,43 +29,25 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Segoe UI', sans-serif;
             background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
             color: var(--wf-white);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
             overflow-x: hidden;
         }
 
         /* --- Navigation --- */
         .navbar {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 40px;
-            box-sizing: border-box;
-            position: fixed;
-            top: 0;
-            z-index: 100;
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; box-sizing: border-box; position: fixed; top: 0; z-index: 100;
         }
 
         .nav-btn {
-            color: var(--wf-white);
-            text-decoration: none;
-            font-weight: 900;
-            letter-spacing: 2px;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 8px 20px;
-            transition: 0.3s;
-            background: rgba(5, 28, 44, 0.5);
-            backdrop-filter: blur(5px);
-            text-transform: uppercase;
-            font-size: 0.8rem;
+            color: var(--wf-white); text-decoration: none; font-weight: 900;
+            letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5);
+            backdrop-filter: blur(5px); text-transform: uppercase; font-size: 0.8rem;
         }
 
         /* --- Hamburger Menu --- */
@@ -86,26 +67,22 @@
         .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
         .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
 
-        /* --- LOGO: UPDATED WITH IMAGE --- */
+        /* --- LOGO SECTION --- */
         header { padding: 140px 20px 40px; text-align: center; }
 
         .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            font-family: 'Archivo Black', sans-serif;
-            font-size: 4rem;
-            letter-spacing: -2px;
-            text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 20px;
+            font-family: 'Archivo Black', sans-serif; font-size: 4rem;
+            letter-spacing: -2px; text-transform: uppercase;
             filter: drop-shadow(0 0 10px rgba(153, 230, 255, 0.3));
         }
 
         .wf-logo-img {
-            width: 120px;
-            height: 120px;
-            filter: drop-shadow(0 0 15px rgba(195, 0, 16, 0.6));
+            width: 120px; height: 120px;
             border-radius: 50%;
+            object-fit: cover; /* Keeps image from stretching */
+            filter: drop-shadow(0 0 15px rgba(195, 0, 16, 0.6));
+            border: 2px solid rgba(255,255,255,0.1); /* Adds a subtle ring */
         }
 
         .text-why { color: var(--wf-white); }
@@ -160,7 +137,7 @@
 
     <header>
         <div class="logo-container">
-            <img src="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp" alt="WF Logo" class="wf-logo-img">
+            <img src="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp" alt="Why Files Logo" class="wf-logo-img">
             <div>
                 <span class="text-why">WHY</span><span class="text-files">FILES</span>
             </div>
