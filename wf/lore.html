@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Terminal | Why Files</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
+            color: var(--wf-white);
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+
+        /* --- LOGO REPLICA NAVBAR --- */
+        .navbar {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; position: fixed; top: 0; z-index: 1000;
+            background: rgba(5, 28, 44, 0.9); backdrop-filter: blur(10px); box-sizing: border-box;
+        }
+
+        .logo-container {
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'Archivo Black', sans-serif; font-size: 1.8rem;
+            letter-spacing: -2px; text-transform: uppercase;
+            transform: scaleX(0.9); text-decoration: none;
+            filter: drop-shadow(0 0 8px rgba(153, 230, 255, 0.3));
+        }
+
+        .wf-circle {
+            background-color: var(--wf-red); width: 45px; height: 45px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: white; transform: scaleX(1.11);
+            box-shadow: 0 0 15px rgba(195, 0, 16, 0.4);
+        }
+
+        /* --- MAIN INTERFACE --- */
+        .terminal-container { margin-top: 120px; width: 90%; max-width: 1100px; text-align: center; }
+
+        /* Primary Category Tabs */
+        .main-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+
+        .tab-btn {
+            background: transparent; border: 1px solid rgba(153, 230, 255, 0.3);
+            color: white; padding: 12px 30px; font-weight: 900; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s;
+        }
+
+        .tab-btn.active { background: var(--wf-red); border-color: var(--wf-red); box-shadow: 0 0 15px var(--wf-red); }
+
+        /* Sub-Category Filters (Specific to Pets) */
+        .sub-filters { 
+            display: none; /* Hidden by default, shown when Pets is active */
+            justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; 
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--wf-cyan);
+            color: var(--wf-cyan); padding: 8px 15px; font-size: 0.75rem;
+            font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active { background: var(--wf-cyan); color: var(--wf-navy); }
+
+        /* Content Area */
+        .menu-content { display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left; }
+        .menu-content.active { display: grid; }
+
+        .item-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(153, 230, 255, 0.1);
+            padding: 20px; transition: 0.3s;
+        }
+        .item-card:hover { border-color: var(--wf-cyan); background: rgba(153, 230, 255, 0.05); }
+
+        .tag { font-size: 0.7rem; font-weight: 900; padding: 3px 8px; margin-bottom: 10px; display: inline-block; }
+        .tag-free { background: #28a745; color: white; }
+        .tag-paid { background: var(--wf-red); color: white; }
+        .tag-quest { background: #ffc107; color: black; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo-container">
+            <div class="wf-circle">WF?</div>
+            <div style="color: white;">WHY<span style="color: var(--wf-cyan);">FILES</span></div>
+        </a>
+        <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">DISCONNECT</a>
+    </nav>
+
+    <div class="terminal-container">
+        <div class="main-tabs">
+            <button class="tab-btn active" onclick="showMenu('quests', this)">Quests</button>
+            <button class="tab-btn" onclick="showMenu('pets', this)">Pets</button>
+        </div>
+
+        <div id="pet-filters" class="sub-filters">
+            <button class="filter-btn active" onclick="filterItems('all')">All</button>
+            <button class="filter-btn" onclick="filterItems('free')">Free</button>
+            <button class="filter-btn" onclick="filterItems('paid')">Paid</button>
+            <button class="filter-btn" onclick="filterItems('quest')">Quest Reward</button>
+            <button class="filter-btn" onclick="filterItems('exclusive')">Exclusive</button>
+            <button class="filter-btn" onclick="filterItems('join')">Free On Join</button>
+        </div>
+
+        <div id="quests" class="menu-content active">
+            <div class="item-card">
+                <div class="tag tag-quest">ACTIVE OBJECTIVE</div>
+                <h3 style="margin: 0; color: var(--wf-cyan);">The Bedrock Breach</h3>
+                <p style="font-size: 0.85rem; opacity: 0.7;">Investigate the spatial anomaly at spawn coordinates.</p>
+            </div>
+        </div>
+
+        <div id="pets" class="menu-content">
+            <div class="item-card" data-category="join">
+                <div class="tag tag-free">FREE ON JOIN</div>
+                <h3 style="margin: 0;">Baby Heckle</h3>
+                <p style="font-size: 0.85rem; opacity: 0.7;">A small, sarcastic fish that follows you everywhere.</p>
+            </div>
+            <div class="item-card" data-category="paid">
+                <div class="tag tag-paid">PAID</div>
+                <h3 style="margin: 0;">Lizzid Spy</h3>
+                <p style="font-size: 0.85rem; opacity: 0.7;">Provides surveillance and looks great in a suit.</p>
+            </div>
+            <div class="item-card" data-category="quest">
+                <div class="tag tag-quest">QUEST REWARD</div>
+                <h3 style="margin: 0;">Mount Atlas</h3>
+                <p style="font-size: 0.85rem; opacity: 0.7;">Earned by completing the 'Weight of the World' quest line.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMenu(menuId, btn) {
+            // Toggle active main tabs
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Show/Hide Content
+            document.querySelectorAll('.menu-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(menuId).classList.add('active');
+
+            // Show/Hide Sub-Filters if Pets is selected
+            const filters = document.getElementById('pet-filters');
+            filters.style.display = (menuId === 'pets') ? 'flex' : 'none';
+        }
+
+        function filterItems(category) {
+            // Toggle filter button state
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const cards = document.querySelectorAll('#pets .item-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
