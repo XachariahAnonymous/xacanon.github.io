@@ -104,7 +104,13 @@
         .menu-opt:hover { color: var(--wf-cyan); background: rgba(153, 230, 255, 0.1); padding-left: 25px; }
 
         /* --- INTERFACE --- */
-        .terminal-container { margin-top: 140px; width: 90%; max-width: 1100px; text-align: center; }
+        .terminal-container { 
+            margin-top: 140px; 
+            width: 90%; 
+            max-width: 1100px; 
+            text-align: center;
+            flex-grow: 1; /* Pushes footer down */
+        }
 
         .main-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
 
@@ -143,6 +149,18 @@
         .tag-free { background: #28a745; color: white; }
         .tag-paid { background: var(--wf-red); color: white; }
         .tag-quest { background: #ffc107; color: black; }
+
+        /* --- FOOTER (Mirrored from Index) --- */
+        footer {
+            width: 100%;
+            padding: 60px 0 40px;
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            opacity: 0.4;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
     </style>
 </head>
 <body>
@@ -216,6 +234,10 @@
             </div>
         </div>
     </div>
+
+    <footer>
+        Another Mystery Solved... Or Is It?
+    </footer>
 
     <script>
         let currentTab = 'quests';
