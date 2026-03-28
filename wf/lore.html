@@ -22,12 +22,19 @@
             overflow-x: hidden;
         }
 
-        /* --- LOGO REPLICA NAVBAR --- */
+        /* --- NAVBAR MIRRORED FROM INDEX --- */
         .navbar {
             width: 100%; display: flex; justify-content: space-between; align-items: center;
             padding: 20px 40px; position: fixed; top: 0; z-index: 1000;
             background: rgba(5, 28, 44, 0.9); backdrop-filter: blur(10px); box-sizing: border-box;
             border-bottom: 1px solid rgba(153, 230, 255, 0.1);
+        }
+
+        .nav-btn {
+            color: var(--wf-white); text-decoration: none; font-weight: 900;
+            letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5);
+            backdrop-filter: blur(5px); text-transform: uppercase; font-size: 0.8rem;
         }
 
         .logo-container {
@@ -45,12 +52,29 @@
             box-shadow: 0 0 15px rgba(195, 0, 16, 0.4);
         }
 
-        /* --- UNIVERSAL SIDEBAR --- */
+        /* --- HAMBURGER MENU MIRRORED FROM INDEX --- */
+        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 2100; }
+        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 2102; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
+        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2101; }
+        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
+        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
+        .menu-wrap .hamburger > div::after { top: 10px; }
+        .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
+        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
+        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 2050; }
+        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
+        .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
+        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
+        .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
+        .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
+        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; text-transform: uppercase; }
+
+        /* --- LORE SIDEBAR (Mission Index) --- */
         .side-menu {
             position: fixed; top: 0; left: -320px; width: 300px; height: 100vh;
             background: var(--wf-navy); border-right: 3px solid var(--wf-red);
             z-index: 2000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 70px 20px 20px; box-sizing: border-box;
+            padding: 90px 20px 20px; box-sizing: border-box;
             box-shadow: 25px 0 50px rgba(0,0,0,0.8);
         }
 
@@ -80,7 +104,7 @@
         .menu-opt:hover { color: var(--wf-cyan); background: rgba(153, 230, 255, 0.1); padding-left: 25px; }
 
         /* --- INTERFACE --- */
-        .terminal-container { margin-top: 120px; width: 90%; max-width: 1100px; text-align: center; }
+        .terminal-container { margin-top: 140px; width: 90%; max-width: 1100px; text-align: center; }
 
         .main-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
 
@@ -124,12 +148,28 @@
 <body>
 
     <nav class="navbar">
-        <a href="index.html" class="logo-container">
+        <a href="index.html" class="nav-btn">HOME</a>
+        <div class="logo-container">
             <div class="wf-circle">WF?</div>
             <div style="color: white;">WHY<span style="color: var(--wf-cyan);">FILES</span></div>
-        </a>
-        <a href="index.html" style="color: white; text-decoration: none; font-weight: 900; font-size: 0.75rem; letter-spacing: 2px;">EXIT_SESSION</a>
-    </nav>
+        </div>
+        <div style="width: 80px;"></div> </nav>
+
+    <div class="menu-wrap">
+        <input type="checkbox" id="menu-toggle" class="toggler">
+        <div class="hamburger"><div></div></div>
+        <div class="menu">
+            <div>
+                <ul>
+                    <li><a href="store.html">STORE</a></li>
+                    <li><a href="vote.html">VOTE</a></li>
+                    <li><a href="lore.html">LORE</a></li>
+                    <li><a href="rules.html">RULES</a></li>
+                    <li><a href="staff.html">STAFF LIST</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
     <div id="side-menu" class="side-menu">
         <div class="close-x" onclick="closeMenu()">×</div>
@@ -172,7 +212,7 @@
             <div class="item-card" data-category="quest">
                 <div class="tag tag-quest">Exclusive</div>
                 <h3 style="margin: 0;">Hecklefish with 100 flag</h3>
-                <p style="font-size: 0.85rem; opacity: 0.7;">Earned by log-in priority.</p>
+                <p style="font-size: 0.85rem; opacity: 0.7;">Earned by being one of the first 100.</p>
             </div>
         </div>
     </div>
@@ -189,19 +229,14 @@
         function closeMenu() { document.getElementById('side-menu').classList.remove('open'); }
 
         function switchTab(tabId, btn) {
-            // Toggle menu closed if user clicks tabs while menu is open
             closeMenu();
-
             currentTab = tabId;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
             document.querySelectorAll('.menu-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-
             const trigger = document.getElementById('menu-trigger');
             trigger.innerText = (tabId === 'quests') ? '☰ OPEN MISSION INDEX' : '☰ FILTER RESEARCH SPECIMENS';
-            
             updateSidebarContent();
         }
 
