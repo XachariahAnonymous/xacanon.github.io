@@ -133,8 +133,7 @@
 
     <div id="side-menu" class="side-menu">
         <div class="close-x" onclick="closeMenu()">×</div>
-        <div id="menu-options-container">
-            </div>
+        <div id="menu-options-container"></div>
     </div>
 
     <div class="terminal-container">
@@ -143,7 +142,7 @@
             <button class="tab-btn" onclick="switchTab('pets', this)">Pets</button>
         </div>
 
-        <div id="menu-trigger" class="nav-trigger" onclick="openMenu()">
+        <div id="menu-trigger" class="nav-trigger" onclick="toggleMenu()">
             ☰ OPEN MISSION INDEX
         </div>
 
@@ -151,16 +150,15 @@
             <div id="ql-1" class="questline-group active">
                 <div class="item-card">
                     <div class="tag tag-quest">TEST-01</div>
-                    <h3 style="margin: 0; color: var(--wf-cyan);">test/h3>
-                    <p style="font-size: 0.85rem; opacity: 0.7;">test.</p>
+                    <h3 style="margin: 0; color: var(--wf-cyan);">Research Briefing</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Initial data gathering mission.</p>
                 </div>
             </div>
-
             <div id="ql-2" class="questline-group">
                 <div class="item-card">
                     <div class="tag tag-quest">TEST-02</div>
-                    <h3 style="margin: 0; color: var(--wf-cyan);">test</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.7;">test</p>
+                    <h3 style="margin: 0; color: var(--wf-cyan);">Infiltration</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Analyzing breached data nodes.</p>
                 </div>
             </div>
         </div>
@@ -182,10 +180,18 @@
     <script>
         let currentTab = 'quests';
 
+        function toggleMenu() {
+            const menu = document.getElementById('side-menu');
+            menu.classList.toggle('open');
+        }
+
         function openMenu() { document.getElementById('side-menu').classList.add('open'); }
         function closeMenu() { document.getElementById('side-menu').classList.remove('open'); }
 
         function switchTab(tabId, btn) {
+            // Toggle menu closed if user clicks tabs while menu is open
+            closeMenu();
+
             currentTab = tabId;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -193,7 +199,6 @@
             document.querySelectorAll('.menu-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
 
-            // Update the trigger button text
             const trigger = document.getElementById('menu-trigger');
             trigger.innerText = (tabId === 'quests') ? '☰ OPEN MISSION INDEX' : '☰ FILTER RESEARCH SPECIMENS';
             
@@ -212,11 +217,11 @@
                 container.innerHTML = `
                     <div class="menu-title">Filter Specimens</div>
                     <div class="menu-opt" onclick="filterPets('all')">Show All</div>
-                    <div class="menu-opt" onclick="filterPets('free')">Free Specimens</div>
-                    <div class="menu-opt" onclick="filterPets('paid')">Premium Assets</div>
+                    <div class="menu-opt" onclick="filterPets('free')">Free Pets</div>
+                    <div class="menu-opt" onclick="filterPets('paid')">Premium Pets</div>
                     <div class="menu-opt" onclick="filterPets('quest')">Quest Rewards</div>
-                    <div class="menu-opt" onclick="filterPets('exclusive')">Exclusive Files</div>
-                    <div class="menu-opt" onclick="filterPets('join')">New Arrival Gifts</div>
+                    <div class="menu-opt" onclick="filterPets('exclusive')">Exclusive Pets</div>
+                    <div class="menu-opt" onclick="filterPets('join')">New Arrival Pets</div>
                 `;
             }
         }
@@ -236,7 +241,6 @@
             closeMenu();
         }
 
-        // Initialize sidebar on load
         updateSidebarContent();
     </script>
 </body>
