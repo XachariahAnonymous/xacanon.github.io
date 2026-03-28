@@ -27,7 +27,7 @@
 
         /* --- Navigation --- */
         .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; }
-        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5); backdrop-filter: blur(5px); font-size: 0.9rem; }
+        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5); backdrop-filter: blur(5px); font-size: 0.9rem; text-transform: uppercase; }
         .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
 
         /* --- Hamburger Menu --- */
@@ -45,12 +45,12 @@
         .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
         .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
         .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
-        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
+        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; text-transform: uppercase; }
 
         /* --- Rules Content --- */
         .rules-container {
             margin-top: 120px;
-            max-width: 800px;
+            max-width: 850px;
             width: 90%;
             background: var(--wf-dark-bg);
             border: 1px solid rgba(153, 230, 255, 0.1);
@@ -77,19 +77,33 @@
 
         .rules-header {
             border-bottom: 2px solid var(--wf-cyan);
-            margin-bottom: 30px;
-            padding-bottom: 10px;
+            margin-bottom: 40px;
+            padding-bottom: 15px;
         }
 
         .rules-header h1 {
             margin: 0;
-            font-size: 2rem;
+            font-size: 2.2rem;
             letter-spacing: 5px;
             text-transform: uppercase;
+            font-family: 'Archivo Black', sans-serif;
+        }
+
+        .section-label {
+            display: block;
+            background: var(--wf-red);
+            color: white;
+            padding: 5px 15px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            width: fit-content;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .rule-section {
-            margin-bottom: 30px;
+            margin-bottom: 35px;
             border-left: 3px solid var(--wf-red);
             padding-left: 20px;
         }
@@ -100,29 +114,30 @@
             font-size: 1.1rem;
             letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             display: block;
         }
 
         .rule-text {
             font-size: 0.95rem;
-            line-height: 1.6;
+            line-height: 1.7;
             opacity: 0.8;
             margin: 0;
         }
 
         .warning-footer {
-            background: rgba(195, 0, 16, 0.1);
-            border: 1px dashed var(--wf-red);
-            padding: 20px;
+            background: rgba(153, 230, 255, 0.05);
+            border: 1px dashed var(--wf-cyan);
+            padding: 25px;
             text-align: center;
-            font-weight: bold;
-            color: var(--wf-red);
+            font-weight: 900;
+            color: var(--wf-cyan);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
         }
 
-        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6; text-align: center; }
+        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -148,31 +163,79 @@
     </div>
 
     <div class="rules-container">
-        <div class="stamp">Declassified</div>
+        <div class="stamp">Mandatory</div>
         
         <div class="rules-header">
-            <h1>Server Protocol</h1>
-            <p style="color: var(--wf-cyan); font-size: 0.8rem; letter-spacing: 2px;">FILE ID: WF-MC-001</p>
+            <h1>Project: Blue Book</h1>
+            <p style="color: var(--wf-cyan); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px;">SOP-99-ALPHA | OPERATIVE CONDUCT PROTOCOLS</p>
+        </div>
+
+        <div class="section-label">Section I: Neutral Frequency</div>
+
+        <div class="rule-section">
+            <span class="rule-title">01. Political Neutrality</span>
+            <p class="rule-text">This frequency is reserved for the pursuit of the unknown. Discussions regarding real-world politics, candidates, or partisan movements are strictly prohibited to ensure the focus remains on the mission.</p>
         </div>
 
         <div class="rule-section">
-            <span class="rule-title">01. Code of Conduct</span>
-            <p class="rule-text">Be safe, be kind, and show respect to all investigators. Toxic behavior is a simulation anomaly that will be purged.</p>
+            <span class="rule-title">02. Inter-Agency Conduct</span>
+            <p class="rule-text">All operatives are expected to maintain professional decorum. We are a collective of truth-seekers; communication must remain constructive, respectful, and inclusive at all times.</p>
         </div>
 
         <div class="rule-section">
-            <span class="rule-title">02. Unfair Advantage</span>
-            <p class="rule-text">The use of third-party modifications, hacks, or exploits to gain an advantage is strictly prohibited. We are here to study the simulation, not break it.</p>
+            <span class="rule-title">03. Signal Clarity</span>
+            <p class="rule-text">Keep the comms clear for mission-critical data. Avoid spam, excessive capitalization, or the promotion of external agencies and unrelated frequencies.</p>
         </div>
 
         <div class="rule-section">
-            <span class="rule-title">03. Intel Integrity</span>
-            <p class="rule-text">Do not impersonate staff or spread misinformation regarding server events. Keep the archive clean and accurate.</p>
+            <span class="rule-title">04. The Hecklefish Principle</span>
+            <p class="rule-text">Sarcasm and wit are inherent to our culture, but they must never compromise the safety or well-being of a fellow operative. If a joke becomes a breach of respect, it is no longer permitted.</p>
+        </div>
+
+        <div class="section-label">Section II: Site Integrity</div>
+
+        <div class="rule-section">
+            <span class="rule-title">05. Site Authorization</span>
+            <p class="rule-text">Do not tamper with, enter, or modify a Research Site (base) that is not your own without explicit authorization from the lead operative of that site.</p>
+        </div>
+
+        <div class="rule-section">
+            <span class="rule-title">06. Environmental Recovery</span>
+            <p class="rule-text">If a localized anomaly occurs (e.g., Creeper detonation), operatives are expected to restore the terrain to its original state immediately to maintain site integrity.</p>
+        </div>
+
+        <div class="rule-section">
+            <span class="rule-title">07. Structural Stability</span>
+            <p class="rule-text">To maintain server equilibrium, do not construct "Lag Machines" or unoptimized redstone clocks that could destabilize the simulation for other operatives.</p>
+        </div>
+
+        <div class="section-label">Section III: Tech Protocols</div>
+
+        <div class="rule-section">
+            <span class="rule-title">08. Standard Issue Only</span>
+            <p class="rule-text">Operatives must use approved clients. The use of unauthorized augmentations—such as X-ray, flight-hacks, or automated combat tools—is a direct breach of the project's mechanical integrity.</p>
+        </div>
+
+        <div class="rule-section">
+            <span class="rule-title">09. Anomaly Reporting</span>
+            <p class="rule-text">If you discover a "glitch in the matrix" (duplication or economy exploit), you are required to report it to a Lead Researcher immediately rather than utilizing it for personal gain.</p>
+        </div>
+
+        <div class="section-label">Section IV: Security (OPSEC)</div>
+
+        <div class="rule-section">
+            <span class="rule-title">10. Identity Protection</span>
+            <p class="rule-text">Never share real-world coordinates or personal data (PII) of yourself or other operatives on public frequencies. Protect the identity of the Division.</p>
+        </div>
+
+        <div class="rule-section">
+            <span class="rule-title">11. Account Integrity</span>
+            <p class="rule-text">You are the sole custodian of your access credentials. All actions taken under your operative ID are your sole responsibility.</p>
         </div>
 
         <div class="warning-footer">
-            Violations of protocol will result in immediate termination of access. 
-            <br>The Research Division is always watching.
+            Maintain the mystery. Protect the timeline.
+            <br>Always keep your foil hat within reach.
         </div>
     </div>
 
