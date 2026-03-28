@@ -69,7 +69,7 @@
         .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
         .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; text-transform: uppercase; }
 
-        /* --- LORE SIDEBAR (Mission Index) --- */
+        /* --- SIDEBAR --- */
         .side-menu {
             position: fixed; top: 0; left: -320px; width: 300px; height: 100vh;
             background: var(--wf-navy); border-right: 3px solid var(--wf-red);
@@ -86,7 +86,6 @@
             cursor: pointer; font-weight: 900; transition: 0.2s;
             line-height: 1;
         }
-        .close-x:hover { color: var(--wf-white); transform: rotate(90deg); }
 
         .menu-title {
             font-family: 'Archivo Black', sans-serif; color: var(--wf-cyan);
@@ -105,11 +104,8 @@
 
         /* --- INTERFACE --- */
         .terminal-container { 
-            margin-top: 140px; 
-            width: 90%; 
-            max-width: 1100px; 
-            text-align: center;
-            flex-grow: 1; /* Pushes footer down */
+            margin-top: 140px; width: 90%; max-width: 1100px; text-align: center;
+            flex-grow: 1;
         }
 
         .main-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
@@ -130,9 +126,7 @@
             margin-bottom: 30px; transition: 0.3s; font-size: 0.85rem;
         }
 
-        .nav-trigger:hover { background: var(--wf-cyan); color: var(--wf-navy); box-shadow: 0 0 20px var(--wf-cyan); }
-
-        /* --- CONTENT DISPLAY --- */
+        /* --- CARDS --- */
         .menu-content { display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left; }
         .menu-content.active { display: grid; }
 
@@ -143,23 +137,14 @@
             background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(153, 230, 255, 0.1);
             padding: 25px; transition: 0.3s; border-radius: 4px;
         }
-        .item-card:hover { border-color: var(--wf-cyan); background: rgba(153, 230, 255, 0.05); transform: translateY(-5px); }
 
         .tag { font-size: 0.65rem; font-weight: 900; padding: 4px 10px; margin-bottom: 12px; display: inline-block; text-transform: uppercase; }
         .tag-free { background: #28a745; color: white; }
-        .tag-paid { background: var(--wf-red); color: white; }
         .tag-quest { background: #ffc107; color: black; }
 
-        /* --- FOOTER  --- */
         footer {
-            width: 100%;
-            padding: 60px 0 40px;
-            text-align: center;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            opacity: 0.4;
-            text-transform: uppercase;
-            font-weight: 900;
+            width: 100%; padding: 60px 0 40px; text-align: center; font-size: 0.8rem;
+            letter-spacing: 2px; opacity: 0.4; text-transform: uppercase; font-weight: 900;
         }
     </style>
 </head>
@@ -171,7 +156,8 @@
             <div class="wf-circle">WF?</div>
             <div style="color: white;">WHY<span style="color: var(--wf-cyan);">FILES</span></div>
         </div>
-        <div style="width: 80px;"></div> </nav>
+        <div style="width: 80px;"></div>
+    </nav>
 
     <div class="menu-wrap">
         <input type="checkbox" id="menu-toggle" class="toggler">
@@ -215,19 +201,19 @@
             <div id="ql-2" class="questline-group">
                 <div class="item-card">
                     <div class="tag tag-quest">TEST-02</div>
-                    <h3 style="margin: 0; color: var(--wf-cyan);">Test</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.7;">Test</p>
+                    <h3 style="margin: 0; color: var(--wf-cyan);">Mission Beta</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Testing secondary quest log.</p>
                 </div>
             </div>
         </div>
 
         <div id="pets" class="menu-content">
-            <div class="item-card" data-category="join">
+            <div class="item-card" data-category="quest">
                 <div class="tag tag-free">Quest Reward</div>
                 <h3 style="margin: 0;">Foil Hat Hecklefish</h3>
                 <p style="font-size: 0.85rem; opacity: 0.7;">Get all free to play items</p>
             </div>
-            <div class="item-card" data-category="quest">
+            <div class="item-card" data-category="exclusive">
                 <div class="tag tag-quest">Exclusive</div>
                 <h3 style="margin: 0;">Hecklefish with 100 flag</h3>
                 <p style="font-size: 0.85rem; opacity: 0.7;">Earned by being one of the first 100.</p>
@@ -236,18 +222,16 @@
     </div>
 
     <footer>
-        Another Mystery Solved... Or Is It?
+        ANOTHER MYSTERY SOLVED... OR IS IT?
     </footer>
 
     <script>
         let currentTab = 'quests';
 
         function toggleMenu() {
-            const menu = document.getElementById('side-menu');
-            menu.classList.toggle('open');
+            document.getElementById('side-menu').classList.toggle('open');
         }
 
-        function openMenu() { document.getElementById('side-menu').classList.add('open'); }
         function closeMenu() { document.getElementById('side-menu').classList.remove('open'); }
 
         function switchTab(tabId, btn) {
@@ -255,7 +239,13 @@
             currentTab = tabId;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.querySelectorAll('.menu-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelectorAll('.menu-content').forEach(c => {
+                c.classList.remove('active');
+                // Reset card visibility when switching tabs
+                c.querySelectorAll('.item-card').forEach(card => card.style.display = 'block');
+            });
+            
             document.getElementById(tabId).classList.add('active');
             const trigger = document.getElementById('menu-trigger');
             trigger.innerText = (tabId === 'quests') ? '☰ OPEN MISSION INDEX' : '☰ FILTER RESEARCH SPECIMENS';
@@ -274,11 +264,8 @@
                 container.innerHTML = `
                     <div class="menu-title">Filter Specimens</div>
                     <div class="menu-opt" onclick="filterPets('all')">Show All</div>
-                    <div class="menu-opt" onclick="filterPets('free')">Free Pets</div>
-                    <div class="menu-opt" onclick="filterPets('paid')">Premium Pets</div>
                     <div class="menu-opt" onclick="filterPets('quest')">Quest Rewards</div>
-                    <div class="menu-opt" onclick="filterPets('exclusive')">Exclusive Pets</div>
-                    <div class="menu-opt" onclick="filterPets('join')">New Arrival Pets</div>
+                    <div class="menu-opt" onclick="filterPets('exclusive')">Exclusives</div>
                 `;
             }
         }
@@ -293,11 +280,16 @@
             const cards = document.querySelectorAll('#pets .item-card');
             cards.forEach(card => {
                 const itemCat = card.getAttribute('data-category');
-                card.style.display = (category === 'all' || itemCat === category) ? 'block' : 'none';
+                if (category === 'all' || itemCat === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
             });
             closeMenu();
         }
 
+        // Initialize sidebar
         updateSidebarContent();
     </script>
 </body>
