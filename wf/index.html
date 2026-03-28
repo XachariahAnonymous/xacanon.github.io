@@ -1,10 +1,25 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Why Files | Minecraft Server</title>
+    
+    <title>The Why Files | Minecraft Research Division</title>
+    <meta name="title" content="The Why Files | Minecraft Research Division">
+    <meta name="description" content="Official Minecraft Research Terminal. investigate the unknown, protect the timeline, and uncover the truth. Join the division.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xacanon.github.io/"> <meta property="og:title" content="Why Files | Research Division MC">
+    <meta property="og:description" content="Official Server Terminal. 📂 Status: Online. 🌐 Clearance: Level 0. Join the hunt for the truth.">
+    <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
+    
+    <meta name="theme-color" content="#99E6FF">
+
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="Why Files | Research Division MC">
+    <meta property="twitter:description" content="The truth is out there... and it's blocky.">
+    <meta property="twitter:image" content="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
+
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,7 +32,7 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif; /* General text stays Segoe */
+            font-family: 'Segoe UI', sans-serif;
             background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
             color: var(--wf-white);
             display: flex;
@@ -71,35 +86,26 @@
         .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
         .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; }
 
-        /* --- LOGO: EXACT MATCH --- */
+        /* --- LOGO: UPDATED WITH IMAGE --- */
         header { padding: 140px 20px 40px; text-align: center; }
 
         .logo-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            /* Applying the heavy condensed font */
+            gap: 20px;
             font-family: 'Archivo Black', sans-serif;
             font-size: 4rem;
-            letter-spacing: -2px; /* Tight spacing like the image */
+            letter-spacing: -2px;
             text-transform: uppercase;
-            /* The "Glow" effect from your image */
             filter: drop-shadow(0 0 10px rgba(153, 230, 255, 0.3));
         }
 
-        .wf-circle {
-            background-color: var(--wf-red);
-            width: 100px; height: 100px;
+        .wf-logo-img {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 0 15px rgba(195, 0, 16, 0.6));
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: white;
-            letter-spacing: -1px;
-            /* Specific shadow for the red circle */
-            box-shadow: 0 0 30px rgba(195, 0, 16, 0.5);
         }
 
         .text-why { color: var(--wf-white); }
@@ -111,6 +117,7 @@
             border: 1px solid rgba(153, 230, 255, 0.15);
             padding: 40px; border-radius: 4px; backdrop-filter: blur(10px);
             text-align: center; max-width: 650px; width: 90%;
+            margin-bottom: 60px;
         }
 
         .ip-box {
@@ -153,7 +160,7 @@
 
     <header>
         <div class="logo-container">
-            <div class="wf-circle">WF?</div>
+            <img src="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp" alt="WF Logo" class="wf-logo-img">
             <div>
                 <span class="text-why">WHY</span><span class="text-files">FILES</span>
             </div>
@@ -185,7 +192,6 @@
         function copyIP() {
             const ip = "PLAY.THEWHYFILES.IO";
             navigator.clipboard.writeText(ip);
-            // Subtle feedback instead of a jarring alert
             const box = document.querySelector('.ip-box');
             const originalText = box.innerText;
             box.innerText = "COPIED TO CLIPBOARD";
