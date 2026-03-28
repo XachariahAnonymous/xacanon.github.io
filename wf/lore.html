@@ -19,6 +19,7 @@
             background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
             color: var(--wf-white);
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* --- LOGO REPLICA NAVBAR --- */
@@ -46,7 +47,6 @@
         /* --- MAIN INTERFACE --- */
         .terminal-container { margin-top: 120px; width: 90%; max-width: 1100px; text-align: center; }
 
-        /* Primary Category Tabs */
         .main-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
 
         .tab-btn {
@@ -57,11 +57,38 @@
 
         .tab-btn.active { background: var(--wf-red); border-color: var(--wf-red); box-shadow: 0 0 15px var(--wf-red); }
 
-        /* Sub-Category Filters (Specific to Pets) */
-        .sub-filters { 
-            display: none; /* Hidden by default, shown when Pets is active */
-            justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; 
+        /* --- QUESTLINE HAMBURGER --- */
+        #quest-hamburger-trigger {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: rgba(153, 230, 255, 0.1); border: 1px solid var(--wf-cyan);
+            color: var(--wf-cyan); padding: 10px 20px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 20px; transition: 0.3s;
         }
+
+        #quest-hamburger-trigger:hover { background: var(--wf-cyan); color: var(--wf-navy); }
+
+        .quest-sidebar {
+            position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
+            background: var(--wf-navy); border-right: 2px solid var(--wf-red);
+            z-index: 1100; transition: 0.4s ease; padding: 40px 20px; text-align: left;
+            box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+        }
+
+        .quest-sidebar.open { left: 0; }
+
+        .quest-sidebar h3 { font-family: 'Archivo Black', sans-serif; color: var(--wf-red); font-size: 1rem; margin-bottom: 30px; }
+
+        .quest-opt {
+            display: block; color: white; text-decoration: none; padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: bold;
+            text-transform: uppercase; cursor: pointer; transition: 0.2s;
+        }
+
+        .quest-opt:hover { color: var(--wf-cyan); background: rgba(153, 230, 255, 0.05); }
+
+        /* --- CONTENT AREA --- */
+        .sub-filters { display: none; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
 
         .filter-btn {
             background: rgba(255, 255, 255, 0.05); border: 1px solid var(--wf-cyan);
@@ -71,9 +98,12 @@
 
         .filter-btn:hover, .filter-btn.active { background: var(--wf-cyan); color: var(--wf-navy); }
 
-        /* Content Area */
         .menu-content { display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left; }
         .menu-content.active { display: grid; }
+
+        /* Questline Data Container (Only one visible at a time) */
+        .questline-group { display: none; grid-column: 1 / -1; width: 100%; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .questline-group.active { display: grid; }
 
         .item-card {
             background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(153, 230, 255, 0.1);
@@ -97,10 +127,21 @@
         <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">DISCONNECT</a>
     </nav>
 
+    <div id="quest-sidebar" class="quest-sidebar">
+        <h3>SELECT MISSION</h3>
+        <div class="quest-opt" onclick="swapQuestline('ql-1')">Test Questline 1</div>
+        <div class="quest-opt" onclick="swapQuestline('ql-2')">Test Questline 2</div>
+        <div class="quest-opt" onclick="closeSidebar()">CLOSE TERMINAL</div>
+    </div>
+
     <div class="terminal-container">
         <div class="main-tabs">
             <button class="tab-btn active" onclick="showMenu('quests', this)">Quests</button>
             <button class="tab-btn" onclick="showMenu('pets', this)">Pets</button>
+        </div>
+
+        <div id="quest-nav-container">
+            <div id="quest-hamburger-trigger" onclick="openSidebar()">☰ SWITCH QUESTLINE</div>
         </div>
 
         <div id="pet-filters" class="sub-filters">
@@ -113,10 +154,25 @@
         </div>
 
         <div id="quests" class="menu-content active">
-            <div class="item-card">
-                <div class="tag tag-quest">Test</div>
-                <h3 style="margin: 0; color: var(--wf-cyan);">Test</h3>
-                <p style="font-size: 0.85rem; opacity: 0.7;">Test</p>
+            <div id="ql-1" class="questline-group active">
+                <div class="item-card">
+                    <div class="tag tag-quest">QL1-OBJECTIVE</div>
+                    <h3 style="margin: 0; color: var(--wf-cyan);">Test 1 - Part A</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Initial data gathering mission.</p>
+                </div>
+                <div class="item-card">
+                    <div class="tag tag-quest">QL1-OBJECTIVE</div>
+                    <h3 style="margin: 0; color: var(--wf-cyan);">Test 1 - Part B</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Analysis of the breached bedrock.</p>
+                </div>
+            </div>
+
+            <div id="ql-2" class="questline-group">
+                <div class="item-card">
+                    <div class="tag tag-quest">QL2-OBJECTIVE</div>
+                    <h3 style="margin: 0; color: var(--wf-cyan);">Test 2 - Part A</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Decrypting the heckle-fish signal.</p>
+                </div>
             </div>
         </div>
 
@@ -135,22 +191,39 @@
     </div>
 
     <script>
+        // Sidebar Controls
+        function openSidebar() { document.getElementById('quest-sidebar').classList.add('open'); }
+        function closeSidebar() { document.getElementById('quest-sidebar').classList.remove('open'); }
+
+        function swapQuestline(qlId) {
+            // Hide all questline groups
+            document.querySelectorAll('.questline-group').forEach(group => group.classList.remove('active'));
+            // Show selected
+            document.getElementById(qlId).classList.add('active');
+            closeSidebar();
+        }
+
         function showMenu(menuId, btn) {
-            // Toggle active main tabs
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Show/Hide Content
             document.querySelectorAll('.menu-content').forEach(c => c.classList.remove('active'));
             document.getElementById(menuId).classList.add('active');
 
-            // Show/Hide Sub-Filters if Pets is selected
-            const filters = document.getElementById('pet-filters');
-            filters.style.display = (menuId === 'pets') ? 'flex' : 'none';
+            // Toggle sub-elements based on category
+            const petFilters = document.getElementById('pet-filters');
+            const questNav = document.getElementById('quest-nav-container');
+
+            if (menuId === 'pets') {
+                petFilters.style.display = 'flex';
+                questNav.style.display = 'none';
+            } else {
+                petFilters.style.display = 'none';
+                questNav.style.display = 'block';
+            }
         }
 
         function filterItems(category) {
-            // Toggle filter button state
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
 
@@ -164,6 +237,5 @@
             });
         }
     </script>
-
 </body>
 </html>
