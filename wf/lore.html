@@ -52,7 +52,7 @@
             box-shadow: 0 0 15px rgba(195, 0, 16, 0.4);
         }
 
-        /* --- HAMBURGER MENU --- */
+        /* --- HAMBURGER --- */
         .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 2100; }
         .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 2102; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
         .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2101; }
@@ -77,75 +77,32 @@
             padding: 90px 20px 20px; box-sizing: border-box;
             box-shadow: 25px 0 50px rgba(0,0,0,0.8);
         }
-
         .side-menu.open { left: 0; }
-
-        .close-x {
-            position: absolute; top: 20px; right: 25px;
-            font-size: 2rem; color: var(--wf-red);
-            cursor: pointer; font-weight: 900; transition: 0.2s;
-            line-height: 1;
-        }
-
-        .menu-title {
-            font-family: 'Archivo Black', sans-serif; color: var(--wf-cyan);
-            font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;
-            margin-bottom: 25px; border-bottom: 1px solid rgba(153, 230, 255, 0.2);
-            padding-bottom: 10px;
-        }
-
-        .menu-opt {
-            display: block; color: white; text-decoration: none; padding: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 900;
-            text-transform: uppercase; cursor: pointer; transition: 0.2s; font-size: 0.8rem;
-        }
-
+        .close-x { position: absolute; top: 20px; right: 25px; font-size: 2rem; color: var(--wf-red); cursor: pointer; font-weight: 900; }
+        .menu-title { font-family: 'Archivo Black', sans-serif; color: var(--wf-cyan); font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 25px; border-bottom: 1px solid rgba(153, 230, 255, 0.2); padding-bottom: 10px; }
+        .menu-opt { display: block; color: white; text-decoration: none; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
         .menu-opt:hover { color: var(--wf-cyan); background: rgba(153, 230, 255, 0.1); padding-left: 25px; }
 
         /* --- INTERFACE --- */
-        .terminal-container { 
-            margin-top: 140px; width: 90%; max-width: 1100px; text-align: center;
-            flex-grow: 1;
-        }
-
+        .terminal-container { margin-top: 140px; width: 90%; max-width: 1100px; text-align: center; flex-grow: 1; position: relative; }
         .main-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-
-        .tab-btn {
-            background: transparent; border: 1px solid rgba(153, 230, 255, 0.3);
-            color: white; padding: 12px 30px; font-weight: 900; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s;
-        }
-
+        .tab-btn { background: transparent; border: 1px solid rgba(153, 230, 255, 0.3); color: white; padding: 12px 30px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
         .tab-btn.active { background: var(--wf-red); border-color: var(--wf-red); box-shadow: 0 0 15px var(--wf-red); }
+        .nav-trigger { display: inline-flex; align-items: center; gap: 12px; background: rgba(153, 230, 255, 0.05); border: 1px solid var(--wf-cyan); color: var(--wf-cyan); padding: 12px 30px; cursor: pointer; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; transition: 0.3s; font-size: 0.85rem; }
 
-        .nav-trigger {
-            display: inline-flex; align-items: center; gap: 12px;
-            background: rgba(153, 230, 255, 0.05); border: 1px solid var(--wf-cyan);
-            color: var(--wf-cyan); padding: 12px 30px; cursor: pointer;
-            font-weight: 900; text-transform: uppercase; letter-spacing: 2px;
-            margin-bottom: 30px; transition: 0.3s; font-size: 0.85rem;
-        }
-
-        /* --- CARDS --- */
+        /* --- CARDS & FILTERING --- */
         .menu-content { display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left; }
         .menu-content.active { display: grid; }
-
         .questline-group { display: none; grid-column: 1 / -1; width: 100%; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         .questline-group.active { display: grid; }
-
-        .item-card {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(153, 230, 255, 0.1);
-            padding: 25px; transition: 0.3s; border-radius: 4px;
-        }
-
+        .item-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(153, 230, 255, 0.1); padding: 25px; transition: 0.3s; border-radius: 4px; }
         .tag { font-size: 0.65rem; font-weight: 900; padding: 4px 10px; margin-bottom: 12px; display: inline-block; text-transform: uppercase; }
         .tag-free { background: #28a745; color: white; }
         .tag-quest { background: #ffc107; color: black; }
+        
+        #no-results { display: none; grid-column: 1 / -1; padding: 50px; opacity: 0.5; font-style: italic; letter-spacing: 1px; }
 
-        footer {
-            width: 100%; padding: 60px 0 40px; text-align: center; font-size: 0.8rem;
-            letter-spacing: 2px; opacity: 0.4; text-transform: uppercase; font-weight: 900;
-        }
+        footer { width: 100%; padding: 60px 0 40px; text-align: center; font-size: 0.8rem; letter-spacing: 2px; opacity: 0.4; text-transform: uppercase; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -195,19 +152,21 @@
                 <div class="item-card">
                     <div class="tag tag-quest">TEST-01</div>
                     <h3 style="margin: 0; color: var(--wf-cyan);">Test</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.7;">Test</p>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Test data active.</p>
                 </div>
             </div>
             <div id="ql-2" class="questline-group">
                 <div class="item-card">
                     <div class="tag tag-quest">TEST-02</div>
                     <h3 style="margin: 0; color: var(--wf-cyan);">Mission Beta</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.7;">Testing secondary quest log.</p>
+                    <p style="font-size: 0.85rem; opacity: 0.7;">Secondary logs operational.</p>
                 </div>
             </div>
         </div>
 
         <div id="pets" class="menu-content">
+            <div id="no-results">DATA PURGED: No specimens match this filter.</div>
+            
             <div class="item-card" data-category="quest">
                 <div class="tag tag-free">Quest Reward</div>
                 <h3 style="margin: 0;">Foil Hat Hecklefish</h3>
@@ -228,10 +187,7 @@
     <script>
         let currentTab = 'quests';
 
-        function toggleMenu() {
-            document.getElementById('side-menu').classList.toggle('open');
-        }
-
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
         function closeMenu() { document.getElementById('side-menu').classList.remove('open'); }
 
         function switchTab(tabId, btn) {
@@ -242,10 +198,10 @@
             
             document.querySelectorAll('.menu-content').forEach(c => {
                 c.classList.remove('active');
-                // Reset card visibility when switching tabs
                 c.querySelectorAll('.item-card').forEach(card => card.style.display = 'block');
             });
             
+            document.getElementById('no-results').style.display = 'none';
             document.getElementById(tabId).classList.add('active');
             const trigger = document.getElementById('menu-trigger');
             trigger.innerText = (tabId === 'quests') ? '☰ OPEN MISSION INDEX' : '☰ FILTER RESEARCH SPECIMENS';
@@ -264,8 +220,11 @@
                 container.innerHTML = `
                     <div class="menu-title">Filter Specimens</div>
                     <div class="menu-opt" onclick="filterPets('all')">Show All</div>
+                    <div class="menu-opt" onclick="filterPets('free')">Free Pets</div>
+                    <div class="menu-opt" onclick="filterPets('paid')">Premium Pets</div>
                     <div class="menu-opt" onclick="filterPets('quest')">Quest Rewards</div>
                     <div class="menu-opt" onclick="filterPets('exclusive')">Exclusives</div>
+                    <div class="menu-opt" onclick="filterPets('join')">New Arrivals</div>
                 `;
             }
         }
@@ -278,18 +237,23 @@
 
         function filterPets(category) {
             const cards = document.querySelectorAll('#pets .item-card');
+            const noResults = document.getElementById('no-results');
+            let visibleCount = 0;
+
             cards.forEach(card => {
                 const itemCat = card.getAttribute('data-category');
                 if (category === 'all' || itemCat === category) {
                     card.style.display = 'block';
+                    visibleCount++;
                 } else {
                     card.style.display = 'none';
                 }
             });
+
+            noResults.style.display = (visibleCount === 0) ? 'block' : 'none';
             closeMenu();
         }
 
-        // Initialize sidebar
         updateSidebarContent();
     </script>
 </body>
