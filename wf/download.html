@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Why Files | Download</title>
+    <link rel="icon" type="image/png" href="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
+    <meta name="theme-color" content="#99E6FF">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --wf-navy:   #051C2C;
+            --wf-red:    #C30010;
+            --wf-cyan:   #99E6FF;
+            --wf-white:  #FFFFFF;
+            --wf-glass:  rgba(153, 230, 255, 0.05);
+            --wf-border: rgba(153, 230, 255, 0.15);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--wf-navy);
+            color: var(--wf-white);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ── Animated background grid ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(153,230,255,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(153,230,255,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: grid-drift 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Radial glow ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(153,230,255,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes grid-drift {
+            from { background-position: 0 0, 0 0; }
+            to   { background-position: 60px 60px, 60px 60px; }
+        }
+
+        /* ── Center card ── */
+        .card {
+            position: relative;
+            z-index: 1;
+            width: min(560px, 90vw);
+            background: var(--wf-glass);
+            border: 1px solid var(--wf-border);
+            backdrop-filter: blur(20px);
+            padding: 60px 50px;
+            text-align: center;
+            animation: card-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* Red corner accent */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 60px;
+            background: var(--wf-red);
+        }
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 60px; height: 4px;
+            background: var(--wf-red);
+        }
+
+        @keyframes card-in {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Logo ── */
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+
+        .logo img {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.1);
+            filter: drop-shadow(0 0 12px rgba(195,0,16,0.5));
+        }
+
+        .logo-text {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.6rem;
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .logo-text .why   { color: var(--wf-white); }
+        .logo-text .files { color: var(--wf-cyan); }
+
+        /* ── Tag line ── */
+        .tagline {
+            font-size: 0.65rem;
+            letter-spacing: 5px;
+            color: var(--wf-cyan);
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 48px;
+            animation: card-in 0.9s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        /* ── File info block ── */
+        .file-info {
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(153,230,255,0.1);
+            padding: 20px 24px;
+            margin-bottom: 32px;
+            text-align: left;
+            animation: card-in 0.9s 0.25s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        .file-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .file-row:last-child { border-bottom: none; }
+        .file-row .label { opacity: 0.45; letter-spacing: 2px; text-transform: uppercase; }
+        .file-row .value { color: var(--wf-cyan); font-weight: 700; }
+
+        /* ── Download button ── */
+        .download-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            padding: 20px;
+            background: var(--wf-red);
+            color: var(--wf-white);
+            text-decoration: none;
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: box-shadow 0.3s, transform 0.2s;
+            animation: card-in 0.9s 0.35s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.12);
+            transform: translateX(-110%) skewX(-15deg);
+            transition: transform 0.5s ease;
+        }
+
+        .download-btn:hover::before { transform: translateX(110%) skewX(-15deg); }
+        .download-btn:hover {
+            box-shadow: 0 0 40px rgba(195,0,16,0.6), 0 0 80px rgba(195,0,16,0.2);
+            transform: translateY(-2px);
+        }
+        .download-btn:active { transform: translateY(0); }
+
+        /* Arrow icon */
+        .btn-icon {
+            width: 22px; height: 22px;
+            flex-shrink: 0;
+        }
+
+        /* ── Footer note ── */
+        .foot-note {
+            margin-top: 28px;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            opacity: 0.3;
+            text-transform: uppercase;
+            animation: card-in 0.9s 0.45s cubic-bezier(0.16,1,0.3,1) both;
+        }
+
+        /* ── Corner scan line ── */
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--wf-cyan), transparent);
+            opacity: 0.25;
+            animation: scan 6s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            from { top: 0; }
+            to   { top: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanline"></div>
+
+    <div class="card">
+
+        <div class="logo">
+            <img
+                src="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp"
+                alt="Why Files Logo"
+            >
+            <div class="logo-text">
+                <span class="why">WHY</span><span class="files">FILES</span>
+            </div>
+        </div>
+
+        <p class="tagline">Official Download Portal</p>
+
+        <!-- ── File metadata — update these as needed ── -->
+        <div class="file-info">
+            <div class="file-row">
+                <span class="label">File</span>
+                <span class="value">AntiSwear.jar</span>  <!-- ← change -->
+            </div>
+            <div class="file-row">
+                <span class="label">Version</span>
+                <span class="value">1.0.0</span>              <!-- ← change -->
+            </div>
+            <div class="file-row">
+                <span class="label">Size</span>
+                <span class="value">—</span>                  <!-- ← change -->
+            </div>
+            <div class="file-row">
+                <span class="label">Type</span>
+                <span class="value">.JAR (Java Archive)</span>
+            </div>
+            <div class="file-row">
+                <span class="label">Requires</span>
+                <span class="value">Java 17+</span>           <!-- ← change if needed -->
+            </div>
+            <div class="file-row">
+                <span class="label">Status</span>
+                <span class="value" style="color: #4eff91;">READY</span>
+            </div>
+        </div>
+
+        <!--
+            ↓ Replace href="#" with the actual file URL or path
+              e.g. href="files/yourfile.zip" download
+        -->
+        <a href="wf/AntiSwear.jar" download class="download-btn">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v13M7 11l5 5 5-5"/>
+                <path d="M4 20h16"/>
+            </svg>
+            Download
+        </a>
+
+        <p class="foot-note">Another mystery solved… or is it?</p>
+
+    </div>
+
+</body>
+</html>
