@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLK | Fiscal Architecture & Macroeconomic Framework</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --accent: #8A2BE2;
+            --muted: #666666;
+            --border: rgba(255, 255, 255, 0.1);
+            --burn: #ff4500; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            line-height: 1.8;
+            padding: 0;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 180px auto 100px;
+            padding: 0 5%;
+        }
+
+        .label {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            display: block;
+            letter-spacing: 3px;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            margin-bottom: 4rem;
+            letter-spacing: -3px;
+            line-height: 1.05;
+            font-weight: 700;
+        }
+
+        /* Economy Cards */
+        .economy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-bottom: 6rem;
+        }
+
+        .eco-card {
+            border: 1px solid var(--border);
+            padding: 4rem;
+            background: linear-gradient(180deg, #080808 0%, #000 100%);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .eco-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .eco-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #efefef;
+        }
+
+        .eco-card .percentage {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 2rem;
+            display: block;
+        }
+
+        .eco-card.burn-card {
+            border-color: rgba(255, 69, 0, 0.2);
+        }
+
+        .eco-card.burn-card .percentage {
+            color: var(--burn);
+            text-shadow: 0 0 30px rgba(255, 69, 0, 0.2);
+        }
+
+        .eco-card p {
+            color: #b0b0b0;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* Revenue Infrastructure */
+        .revenue-streams {
+            margin-top: 6rem;
+            padding: 5rem;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.01);
+        }
+
+        .revenue-streams h3 {
+            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 3.5rem;
+            color: var(--muted);
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .stream-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 2.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stream-item:last-child { border-bottom: none; }
+
+        .stream-name { 
+            font-weight: 700; 
+            font-size: 1.3rem; 
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        
+        .stream-desc { 
+            font-size: 1rem; 
+            color: #888; 
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .yield-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 6px 16px;
+            white-space: nowrap;
+        }
+
+        footer {
+            margin-top: 150px;
+            padding: 6rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 850px) {
+            .economy-grid { grid-template-columns: 1fr; }
+            .revenue-streams { padding: 2rem; }
+            .stream-item { flex-direction: column; gap: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html">← RETURN TO CORE INTERFACE</a>
+        <a href="#">BLK // MACROECONOMIC ARCHITECTURE</a>
+    </nav>
+
+    <div class="container">
+        <span class="label">Fiscal Governance Protocol</span>
+        <h1>Equitable Value Distribution & Deflationary Equilibrium.</h1>
+
+        <div class="economy-grid">
+            <div class="eco-card">
+                <span class="percentage">70/30</span>
+                <h2>Capital Allotment Model</h2>
+                <p>The BLK ecosystem operates on a foundational mandate of creator-first equity. By implementing a high-throughput 70/30 revenue split, we ensure that the vast majority of gross economic value remains with the primary producer. This framework effectively bypasses the traditional industry’s exploitative recoupment cycles, facilitating immediate liquidity and sustained financial autonomy for independent artists and gaming creators globally.</p>
+            </div>
+
+            <div class="eco-card burn-card">
+                <span class="percentage">50%</span>
+                <h2>Deflationary Supply Logic</h2>
+                <p>Institutional longevity is anchored by a programmatic supply-reduction mechanism. BLK allocates 50% of all net operational surpluses—derived from immersive venue services—toward an automated buy-back and permanent asset retirement (burn) protocol. This strategic reduction of circulating supply is engineered to counteract inflationary pressure and incentivize long-term stakeholder retention through hardcoded scarcity.</p>
+            </div>
+        </div>
+
+        <div class="revenue-streams">
+            <h3>Institutional Revenue Verticals & Sector Analysis</h3>
+            
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Meta-Asset Virtual Commerce</span>
+                    <p class="stream-desc">The high-margin distribution of digital-native wearables, avatar enhancements, and immersive collectible assets. These items utilize the BLK server's proprietary social layers to drive consistent micro-transactional volume and secondary market demand.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Immersive Performance Infrastructure</span>
+                    <p class="stream-desc">Our scalable metaverse venue provides an alternative to physical logistics, utilizing smart-contract ticketing and tiered access protocols. This allows for high-frequency, low-overhead touring experiences that maximize the direct-to-fan revenue ceiling.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Decentralized Audio Discography</span>
+                    <p class="stream-desc">Primary distribution of intellectual property via the BLK decentralized node. By streamlining the path between creation and consumption, we enable artists to monetize full-length projects and exclusive audio drops with total on-chain transparency.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+        </div>
+
+        <footer>
+            BLK PROTOCOL // FINANCIAL AUDIT STATUS: OPERATIONAL // ECOSYSTEM v1.0.4 // 2026
+        </footer>
+    </div>
+
+</body>
+</html>
