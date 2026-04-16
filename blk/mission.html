@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLK | Strategic Mission</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --accent: #8A2BE2;
+            --muted: #888888;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            line-height: 1.7;
+            padding: 0;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 160px auto 100px;
+            padding: 0 5%;
+        }
+
+        .label {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            margin-bottom: 3rem;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .mission-section {
+            margin-bottom: 5rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .mission-section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+            width: fit-content;
+        }
+
+        .mission-section p {
+            font-size: 1.15rem;
+            color: #d1d1d1;
+            max-width: 750px;
+        }
+
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 4rem 0;
+        }
+
+        .stat-card {
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            background: linear-gradient(145deg, #0a0a0a 0%, #000 100%);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card span {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        footer {
+            margin-top: 100px;
+            padding: 4rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        /* Subtle underline effect for key terms */
+        .highlight {
+            color: var(--text);
+            border-bottom: 1px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html">← RETURN TO INTERFACE</a>
+        <a href="#">BLK // CORPORATE MISSION</a>
+    </nav>
+
+    <div class="container">
+        <span class="label">Executive Summary</span>
+        <h1>Redefining the Creator-Label Relationship.</h1>
+        
+        <div class="mission-section">
+            <h2>The Infrastructure Deficit</h2>
+            <p>The contemporary music industry relies on antiquated distribution models that prioritize <span class="highlight">centralized equity over creator autonomy</span>. At BLK, we identify the systemic gap between digital output and fair revenue throughput. We are building the rails for a frictionless, transparent creative economy.</p>
+        </div>
+
+        <div class="mission-section">
+            <h2>IP Autonomy & Revenue</h2>
+            <p>Our operational framework utilizes a <span class="highlight">100% pass-through model</span>. Unlike traditional entities, BLK does not seek ownership of Master Rights. We provide the essential resources—marketing, Web3 integration, and immersive distribution—while ensuring the creator retains absolute intellectual property control.</p>
+        </div>
+
+        <div class="mission-section">
+            <h2>The Metaverse Utility</h2>
+            <p>By leveraging proprietary Minecraft-based venue infrastructure, we offer artists a high-scalability alternative to physical touring. This immersive environment facilitates <span class="highlight">real-time fan engagement and direct-to-consumer monetization</span> through the $BLK token ecosystem.</p>
+        </div>
+
+        <div class="grid-stats">
+            <div class="stat-card">
+                <h3>100%</h3>
+                <span>Net Royalty Pass-Through</span>
+            </div>
+            <div class="stat-card">
+                <h3>Direct</h3>
+                <span>IP Ownership Rights</span>
+            </div>
+            <div class="stat-card">
+                <h3>On-Chain</h3>
+                <span>Financial Transparency</span>
+            </div>
+        </div>
+
+        <footer>
+            <p class="footer-text">BLK ECOSYSTEM // DOCUMENT v1.0 // 2026</p>
+        </footer>
+    </div>
+
+</body>
+</html>
