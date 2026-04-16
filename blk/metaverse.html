@@ -46,7 +46,6 @@
             letter-spacing: 1px;
         }
 
-        /* Hero Section */
         .meta-hero {
             height: 50vh;
             display: flex;
@@ -93,7 +92,6 @@
             100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
         }
 
-        /* Content Grid */
         .content-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -131,8 +129,7 @@
             font-size: 0.95rem;
             color: #ccc;
         }
-
-        /* Interactive IP Box */
+        
         .ip-container {
             margin-top: 2rem;
             position: relative;
@@ -169,8 +166,7 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
-        /* Events */
+        
         .event-item {
             display: flex;
             justify-content: space-between;
@@ -278,7 +274,6 @@
                 }, 2000);
             }).catch(err => {
                 console.error('Failed to copy: ', err);
-                // Fallback for non-https or older browsers
                 const el = document.createElement('textarea');
                 el.value = ipText;
                 document.body.appendChild(el);
