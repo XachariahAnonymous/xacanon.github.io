@@ -75,7 +75,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 3rem;
-            margin-bottom: 6rem;
+            margin-bottom: 4rem;
         }
 
         .eco-card {
@@ -115,6 +115,30 @@
             color: #b0b0b0;
             font-size: 1.1rem;
             font-weight: 300;
+        }
+
+        /* Essential Protocol Callout */
+        .protocol-box {
+            margin-bottom: 6rem;
+            padding: 3rem;
+            border: 1px solid var(--accent);
+            background: rgba(138, 43, 226, 0.03);
+            position: relative;
+        }
+
+        .protocol-box h3 {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .protocol-box p {
+            font-size: 1.1rem;
+            color: #fff;
+            max-width: 900px;
         }
 
         .revenue-streams {
@@ -169,16 +193,6 @@
             white-space: nowrap;
         }
 
-        .legal-note {
-            margin-top: 2rem;
-            padding: 2rem;
-            background: rgba(138, 43, 226, 0.05);
-            border: 1px solid var(--accent);
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85rem;
-            color: #ccc;
-        }
-
         footer {
             margin-top: 150px;
             padding: 6rem 0;
@@ -192,6 +206,7 @@
 
         @media (max-width: 850px) {
             .economy-grid { grid-template-columns: 1fr; }
+            .protocol-box { padding: 2rem; }
             .revenue-streams { padding: 2rem; }
             .stream-item { flex-direction: column; gap: 1.5rem; }
         }
@@ -206,24 +221,25 @@
 
     <div class="container">
         <span class="label">Fiscal Governance Protocol</span>
-        <h1>Equitable Value Distribution & Deflationary Equilibrium.</h1>
+        <h1>Value Distribution & Ecosystem Sustainability.</h1>
 
         <div class="economy-grid">
             <div class="eco-card">
                 <span class="percentage">70/30</span>
-                <h2>Metaverse Capital Model</h2>
-                <p>The BLK ecosystem implements a tier-based revenue framework strictly localized to the immersive metaverse environment. Within this digital frontier, creators retain a 70% gross yield on all transactions. This strategic allocation facilitates the continuous maintenance, global hosting, and architectural development of the BLK infrastructure without compromising the creator’s external earning potential.</p>
+                <h2>Digital Capital Allotment Model</h2>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing. This model ensures that the creative force behind the content is the primary beneficiary of the value generated on the platform.</p>
             </div>
 
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
-                <h2>Deflationary Supply Logic</h2>
-                <p>Institutional longevity is anchored by a programmatic supply-reduction mechanism. BLK allocates 50% of all net operational surpluses derived from metaverse services toward an automated buy-back and permanent asset retirement protocol. This strategic reduction of circulating supply is engineered to counteract inflationary pressure and incentivize long-term stakeholder retention through hardcoded scarcity.</p>
+                <h2>Operational Burn Protocol</h2>
+                <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program. This deflationary logic leverages ecosystem growth to drive systemic scarcity for all token holders.</p>
             </div>
         </div>
 
-        <div class="legal-note">
-            <strong>PROTOCOL CLARIFICATION:</strong> The BLK 100% Pass-Through model remains absolute across all primary distribution platforms. BLK does not capture, levy, or interfere with external royalties, streaming dividends, or intellectual property earnings generated outside the Metaverse ecosystem.
+        <div class="protocol-box">
+            <h3>Infrastructure & Development Mandate</h3>
+            <p>The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes the localized management of immersive hosting, architectural world-building, and high-performance development cycles. Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</p>
         </div>
 
         <div class="revenue-streams">
@@ -231,16 +247,16 @@
             
             <div class="stream-item">
                 <div>
-                    <span class="stream-name">Meta-Asset Virtual Commerce</span>
-                    <p class="stream-desc">The high-margin distribution of digital-native assets and immersive collectibles. Revenue captured from these transactions is utilized for server-side hosting and ongoing asset development cycles.</p>
+                    <span class="stream-name">Digital Asset Commerce</span>
+                    <p class="stream-desc">The distribution of virtual collectibles and proprietary avatar utility skins. Fees associated with these transactions are reinvested directly into the architectural expansion of the BLK digital frontier.</p>
                 </div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
 
             <div class="stream-item">
                 <div>
-                    <span class="stream-name">Performance Infrastructure</span>
-                    <p class="stream-desc">Scalable virtual ticketing and tiered fan-engagement access. These operational fees cover the high-throughput bandwidth and technical oversight required for global immersive events.</p>
+                    <span class="stream-name">Performance Infrastructure Access</span>
+                    <p class="stream-desc">Global ticketing for immersive live events and tiered engagement passes. These revenue streams cover the high-bandwidth hosting costs and real-time technical oversight required for decentralized performances.</p>
                 </div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
