@@ -42,7 +42,7 @@
 
         .container { max-width: 1100px; margin: 180px auto 100px; padding: 0 5%; }
 
-        .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: b; letter-spacing: 3px; }
+        .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
 
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
@@ -55,7 +55,7 @@
         }
 
         .eco-card h2 { font-size: 1.4rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; color: #efefef; }
-        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: b; }
+        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
         .eco-card.burn-card { border-color: rgba(255, 69, 0, 0.2); }
         .eco-card.burn-card .percentage { color: var(--burn); text-shadow: 0 0 30px rgba(255, 69, 0, 0.2); }
         .eco-card p { color: #b0b0b0; font-size: 1.1rem; font-weight: 300; }
@@ -82,6 +82,14 @@
                 var(--color-public) 234deg 360deg
             );
             animation: pulse-glow 3s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transition: transform 0.2s;
+        }
+
+        /* PIE CHART HOVER GLITCH */
+        .pie-chart:hover {
+            animation: glitch-red 0.15s infinite, pulse-glow 3s infinite alternate;
+            transform: scale(1.02) skewX(-1deg);
+            cursor: crosshair;
         }
 
         @keyframes pulse-glow {
@@ -96,7 +104,7 @@
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
         .legend-text { font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; position: relative; }
         
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; display: inline-b; min-width: 90px; }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; display: inline-block; min-width: 90px; }
 
         .legend-item:hover .legend-text, 
         .eco-card:hover h2, 
