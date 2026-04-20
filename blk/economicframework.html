@@ -46,7 +46,22 @@
 
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- INTENSE PIE CHART GLITCH --- */
+        /* --- ECONOMY GRID --- */
+        .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
+        
+        .eco-card { 
+            border: 1px solid var(--border); padding: 4rem; 
+            background: linear-gradient(180deg, #080808 0%, #000 100%); 
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .eco-card h2 { font-size: 1.4rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; color: #efefef; }
+        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
+        .eco-card.burn-card { border-color: rgba(255, 69, 0, 0.2); }
+        .eco-card.burn-card .percentage { color: var(--burn); text-shadow: 0 0 30px rgba(255, 69, 0, 0.2); }
+        .eco-card p { color: #b0b0b0; font-size: 1.1rem; font-weight: 300; }
+
+        /* --- REFINED PIE CHART GLITCH --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
@@ -64,28 +79,57 @@
             );
             animation: pulse-glow 3s infinite alternate;
             position: relative;
-            transition: filter 0.1s;
+            transition: transform 0.1s;
         }
 
-        /* The Full Glitch Trigger */
+        /* Ghost layers for Chromatic Aberration */
+        .pie-chart::before, .pie-chart::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background-image: inherit;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .pie-chart:hover::before {
+            opacity: 0.7;
+            animation: glitch-color-1 0.2s infinite;
+            filter: hue-rotate(90deg) saturate(2);
+        }
+
+        .pie-chart:hover::after {
+            opacity: 0.7;
+            animation: glitch-color-2 0.2s infinite;
+            filter: hue-rotate(-90deg) saturate(2);
+        }
+
         .pie-chart:hover {
-            animation: full-glitch 0.2s infinite, pulse-glow 3s infinite alternate;
-            filter: contrast(1.5) brightness(1.2) saturate(1.5);
+            animation: main-shake 0.1s infinite;
             cursor: crosshair;
         }
 
-        @keyframes full-glitch {
-            0% { transform: translate(0); clip-path: inset(0 0 0 0); }
-            10% { transform: translate(-5px, 2px); clip-path: inset(10% 0 80% 0); text-shadow: 2px 0 red; }
-            20% { transform: translate(5px, -2px); clip-path: inset(80% 0 10% 0); }
-            30% { transform: translate(-2px, 5px); clip-path: inset(40% 0 40% 0); }
-            40% { transform: translate(2px, -5px); clip-path: inset(20% 0 60% 0); }
-            50% { transform: translate(-8px, 1px); clip-path: inset(60% 0 20% 0); }
-            60% { transform: translate(8px, -1px); filter: hue-rotate(90deg); }
-            70% { transform: translate(-2px, 3px); clip-path: inset(50% 0 10% 0); }
-            80% { transform: translate(2px, -3px); clip-path: inset(10% 0 50% 0); }
-            90% { transform: translate(-4px, 0); filter: hue-rotate(-90deg); }
-            100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+        @keyframes main-shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(2px, -1px); }
+            50% { transform: translate(-1px, 2px); }
+            75% { transform: translate(1px, 1px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes glitch-color-1 {
+            0% { transform: translate(0); }
+            33% { transform: translate(-5px, 3px); }
+            66% { transform: translate(5px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes glitch-color-2 {
+            0% { transform: translate(0); }
+            33% { transform: translate(5px, -3px); }
+            66% { transform: translate(-5px, 2px); }
+            100% { transform: translate(0); }
         }
 
         @keyframes pulse-glow {
@@ -93,7 +137,7 @@
             100% { box-shadow: 0 0 60px rgba(138, 43, 226, 0.4); border-color: var(--accent); }
         }
 
-        /* --- RED TEXT GLITCH --- */
+        /* --- UNIVERSAL RED GLITCH --- */
         .legend-item:hover .legend-text, 
         .eco-card:hover h2, 
         .eco-card:hover .percentage, 
@@ -102,6 +146,7 @@
             color: var(--error) !important;
         }
 
+        /* LOCKED_ASSET ERR Logic */
         .locked:hover .legend-pct::after {
             content: "LOCKED_ASSET::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
@@ -118,20 +163,18 @@
             100% { transform: translate(0); }
         }
 
-        /* --- LAYOUT STYLES --- */
-        .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
-        .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: all 0.4s; }
-        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); display: block; margin-bottom: 2rem; }
-        .eco-card.burn-card .percentage { color: var(--burn); }
-        .protocol-box { margin-bottom: 6rem; padding: 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); }
+        /* --- LEGEND & STREAMS --- */
         .legend { font-family: 'Space Mono', monospace; list-style: none; }
         .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
         .legend-item:hover { transform: translateX(10px); }
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
         .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
+
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
         .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; }
         .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; height: fit-content; }
+
         footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
     </style>
 </head>
@@ -155,13 +198,8 @@
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
                 <h2>Operational Burn Protocol</h2>
-                <p>50% of operational surpluses are utilized for an automated buy-back program to drive systemic asset scarcity.</p>
+                <p>To secure long-term appreciation, 50% of operational surpluses are utilized for an automated buy-back and asset retirement program.</p>
             </div>
-        </div>
-
-        <div class="protocol-box">
-            <h3>Infrastructure & Development Mandate</h3>
-            <p>The 30% operational allotment supports localized hosting and world-building. All external royalties remain 100% untouched.</p>
         </div>
 
         <section class="chart-section">
