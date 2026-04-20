@@ -14,6 +14,11 @@
             --muted: #666666;
             --border: rgba(255, 255, 255, 0.1);
             --burn: #ff4500; 
+            /* Colors matching the pie chart as best as possible from the image */
+            --color-directors: #2e0040; /* Darkest purple */
+            --color-investor: #5a007f;   /* Medium-dark purple */
+            --color-artists: #6f2fa1;    /* Medium-light purple */
+            --color-public: #3f3f4c;     /* Dark desaturated purple/grey */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -118,7 +123,7 @@
         }
 
         .protocol-box {
-            margin-bottom: 6rem;
+            margin-bottom: 4rem; /* Adjusted for pie chart */
             padding: 3rem;
             border: 1px solid var(--accent);
             background: rgba(138, 43, 226, 0.03);
@@ -138,6 +143,77 @@
             font-size: 1.1rem;
             color: #fff;
             max-width: 900px;
+        }
+
+        /* Pie Chart Styles */
+        .chart-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 6rem;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .chart-label {
+            grid-column: 1 / -1;
+            font-family: 'Space Mono', monospace;
+            color: #999;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .pie-chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pie-chart {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 3px solid #666; /* Adding the border from image */
+            box-shadow: 0 0 40px rgba(111, 47, 161, 0.2); /* Soft shadow from image */
+            /* Percentages converted to degrees and then combined:
+               30% = 108deg (Directors: dark purple)
+               10% = 36deg  (Investor: medium-dark purple) -> ends at 144deg
+               25% = 90deg  (Artists: medium-light purple)  -> ends at 234deg
+               35% = 126deg (Public: dark grey-purple)     -> ends at 360deg
+            */
+            background-image: conic-gradient(
+                var(--color-directors) 0deg 108deg,
+                var(--color-investor) 108deg 144deg,
+                var(--color-artists) 144deg 234deg,
+                var(--color-public) 234deg 360deg
+            );
+        }
+
+        .legend {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: #ccc;
+            list-style: none;
+            padding-left: 1rem;
+        }
+
+        .legend-item {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .legend-color-box {
+            width: 14px;
+            height: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            border: 1px solid #777;
         }
 
         .revenue-streams {
@@ -208,6 +284,9 @@
             .protocol-box { padding: 2rem; }
             .revenue-streams { padding: 2rem; }
             .stream-item { flex-direction: column; gap: 1.5rem; }
+            .chart-section { grid-template-columns: 1fr; text-align: center; padding: 1rem; }
+            .legend { padding-left: 0; display: inline-block; text-align: left; }
+            .pie-chart { width: 250px; height: 250px; }
         }
     </style>
 </head>
@@ -241,10 +320,34 @@
             <p>The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes the localized management of immersive hosting, architectural world-building, and high-performance development cycles. Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</p>
         </div>
 
+        <section class="chart-section">
+            <div class="chart-label">BLK Tokenomic Visual</div>
+            <div class="pie-chart-container">
+                <div class="pie-chart"></div>
+            </div>
+            <ul class="legend">
+                <li class="legend-item">
+                    <div class="legend-color-box" style="background-color: var(--color-directors);"></div>
+                    <div>PROJECT DIRECTORS, DEVELOPERS & FOUNDERS: <span style="font-weight: 700;">30.0%</span></div>
+                </li>
+                <li class="legend-item">
+                    <div class="legend-color-box" style="background-color: var(--color-investor);"></div>
+                    <div>LEAD INVESTOR: <span style="font-weight: 700;">10.0%</span></div>
+                </li>
+                <li class="legend-item">
+                    <div class="legend-color-box" style="background-color: var(--color-artists);"></div>
+                    <div>ARTIST SIGN ONS: <span style="font-weight: 700;">25.0%</span></div>
+                </li>
+                <li class="legend-item">
+                    <div class="legend-color-box" style="background-color: var(--color-public);"></div>
+                    <div>PUBLIC: <span style="font-weight: 700;">35.0%</span></div>
+                </li>
+            </ul>
+        </section>
         <div class="revenue-streams">
             <h3>Metaverse-Specific Revenue Verticals</h3>
             
-<div class="stream-item">
+            <div class="stream-item">
                 <div>
                     <span class="stream-name">Meta-Asset Virtual Commerce</span>
                     <p class="stream-desc">The high-margin distribution of digital-native assets, wearables, and immersive collectibles. These items utilize the BLK proprietary social layers to drive consistent transactional volume and secondary market demand for high-utility creator products.</p>
