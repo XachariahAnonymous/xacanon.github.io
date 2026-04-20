@@ -92,7 +92,7 @@
             100% { box-shadow: 0 0 60px rgba(138, 43, 226, 0.5); border-color: var(--accent); }
         }
 
-        /* --- LEGEND & LOCK LOGIC --- */
+        /* --- LEGEND & FAST RED GLITCH --- */
         .legend { font-family: 'Space Mono', monospace; list-style: none; }
         .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; position: relative; transition: transform 0.2s; }
         .legend-item:hover { transform: translateX(10px); }
@@ -100,26 +100,30 @@
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
         .legend-text { font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; position: relative; }
         
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; display: inline-block; min-width: 80px; }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; display: inline-block; min-width: 85px; }
 
-        /* THE RED LOCK ERROR (10% & 30%) */
+        /* THE AGGRESSIVE RED LOCK ERROR */
         .locked:hover .legend-pct::after {
             content: "LOCKED_FILE::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
             background: var(--bg); color: var(--error); font-weight: 700;
-            animation: glitch-hard 0.2s infinite; white-space: nowrap; z-index: 10;
+            animation: glitch-hard 0.1s infinite; /* Faster duration for "Fast Red Glitch" */
+            white-space: nowrap; z-index: 10;
+            text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff;
         }
 
-        /* General Hover Glitch Effects */
+        /* General Hover Glitch (Smooth Violet) */
         .legend-item:hover .legend-text, h2:hover, .percentage:hover, .stream-item:hover .stream-name {
             animation: glitch-subtle 0.3s infinite;
         }
 
         @keyframes glitch-hard {
-            0% { text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; transform: translate(1px, 1px); }
-            25% { text-shadow: -2px 0 #00ffff, 2px 0 #ff00ff; transform: translate(-1px, -1px); }
-            50% { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; transform: translate(1px, -1px); }
-            100% { text-shadow: 0 0 transparent; transform: translate(0); }
+            0% { transform: translate(2px, 1px); text-shadow: 3px 0 #00ffff, -3px 0 #ff00ff; }
+            20% { transform: translate(-2px, -1px); text-shadow: -3px 0 #00ffff, 3px 0 #ff00ff; }
+            40% { transform: translate(1px, -2px); opacity: 0.8; }
+            60% { transform: translate(-1px, 2px); text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; }
+            80% { transform: translate(3px, 0); opacity: 1; }
+            100% { transform: translate(0); }
         }
 
         @keyframes glitch-subtle {
