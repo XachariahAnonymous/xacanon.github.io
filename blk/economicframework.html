@@ -61,7 +61,7 @@
         .eco-card.burn-card .percentage { color: var(--burn); text-shadow: 0 0 30px rgba(255, 69, 0, 0.2); }
         .eco-card p { color: #b0b0b0; font-size: 1.1rem; font-weight: 300; }
 
-        /* --- REFINED PIE CHART GLITCH --- */
+        /* --- PIE CHART SECTION & GLITCH --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
@@ -82,7 +82,6 @@
             transition: transform 0.1s;
         }
 
-        /* Ghost layers for Chromatic Aberration */
         .pie-chart::before, .pie-chart::after {
             content: '';
             position: absolute;
@@ -137,7 +136,7 @@
             100% { box-shadow: 0 0 60px rgba(138, 43, 226, 0.4); border-color: var(--accent); }
         }
 
-        /* --- UNIVERSAL RED GLITCH --- */
+        /* --- RED GLITCH TRIGGER --- */
         .legend-item:hover .legend-text, 
         .eco-card:hover h2, 
         .eco-card:hover .percentage, 
@@ -146,7 +145,6 @@
             color: var(--error) !important;
         }
 
-        /* LOCKED_ASSET ERR Logic */
         .locked:hover .legend-pct::after {
             content: "LOCKED_ASSET::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
@@ -163,18 +161,18 @@
             100% { transform: translate(0); }
         }
 
-        /* --- LEGEND & STREAMS --- */
+        /* --- ADDITIONAL UI --- */
+        .protocol-box { margin-bottom: 6rem; padding: 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); }
+        .protocol-box h3 { font-family: 'Space Mono', monospace; color: var(--accent); text-transform: uppercase; font-size: 0.9rem; margin-bottom: 1.5rem; letter-spacing: 2px; }
         .legend { font-family: 'Space Mono', monospace; list-style: none; }
         .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
         .legend-item:hover { transform: translateX(10px); }
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
         .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
-
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
         .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
         .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; }
         .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; height: fit-content; }
-
         footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
     </style>
 </head>
@@ -193,13 +191,19 @@
             <div class="eco-card">
                 <span class="percentage">70/30</span>
                 <h2>Digital Capital Allotment Model</h2>
-                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions within the immersive metaverse ecosystem. Creators command a 70% gross dividend.</p>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing. This model ensures that the creative force behind the content is the primary beneficiary of the value generated on the platform.</p>
             </div>
+
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
                 <h2>Operational Burn Protocol</h2>
-                <p>To secure long-term appreciation, 50% of operational surpluses are utilized for an automated buy-back and asset retirement program.</p>
+                <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program. This deflationary logic leverages ecosystem growth to drive systemic scarcity for all token holders.</p>
             </div>
+        </div>
+
+        <div class="protocol-box">
+            <h3>Infrastructure & Development Mandate</h3>
+            <p>The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes the localized management of immersive hosting, architectural world-building, and high-performance development cycles. Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</p>
         </div>
 
         <section class="chart-section">
@@ -226,11 +230,11 @@
 
         <div class="revenue-streams">
             <div class="stream-item">
-                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets and collectibles.</p></div>
+                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets, wearables, and collectibles.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
             <div class="stream-item">
-                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing for virtual venue access.</p></div>
+                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing and tiered access protocols for virtual venues.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
         </div>
