@@ -27,130 +27,102 @@
             color: var(--text);
             font-family: 'Space Grotesk', sans-serif;
             line-height: 1.8;
-            padding: 0;
         }
 
-        /* Nav & Container styles remained consistent from previous block... */
         nav {
             position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
             display: flex; justify-content: space-between;
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 1000;
         }
+
         nav a { color: var(--text); text-decoration: none; font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 1.5px; }
+
         .container { max-width: 1100px; margin: 180px auto 100px; padding: 0 5%; }
+
         .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
+
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        .protocol-box {
-            margin-bottom: 4rem;
-            padding: 3rem;
-            border: 1px solid var(--accent);
-            background: rgba(138, 43, 226, 0.03);
-            position: relative;
-        }
+        /* --- Economy Cards --- */
+        .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
+        .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); }
+        .eco-card h2 { font-size: 1.4rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; color: #efefef; }
+        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
+        .eco-card.burn-card { border-color: rgba(255, 69, 0, 0.2); }
+        .eco-card.burn-card .percentage { color: var(--burn); text-shadow: 0 0 30px rgba(255, 69, 0, 0.2); }
 
-        /* --- Updated Chart Section --- */
+        /* --- Infrastructure Mandate --- */
+        .protocol-box { margin-bottom: 4rem; padding: 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); }
+        .protocol-box h3 { font-family: 'Space Mono', monospace; color: var(--accent); text-transform: uppercase; font-size: 0.9rem; margin-bottom: 1.5rem; letter-spacing: 2px; }
 
+        /* --- PIE CHART SECTION --- */
         .chart-section {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 4rem;
-            align-items: center;
-            margin-bottom: 6rem;
-            padding: 4rem;
-            border: 1px solid var(--border);
+            display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
+            margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
             background: linear-gradient(145deg, #050505 0%, #000 100%);
         }
 
-        .chart-title {
-            grid-column: 1 / -1;
-            font-family: 'Space Mono', monospace;
-            color: #fff;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 4px;
-            text-align: center;
-            margin-bottom: 3rem;
-            opacity: 0.8;
-        }
+        .chart-title { grid-column: 1 / -1; font-family: 'Space Mono', monospace; color: #fff; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 4px; text-align: center; margin-bottom: 3rem; opacity: 0.8; }
 
-        .pie-chart-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
+        .pie-chart-container { display: flex; justify-content: center; align-items: center; }
 
         .pie-chart {
-            width: 320px;
-            height: 320px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.1);
+            width: 320px; height: 320px; border-radius: 50%;
+            border: 2px solid rgba(138, 43, 226, 0.2);
             background-image: conic-gradient(
                 var(--color-directors) 0deg 108deg,
                 var(--color-investor) 108deg 144deg,
                 var(--color-artists) 144deg 234deg,
                 var(--color-public) 234deg 360deg
             );
-            /* Glow Animation */
-            box-shadow: 0 0 20px rgba(138, 43, 226, 0.1), inset 0 0 15px rgba(0,0,0,0.5);
-            animation: pulse-glow 4s infinite alternate ease-in-out;
+            /* PULSE GLOW LOGIC */
+            animation: pulse-glow 3s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 20px rgba(138, 43, 226, 0.15); }
-            100% { box-shadow: 0 0 50px rgba(138, 43, 226, 0.4); border-color: var(--accent); }
+            0% { 
+                box-shadow: 0 0 15px rgba(138, 43, 226, 0.1), inset 0 0 10px rgba(0,0,0,0.5); 
+                border-color: rgba(138, 43, 226, 0.2);
+            }
+            100% { 
+                box-shadow: 0 0 60px rgba(138, 43, 226, 0.5), inset 0 0 20px rgba(138, 43, 226, 0.2);
+                border-color: var(--accent);
+            }
         }
 
-        .legend {
-            font-family: 'Space Mono', monospace;
-            list-style: none;
-        }
+        .legend { font-family: 'Space Mono', monospace; list-style: none; }
+        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
 
-        .legend-item {
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-            transition: transform 0.2s;
-        }
-
-        /* Hover Glitch Effect */
-        .legend-item:hover {
-            transform: translateX(10px);
-            animation: glitch-text 0.3s infinite;
-            color: var(--accent);
-        }
+        /* GLITCH ON HOVER */
+        .legend-item:hover { transform: translateX(10px); animation: glitch-text 0.3s infinite; color: var(--accent); }
 
         @keyframes glitch-text {
             0% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(1px, 1px); }
             25% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(-1px, -1px); }
             50% { text-shadow: 2px 0 blue, -2px 0 red; transform: translate(1px, -1px); }
-            75% { text-shadow: -2px 0 blue, 2px 0 red; transform: translate(-1px, 1px); }
             100% { text-shadow: 0 0 transparent; transform: translate(0); }
         }
 
-        .legend-color-box {
-            width: 16px;
-            height: 16px;
-            margin-right: 20px;
-            flex-shrink: 0;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .legend-text {
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
+        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+        .legend-text { font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; }
         .legend-pct { font-weight: 700; color: #fff; margin-left: 8px; }
 
-        @media (max-width: 900px) {
-            .chart-section { grid-template-columns: 1fr; padding: 2rem; gap: 2rem; }
-            .pie-chart { width: 260px; height: 260px; }
+        /* --- Revenue Streams --- */
+        .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
+        .revenue-streams h3 { font-family: 'Space Mono', monospace; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 3.5rem; color: var(--muted); letter-spacing: 2px; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .stream-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; }
+        .stream-desc { font-size: 1rem; color: #888; max-width: 600px; line-height: 1.6; }
+        .yield-label { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; white-space: nowrap; }
+
+        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; }
+
+        @media (max-width: 850px) {
+            .chart-section { grid-template-columns: 1fr; padding: 2rem; }
+            .economy-grid { grid-template-columns: 1fr; }
+            .revenue-streams { padding: 2rem; }
+            .stream-item { flex-direction: column; gap: 1.5rem; }
         }
     </style>
 </head>
@@ -165,18 +137,30 @@
         <span class="label">Fiscal Governance Protocol</span>
         <h1>Value Distribution & Ecosystem Sustainability.</h1>
 
+        <div class="economy-grid">
+            <div class="eco-card">
+                <span class="percentage">70/30</span>
+                <h2>Digital Capital Allotment Model</h2>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing.</p>
+            </div>
+
+            <div class="eco-card burn-card">
+                <span class="percentage">50%</span>
+                <h2>Operational Burn Protocol</h2>
+                <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program.</p>
+            </div>
+        </div>
+
         <div class="protocol-box">
             <h3>Infrastructure & Development Mandate</h3>
-            <p>The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes the localized management of immersive hosting, architectural world-building, and high-performance development cycles.</p>
+            <p>The 30% operational allotment is utilized exclusively to facilitate the localized management of immersive hosting, architectural world-building, and high-performance development cycles. This framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched.</p>
         </div>
 
         <section class="chart-section">
             <div class="chart-title">Tokenomic Coin Pool Visual</div>
-            
             <div class="pie-chart-container">
                 <div class="pie-chart"></div>
             </div>
-
             <ul class="legend">
                 <li class="legend-item">
                     <div class="legend-color-box" style="background-color: var(--color-directors);"></div>
@@ -196,6 +180,34 @@
                 </li>
             </ul>
         </section>
+
+        <div class="revenue-streams">
+            <h3>Metaverse-Specific Revenue Verticals</h3>
+            
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Meta-Asset Virtual Commerce</span>
+                    <p class="stream-desc">The high-margin distribution of digital-native assets and wearables. These utilize proprietary social layers to drive consistent transactional volume.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Immersive Performance Infrastructure</span>
+                    <p class="stream-desc">Our scalable metaverse venue utilizes smart-contract ticketing and tiered access protocols to maximize direct-to-fan revenue.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Decentralized Intellectual Property</span>
+                    <p class="stream-desc">Pathways between creation and consumption, enabling creators to monetize full-length projects with total on-chain transparency.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+        </div>
 
         <footer>
             BLK PROTOCOL // FINANCIAL AUDIT STATUS: OPERATIONAL // 2026
