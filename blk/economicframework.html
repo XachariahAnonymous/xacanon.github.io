@@ -46,31 +46,12 @@
 
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
-        
-        .eco-card { 
-            border: 1px solid var(--border); padding: 4rem; 
-            background: linear-gradient(180deg, #080808 0%, #000 100%); 
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        .eco-card h2 { font-size: 1.4rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; color: #efefef; }
-        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
-        .eco-card.burn-card { border-color: rgba(255, 69, 0, 0.2); }
-        .eco-card.burn-card .percentage { color: var(--burn); text-shadow: 0 0 30px rgba(255, 69, 0, 0.2); }
-        .eco-card p { color: #b0b0b0; font-size: 1.1rem; font-weight: 300; }
-
-        .protocol-box { margin-bottom: 6rem; padding: 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); position: relative; }
-        .protocol-box h3 { font-family: 'Space Mono', monospace; color: var(--accent); text-transform: uppercase; font-size: 0.9rem; margin-bottom: 1.5rem; letter-spacing: 2px; }
-        .protocol-box p { font-size: 1.1rem; color: #fff; max-width: 900px; }
-
+        /* --- PIE CHART GLITCH LOGIC --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
             background: linear-gradient(145deg, #050505 0%, #000 100%);
         }
-
-        .chart-title { grid-column: 1 / -1; font-family: 'Space Mono', monospace; color: #fff; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 4px; text-align: center; margin-bottom: 3rem; opacity: 0.8; }
 
         .pie-chart {
             width: 320px; height: 320px; border-radius: 50%;
@@ -81,31 +62,32 @@
                 var(--color-artists) 144deg 234deg,
                 var(--color-public) 234deg 360deg
             );
-            animation: pulse-glow 3s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
-            transition: transform 0.2s;
+            animation: pulse-glow 3s infinite alternate;
+            transition: all 0.1s ease;
         }
 
-        /* PIE CHART HOVER GLITCH */
+        /* The Glitch Trigger */
         .pie-chart:hover {
-            animation: glitch-red 0.15s infinite, pulse-glow 3s infinite alternate;
-            transform: scale(1.02) skewX(-1deg);
+            animation: shake-glitch 0.2s infinite, pulse-glow 3s infinite alternate;
+            filter: hue-rotate(15deg) contrast(1.2);
             cursor: crosshair;
+        }
+
+        @keyframes shake-glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px) skew(1deg); }
+            40% { transform: translate(-2px, -2px) scale(1.01); }
+            60% { transform: translate(2px, 2px) skew(-1deg); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
         }
 
         @keyframes pulse-glow {
             0% { box-shadow: 0 0 15px rgba(138, 43, 226, 0.1); border-color: rgba(138, 43, 226, 0.2); }
-            100% { box-shadow: 0 0 60px rgba(138, 43, 226, 0.5); border-color: var(--accent); }
+            100% { box-shadow: 0 0 60px rgba(138, 43, 226, 0.4); border-color: var(--accent); }
         }
 
-        .legend { font-family: 'Space Mono', monospace; list-style: none; }
-        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; position: relative; transition: transform 0.2s; }
-        .legend-item:hover { transform: translateX(10px); }
-
-        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
-        .legend-text { font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; position: relative; }
-        
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; display: inline-block; min-width: 90px; }
-
+        /* --- UNIVERSAL RED GLITCH --- */
         .legend-item:hover .legend-text, 
         .eco-card:hover h2, 
         .eco-card:hover .percentage, 
@@ -114,6 +96,7 @@
             color: var(--error) !important;
         }
 
+        /* FIXED: LOCKED_ASSET ERR */
         .locked:hover .legend-pct::after {
             content: "LOCKED_ASSET::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
@@ -129,23 +112,22 @@
             75% { transform: translate(-1px, 1px); text-shadow: -1px 0 #00ffff, 1px 0 #ff00ff; }
             100% { transform: translate(0); }
         }
-        
+
+        /* --- REMAINING STYLES --- */
+        .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
+        .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: all 0.4s; }
+        .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); display: block; margin-bottom: 2rem; }
+        .eco-card.burn-card .percentage { color: var(--burn); }
+        .protocol-box { margin-bottom: 6rem; padding: 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); }
+        .legend { font-family: 'Space Mono', monospace; list-style: none; }
+        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .legend-item:hover { transform: translateX(10px); }
+        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
-        .revenue-streams h3 { font-family: 'Space Mono', monospace; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 3.5rem; color: var(--muted); letter-spacing: 2px; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        .stream-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
-        .stream-item:last-child { border-bottom: none; }
-        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; transition: color 0.1s; }
-        .stream-desc { font-size: 1rem; color: #888; max-width: 600px; line-height: 1.6; }
-        .yield-label { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; white-space: nowrap; }
-
-        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; }
-
-        @media (max-width: 850px) {
-            .chart-section { grid-template-columns: 1fr; padding: 2rem; }
-            .economy-grid { grid-template-columns: 1fr; }
-            .revenue-streams { padding: 2rem; }
-            .stream-item { flex-direction: column; gap: 1.5rem; }
-        }
+        .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; height: fit-content; }
+        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -163,30 +145,26 @@
             <div class="eco-card">
                 <span class="percentage">70/30</span>
                 <h2>Digital Capital Allotment Model</h2>
-                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing. This model ensures that the creative force behind the content is the primary beneficiary of the value generated on the platform.</p>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions within the immersive metaverse ecosystem. Creators command a 70% gross dividend, ensuring the creative force is the primary beneficiary.</p>
             </div>
-
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
                 <h2>Operational Burn Protocol</h2>
-                <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program. This deflationary logic leverages ecosystem growth to drive systemic scarcity for all token holders.</p>
+                <p>To secure long-term appreciation, 50% of operational surpluses are utilized for an automated buy-back and asset retirement program, driving systemic scarcity.</p>
             </div>
         </div>
 
         <div class="protocol-box">
             <h3>Infrastructure & Development Mandate</h3>
-            <p>The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes the localized management of immersive hosting, architectural world-building, and high-performance development cycles. Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</p>
+            <p>The 30% operational allotment facilitates technical demands like immersive hosting and architectural world-building. External royalties remain 100% untouched.</p>
         </div>
 
         <section class="chart-section">
-            <div class="chart-title">Tokenomic Coin Pool Visual</div>
-            <div class="pie-chart-container">
-                <div class="pie-chart"></div>
-            </div>
+            <div class="pie-chart"></div>
             <ul class="legend">
                 <li class="legend-item locked">
                     <div class="legend-color-box" style="background-color: var(--color-directors);"></div>
-                    <span class="legend-text">Project Directors, Developers & Founders <span class="legend-pct">30.0%</span></span>
+                    <span class="legend-text">Project Directors & Founders <span class="legend-pct">30.0%</span></span>
                 </li>
                 <li class="legend-item locked">
                     <div class="legend-color-box" style="background-color: var(--color-investor);"></div>
@@ -204,29 +182,12 @@
         </section>
 
         <div class="revenue-streams">
-            <h3>Metaverse-Specific Revenue Verticals</h3>
-            
             <div class="stream-item">
-                <div>
-                    <span class="stream-name">Meta-Asset Virtual Commerce</span>
-                    <p class="stream-desc">The high-margin distribution of digital-native assets, wearables, and immersive collectibles. These items utilize the BLK proprietary social layers to drive consistent transactional volume and secondary market demand.</p>
-                </div>
+                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets and wearables.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
-
             <div class="stream-item">
-                <div>
-                    <span class="stream-name">Immersive Performance Infrastructure</span>
-                    <p class="stream-desc">Our scalable metaverse venue provides an alternative to physical logistics by utilizing smart-contract ticketing and tiered access protocols. This maximizes the direct-to-fan revenue ceiling for creators.</p>
-                </div>
-                <span class="yield-label">70% NET CREATOR YIELD</span>
-            </div>
-
-            <div class="stream-item">
-                <div>
-                    <span class="stream-name">Decentralized Intellectual Property</span>
-                    <p class="stream-desc">The primary distribution of creative works via the BLK decentralized node. We enable creators to monetize full-length projects and exclusive drops with total on-chain transparency.</p>
-                </div>
+                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing and tiered access protocols.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
         </div>
