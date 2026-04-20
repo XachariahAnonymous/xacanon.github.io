@@ -46,7 +46,7 @@
 
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- PIE CHART GLITCH LOGIC --- */
+        /* --- INTENSE PIE CHART GLITCH --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
@@ -63,23 +63,29 @@
                 var(--color-public) 234deg 360deg
             );
             animation: pulse-glow 3s infinite alternate;
-            transition: all 0.1s ease;
+            position: relative;
+            transition: filter 0.1s;
         }
 
-        /* The Glitch Trigger */
+        /* The Full Glitch Trigger */
         .pie-chart:hover {
-            animation: shake-glitch 0.2s infinite, pulse-glow 3s infinite alternate;
-            filter: hue-rotate(15deg) contrast(1.2);
+            animation: full-glitch 0.2s infinite, pulse-glow 3s infinite alternate;
+            filter: contrast(1.5) brightness(1.2) saturate(1.5);
             cursor: crosshair;
         }
 
-        @keyframes shake-glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px) skew(1deg); }
-            40% { transform: translate(-2px, -2px) scale(1.01); }
-            60% { transform: translate(2px, 2px) skew(-1deg); }
-            80% { transform: translate(2px, -2px); }
-            100% { transform: translate(0); }
+        @keyframes full-glitch {
+            0% { transform: translate(0); clip-path: inset(0 0 0 0); }
+            10% { transform: translate(-5px, 2px); clip-path: inset(10% 0 80% 0); text-shadow: 2px 0 red; }
+            20% { transform: translate(5px, -2px); clip-path: inset(80% 0 10% 0); }
+            30% { transform: translate(-2px, 5px); clip-path: inset(40% 0 40% 0); }
+            40% { transform: translate(2px, -5px); clip-path: inset(20% 0 60% 0); }
+            50% { transform: translate(-8px, 1px); clip-path: inset(60% 0 20% 0); }
+            60% { transform: translate(8px, -1px); filter: hue-rotate(90deg); }
+            70% { transform: translate(-2px, 3px); clip-path: inset(50% 0 10% 0); }
+            80% { transform: translate(2px, -3px); clip-path: inset(10% 0 50% 0); }
+            90% { transform: translate(-4px, 0); filter: hue-rotate(-90deg); }
+            100% { transform: translate(0); clip-path: inset(0 0 0 0); }
         }
 
         @keyframes pulse-glow {
@@ -87,7 +93,7 @@
             100% { box-shadow: 0 0 60px rgba(138, 43, 226, 0.4); border-color: var(--accent); }
         }
 
-        /* --- UNIVERSAL RED GLITCH --- */
+        /* --- RED TEXT GLITCH --- */
         .legend-item:hover .legend-text, 
         .eco-card:hover h2, 
         .eco-card:hover .percentage, 
@@ -96,7 +102,6 @@
             color: var(--error) !important;
         }
 
-        /* FIXED: LOCKED_ASSET ERR */
         .locked:hover .legend-pct::after {
             content: "LOCKED_ASSET::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
@@ -113,7 +118,7 @@
             100% { transform: translate(0); }
         }
 
-        /* --- REMAINING STYLES --- */
+        /* --- LAYOUT STYLES --- */
         .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
         .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: all 0.4s; }
         .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); display: block; margin-bottom: 2rem; }
@@ -145,18 +150,18 @@
             <div class="eco-card">
                 <span class="percentage">70/30</span>
                 <h2>Digital Capital Allotment Model</h2>
-                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions within the immersive metaverse ecosystem. Creators command a 70% gross dividend, ensuring the creative force is the primary beneficiary.</p>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions within the immersive metaverse ecosystem. Creators command a 70% gross dividend.</p>
             </div>
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
                 <h2>Operational Burn Protocol</h2>
-                <p>To secure long-term appreciation, 50% of operational surpluses are utilized for an automated buy-back and asset retirement program, driving systemic scarcity.</p>
+                <p>50% of operational surpluses are utilized for an automated buy-back program to drive systemic asset scarcity.</p>
             </div>
         </div>
 
         <div class="protocol-box">
             <h3>Infrastructure & Development Mandate</h3>
-            <p>The 30% operational allotment facilitates technical demands like immersive hosting and architectural world-building. External royalties remain 100% untouched.</p>
+            <p>The 30% operational allotment supports localized hosting and world-building. All external royalties remain 100% untouched.</p>
         </div>
 
         <section class="chart-section">
@@ -183,11 +188,11 @@
 
         <div class="revenue-streams">
             <div class="stream-item">
-                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets and wearables.</p></div>
+                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets and collectibles.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
             <div class="stream-item">
-                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing and tiered access protocols.</p></div>
+                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing for virtual venue access.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
         </div>
