@@ -36,7 +36,7 @@
         .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- STABLE ECONOMY GRID --- */
+        /* --- ECONOMY GRID --- */
         .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
         .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: transform 0.3s ease; }
         .eco-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
@@ -44,89 +44,55 @@
         .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
         .eco-card.burn-card .percentage { color: var(--burn); }
 
-        /* --- PIE CHART SECTION & LOCALIZED GLITCH --- */
+        /* --- PIE CHART SECTION --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
             background: linear-gradient(145deg, #050505 0%, #000 100%);
-            position: relative; overflow: visible;
+            position: relative;
         }
 
-        .svg-chart { 
-            width: 320px; height: 320px; 
-            transform: rotate(-90deg); 
-            filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.2)); 
-            overflow: visible; 
-            z-index: 10;
-        }
+        /* Circular Chart Setup */
+        .svg-container { position: relative; width: 320px; height: 320px; }
+        .svg-chart { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
         
-        .slice { transition: opacity 0.2s; cursor: pointer; stroke: #000; stroke-width: 0.01; }
+        .slice-circle {
+            fill: none;
+            stroke-width: 32;
+            transition: stroke 0.3s, filter 0.3s;
+            cursor: pointer;
+        }
 
-        /* CYBERPUNK RED GLITCH Slices Only (30% and 10%) */
+        /* Cyberpunk Red Glitch - Strictly on the slices */
         .glitch-target:hover {
             animation: cyber-shake 0.1s infinite;
-            filter: saturate(4) brightness(1.4) drop-shadow(0 0 15px var(--error));
-            z-index: 100;
+            stroke: var(--error) !important;
+            filter: drop-shadow(0 0 12px var(--error)) brightness(1.2);
+            z-index: 50;
         }
 
         @keyframes cyber-shake {
             0% { transform: translate(0,0); }
-            20% { transform: translate(6px, -3px) rotate(1.5deg); }
-            40% { transform: translate(-6px, 4px) rotate(-1.5deg); }
-            60% { transform: translate(3px, -5px) scale(1.03); }
-            80% { transform: translate(-3px, 0px) scale(0.97); }
+            25% { transform: translate(4px, -2px); }
+            50% { transform: translate(-4px, 2px); }
+            75% { transform: translate(2px, -4px); }
             100% { transform: translate(0,0); }
         }
 
-        /* --- LEGEND & UI --- */
-        .legend { font-family: 'Space Mono', monospace; list-style: none; z-index: 10; position: relative; }
-        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; position: relative; }
+        /* --- LEGEND --- */
+        .legend { font-family: 'Space Mono', monospace; list-style: none; }
+        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; transition: transform 0.2s; }
         .legend-item:hover { transform: translateX(10px); }
-        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
+        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; }
 
-        /* CONTAINED TEXT GLITCH */
-        .legend-item .legend-text::after {
-            content: attr(data-text); /* Pull text from HTML attribute */
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%;
-            height: 100%;
-            color: var(--error);
-            background-color: var(--bg);
-            opacity: 0;
-            z-index: 1;
-        }
-
-        /* Red glitch effect triggers only on .glitch-item hover */
-        .glitch-item:hover .legend-text::after {
-            opacity: 1;
-            animation: text-glitch-cyber 0.15s infinite;
-            text-shadow: 2px 0 #0ff, -2px 0 #f0f;
-        }
-
-        .glitch-item:hover .legend-pct::after {
-            content: "ERR_LOCKED";
-            position: absolute; left: 0; top: 0; width: 100%;
-            background: var(--bg); color: var(--error); font-weight: 700;
-            animation: text-glitch-cyber 0.1s infinite;
-            white-space: nowrap; z-index: 10;
-        }
-
-        @keyframes text-glitch-cyber {
-            0% { transform: translate(2px, 2px); }
-            50% { transform: translate(-2px, -2px); }
-            100% { transform: translate(0); }
-        }
-
-        /* --- REVENUE STREAMS --- */
+        /* REVENUE STREAMS */
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
-        .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); transition: background 0.3s; }
-        .stream-item:hover { background: rgba(138, 43, 226, 0.03); }
-        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; }
-        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; height: fit-content; }
+        .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; color: #fff; }
+        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; }
 
-        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -144,32 +110,37 @@
             <div class="eco-card">
                 <span class="percentage">70/30</span>
                 <h2>Digital Capital Allotment Model</h2>
-                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing. This model ensures that the creative force behind the content is the primary beneficiary of the value generated on the platform.</p>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend.</p>
             </div>
 
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
                 <h2>Operational Burn Protocol</h2>
-                <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program. This deflationary logic leverages ecosystem growth to drive systemic scarcity for all token holders.</p>
+                <p>To secure long-term appreciation, 50% of all net operational surpluses are utilized for automated buy-back and permanent asset retirement.</p>
             </div>
         </div>
 
         <section class="chart-section">
-            <svg class="svg-chart" viewBox="-1 -1 2 2">
-                <path class="slice glitch-target" d="M 1 0 A 1 1 0 0 1 0.3090 0.9511 L 0 0" fill="var(--color-directors)"></path>
-                <path class="slice glitch-target" d="M 0.3090 0.9511 A 1 1 0 0 1 -0.3090 0.9511 L 0 0" fill="var(--color-investor)"></path>
-                <path class="slice" d="M -0.3090 0.9511 A 1 1 0 0 1 -0.8090 -0.5878 L 0 0" fill="var(--color-artists)"></path>
-                <path class="slice" d="M -0.8090 -0.5878 A 1 1 0 0 1 1 0 L 0 0" fill="var(--color-public)"></path>
-            </svg>
+            <div class="svg-container">
+                <svg class="svg-chart" viewBox="0 0 64 64">
+                    <circle class="slice-circle" cx="32" cy="32" r="16" stroke="var(--color-public)" stroke-dasharray="35.2 100.5" stroke-dashoffset="0"></circle>
+                    
+                    <circle class="slice-circle" cx="32" cy="32" r="16" stroke="var(--color-artists)" stroke-dasharray="25.1 100.5" stroke-dashoffset="-35.2"></circle>
+                    
+                    <circle class="slice-circle glitch-target" cx="32" cy="32" r="16" stroke="var(--color-investor)" stroke-dasharray="10.1 100.5" stroke-dashoffset="-60.3"></circle>
+                    
+                    <circle class="slice-circle glitch-target" cx="32" cy="32" r="16" stroke="var(--color-directors)" stroke-dasharray="30.1 100.5" stroke-dashoffset="-70.4"></circle>
+                </svg>
+            </div>
 
             <ul class="legend">
-                <li class="legend-item glitch-item">
+                <li class="legend-item">
                     <div class="legend-color-box" style="background-color: var(--color-directors);"></div>
-                    <span class="legend-text" data-text="Project Directors & Founders">Project Directors & Founders <span class="legend-pct">30.0%</span></span>
+                    <span class="legend-text">Project Directors & Founders <span class="legend-pct">30.0%</span></span>
                 </li>
-                <li class="legend-item glitch-item">
+                <li class="legend-item">
                     <div class="legend-color-box" style="background-color: var(--color-investor);"></div>
-                    <span class="legend-text" data-text="Early Investors">Early Investors <span class="legend-pct">10.0%</span></span>
+                    <span class="legend-text">Early Investors <span class="legend-pct">10.0%</span></span>
                 </li>
                 <li class="legend-item">
                     <div class="legend-color-box" style="background-color: var(--color-artists);"></div>
@@ -184,11 +155,7 @@
 
         <div class="revenue-streams">
             <div class="stream-item">
-                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets, wearables, and collectibles.</p></div>
-                <span class="yield-label">70% NET CREATOR YIELD</span>
-            </div>
-            <div class="stream-item">
-                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing and tiered access protocols for virtual venues.</p></div>
+                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets and wearables.</p></div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
         </div>
