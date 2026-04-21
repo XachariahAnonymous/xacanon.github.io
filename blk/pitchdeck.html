@@ -67,7 +67,7 @@
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent);
         }
 
-
+        /* --- PIE CHART GLITCH --- */
         .fiscal-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6rem; align-items: center; }
         .svg-wrap { width: 320px; height: 320px; transform: rotate(-90deg); position: relative; justify-self: center; }
         .slice { fill: none; stroke-width: 32; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); }
@@ -92,16 +92,60 @@
         .trigger-glitch:hover .legend-text { opacity: 0; }
         .trigger-glitch:hover .error-text { opacity: 1; animation: flicker 0.15s infinite; }
 
-        @keyframes tremor { 
-            0% { transform: translate(0.3px, -0.3px); } 
-            50% { transform: translate(-0.3px, 0.3px); } 
-            100% { transform: translate(0); } 
+        /* --- GALLERY STYLES --- */
+        .gallery-container { margin-top: 4rem; position: relative; width: 100%; }
+        .gallery-viewport { 
+            width: 100%; 
+            aspect-ratio: 16 / 9; 
+            border: 1px solid var(--border); 
+            background: #000; 
+            position: relative; 
+            overflow: hidden;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
         }
-        @keyframes flicker {
-            0% { opacity: 0.8; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
+        .gallery-main { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s; 
+            z-index: 1;
         }
+        
+        .gallery-nav {
+            position: absolute; 
+            top: 0;
+            height: 100%;
+            width: 10%;
+            min-width: 60px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: #fff; 
+            font-size: 2rem; 
+            cursor: pointer; 
+            z-index: 100;
+            transition: all 0.3s ease;
+            user-select: none;
+            opacity: 0.4;
+        }
+        .gallery-nav.prev { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%); }
+        .gallery-nav.next { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.8) 0%, transparent 100%); }
+        .gallery-nav:hover { opacity: 1; color: var(--accent); width: 12%; }
+
+        .gallery-footer { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .gallery-counter { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; }
+
+        .scanline {
+            width: 100%; height: 100px; z-index: 10; position: absolute; top: -100px;
+            background: linear-gradient(to bottom, transparent, rgba(138, 43, 226, 0.05), transparent);
+            pointer-events: none; animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
+        @keyframes tremor { 0% { transform: translate(0.3px, -0.3px); } 50% { transform: translate(-0.3px, 0.3px); } 100% { transform: translate(0); } }
+        @keyframes flicker { 0% { opacity: 0.8; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
 
         .compliance-banner {
             margin-top: 6rem; padding: 3rem; border: 1px solid var(--success);
@@ -182,14 +226,26 @@
                 <h2>Sonic Engineering.</h2>
             </div>
 
-            <div class="feature-grid" style="align-items: center;">
+            <div class="feature-grid" style="align-items: flex-start;">
                 <div>
-                    <p class="hero-lead" style="font-size: 1.2rem;">Our in-house production collective focuses on managing the entire pipeline from internal composition to professional-grade vocal mixing.</p>
-                    <p style="color: var(--sub);">Music is distributed via a hybrid architecture. Tracks are released on legacy DSPs while simultaneously being broadcasted through our <b>Spatial Radio Layer</b>. New releases act as synchronized network events, hosted live within Creator Cities. We also promote artists on our own channels with over 1.44M Subscribers.</p>
+                    <p class="hero-lead" style="font-size: 1.2rem;">Our in-house production collective manages the full creative pipeline, from internal composition to professional-grade vocal mixing and video production.</p>
+                    
+                    <div style="margin-bottom: 2.5rem;">
+                        <p style="color: var(--sub); font-size: 0.95rem;">
+                            Unlike legacy label structures, BLK employs a <b>Pass-Through Model</b>. This means when an artist's work generates value through legacy DSPs (Spotify, Apple Music) or external merchandise, the funds bypass the BLK treasury entirely. The protocol does not touch, tax, or delay these royalties, ensuring creators maintain absolute financial autonomy over their intellectual property outside the digital environment.
+                        </p>
+                    </div>
+
+                    <p style="color: var(--sub);">BLK leverages an expansive media network to drive ingress. We produce cinematic trailers and music videos promoted to our <b>1.44M Subscribers</b>, ensuring project visibility long before users enter the Creator Cities.</p>
                 </div>
+                
                 <div class="technical-box" style="padding: 3rem;">
-                    <h3 style="margin-bottom: 1rem;">The 70/30 Model</h3>
-                    <p style="color: var(--sub); font-size: 1rem;">The BLK financial model is artist-favored. By retaining only 30% for infrastructure maintenance and burn protocols, we attract top-tier talent who prioritize financial sovereignty over legacy label contracts.</p>
+                    <h3 style="margin-bottom: 1.5rem;">The 70/30 Model</h3>
+                    <p style="color: var(--sub); font-size: 1rem;">
+                        The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes localized management of immersive hosting, architectural world-building, and high-performance development cycles. 
+                        <br><br>
+                        <b>Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</b>
+                    </p>
                 </div>
             </div>
         </section>
@@ -253,6 +309,56 @@
                     </div>
                 </div>
             </div>
+
+            <div class="gallery-container">
+                <span class="tag">Infrastructure Visuals // Beta Renders</span>
+                <div class="gallery-viewport">
+                    <div class="gallery-nav prev" onclick="moveSlide(-1)">&#10094;</div>
+                    <div class="gallery-nav next" onclick="moveSlide(1)">&#10095;</div>
+                    
+                    <img id="mainView" src="https://ibb.co/8LBSkFL2" class="gallery-main" alt="BLK Infrastructure View">
+                    <div class="scanline"></div>
+                </div>
+                
+                <div class="gallery-footer">
+                    <div id="counter" class="gallery-counter">1 / 23</div>
+                </div>
+            </div>
+            
+            <script>
+                const images = [
+                    "https://ibb.co/8LBSkFL2", "https://ibb.co/Y4vgbsd2", "https://ibb.co/XfrZbQV0",
+                    "https://ibb.co/kLvvP7j", "https://ibb.co/Y7DDCCyn", "https://ibb.co/7xWnVfRs",
+                    "https://ibb.co/rGgp8yxJ", "https://ibb.co/ycdtVx9G", "https://ibb.co/xKqdgRVT",
+                    "https://ibb.co/3Y0k90L8", "https://ibb.co/jkxsxcnN", "https://ibb.co/nNvYt4QT",
+                    "https://ibb.co/jZDmhNqf", "https://ibb.co/B2QfWTPT", "https://ibb.co/Q3VgRxhM",
+                    "https://ibb.co/6Jwg13fC", "https://ibb.co/JwHnG3Qc", "https://ibb.co/p6GGrj4z",
+                    "https://ibb.co/FZwnN5m", "https://ibb.co/11K0Gr2", "https://ibb.co/fGH8ZFRP",
+                    "https://ibb.co/ch1r2W27", "https://ibb.co/27y15Yh7"
+                ];
+
+                let currentIndex = 0;
+
+                function moveSlide(direction) {
+                    currentIndex += direction;
+                    if (currentIndex >= images.length) currentIndex = 0;
+                    if (currentIndex < 0) currentIndex = images.length - 1;
+                    updateGallery();
+                }
+
+                function updateGallery() {
+                    const view = document.getElementById('mainView');
+                    view.style.opacity = "0";
+                    view.style.transform = "scale(1.05)";
+                    
+                    setTimeout(() => {
+                        view.src = images[currentIndex];
+                        document.getElementById('counter').innerText = `${currentIndex + 1} / ${images.length}`;
+                        view.style.opacity = "1";
+                        view.style.transform = "scale(1)";
+                    }, 300);
+                }
+            </script>
 
             <div class="compliance-banner">
                 <h4>EULA Compliance & Risk Mitigation</h4>
