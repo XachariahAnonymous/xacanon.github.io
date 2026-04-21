@@ -36,7 +36,7 @@
         .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- ECONOMY GRID (Stable) --- */
+        /* --- ECONOMY GRID --- */
         .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
         .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: transform 0.3s ease; }
         .eco-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
@@ -44,11 +44,12 @@
         .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
         .eco-card.burn-card .percentage { color: var(--burn); }
 
-        /* --- PIE CHART SECTION --- */
+        /* --- PIE CHART SECTION & LOCALIZED GLITCH --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
             background: linear-gradient(145deg, #050505 0%, #000 100%);
+            position: relative; overflow: visible;
         }
 
         .svg-chart { 
@@ -56,54 +57,55 @@
             transform: rotate(-90deg); 
             filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.2)); 
             overflow: visible; 
+            z-index: 10;
         }
         
         .slice { transition: opacity 0.2s; cursor: pointer; stroke: #000; stroke-width: 0.01; }
 
-        /* Targeted Glitch Slices Only (30% and 10%) */
+        /* Localized Red Glitch Slices */
         .glitch-target:hover {
-            animation: svg-shake 0.12s infinite;
-            filter: saturate(2.5) brightness(1.2) drop-shadow(0 0 12px var(--error));
+            animation: cyber-shake 0.08s infinite;
+            filter: saturate(4) brightness(1.4) drop-shadow(0 0 15px var(--error));
             z-index: 100;
         }
 
-        @keyframes svg-shake {
+        @keyframes cyber-shake {
             0% { transform: translate(0,0); }
-            25% { transform: translate(4px, -2px) rotate(1deg); }
-            50% { transform: translate(-4px, 3px) rotate(-1deg); }
-            75% { transform: translate(2px, -4px); }
+            20% { transform: translate(3px, -2px) rotate(0.5deg); }
+            40% { transform: translate(-3px, 2px) rotate(-0.5deg); }
+            60% { transform: translate(2px, -3px) scale(1.02); }
+            80% { transform: translate(-2px, 1px) scale(0.98); }
             100% { transform: translate(0,0); }
         }
 
-        /* --- LEGEND & TARGETED TEXT GLITCH --- */
-        .legend { font-family: 'Space Mono', monospace; list-style: none; }
-        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
-        .legend-item:hover { transform: translateX(10px); }
-        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
-
-        /* Only glitch the 30% and 10% items */
+        /* Targeted Text Glitch */
         .glitch-item:hover .legend-text,
         .glitch-item:hover .legend-pct {
-            animation: glitch-red 0.15s infinite;
+            animation: text-glitch-red 0.1s infinite;
             color: var(--error) !important;
         }
 
         .glitch-item:hover .legend-pct::after {
-            content: "LOCKED_ASSET::ERR";
+            content: "ERR_LOCKED";
             position: absolute; left: 0; top: 0; width: 100%;
             background: var(--bg); color: var(--error); font-weight: 700;
-            animation: glitch-red 0.15s infinite;
+            animation: text-glitch-red 0.1s infinite;
             white-space: nowrap; z-index: 10;
         }
 
-        @keyframes glitch-red {
+        @keyframes text-glitch-red {
             0% { transform: translate(1px, 1px); text-shadow: 2px 0 #0ff, -2px 0 #f0f; }
             50% { transform: translate(-1px, -1px); text-shadow: -2px 0 #0ff, 2px 0 #f0f; }
             100% { transform: translate(0); }
         }
 
-        /* --- REVENUE STREAMS (Stable) --- */
+        /* --- LEGEND & UI --- */
+        .legend { font-family: 'Space Mono', monospace; list-style: none; z-index: 10; position: relative; }
+        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .legend-item:hover { transform: translateX(10px); }
+        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
+
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
         .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); transition: background 0.3s; }
         .stream-item:hover { background: rgba(138, 43, 226, 0.03); }
