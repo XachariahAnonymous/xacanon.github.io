@@ -52,7 +52,6 @@
             position: relative;
         }
 
-        /* Circular Chart Setup */
         .svg-container { position: relative; width: 320px; height: 320px; }
         .svg-chart { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
         
@@ -63,19 +62,20 @@
             cursor: pointer;
         }
 
-        /* Cyberpunk Red Glitch - Strictly on the slices */
+        /* Targeted Cyberpunk Glitch */
         .glitch-target:hover {
             animation: cyber-shake 0.1s infinite;
             stroke: var(--error) !important;
-            filter: drop-shadow(0 0 12px var(--error)) brightness(1.2);
+            filter: drop-shadow(0 0 15px var(--error)) brightness(1.3);
             z-index: 50;
         }
 
         @keyframes cyber-shake {
             0% { transform: translate(0,0); }
-            25% { transform: translate(4px, -2px); }
-            50% { transform: translate(-4px, 2px); }
-            75% { transform: translate(2px, -4px); }
+            20% { transform: translate(4px, -3px) rotate(1deg); }
+            40% { transform: translate(-4px, 4px) rotate(-1deg); }
+            60% { transform: translate(3px, -5px) scale(1.02); }
+            80% { transform: translate(-3px, 1px) scale(0.98); }
             100% { transform: translate(0,0); }
         }
 
@@ -86,13 +86,14 @@
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.1); }
         .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; }
 
-        /* REVENUE STREAMS */
+        /* --- REVENUE STREAMS --- */
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
-        .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
-        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; color: #fff; }
-        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; }
+        .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); transition: background 0.3s; }
+        .stream-item:hover { background: rgba(138, 43, 226, 0.03); }
+        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; }
+        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; height: fit-content; }
 
-        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
+        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -110,13 +111,13 @@
             <div class="eco-card">
                 <span class="percentage">70/30</span>
                 <h2>Digital Capital Allotment Model</h2>
-                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend.</p>
+                <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing. This model ensures that the creative force behind the content is the primary beneficiary of the value generated on the platform.</p>
             </div>
 
             <div class="eco-card burn-card">
                 <span class="percentage">50%</span>
                 <h2>Operational Burn Protocol</h2>
-                <p>To secure long-term appreciation, 50% of all net operational surpluses are utilized for automated buy-back and permanent asset retirement.</p>
+                <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program. This deflationary logic leverages ecosystem growth to drive systemic scarcity for all token holders.</p>
             </div>
         </div>
 
@@ -124,11 +125,8 @@
             <div class="svg-container">
                 <svg class="svg-chart" viewBox="0 0 64 64">
                     <circle class="slice-circle" cx="32" cy="32" r="16" stroke="var(--color-public)" stroke-dasharray="35.2 100.5" stroke-dashoffset="0"></circle>
-                    
                     <circle class="slice-circle" cx="32" cy="32" r="16" stroke="var(--color-artists)" stroke-dasharray="25.1 100.5" stroke-dashoffset="-35.2"></circle>
-                    
                     <circle class="slice-circle glitch-target" cx="32" cy="32" r="16" stroke="var(--color-investor)" stroke-dasharray="10.1 100.5" stroke-dashoffset="-60.3"></circle>
-                    
                     <circle class="slice-circle glitch-target" cx="32" cy="32" r="16" stroke="var(--color-directors)" stroke-dasharray="30.1 100.5" stroke-dashoffset="-70.4"></circle>
                 </svg>
             </div>
@@ -155,7 +153,17 @@
 
         <div class="revenue-streams">
             <div class="stream-item">
-                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets and wearables.</p></div>
+                <div>
+                    <span class="stream-name">Meta-Asset Virtual Commerce</span>
+                    <p>High-margin distribution of digital assets, wearables, and collectibles within the metaverse.</p>
+                </div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+            <div class="stream-item">
+                <div>
+                    <span class="stream-name">Immersive Performance Infrastructure</span>
+                    <p>Smart-contract ticketing and tiered access protocols for virtual venues and live performances.</p>
+                </div>
                 <span class="yield-label">70% NET CREATOR YIELD</span>
             </div>
         </div>
