@@ -36,7 +36,7 @@
         .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- ECONOMY GRID --- */
+        /* --- STABLE ECONOMY GRID --- */
         .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
         .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: transform 0.3s ease; }
         .eco-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
@@ -78,34 +78,48 @@
             100% { transform: translate(0,0); }
         }
 
-        /* Targeted Text Glitch */
-        .glitch-item:hover .legend-text,
-        .glitch-item:hover .legend-pct {
-            animation: text-glitch-red 0.1s infinite;
-            color: var(--error) !important;
+        /* --- LEGEND & UI --- */
+        .legend { font-family: 'Space Mono', monospace; list-style: none; z-index: 10; position: relative; }
+        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; position: relative; }
+        .legend-item:hover { transform: translateX(10px); }
+        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; min-width: 90px; display: inline-block; position: relative; }
+
+        /* CONTAINED TEXT GLITCH */
+        .legend-item .legend-text::after {
+            content: attr(data-text); /* Pull text from HTML attribute */
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%;
+            height: 100%;
+            color: var(--error);
+            background-color: var(--bg);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        /* Red glitch effect triggers only on .glitch-item hover */
+        .glitch-item:hover .legend-text::after {
+            opacity: 1;
+            animation: text-glitch-cyber 0.15s infinite;
+            text-shadow: 2px 0 #0ff, -2px 0 #f0f;
         }
 
         .glitch-item:hover .legend-pct::after {
             content: "ERR_LOCKED";
             position: absolute; left: 0; top: 0; width: 100%;
             background: var(--bg); color: var(--error); font-weight: 700;
-            animation: text-glitch-red 0.1s infinite;
+            animation: text-glitch-cyber 0.1s infinite;
             white-space: nowrap; z-index: 10;
         }
 
-        @keyframes text-glitch-red {
-            0% { transform: translate(1px, 1px); text-shadow: 2px 0 #0ff, -2px 0 #f0f; }
-            50% { transform: translate(-1px, -1px); text-shadow: -2px 0 #0ff, 2px 0 #f0f; }
+        @keyframes text-glitch-cyber {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
             100% { transform: translate(0); }
         }
 
-        /* --- LEGEND & UI --- */
-        .legend { font-family: 'Space Mono', monospace; list-style: none; z-index: 10; position: relative; }
-        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
-        .legend-item:hover { transform: translateX(10px); }
-        .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
-
+        /* --- REVENUE STREAMS --- */
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
         .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); transition: background 0.3s; }
         .stream-item:hover { background: rgba(138, 43, 226, 0.03); }
@@ -151,11 +165,11 @@
             <ul class="legend">
                 <li class="legend-item glitch-item">
                     <div class="legend-color-box" style="background-color: var(--color-directors);"></div>
-                    <span class="legend-text">Project Directors & Founders <span class="legend-pct">30.0%</span></span>
+                    <span class="legend-text" data-text="Project Directors & Founders">Project Directors & Founders <span class="legend-pct">30.0%</span></span>
                 </li>
                 <li class="legend-item glitch-item">
                     <div class="legend-color-box" style="background-color: var(--color-investor);"></div>
-                    <span class="legend-text">Early Investors <span class="legend-pct">10.0%</span></span>
+                    <span class="legend-text" data-text="Early Investors">Early Investors <span class="legend-pct">10.0%</span></span>
                 </li>
                 <li class="legend-item">
                     <div class="legend-color-box" style="background-color: var(--color-artists);"></div>
