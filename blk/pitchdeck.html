@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLK | Sovereign Fiscal Infrastructure // 2026 Investor Deep Dive</title>
+    <title>BLK | Sovereign Infrastructure // 2026 Investor Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
     
     <style>
@@ -14,7 +14,6 @@
             --accent: #8A2BE2;
             --muted: #666666;
             --border: rgba(255, 255, 255, 0.1);
-            --burn: #ff4500; 
             --success: #00ff66;
             --error: #ff0033;
             --color-directors: #2e0040; 
@@ -40,7 +39,6 @@
             background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); z-index: 2000;
         }
         .logo { font-weight: 700; letter-spacing: 2px; font-size: 1.4rem; color: #fff; }
-        
         .nav-links { display: flex; gap: 2rem; }
         .nav-links a { 
             color: var(--text); text-decoration: none; font-family: 'Space Mono', monospace; 
@@ -49,12 +47,8 @@
         }
         .nav-links a:hover { color: var(--accent); }
 
-        .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
-        .hamburger span { width: 25px; height: 2px; background: #fff; }
-
         /* --- LAYOUT --- */
         .container { max-width: 1200px; margin: 180px auto 100px; padding: 0 5%; }
-        
         section { margin-bottom: 150px; }
         .label { 
             font-family: 'Space Mono', monospace; color: var(--accent); 
@@ -81,8 +75,7 @@
         }
         .data-card::after {
             content: ''; position: absolute; top: 0; right: 0; width: 40px; height: 40px;
-            background: linear-gradient(45deg, transparent 50%, var(--accent) 50%);
-            opacity: 0.2;
+            background: linear-gradient(45deg, transparent 50%, var(--accent) 50%); opacity: 0.2;
         }
         .data-value { font-size: 4.5rem; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 1rem; letter-spacing: -3px; }
         .data-label { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
@@ -95,7 +88,7 @@
         }
         .svg-container { width: 350px; height: 350px; position: relative; justify-self: center; }
         .svg-chart { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-        .slice-circle { fill: none; stroke-width: 32; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); cursor: pointer; }
+        .slice-circle { fill: none; stroke-width: 32; transition: 0.4s; cursor: pointer; }
 
         /* Surgical Glitch (Founders & Investors Only) */
         .glitch-target:hover {
@@ -114,160 +107,9 @@
         .legend-item { margin-bottom: 2rem; display: flex; align-items: flex-start; }
         .legend-color-box { width: 18px; height: 18px; margin-top: 5px; margin-right: 20px; flex-shrink: 0; }
         .legend-title { font-size: 0.9rem; text-transform: uppercase; color: #fff; letter-spacing: 1px; display: block; }
-        .legend-desc { font-size: 0.75rem; color: #666; display: block; margin-top: 4px; }
         .legend-pct { color: var(--accent); font-weight: 700; margin-left: 10px; }
 
         /* --- COMPLIANCE PROTOCOL --- */
         .protocol-alert {
             padding: 4rem; border: 1px solid var(--success);
-            background: rgba(0, 255, 102, 0.02); margin-top: 6rem;
-            position: relative;
-        }
-        .protocol-alert::before {
-            content: 'DE-RISKED'; position: absolute; top: -12px; left: 40px;
-            background: var(--success); color: #000; padding: 2px 12px;
-            font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
-        }
-        .protocol-alert h3 { font-family: 'Space Mono', monospace; color: var(--success); text-transform: uppercase; margin-bottom: 1.5rem; letter-spacing: 3px; }
-        .protocol-alert p { color: #ccc; font-size: 1.2rem; max-width: 900px; font-weight: 300; }
-
-        /* --- FOOTER --- */
-        footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: #444; font-family: 'Space Mono', monospace; font-size: 0.8rem; letter-spacing: 2px; }
-
-        /* --- MOBILE RESPONSIVE --- */
-        @media (max-width: 1000px) {
-            .fiscal-block { grid-template-columns: 1fr; padding: 3rem; gap: 4rem; }
-            .svg-container { width: 280px; height: 280px; }
-            .nav-links { display: none; }
-            .hamburger { display: flex; }
-        }
-        @media (max-width: 600px) {
-            .container { margin-top: 120px; }
-            h1 { letter-spacing: -2px; }
-            .data-value { font-size: 3.5rem; }
-            .data-card { padding: 2rem; }
-        }
-    </style>
-</head>
-<body>
-
-    <nav>
-        <div class="logo">BLK.PROFS</div>
-        <div class="nav-links">
-            <a href="#market">Market</a>
-            <a href="#fiscal">Fiscal</a>
-            <a href="#infrastructure">Node Architecture</a>
-            <a href="#compliance">Compliance</a>
-            <a href="index.html">Interface →</a>
-        </div>
-        <div class="hamburger">
-            <span></span><span></span><span></span>
-        </div>
-    </nav>
-
-    <div class="container">
-        
-        <section id="market">
-            <span class="label">Strategic Thesis // 2026 Deep Dive</span>
-            <h1>Digital Sovereignty at <span class="accent-text">Mass Scale.</span></h1>
-            <p class="long-form">
-                BLK is not merely a record label; it is a proprietary financial and spatial infrastructure layer designed to capture the inevitable migration of the $323B creator economy into immersive voxel environments. By leveraging the world’s most dominant and stable gaming engine—Minecraft—BLK bypasses the catastrophic user-acquisition costs associated with unproven, standalone metaverses.
-            </p>
-            
-            <div class="data-grid">
-                <div class="data-card">
-                    <span class="data-value">212M+</span>
-                    <span class="data-label">Monthly Active Users (MAU)</span>
-                </div>
-                <div class="data-card">
-                    <span class="data-value">$323B</span>
-                    <span class="data-label">Creator Economy TAM</span>
-                </div>
-                <div class="data-card">
-                    <span class="data-value">350M+</span>
-                    <span class="data-label">Premium Units Sold</span>
-                </div>
-            </div>
-        </section>
-
-        <section id="fiscal">
-            <span class="label">Macroeconomic Architecture</span>
-            <h2>Yield Distribution & <span class="accent-text">Burn Protocols.</span></h2>
-            <p class="long-form">
-                The BLK fiscal engine is built on a 70/30 gross-dividend model, doubling the retention rates of legacy industry incumbents. To drive systemic asset appreciation, we have integrated a 50% automated operational burn protocol.
-            </p>
-
-            <div class="fiscal-block">
-                <div class="svg-container">
-                    <svg class="svg-chart" viewBox="0 0 64 64">
-                        <circle class="slice-circle" cx="32" cy="32" r="16" stroke="var(--color-public)" stroke-dasharray="35.2 100.5" stroke-dashoffset="0"></circle>
-                        <circle class="slice-circle" cx="32" cy="32" r="16" stroke="var(--color-artists)" stroke-dasharray="25.1 100.5" stroke-dashoffset="-35.2"></circle>
-                        <circle class="slice-circle glitch-target" cx="32" cy="32" r="16" stroke="var(--color-investor)" stroke-dasharray="10.1 100.5" stroke-dashoffset="-60.3"></circle>
-                        <circle class="slice-circle glitch-target" cx="32" cy="32" r="16" stroke="var(--color-directors)" stroke-dasharray="30.1 100.5" stroke-dashoffset="-70.4"></circle>
-                    </svg>
-                </div>
-                
-                <ul class="legend">
-                    <li class="legend-item">
-                        <div class="legend-color-box" style="background: var(--color-directors);"></div>
-                        <div>
-                            <span class="legend-title">Directors & Founders <span class="legend-pct">30.0%</span></span>
-                            <span class="legend-desc">Facilitating global node hosting and R&D.</span>
-                        </div>
-                    </li>
-                    <li class="legend-item">
-                        <div class="legend-color-box" style="background: var(--color-investor);"></div>
-                        <div>
-                            <span class="legend-title">Early Investors <span class="legend-pct">10.0%</span></span>
-                            <span class="legend-desc">Initial liquidity and architectural seed.</span>
-                        </div>
-                    </li>
-                    <li class="legend-item">
-                        <div class="legend-color-box" style="background: var(--color-artists);"></div>
-                        <div>
-                            <span class="legend-title">Artist Sign-Ons <span class="legend-pct">25.0%</span></span>
-                            <span class="legend-desc">Direct allocation for onboarding top-tier talent.</span>
-                        </div>
-                    </li>
-                    <li class="legend-item">
-                        <div class="legend-color-box" style="background: var(--color-public);"></div>
-                        <div>
-                            <span class="legend-title">Public Pool <span class="legend-pct">35.0%</span></span>
-                            <span class="legend-desc">Circulating supply for ecosystem governance.</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="infrastructure">
-            <span class="label">Sovereign Node Architecture</span>
-            <h2>The "Creator City" <span class="accent-text">Ecosystem.</span></h2>
-            <p class="long-form">
-                Every musician and creator within the BLK network is allocated a "Sovereign City"—a high-concurrency Minecraft sub-server node. These are not mere profile pages; they are fully immersive, three-dimensional spatial hubs that serve as the primary landing zone for fan interaction.
-            </p>
-            <p class="long-form">
-                Utilizing a custom-built AV Sync Layer, Creator Cities allow for real-time, low-latency audiovisual synchronization. This architecture enables artists to host high-capacity live performances within a familiar, zero-friction engine, requiring no external software or high-end VR hardware for the end-user.
-            </p>
-        </section>
-
-        <section id="compliance">
-            <span class="label">Risk Mitigation // Regulatory Safety</span>
-            <div class="protocol-alert">
-                <h3>Microsoft / Mojang EULA Compliance</h3>
-                <p>
-                    BLK operates under a strict protocol of <strong>Fiscal Decoupling</strong>. By ensuring all 70/30 dividend commerce and transactional logic is processed on a proprietary, out-of-game Web3 layer, we maintain absolute compliance with the Microsoft/Mojang Commercial Usage Guidelines. 
-                </p>
-                <p style="margin-top: 1.5rem;">
-                    No core gameplay mechanics are locked behind paywalls, and no competitive advantages are sold. BLK merely utilizes the voxel engine as a spatial rendering tool, with access granted via external cryptographic verification—de-risking the project from platform-level intervention.
-                </p>
-            </div>
-        </section>
-
-        <footer>
-            CONFIDENTIAL INVESTOR INTELLIGENCE // BLK WEB3 ECOSYSTEM 2026.04.21
-        </footer>
-    </div>
-
-</body>
-</html>
+            background: rgba(0, 255, 102,
