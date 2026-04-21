@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLK | Metaverse Infrastructure & Voxel Architecture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --accent: #8A2BE2;
+            --muted: #666666;
+            --border: rgba(255, 255, 255, 0.1);
+            --burn: #ff4500; 
+            --success: #00ff66;
+            --card-bg: rgba(10, 10, 10, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; line-height: 1.8; overflow-x: hidden; }
+
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 1000;
+        }
+        .logo { font-weight: 700; letter-spacing: 2px; font-size: 1.2rem; }
+        nav a { color: var(--text); text-decoration: none; font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        .container { max-width: 1200px; margin: 160px auto 100px; padding: 0 5%; }
+        
+        .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
+        h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 2rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
+        .accent-text { color: var(--accent); }
+        
+        .lead-text { font-size: 1.3rem; color: #ccc; font-weight: 300; max-width: 900px; margin-bottom: 5rem; line-height: 1.6; }
+
+        /* --- LONG FORM CONTENT BLOCKS --- */
+        .content-block {
+            margin-bottom: 6rem;
+            padding-bottom: 4rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .content-block h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+        .content-block p {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+            max-width: 950px;
+        }
+
+        /* --- STATS GRID --- */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 2rem; 
+            margin: 4rem 0; 
+        }
+        .stat-card { 
+            border: 1px solid var(--border); 
+            padding: 3rem; 
+            background: linear-gradient(180deg, #080808 0%, #000 100%); 
+            position: relative;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 15px; height: 15px;
+            border-top: 2px solid var(--accent); border-left: 2px solid var(--accent);
+        }
+        .stat-value { font-size: 4rem; font-weight: 700; color: #fff; line-height: 1; margin-bottom: 1rem; display: block; letter-spacing: -2px; }
+        .stat-label { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
+
+        /* --- COMPLIANCE BOX --- */
+        .compliance-box {
+            padding: 4rem;
+            border: 1px solid var(--success);
+            background: rgba(0, 255, 102, 0.02);
+            position: relative;
+            margin-top: 4rem;
+        }
+        .compliance-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 15px;
+        }
+        .status-dot {
+            width: 12px; height: 12px; background: var(--success); border-radius: 50%;
+            box-shadow: 0 0 15px var(--success);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 102, 0); }
+        }
+        .compliance-box h3 { font-family: 'Space Mono', monospace; color: var(--success); text-transform: uppercase; font-size: 1rem; letter-spacing: 3px; }
+        .compliance-box p { font-size: 1.1rem; color: #ccc; max-width: 900px; margin-bottom: 0; }
+
+        footer { margin-top: 100px; padding: 4rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 2px; }
+
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 768px) {
+            nav { padding: 1rem 5%; }
+            nav a { font-size: 0.6rem; letter-spacing: 0.5px; }
+            .container { margin-top: 120px; }
+            h1 { letter-spacing: -1px; }
+            .lead-text { font-size: 1.1rem; margin-bottom: 3rem; }
+            .content-block { padding-bottom: 3rem; margin-bottom: 3rem; }
+            .content-block h2 { font-size: 1.6rem; }
+            .stat-card { padding: 2rem; }
+            .stat-value { font-size: 3rem; }
+            .compliance-box { padding: 2rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">BLK.INVEST</div>
+        <a href="index.html">← RETURN TO DECK</a>
+    </nav>
+
+    <div class="container">
+        <span class="label">Infrastructure Integration // Node Architecture</span>
+        <h1>The Voxel Metaverse.<br><span class="accent-text">Scaled.</span></h1>
+        
+        <p class="lead-text">Rather than attempting to force consumer adoption onto unproven, high-friction, bespoke virtual reality environments, the BLK ecosystem bypasses user-acquisition barriers by deploying our infrastructure natively within the most ubiquitous and historically dominant digital engine on earth: Minecraft.</p>
+
+        <div class="content-block">
+            <h2>2026 Macro-Data Integration</h2>
+            <p>Our architectural decision is driven by unassailable macroeconomic data. By utilizing Minecraft as our spatial rendering engine, BLK instantly bridges the gap between Web3 fiscal mechanics and a pre-existing, deeply ingrained global user base.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-value">300M+</span>
+                    <span class="stat-label">Total Premium Unit Sales</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">166M+</span>
+                    <span class="stat-label">Monthly Active Users (MAU)</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">#1</span>
+                    <span class="stat-label">Global Voxel Market Share</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-block">
+            <h2>The "Creator City" Spatial Framework</h2>
+            <p>Within the BLK network, standard profile pages and two-dimensional media feeds are rendered obsolete. Every signed musician, visual artist, and digital creator onboarded into the ecosystem is allocated a sovereign "City"—a dedicated, high-performance sub-server node natively hosted within our centralized Minecraft network.</p>
+            
+            <p>These sprawling, architecturally distinct virtual environments act as fully immersive, three-dimensional landing pages. A Creator City is entirely bespoke, designed to reflect the aesthetic, lore, and sonic branding of the individual artist. Within these localized economies, fans can seamlessly transition from standard gameplay into highly specialized interactive zones.</p>
+
+            <p>These hubs serve as the primary venues for our 70% Net Yield virtual performance verticals. When an artist drops an album or hosts a live event, their specific Creator City transforms into a high-capacity smart-venue. Users can congregate, experience synchronized audiovisual performances generated via localized resource packs, and interact with exclusive, IP-specific digital lore—all contained within a framework that requires zero external software downloads for the end-user.</p>
+        </div>
+
+        <div class="compliance-box">
+            <div class="compliance-header">
+                <div class="status-dot"></div>
+                <h3>Microsoft / Mojang EULA Compliance Protocol</h3>
+            </div>
+            <p>Risk mitigation is paramount. The BLK fiscal architecture operates under a strict, non-negotiable compliance framework regarding the Mojang End User License Agreement (EULA) and their Commercial Usage Guidelines. <strong>BLK does not, and will never, integrate pay-to-win mechanics or lock core gameplay features behind on-chain paywalls.</strong></p>
+            <br>
+            <p>Our 70/30 digital capital allotment is executed entirely on a proprietary, out-of-game Web3 transactional layer. We sell ecosystem access, tiered routing, and external digital merchandise. When a fan purchases a smart-contract ticket or a digital collectible via the BLK web portal, our server infrastructure merely reads that external cryptographic verification to grant temporary venue access or apply cosmetic, non-competitive status tags within the Creator City. By keeping all fiscal mechanisms heavily decoupled from the Minecraft client itself, BLK ensures 100% legal adherence to global commercial guidelines while still facilitating massive, decentralized wealth generation for our artists.</p>
+        </div>
+
+        <footer>
+            <p>CONFIDENTIAL INVESTOR PORTAL // BLK WEB3 ECOSYSTEM 2026</p>
+        </footer>
+    </div>
+
+</body>
+</html>
