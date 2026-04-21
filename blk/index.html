@@ -42,7 +42,6 @@
 
         .logo { font-weight: 700; font-size: 1.5rem; letter-spacing: 2px; color: var(--text); z-index: 2001; }
 
-        /* Desktop Nav */
         .nav-links a {
             color: var(--text);
             text-decoration: none;
@@ -54,7 +53,6 @@
         }
         .nav-links a:hover { color: var(--accent); }
 
-        /* Hamburger Menu Icon */
         .menu-toggle {
             display: none;
             flex-direction: column;
@@ -70,7 +68,6 @@
             transition: 0.4s;
         }
 
-        /* Mobile Menu Overlay */
         .mobile-menu {
             position: fixed;
             top: 0;
@@ -98,7 +95,6 @@
         }
         .mobile-menu a:hover { color: var(--accent); }
 
-        /* Menu Icon "X" Animation */
         .active-toggle .bar1 { transform: rotate(-45deg) translate(-5px, 6px); }
         .active-toggle .bar2 { opacity: 0; }
         .active-toggle .bar3 { transform: rotate(45deg) translate(-5px, -6px); }
@@ -243,7 +239,6 @@
             menuBtn.classList.toggle('active-toggle');
             menuOverlay.classList.toggle('active');
             
-            // Prevent scrolling when menu is open
             if (menuOverlay.classList.contains('active')) {
                 document.body.style.overflow = 'hidden';
             } else {
@@ -251,7 +246,6 @@
             }
         });
 
-        // Close menu when a link is clicked
         const mobileLinks = document.querySelectorAll('.mobile-menu a');
         mobileLinks.forEach(link => {
             link.addEventListener('click', () => {
