@@ -62,19 +62,19 @@
         
         .slice { transition: opacity 0.2s; cursor: pointer; stroke: #000; stroke-width: 0.01; }
 
-        /* Localized Red Glitch Slices */
+        /* CYBERPUNK RED GLITCH Slices Only (30% and 10%) */
         .glitch-target:hover {
-            animation: cyber-shake 0.08s infinite;
+            animation: cyber-shake 0.1s infinite;
             filter: saturate(4) brightness(1.4) drop-shadow(0 0 15px var(--error));
             z-index: 100;
         }
 
         @keyframes cyber-shake {
             0% { transform: translate(0,0); }
-            20% { transform: translate(3px, -2px) rotate(0.5deg); }
-            40% { transform: translate(-3px, 2px) rotate(-0.5deg); }
-            60% { transform: translate(2px, -3px) scale(1.02); }
-            80% { transform: translate(-2px, 1px) scale(0.98); }
+            20% { transform: translate(6px, -3px) rotate(1.5deg); }
+            40% { transform: translate(-6px, 4px) rotate(-1.5deg); }
+            60% { transform: translate(3px, -5px) scale(1.03); }
+            80% { transform: translate(-3px, 0px) scale(0.97); }
             100% { transform: translate(0,0); }
         }
 
@@ -83,7 +83,7 @@
         .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; position: relative; }
         .legend-item:hover { transform: translateX(10px); }
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; min-width: 90px; display: inline-block; position: relative; }
+        .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
 
         /* CONTAINED TEXT GLITCH */
         .legend-item .legend-text::after {
