@@ -22,7 +22,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; line-height: 1.8; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; line-height: 1.8; overflow-x: hidden; }
 
         nav {
             position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
@@ -36,53 +36,60 @@
         .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- ECONOMY GRID --- */
+        /* --- ECONOMY GRID (Stable) --- */
         .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
-        .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: all 0.4s; }
+        .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: transform 0.3s ease; }
+        .eco-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
         .eco-card h2 { font-size: 1.4rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .eco-card .percentage { font-size: 5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 2rem; display: block; }
         .eco-card.burn-card .percentage { color: var(--burn); }
 
-        /* --- SVG PIE CHART LOGIC --- */
+        /* --- PIE CHART SECTION --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
             background: linear-gradient(145deg, #050505 0%, #000 100%);
         }
 
-        .svg-chart { width: 320px; height: 320px; transform: rotate(-90deg); filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.2)); }
+        .svg-chart { 
+            width: 320px; height: 320px; 
+            transform: rotate(-90deg); 
+            filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.2)); 
+            overflow: visible; 
+        }
         
-        /* Base slice style */
-        .slice { transition: transform 0.2s, opacity 0.2s; cursor: pointer; stroke: #000; stroke-width: 0.5; }
+        .slice { transition: opacity 0.2s; cursor: pointer; stroke: #000; stroke-width: 0.01; }
 
-        /* Targeted Glitch Slices (Founders & Investors) */
+        /* Targeted Glitch Slices Only (30% and 10%) */
         .glitch-target:hover {
-            animation: svg-shake 0.1s infinite;
-            filter: saturate(2) brightness(1.5) drop-shadow(0 0 15px var(--error));
+            animation: svg-shake 0.12s infinite;
+            filter: saturate(2.5) brightness(1.2) drop-shadow(0 0 12px var(--error));
+            z-index: 100;
         }
 
         @keyframes svg-shake {
-            0% { transform: translate(0,0) rotate(-90deg); }
-            25% { transform: translate(2px, -2px) rotate(-89deg); }
-            50% { transform: translate(-2px, 2px) rotate(-91deg); }
-            100% { transform: translate(0,0) rotate(-90deg); }
+            0% { transform: translate(0,0); }
+            25% { transform: translate(4px, -2px) rotate(1deg); }
+            50% { transform: translate(-4px, 3px) rotate(-1deg); }
+            75% { transform: translate(2px, -4px); }
+            100% { transform: translate(0,0); }
         }
 
-        /* --- LEGEND & TEXT GLITCH --- */
+        /* --- LEGEND & TARGETED TEXT GLITCH --- */
         .legend { font-family: 'Space Mono', monospace; list-style: none; }
         .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
         .legend-item:hover { transform: translateX(10px); }
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.2); }
         .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; min-width: 90px; display: inline-block; }
 
-        /* Only glitch the 30% and 10% items in the legend */
+        /* Only glitch the 30% and 10% items */
         .glitch-item:hover .legend-text,
         .glitch-item:hover .legend-pct {
             animation: glitch-red 0.15s infinite;
             color: var(--error) !important;
         }
 
-        .locked:hover .legend-pct::after {
+        .glitch-item:hover .legend-pct::after {
             content: "LOCKED_ASSET::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
             background: var(--bg); color: var(--error); font-weight: 700;
@@ -95,6 +102,13 @@
             50% { transform: translate(-1px, -1px); text-shadow: -2px 0 #0ff, 2px 0 #f0f; }
             100% { transform: translate(0); }
         }
+
+        /* --- REVENUE STREAMS (Stable) --- */
+        .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
+        .stream-item { display: flex; justify-content: space-between; padding: 2.5rem 0; border-bottom: 1px solid var(--border); transition: background 0.3s; }
+        .stream-item:hover { background: rgba(138, 43, 226, 0.03); }
+        .stream-name { font-weight: 700; font-size: 1.3rem; display: block; margin-bottom: 0.5rem; color: #fff; }
+        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 16px; height: fit-content; }
 
         footer { margin-top: 150px; padding: 6rem 0; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.8rem; }
     </style>
@@ -126,18 +140,18 @@
 
         <section class="chart-section">
             <svg class="svg-chart" viewBox="-1 -1 2 2">
-                <path class="slice glitch-target" d="M 1 0 A 1 1 0 0 1 0.309 0.951 L 0 0" fill="var(--color-directors)"></path>
-                <path class="slice glitch-target" d="M 0.309 0.951 A 1 1 0 0 1 -0.309 0.951 L 0 0" fill="var(--color-investor)"></path>
-                <path class="slice" d="M -0.309 0.951 A 1 1 0 0 1 -0.809 -0.587 L 0 0" fill="var(--color-artists)"></path>
-                <path class="slice" d="M -0.809 -0.587 A 1 1 0 0 1 1 0 L 0 0" fill="var(--color-public)"></path>
+                <path class="slice glitch-target" d="M 1 0 A 1 1 0 0 1 0.3090 0.9511 L 0 0" fill="var(--color-directors)"></path>
+                <path class="slice glitch-target" d="M 0.3090 0.9511 A 1 1 0 0 1 -0.3090 0.9511 L 0 0" fill="var(--color-investor)"></path>
+                <path class="slice" d="M -0.3090 0.9511 A 1 1 0 0 1 -0.8090 -0.5878 L 0 0" fill="var(--color-artists)"></path>
+                <path class="slice" d="M -0.8090 -0.5878 A 1 1 0 0 1 1 0 L 0 0" fill="var(--color-public)"></path>
             </svg>
 
             <ul class="legend">
-                <li class="legend-item locked glitch-item">
+                <li class="legend-item glitch-item">
                     <div class="legend-color-box" style="background-color: var(--color-directors);"></div>
                     <span class="legend-text">Project Directors & Founders <span class="legend-pct">30.0%</span></span>
                 </li>
-                <li class="legend-item locked glitch-item">
+                <li class="legend-item glitch-item">
                     <div class="legend-color-box" style="background-color: var(--color-investor);"></div>
                     <span class="legend-text">Early Investors <span class="legend-pct">10.0%</span></span>
                 </li>
@@ -151,6 +165,17 @@
                 </li>
             </ul>
         </section>
+
+        <div class="revenue-streams">
+            <div class="stream-item">
+                <div><span class="stream-name">Meta-Asset Virtual Commerce</span><p>High-margin distribution of digital assets, wearables, and collectibles.</p></div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+            <div class="stream-item">
+                <div><span class="stream-name">Immersive Performance Infrastructure</span><p>Smart-contract ticketing and tiered access protocols for virtual venues.</p></div>
+                <span class="yield-label">70% NET CREATOR YIELD</span>
+            </div>
+        </div>
 
         <footer>
             <p>2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.</p>
