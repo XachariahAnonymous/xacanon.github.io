@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLK | TECHNICAL INFRASTRUCTURE PROSPECTUS</title>
+    <title>BLK | Pitch Deck</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
     
     <style>
@@ -23,15 +23,8 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background-color: var(--bg); 
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
-            line-height: 1.8; 
-            overflow-x: hidden; 
-        }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.8; overflow-x: hidden; }
 
-        /* --- NAVIGATION --- */
         nav {
             position: fixed; top: 0; width: 100%; padding: 2rem 5%;
             display: flex; justify-content: space-between; align-items: center;
@@ -40,40 +33,28 @@
         }
         .logo { font-family: 'Space Mono', monospace; font-weight: 700; letter-spacing: 2px; }
 
-        /* --- HERO --- */
         .container { max-width: 1200px; margin: 200px auto 100px; padding: 0 5%; }
-        
         .tag { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 4px; }
         h1 { font-size: clamp(3rem, 10vw, 6.5rem); line-height: 0.85; margin-bottom: 3rem; font-weight: 700; letter-spacing: -0.05em; }
         .hero-lead { font-size: 1.6rem; color: var(--sub); max-width: 900px; margin-bottom: 5rem; font-weight: 300; }
 
-        /* --- STATISTICS GRID --- */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 150px; }
         .stat-card { padding: 4rem 3rem; background: var(--bg); }
         .stat-val { font-size: 4.5rem; font-weight: 700; display: block; line-height: 1; margin-bottom: 0.5rem; letter-spacing: -0.04em; }
         .stat-label { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
 
-        /* --- SECTION HEADERS --- */
         section { margin-bottom: 200px; }
         .section-header { margin-bottom: 4rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem; }
         h2 { font-size: 3.5rem; letter-spacing: -0.04em; font-weight: 700; margin-bottom: 1rem; }
 
-        /* --- FEATURE CONTENT --- */
         .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 4rem; }
         .feature-block { margin-bottom: 3rem; }
         .feature-block h3 { font-size: 1.5rem; margin-bottom: 1rem; color: #fff; }
         .feature-block p { color: var(--sub); font-size: 1.1rem; }
 
-        /* --- THE BOXES --- */
-        .technical-box {
-            padding: 5rem; background: var(--surface); border: 1px solid var(--border);
-            position: relative; overflow: hidden;
-        }
-        .technical-box::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent);
-        }
+        .technical-box { padding: 5rem; background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; }
+        .technical-box::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
 
-        /* --- PIE CHART SECTION --- */
         .fiscal-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6rem; align-items: center; }
         .svg-wrap { width: 320px; height: 320px; transform: rotate(-90deg); position: relative; justify-self: center; }
         .slice { fill: none; stroke-width: 32; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); }
@@ -84,6 +65,7 @@
             filter: drop-shadow(0 0 15px var(--error));
             cursor: crosshair;
         }
+
         @keyframes tremor { 
             0% { transform: translate(1px, -1px); } 
             50% { transform: translate(-1px, 1px); } 
@@ -91,14 +73,25 @@
         }
 
         .legend { list-style: none; font-family: 'Space Mono', monospace; }
-        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; font-size: 0.85rem; }
+        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; font-size: 0.85rem; position: relative; cursor: pointer; transition: transform 0.2s; }
+        .legend-item:hover { transform: translateX(10px); }
         .legend-color { width: 12px; height: 12px; margin-right: 1.5rem; border-radius: 2px; }
+        .pct-val { font-weight: 700; color: #fff; margin-left: 8px; position: relative; }
 
-        /* --- COMPLIANCE --- */
-        .compliance-banner {
-            margin-top: 6rem; padding: 3rem; border: 1px solid var(--success);
-            background: rgba(0, 255, 102, 0.02);
+        .locked:hover .pct-val::after {
+            content: "LOCKED_ASSET::ERROR 404";
+            position: absolute; left: 0; top: 0; width: 100%;
+            background: var(--bg); color: var(--error); font-weight: 700;
+            animation: text-glitch 0.1s infinite;
+            white-space: nowrap; z-index: 10;
         }
+
+        @keyframes text-glitch {
+            0% { transform: translate(1px, 1px); text-shadow: 1px 0 #0ff, -1px 0 #f0f; }
+            100% { transform: translate(0); }
+        }
+
+        .compliance-banner { margin-top: 6rem; padding: 3rem; border: 1px solid var(--success); background: rgba(0, 255, 102, 0.02); }
         .compliance-banner h4 { font-family: 'Space Mono', monospace; color: var(--success); text-transform: uppercase; margin-bottom: 1rem; }
 
         footer { padding: 8rem 0 4rem; text-align: center; border-top: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #444; letter-spacing: 4px; }
@@ -112,32 +105,18 @@
 </head>
 <body>
 
-    <nav>
-        <div class="logo">BLK.</div>
-    </nav>
+    <nav><div class="logo">BLK.</div></nav>
 
     <div class="container">
-        
         <header>
             <span class="tag">Technical Thesis</span>
             <h1>Spatial Asset & Infrastructure.</h1>
-            <p class="hero-lead">A specialized ecosystem engineered for the 212M+ monthly active Minecraft user base. 
-        BLK provides the sovereign technical layer for content distribution, immersive monetization, 
-        and frictionless user ingress within the world's largest sandbox environment.</p>
+            <p class="hero-lead">A specialized ecosystem engineered for the 212M+ monthly active Minecraft user base. BLK provides the sovereign technical layer for content distribution, immersive monetization, and frictionless user ingress within the world's largest sandbox environment.</p>
             
             <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="stat-val">212M+</span>
-                    <span class="stat-label">Network MAU</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-val">$323B</span>
-                    <span class="stat-label">Creator TAM</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-val">Vanilla</span>
-                    <span class="stat-label">Zero Mod Friction</span>
-                </div>
+                <div class="stat-card"><span class="stat-val">212M+</span><span class="stat-label">Network MAU</span></div>
+                <div class="stat-card"><span class="stat-val">$323B</span><span class="stat-label">Creator TAM</span></div>
+                <div class="stat-card"><span class="stat-val">Vanilla</span><span class="stat-label">Zero Mod Friction</span></div>
             </div>
         </header>
 
@@ -149,23 +128,22 @@
             
             <div class="technical-box">
                 <p class="hero-lead" style="font-size: 1.3rem; margin-bottom: 3rem;">BLK operates exclusively on the standard game client. By removing the requirement for external mods or custom launchers, we ensure 100% accessibility for the global user base.</p>
-                
                 <div class="feature-grid">
                     <div class="feature-block">
                         <h3>Proprietary Asset Rendering</h3>
-                        <p>We have engineered a method to render high-fidelity assets (including <b>custom branded apparel, vehicles, and biological companions</b>) directly within the vanilla environment. These are proprietary creations unique to the BLK platform.</p>
+                        <p>We have engineered a method to render high-fidelity assets (including <b>custom branded apparel, vehicles, and biological companions</b>) directly within the vanilla environment.</p>
                     </div>
                     <div class="feature-block">
                         <h3>Transportation Infrastructure</h3>
-                        <p>Native implementation of functional supercars, helicopters, and planes. Each asset is tailored to the project aesthetic and provides high-utility movement within Creator Cities.</p>
+                        <p>Native implementation of functional supercars, helicopters, and planes. Each asset is tailored to the project aesthetic and provides high-utility movement.</p>
                     </div>
                     <div class="feature-block">
                         <h3>Earth-Scale Mapping</h3>
-                        <p>The "Earth Render" project bridges physical geography with digital ownership. Large-scale sections of the physical world are mapped 1:1 into the grid, allowing artists to own and develop sovereign territories based on real-world locations.</p>
+                        <p>The "Earth Render" project bridges physical geography with digital ownership. Large-scale sections of the physical world are mapped 1:1 into the grid.</p>
                     </div>
                     <div class="feature-block">
                         <h3>Gameplay Customization</h3>
-                        <p>Bespoke minigames and gameplay loops are engineered to reflect the brand lore of specific projects, turning static environments into interactive gaming verticals.</p>
+                        <p>Bespoke minigames and gameplay loops are engineered to reflect the brand lore of specific projects.</p>
                     </div>
                 </div>
             </div>
@@ -176,15 +154,14 @@
                 <span class="tag">02 // Audio & Distribution</span>
                 <h2>Sonic Engineering.</h2>
             </div>
-
             <div class="feature-grid" style="align-items: center;">
                 <div>
-                    <p class="hero-lead" style="font-size: 1.2rem;">Our in-house production collective focuses on the high-growth sectors of <b>Emo Rap, Melodic Trap, and Lo-Fi</b>. We manage the entire pipeline from internal composition to professional-grade vocal mixing.</p>
-                    <p style="color: var(--sub);">Music is distributed via a hybrid architecture. Tracks are released on legacy DSPs while simultaneously being broadcasted through our <b>Spatial Radio Layer</b>. New releases act as synchronized network events, hosted live within Creator Cities.</p>
+                    <p class="hero-lead" style="font-size: 1.2rem;">Our in-house production collective focuses on the high-growth sectors of <b>Emo Rap, Melodic Trap, and Lo-Fi</b>.</p>
+                    <p style="color: var(--sub);">Music is distributed via a hybrid architecture. Tracks are released on legacy DSPs while simultaneously being broadcasted through our <b>Spatial Radio Layer</b>.</p>
                 </div>
                 <div class="technical-box" style="padding: 3rem;">
                     <h3 style="margin-bottom: 1rem;">The 70/30 Model</h3>
-                    <p style="color: var(--sub); font-size: 1rem;">The BLK financial model is artist-favored. By retaining only 30% for infrastructure maintenance and burn protocols, we attract top-tier talent who prioritize financial sovereignty over legacy label contracts.</p>
+                    <p style="color: var(--sub); font-size: 1rem;">The BLK financial model is artist-favored. By retaining only 30% for infrastructure maintenance, we attract top-tier talent.</p>
                 </div>
             </div>
         </section>
@@ -208,53 +185,33 @@
                 <div class="legend-wrap">
                     <p style="margin-bottom: 2.5rem; color: var(--sub);">The fiscal engine is built for long-term asset appreciation. 50% of net operational surplus is dedicated to an automated buy-back and burn program.</p>
                     <ul class="legend">
-                        <li class="legend-item"><div class="legend-color" style="background: var(--color-directors);"></div> 30.0% // FOUNDERS & DEVELOPMENT</li>
-                        <li class="legend-item"><div class="legend-color" style="background: var(--color-investor);"></div> 10.0% // EARLY INVESTOR POOL</li>
-                        <li class="legend-item"><div class="legend-color" style="background: var(--color-artists);"></div> 25.0% // ARTIST ALLOCATION</li>
-                        <li class="legend-item"><div class="legend-color" style="background: var(--color-public);"></div> 35.0% // PUBLIC LIQUIDITY</li>
+                        <li class="legend-item locked">
+                            <div class="legend-color" style="background: var(--color-directors);"></div> 
+                            FOUNDERS & DEV <span class="pct-val">30.0%</span>
+                        </li>
+                        <li class="legend-item locked">
+                            <div class="legend-color" style="background: var(--color-investor);"></div> 
+                            EARLY INVESTORS <span class="pct-val">10.0%</span>
+                        </li>
+                        <li class="legend-item">
+                            <div class="legend-color" style="background: var(--color-artists);"></div> 
+                            ARTISTS <span class="pct-val">25.0%</span>
+                        </li>
+                        <li class="legend-item">
+                            <div class="legend-color" style="background: var(--color-public);"></div> 
+                            PUBLIC <span class="pct-val">35.0%</span>
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <div class="technical-box" style="margin-top: 4rem; padding: 4rem;">
-                <h3 style="margin-bottom: 2rem; letter-spacing: -1.2px;">Vesting & Institutional Lock-Up</h3>
-                <p style="color: var(--sub); font-size: 1.1rem; margin-bottom: 2rem;">
-                    To ensure market stability, 65% of the total supply (allocated to Artists, Investors, Developers, and Founders) is subject to an <b>18-month hard lock</b>. Post-lock, liquidity is released via a tiered exit protocol designed to prevent volatility while the ecosystem outpaces traditional investment benchmarks.
-                </p>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem;">Phase 01</span>
-                        <p style="color: #fff; font-weight: 700;">0.1% Unlock</p>
-                        <p style="font-size: 0.85rem; color: #666;">Monthly release for 6 months.</p>
-                    </div>
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem;">Phase 02</span>
-                        <p style="color: #fff; font-weight: 700;">0.2% Unlock</p>
-                        <p style="font-size: 0.85rem; color: #666;">Scaling release over 12 months.</p>
-                    </div>
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem;">Terminal Phase</span>
-                        <p style="color: #fff; font-weight: 700;">0.5% Ceiling</p>
-                        <p style="font-size: 0.85rem; color: #666;">Capped at 6.0% annual exit.</p>
-                    </div>
-                </div>
-
-                <p style="margin-top: 3rem; font-style: italic; color: #555; font-size: 0.95rem;">
-                    Internal growth metrics indicate a trajectory that historically exceeds standard institutional yields, framing the 6% annual exit as a safety valve rather than a functional necessity for holders.
-                </p>
-            </div>
-
             <div class="compliance-banner">
                 <h4>EULA Compliance & Risk Mitigation</h4>
-                <p style="color: var(--sub);">All financial transactions are processed on a proprietary, out-of-game Web3 layer. This <b>Fiscal Decoupling</b> ensures that the gaming environment remains strictly for interaction and rendering, while commerce is handled externally to remain in 100% compliance with platform usage guidelines.</p>
+                <p style="color: var(--sub);">All financial transactions are processed on a proprietary, out-of-game Web3 layer. This <b>Fiscal Decoupling</b> ensures that the gaming environment remains strictly for interaction.</p>
             </div>
         </section>
 
-        <footer>
-            2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.
-        </footer>
+        <footer>2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.</footer>
     </div>
-
 </body>
 </html>
