@@ -36,7 +36,6 @@
         .label { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.85rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 3px; }
         h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: 4rem; letter-spacing: -3px; line-height: 1.05; font-weight: 700; }
 
-        /* --- ECONOMY GRID --- */
         .economy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 4rem; }
         .eco-card { border: 1px solid var(--border); padding: 4rem; background: linear-gradient(180deg, #080808 0%, #000 100%); transition: transform 0.3s ease; }
         .eco-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
@@ -45,12 +44,10 @@
         .eco-card.burn-card .percentage { color: var(--burn); }
         .eco-card p { color: #b0b0b0; font-weight: 300; }
 
-        /* --- PROTOCOL BOX --- */
         .protocol-box { margin-bottom: 6rem; padding: 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); position: relative; }
         .protocol-box h3 { font-family: 'Space Mono', monospace; color: var(--accent); text-transform: uppercase; font-size: 0.9rem; margin-bottom: 1.5rem; letter-spacing: 2px; }
         .protocol-box p { font-size: 1.1rem; color: #fff; max-width: 900px; }
 
-        /* --- PIE CHART SECTION --- */
         .chart-section {
             display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;
             margin-bottom: 6rem; padding: 4rem; border: 1px solid var(--border);
@@ -64,7 +61,6 @@
         
         .slice-circle { fill: none; stroke-width: 32; transition: stroke 0.3s, filter 0.3s; cursor: pointer; }
 
-        /* Targeted Cyberpunk Red Glitch on Pie */
         .glitch-target:hover {
             animation: cyber-shake 0.1s infinite;
             stroke: var(--error) !important;
@@ -80,14 +76,12 @@
             100% { transform: translate(0,0); }
         }
 
-        /* --- LEGEND & TEXT GLITCH --- */
         .legend { font-family: 'Space Mono', monospace; list-style: none; }
         .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; position: relative; }
         .legend-item:hover { transform: translateX(10px); }
         .legend-color-box { width: 16px; height: 16px; margin-right: 20px; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
         .legend-pct { font-weight: 700; color: #fff; margin-left: 12px; position: relative; display: inline-block; min-width: 90px; }
 
-        /* Error state for locked files */
         .locked:hover .legend-pct::after {
             content: "LOCKED_FILE::ERR";
             position: absolute; left: 0; top: 0; width: 100%;
@@ -102,7 +96,6 @@
             100% { transform: translate(0); }
         }
 
-        /* --- REVENUE STREAMS --- */
         .revenue-streams { margin-top: 6rem; padding: 5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
         .revenue-streams h3 { font-family: 'Space Mono', monospace; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 3.5rem; color: var(--muted); letter-spacing: 2px; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
         .stream-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
