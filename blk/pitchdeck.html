@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLK | Pitch Deck</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
-    
     <style>
         :root {
             --bg: #000000;
@@ -67,7 +66,6 @@
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent);
         }
 
-        /* --- PIE CHART GLITCH --- */
         .fiscal-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6rem; align-items: center; }
         .svg-wrap { width: 320px; height: 320px; transform: rotate(-90deg); position: relative; justify-self: center; }
         .slice { fill: none; stroke-width: 32; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); }
@@ -92,7 +90,6 @@
         .trigger-glitch:hover .legend-text { opacity: 0; }
         .trigger-glitch:hover .error-text { opacity: 1; animation: flicker 0.15s infinite; }
 
-        /* --- GALLERY STYLES --- */
         .gallery-container { margin-top: 4rem; position: relative; width: 100%; }
         .gallery-viewport { 
             width: 100%; 
@@ -109,7 +106,7 @@
             width: 100%; 
             height: 100%; 
             object-fit: cover; 
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s; 
+            transition: transform 0.2s ease, opacity 0.2s ease; 
             z-index: 1;
         }
         
@@ -168,7 +165,6 @@
     </nav>
 
     <div class="container">
-        
         <header>
             <span class="tag">System Thesis</span>
             <h1>Spatial Asset & Infrastructure.</h1>
@@ -198,7 +194,6 @@
             
             <div class="technical-box">
                 <p class="hero-lead" style="font-size: 1.3rem; margin-bottom: 3rem;">BLK operates exclusively on the standard game client. By removing the requirement for external mods or custom launchers, we ensure 100% accessibility for the entire global user base.</p>
-                
                 <div class="feature-grid">
                     <div class="feature-block">
                         <h3>Proprietary Asset Rendering</h3>
@@ -229,23 +224,21 @@
             <div class="feature-grid" style="align-items: flex-start;">
                 <div>
                     <p class="hero-lead" style="font-size: 1.2rem;">Our in-house production collective manages the full creative pipeline, from internal composition to professional-grade vocal mixing and video production.</p>
-                    
                     <div style="margin-bottom: 2.5rem;">
                         <h3 style="font-size: 1.1rem; color: var(--accent); font-family: 'Space Mono', monospace; text-transform: uppercase; margin-bottom: 10px;">100% Pass-Through Distribution</h3>
                         <p style="color: var(--sub); font-size: 0.95rem;">
-                            Unlike legacy label structures, BLK employs a <b>Pass-Through Model</b>. This means when an artist's work generates value through legacy DSPs (Spotify, Apple Music) or external merchandise, the funds bypass the BLK treasury entirely. The protocol does not touch, tax, or delay these royalties, ensuring creators maintain absolute financial autonomy over their intellectual property outside the digital environment.
+                            Unlike legacy label structures, BLK employs a <b>Pass-Through Model</b>. This means when an artist's work generates value through legacy DSPs (Spotify, Apple Music) or external merchandise, the funds bypass the BLK treasury entirely.
                         </p>
                     </div>
-
-                    <p style="color: var(--sub);">BLK leverages an expansive media network to drive ingress. We produce cinematic trailers and music videos promoted to our <b>1.44M Subscribers</b>, ensuring project visibility long before users enter the Creator Cities.</p>
+                    <p style="color: var(--sub);">BLK leverages an expansive media network to drive ingress. We produce cinematic trailers and music videos promoted to our <b>1.44M Subscribers</b>.</p>
                 </div>
                 
                 <div class="technical-box" style="padding: 3rem;">
                     <h3 style="margin-bottom: 1.5rem;">The 70/30 Model</h3>
                     <p style="color: var(--sub); font-size: 1rem;">
-                        The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes localized management of immersive hosting, architectural world-building, and high-performance development cycles. 
+                        The 30% operational allotment is utilized exclusively to facilitate technical demands.
                         <br><br>
-                        <b>Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</b>
+                        <b>Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model.</b>
                     </p>
                 </div>
             </div>
@@ -266,9 +259,8 @@
                         <circle class="slice slice-glitch" cx="32" cy="32" r="16" stroke="var(--color-directors)" stroke-dasharray="30.1 100.5" stroke-dashoffset="-70.4"></circle>
                     </svg>
                 </div>
-                
                 <div class="legend-wrap">
-                    <p style="margin-bottom: 2.5rem; color: var(--sub);">The fiscal engine is built for long-term asset appreciation. 50% of net operational surplus is dedicated to an automated buy-back and burn program.</p>
+                    <p style="margin-bottom: 2.5rem; color: var(--sub);">The fiscal engine is built for long-term asset appreciation. 50% of net operational surplus is dedicated to a buy-back and burn program.</p>
                     <ul class="legend">
                         <li class="legend-item trigger-glitch">
                             <div class="legend-color" style="background: var(--color-directors);"></div> 
@@ -288,25 +280,18 @@
 
             <div class="technical-box" style="margin-top: 4rem; padding: 4rem;">
                 <h3 style="margin-bottom: 2rem; letter-spacing: -1.2px;">Vesting & Institutional Lock-Up</h3>
-                <p style="color: var(--sub); font-size: 1.1rem; margin-bottom: 2rem;">
-                    To ensure market stability, 65% of the total supply is subject to an <b>18-month hard lock</b>. Post-lock, liquidity is released via a tiered exit protocol designed to prevent volatility.
-                </p>
-                
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
                     <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
                         <span class="tag" style="font-size: 0.65rem;">Phase 01</span>
                         <p style="color: #fff; font-weight: 700;">0.1% Unlock</p>
-                        <p style="font-size: 0.85rem; color: #666;">Monthly release for 6 months.</p>
                     </div>
                     <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
                         <span class="tag" style="font-size: 0.65rem;">Phase 02</span>
                         <p style="color: #fff; font-weight: 700;">0.2% Unlock</p>
-                        <p style="font-size: 0.85rem; color: #666;">Scaling release over 12 months.</p>
                     </div>
                     <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
                         <span class="tag" style="font-size: 0.65rem;">Terminal Phase</span>
                         <p style="color: #fff; font-weight: 700;">0.5% Ceiling</p>
-                        <p style="font-size: 0.85rem; color: #666;">Capped at 6.0% annual exit.</p>
                     </div>
                 </div>
             </div>
@@ -316,11 +301,9 @@
                 <div class="gallery-viewport">
                     <div class="gallery-nav prev" onclick="moveSlide(-1)">&#10094;</div>
                     <div class="gallery-nav next" onclick="moveSlide(1)">&#10095;</div>
-                    
-                    <img id="mainView" src="https://i.ibb.co/wFLxtDFC/2026-04-21-10-46-55.png" class="gallery-main" alt="BLK Infrastructure View">
+                    <img id="mainView" src="https://i.ibb.co/wFLxtDFC/2026-04-21-10-46-55.png" class="gallery-main" alt="BLK View">
                     <div class="scanline"></div>
                 </div>
-                
                 <div class="gallery-footer">
                     <div id="counter" class="gallery-counter">1 / 23</div>
                 </div>
@@ -353,6 +336,11 @@
                     "https://i.ibb.co/1fLtbJQf/2026-04-21-10-47-11.png"
                 ];
 
+                images.forEach((src) => {
+                    const img = new Image();
+                    img.src = src;
+                });
+
                 let currentIndex = 0;
 
                 function moveSlide(direction) {
@@ -365,20 +353,17 @@
                 function updateGallery() {
                     const view = document.getElementById('mainView');
                     view.style.opacity = "0";
-                    view.style.transform = "scale(1.05)";
-                    
                     setTimeout(() => {
                         view.src = images[currentIndex];
                         document.getElementById('counter').innerText = `${currentIndex + 1} / ${images.length}`;
                         view.style.opacity = "1";
-                        view.style.transform = "scale(1)";
-                    }, 300);
+                    }, 100);
                 }
             </script>
 
             <div class="compliance-banner">
                 <h4>EULA Compliance & Risk Mitigation</h4>
-                <p style="color: var(--sub);">BLK operates under strict adherence to Microsoft/Mojang EULA and Commercial Usage Guidelines. We maintain a zero-negotiation policy on fiscal decoupling: all financial transactions occur on a proprietary off-game layer. No core gameplay features are locked behind paywalls.</p>
+                <p style="color: var(--sub);">BLK operates under strict adherence to Microsoft/Mojang EULA and Commercial Usage Guidelines.</p>
             </div>
         </section>
 
@@ -386,6 +371,5 @@
             2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.
         </footer>
     </div>
-
 </body>
 </html>
