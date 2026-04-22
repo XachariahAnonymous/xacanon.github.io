@@ -13,6 +13,7 @@
             --accent: #8A2BE2;
             --muted: #444444;
             --border: rgba(255, 255, 255, 0.1);
+            --modal-bg: rgba(10, 10, 10, 0.95);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,133 +26,81 @@
         }
 
         nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 1.5rem 5%;
-            display: flex;
-            justify-content: space-between;
+            position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
+            display: flex; justify-content: space-between;
             border-bottom: 1px solid var(--border);
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(15px);
-            z-index: 1000;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 1000;
         }
 
-        nav a {
-            color: var(--text);
-            text-decoration: none;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 1.5px;
-        }
+        nav a { color: var(--text); text-decoration: none; font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 1.5px; }
 
-        .container {
-            max-width: 1200px;
-            margin: 160px auto 100px;
-            padding: 0 5%;
-        }
+        .container { max-width: 1200px; margin: 160px auto 100px; padding: 0 5%; }
 
         .section-label {
-            font-family: 'Space Mono', monospace;
-            color: var(--accent);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1rem;
-            display: block;
+            font-family: 'Space Mono', monospace; color: var(--accent);
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 4px;
+            margin-bottom: 2rem; border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem; display: block;
         }
 
         .roster-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 6rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem; margin-bottom: 6rem;
         }
 
         .placeholder-card {
-            border: 1px solid var(--border);
-            aspect-ratio: 3/4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.01);
-            position: relative;
-            overflow: hidden;
+            border: 1px solid var(--border); aspect-ratio: 3/4;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.01); position: relative;
+            overflow: hidden; cursor: pointer; transition: border 0.3s ease;
         }
+        
+        .placeholder-card:hover { border-color: var(--accent); }
 
-        /* Styles for filled slots */
         .creator-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; z-index: 0;
+            opacity: 0.7; transition: opacity 0.3s ease, transform 0.5s ease;
         }
 
-        .placeholder-card:hover .creator-img {
-            opacity: 1;
-        }
+        .placeholder-card:hover .creator-img { opacity: 1; transform: scale(1.05); }
 
         .name-overlay {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 1.5rem;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            z-index: 2;
-            text-align: center;
+            position: absolute; bottom: 0; width: 100%; padding: 1.5rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+            z-index: 2; text-align: center;
         }
 
-        .placeholder-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(255, 255, 255, 0.02) 10px,
-                rgba(255, 255, 255, 0.02) 20px
-            );
-            z-index: 1;
-            pointer-events: none;
+        .active-text { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: #fff; text-transform: uppercase; letter-spacing: 3px; }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 2000; opacity: 0; transition: opacity 0.3s ease;
         }
 
-        .placeholder-text {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            z-index: 1;
+        .modal-content {
+            background: var(--modal-bg); border: 1px solid var(--accent);
+            padding: 3rem; max-width: 500px; width: 90%;
+            position: relative; text-align: center;
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.2);
         }
 
-        .active-text {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.9rem;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+        .modal-close {
+            position: absolute; top: 1rem; right: 1.5rem;
+            color: var(--accent); font-family: 'Space Mono', monospace;
+            cursor: pointer; font-size: 1.2rem;
         }
+
+        .modal-bio { font-size: 1.1rem; color: #ccc; line-height: 1.8; }
+        .modal-title { font-size: 1.8rem; margin-bottom: 1.5rem; letter-spacing: -1px; }
 
         footer {
-            margin-top: 100px;
-            padding: 5rem 0;
-            text-align: center;
-            border-top: 1px solid var(--border);
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--muted);
+            margin-top: 100px; padding: 5rem 0; text-align: center;
+            border-top: 1px solid var(--border); font-family: 'Space Mono', monospace;
+            font-size: 0.8rem; color: var(--muted);
         }
 
     </style>
@@ -174,7 +123,7 @@
 
         <span class="section-label">Creators</span>
         <main class="roster-grid">
-            <div class="placeholder-card">
+            <div class="placeholder-card" onclick="openModal()">
                 <img src="https://i.ibb.co/CsVNpSKM/DSC00044.jpg" alt="Carson H" class="creator-img">
                 <div class="name-overlay">
                     <span class="active-text">Carson H</span>
@@ -185,10 +134,33 @@
             <div class="placeholder-card"><span class="placeholder-text">Placeholder_06</span></div>
         </main>
 
-        <footer>
-            2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.
-        </footer>
+        <footer>2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.</footer>
     </div>
+
+    <div id="bioModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="modal-close" onclick="closeModal()">×</span>
+            <span class="tag" style="color:var(--accent); font-family:'Space Mono'; font-size:0.7rem; letter-spacing:3px; display:block; margin-bottom:1rem;">CREATOR PROFILE</span>
+            <h2 class="modal-title">Carson H</h2>
+            <p class="modal-bio">
+                We're thrilled to introduce Carson H, a dynamic and emerging talent! Carson's creative spirit shines through in every video project they produce, from hilarious skits to compelling short films, all shared on their YouTube channel. What started as a passion project for fun has quickly become a serious pursuit, with Carson dedicating themselves to mastering the art of filmmaking. We're incredibly excited to support Carson's journey as they hone their skills with the ultimate goal of turning this incredible talent into a full-time career. Get ready to be inspired by Carson H!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            const modal = document.getElementById('bioModal');
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.style.opacity = '1'; }, 10);
+        }
+
+        function closeModal(e) {
+            const modal = document.getElementById('bioModal');
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+    </script>
 
 </body>
 </html>
