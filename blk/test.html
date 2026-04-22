@@ -596,6 +596,8 @@
                 let currentIndex = 0;
                 let isGlitching = false;
 
+                const preloadCache = images.map(src => { const img = new Image(); img.src = src; return img; });
+
                 function moveSlide(direction) {
                     if (isGlitching) return;
                     currentIndex += direction;
