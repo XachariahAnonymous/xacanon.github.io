@@ -82,6 +82,33 @@
             overflow: hidden;
         }
 
+        /* Styles for filled slots */
+        .creator-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .placeholder-card:hover .creator-img {
+            opacity: 1;
+        }
+
+        .name-overlay {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            z-index: 2;
+            text-align: center;
+        }
+
         .placeholder-card::before {
             content: "";
             position: absolute;
@@ -96,6 +123,8 @@
                 rgba(255, 255, 255, 0.02) 10px,
                 rgba(255, 255, 255, 0.02) 20px
             );
+            z-index: 1;
+            pointer-events: none;
         }
 
         .placeholder-text {
@@ -105,6 +134,14 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             z-index: 1;
+        }
+
+        .active-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
         }
 
         footer {
@@ -137,7 +174,13 @@
 
         <span class="section-label">Creators</span>
         <main class="roster-grid">
-            <div class="placeholder-card"><span class="placeholder-text">Placeholder_04</span></div>
+            <div class="placeholder-card">
+                <img src="https://i.ibb.co/CsVNpSKM/DSC00044.jpg" alt="Carson H" class="creator-img">
+                <div class="name-overlay">
+                    <span class="active-text">Carson H</span>
+                </div>
+            </div>
+
             <div class="placeholder-card"><span class="placeholder-text">Placeholder_05</span></div>
             <div class="placeholder-card"><span class="placeholder-text">Placeholder_06</span></div>
         </main>
