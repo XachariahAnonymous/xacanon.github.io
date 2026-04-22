@@ -38,7 +38,13 @@
         h1 { font-size: clamp(3rem, 10vw, 6.5rem); line-height: 0.85; margin-bottom: 3rem; font-weight: 700; letter-spacing: -0.05em; }
         .hero-lead { font-size: 1.6rem; color: var(--sub); max-width: 900px; margin-bottom: 5rem; font-weight: 300; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 150px; }
+        .stat-section { margin-bottom: 3rem; }
+        .stat-section:last-of-type { margin-bottom: 150px; }
+        .stat-section-header { display: flex; align-items: baseline; gap: 1.5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .stat-section-tag { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-transform: uppercase; letter-spacing: 3px; }
+        .stat-section-title { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+        .stats-grid--blk { }
         .stat-card { padding: 4rem 3rem; background: var(--bg); }
         .stat-val { font-size: 4.5rem; font-weight: 700; display: block; line-height: 1; margin-bottom: 0.5rem; letter-spacing: -0.04em; }
         .stat-label { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
@@ -160,13 +166,29 @@
             <h1>Spatial Asset & Infrastructure.</h1>
             <p class="hero-lead">The first user-funded, artist-approved major record label. BLK provides the sovereign technical layer for content distribution, immersive monetization, and frictionless user ingress within the 212M+ monthly active Minecraft user base.</p>
             
-            <div class="stats-grid">
-                <div class="stat-card"><span class="stat-val">212M+</span><span class="stat-label">Monthly Users</span></div>
-                <div class="stat-card"><span class="stat-val">$10B</span><span class="stat-label">Total Sales</span></div>
-                <div class="stat-card"><span class="stat-val">13 - 35</span><span class="stat-label">Age Demographic</span></div>
-                <div class="stat-card"><span class="stat-val">$22.4M</span><span class="stat-label">Annual Sales Per Year</span></div>
-                <div class="stat-card"><span class="stat-val">$1M</span><span class="stat-label">Net Customer Spend</span></div>
-                
+            <!-- Minecraft Stats -->
+            <div class="stat-section">
+                <div class="stat-section-header">
+                    <span class="stat-section-tag">Platform Data</span>
+                    <h3 class="stat-section-title">Minecraft Stats</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card"><span class="stat-val">212M+</span><span class="stat-label">Monthly Active Users</span></div>
+                    <div class="stat-card"><span class="stat-val">$10B</span><span class="stat-label">Marketplace Total Sales</span></div>
+                    <div class="stat-card"><span class="stat-val">13–35</span><span class="stat-label">Core Age Demographic</span></div>
+                </div>
+            </div>
+
+            <!-- Projected Stats for BLK -->
+            <div class="stat-section">
+                <div class="stat-section-header">
+                    <span class="stat-section-tag">BLK Projections</span>
+                    <h3 class="stat-section-title">Projected Stats for BLK</h3>
+                </div>
+                <div class="stats-grid stats-grid--blk">
+                    <div class="stat-card"><span class="stat-val">$22.4M</span><span class="stat-label">Projected Annual Sales</span></div>
+                    <div class="stat-card"><span class="stat-val">$1M</span><span class="stat-label">Net Customer Spend</span></div>
+                </div>
             </div>
         </header>
 
