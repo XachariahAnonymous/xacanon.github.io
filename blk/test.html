@@ -44,7 +44,23 @@
         .stat-section-tag { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-transform: uppercase; letter-spacing: 3px; }
         .stat-section-title { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-        .stats-grid--blk { }
+        .stat-card--breakdown { padding: 3rem; }
+        .spend-tiers { display: flex; flex-direction: column; gap: 1.1rem; margin-bottom: 1.8rem; }
+        .spend-tier { display: grid; grid-template-columns: 130px 1fr 140px; align-items: center; gap: 1rem; }
+        .spend-players { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; }
+        .spend-bar-wrap { height: 2px; background: rgba(255,255,255,0.06); width: 100%; }
+        .spend-bar { height: 100%; background: var(--accent); opacity: 0.7; }
+        .spend-amount { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff; text-align: right; letter-spacing: 0.5px; }
+        .spend-amount--top { color: var(--accent); font-weight: 700; }
+        .coin-economy { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 0.5rem; }
+        .coin-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+        .coin-key { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); text-transform: uppercase; letter-spacing: 2px; }
+        .coin-val { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #fff; text-align: right; }
+        .coin-formula { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+        .coin-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+        .coin-row--total .coin-key { color: var(--accent); }
+        .coin-val--big { font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+        .spend-note { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.8; border-top: 1px solid var(--border); padding-top: 1.2rem; margin-top: 0.5rem; }
         .stat-card { padding: 4rem 3rem; background: var(--bg); }
         .stat-val { font-size: 4.5rem; font-weight: 700; display: block; line-height: 1; margin-bottom: 0.5rem; letter-spacing: -0.04em; }
         .stat-label { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
@@ -186,8 +202,55 @@
                     <h3 class="stat-section-title">Projected Stats for BLK</h3>
                 </div>
                 <div class="stats-grid stats-grid--blk">
-                    <div class="stat-card"><span class="stat-val">$22.4M</span><span class="stat-label">Projected Annual Sales</span></div>
-                    <div class="stat-card"><span class="stat-val">$1M</span><span class="stat-label">Net Customer Spend</span></div>
+                    <div class="stat-card stat-card--breakdown">
+                        <span class="stat-label" style="margin-bottom: 1.8rem; display: block;">Net Customer Spend — Current Active Users</span>
+                        <div class="spend-tiers">
+                            <div class="spend-tier">
+                                <span class="spend-players">500 – 3K players</span>
+                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 4%"></div></div>
+                                <span class="spend-amount">$5K – $50K</span>
+                            </div>
+                            <div class="spend-tier">
+                                <span class="spend-players">5K concurrent</span>
+                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 22%"></div></div>
+                                <span class="spend-amount">$100K – $400K</span>
+                            </div>
+                            <div class="spend-tier">
+                                <span class="spend-players">10K players</span>
+                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 55%"></div></div>
+                                <span class="spend-amount">$1M – $2M / mo</span>
+                            </div>
+                            <div class="spend-tier">
+                                <span class="spend-players">100K players</span>
+                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 100%"></div></div>
+                                <span class="spend-amount spend-amount--top">$10M+</span>
+                            </div>
+                        </div>
+                        <p class="spend-note">Net Customer Spend derived from in-world transactions and digital asset sales.</p>
+                    </div>
+                    <div class="stat-card stat-card--breakdown">
+                        <span class="stat-label" style="margin-bottom: 1.8rem; display: block;">BLK Coin Economy — Media Player App</span>
+                        <div class="coin-economy">
+                            <div class="coin-row">
+                                <span class="coin-key">Supply</span>
+                                <span class="coin-val">100M coins</span>
+                            </div>
+                            <div class="coin-row">
+                                <span class="coin-key">Rate</span>
+                                <span class="coin-val">$0.01 per 100 listens</span>
+                            </div>
+                            <div class="coin-row">
+                                <span class="coin-key">Formula</span>
+                                <span class="coin-val coin-formula">100M × 10 (0.1) × 100 listens</span>
+                            </div>
+                            <div class="coin-divider"></div>
+                            <div class="coin-row coin-row--total">
+                                <span class="coin-key">Coin Capacity</span>
+                                <span class="coin-val coin-val--big">100,000,000,000 plays</span>
+                            </div>
+                        </div>
+                        <p class="spend-note" style="margin-top: 1.5rem;">Media Player App connected to the Metaverse, listeners earn and spend within the BLK ecosystem.</p>
+                    </div>
                 </div>
             </div>
         </header>
