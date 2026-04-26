@@ -235,7 +235,6 @@
             .gallery-nav { width: 12%; font-size: 1.4rem; }
             .gallery-container { margin-top: 3rem; }
 
-            /* Token & Smart Contract section — stack on mobile */
             .token-inner-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
             .access-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
             .valuation-grid { grid-template-columns: 1fr !important; }
@@ -312,28 +311,21 @@
         }
         </style>
         <style>
-        /* ── Mobile overrides for inline-styled grids ── */
         @media (max-width: 768px) {
-            /* BLK Token & Smart Contract — Token Spec + Smart Contract Modules side-by-side grid */
             #tokenomics .technical-box [style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important;
                 gap: 2.5rem !important;
             }
-            /* Access Architecture grid */
             #tokenomics .technical-box [style*="grid-template-columns: 1fr 1fr"]:last-of-type {
                 gap: 1.2rem !important;
             }
-            /* Coin Valuation & Vesting auto-fit grids */
             #fiscal .technical-box [style*="grid-template-columns: repeat(auto-fit"] {
                 grid-template-columns: 1fr !important;
             }
-            /* h3 inside technical-box */
             .technical-box h3 { font-size: 1.25rem !important; letter-spacing: -0.5px !important; }
-            /* Access cards padding */
             #tokenomics .technical-box [style*="padding: 2.5rem"] {
                 padding: 1.8rem !important;
             }
-            /* tag label for "Access Architecture // Label vs. Independent" */
             #tokenomics .technical-box .tag {
                 display: block;
                 margin-bottom: 1.2rem;
