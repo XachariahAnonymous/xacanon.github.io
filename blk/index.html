@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLK | The Premier Web3 Label</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Space+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --text: #ffffff;
+            --accent: #8A2BE2; 
+            --accent-dim: rgba(138, 43, 226, 0.15);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        
+
+        
+
+        
+        
+
+        
+        
+
+        
+        
+        
+        
+
+        
+        
+        
+
+        header.hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(3.5rem, 12vw, 8rem);
+            font-weight: 700;
+            letter-spacing: -4px;
+            line-height: 0.85;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            font-family: 'Space Mono', monospace;
+            max-width: 600px;
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 3rem;
+        }
+        
+        .btn-group { display: flex; gap: 1rem; }
+        .btn {
+            padding: 1.2rem 2.5rem;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.4s;
+            font-size: 0.9rem;
+        }
+        .btn.primary { background: var(--accent); color: white; }
+        .btn.secondary { border: 1px solid white; color: white; }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--accent-dim); }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-box {
+            background: var(--bg);
+            padding: 4rem 10%;
+            transition: 0.3s;
+        }
+        .feature-box:hover { background: var(--surface); }
+        .feature-box h2 { font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent); }
+        .feature-box p { color: #888; font-family: 'Space Mono', monospace; font-size: 0.9rem; }
+
+        footer {
+            padding: 4rem 5%;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: #444;
+        }
+
+        @media (max-width: 768px) {
+            
+            
+            .hero h1 { letter-spacing: -2px; margin-top: 2rem; }
+            .btn-group { flex-direction: column; width: 100%; }
+            .btn { width: 100%; text-align: center; }
+        }
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 2000;
+        }
+        .nav-logo {
+            font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.2rem;
+            letter-spacing: 3px; color: var(--text); text-decoration: none; z-index: 2001;
+        }
+        .nav-hamburger {
+            display: flex; flex-direction: column; gap: 6px;
+            cursor: pointer; z-index: 2001; padding: 8px; background: none; border: none;
+        }
+        .nav-hamburger span {
+            width: 24px; height: 1.5px; background: #fff;
+            display: block; transition: transform 0.4s cubic-bezier(0.77,0,0.175,1), opacity 0.3s;
+        }
+        .nav-hamburger.open .bar1 { transform: rotate(-45deg) translate(-4px, 5px); }
+        .nav-hamburger.open .bar2 { opacity: 0; transform: scaleX(0); }
+        .nav-hamburger.open .bar3 { transform: rotate(45deg) translate(-4px, -5px); }
+        .nav-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.97);
+            backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1500;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.77,0,0.175,1);
+        }
+        .nav-overlay.open { opacity: 1; pointer-events: all; }
+        .nav-overlay a {
+            color: #fff; font-family: 'Space Mono', monospace;
+            font-size: clamp(1.2rem, 4vw, 2rem); text-decoration: none;
+            text-transform: uppercase; letter-spacing: 6px;
+            margin: 1rem 0; opacity: 0; transform: translateY(20px);
+            transition: color 0.3s, opacity 0.4s, transform 0.4s;
+        }
+        .nav-overlay.open a { opacity: 1; transform: translateY(0); }
+        .nav-overlay.open a:nth-child(1) { transition-delay: 0.05s; }
+        .nav-overlay.open a:nth-child(2) { transition-delay: 0.10s; }
+        .nav-overlay.open a:nth-child(3) { transition-delay: 0.15s; }
+        .nav-overlay.open a:nth-child(4) { transition-delay: 0.20s; }
+        .nav-overlay.open a:nth-child(5) { transition-delay: 0.25s; }
+        .nav-overlay.open a:nth-child(6) { transition-delay: 0.30s; }
+        .nav-overlay.open a:nth-child(7) { transition-delay: 0.35s; }
+        .nav-overlay a:hover { color: var(--accent); }
+        .nav-page-label {
+            font-family: 'Space Mono', monospace; font-size: 0.7rem;
+            color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase;
+        }
+        </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="nav-logo">BLK.</a>
+        <span class="nav-page-label">HOME</span>
+        <button class="nav-hamburger" id="navBtn" aria-label="Toggle menu">
+            <span class="bar1"></span>
+            <span class="bar2"></span>
+            <span class="bar3"></span>
+        </button>
+    </nav>
+    <div class="nav-overlay" id="navOverlay">
+        <a href="mission.html">Mission</a>
+        <a href="metaverse.html">Metaverse</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="roster.html">Roster</a>
+        <a href="presale.html">Presale</a>
+        <a href="economicframework.html">Sustainability</a>
+    </div>
+
+    
+
+    <header class="hero">
+        <h1 class="glitch">MOVE IN<br>THE SHADOWS</h1>
+        <p>A premier Web3 label for independent creators. High transparency. Low noise. Total control.</p>
+        <div class="btn-group">
+            <a href="#" class="btn primary">Buy $BLK</a>
+            <a href="#" class="btn secondary">Enter Server</a>
+        </div>
+    </header>
+
+    <section class="features">
+        <div class="feature-box">
+            <h2>THE LABEL</h2>
+            <p>100% pass-through model. We provide the industry-standard materials; you keep the master rights.</p>
+        </div>
+        <div class="feature-box">
+            <h2>THE SERVER</h2>
+            <p>Our custom Minecraft ecosystem hosts live concerts, exclusive drops, and backstage social hubs.</p>
+        </div>
+        <div class="feature-box">
+            <h2>THE UTILITY</h2>
+            <p>$BLK holders govern the roster and unlock exclusive marketing resources for their own projects.</p>
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.
+    </footer>
+
+    
+
+    <script>
+        const navBtn = document.getElementById('navBtn');
+        const navOverlay = document.getElementById('navOverlay');
+        navBtn.addEventListener('click', () => {
+            navBtn.classList.toggle('open');
+            navOverlay.classList.toggle('open');
+            document.body.style.overflow = navOverlay.classList.contains('open') ? 'hidden' : '';
+        });
+        navOverlay.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => {
+                navBtn.classList.remove('open');
+                navOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            });
+        });
+    </script>
+</body>
+</html>
