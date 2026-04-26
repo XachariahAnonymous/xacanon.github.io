@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLK | Asset Gallery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --text: #ffffff;
+            --sub: #888888;
+            --accent: #8A2BE2;
+            --border: rgba(255, 255, 255, 0.08);
+            --error: #ff0033;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 2000;
+        }
+        .nav-logo {
+            font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.2rem;
+            letter-spacing: 3px; color: var(--text); text-decoration: none; z-index: 2001;
+        }
+        .nav-hamburger {
+            display: flex; flex-direction: column; gap: 6px;
+            cursor: pointer; z-index: 2001; padding: 8px; background: none; border: none;
+        }
+        .nav-hamburger span {
+            width: 24px; height: 1.5px; background: #fff;
+            display: block; transition: transform 0.4s cubic-bezier(0.77,0,0.175,1), opacity 0.3s;
+        }
+        .nav-hamburger.open .bar1 { transform: rotate(-45deg) translate(-4px, 5px); }
+        .nav-hamburger.open .bar2 { opacity: 0; transform: scaleX(0); }
+        .nav-hamburger.open .bar3 { transform: rotate(45deg) translate(-4px, -5px); }
+        .nav-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.97);
+            backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1500; opacity: 0; pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.77,0,0.175,1);
+        }
+        .nav-overlay.open { opacity: 1; pointer-events: all; }
+        .nav-overlay a {
+            color: #fff; font-family: 'Space Mono', monospace;
+            font-size: clamp(1.2rem, 4vw, 2rem); text-decoration: none;
+            text-transform: uppercase; letter-spacing: 6px;
+            margin: 1rem 0; opacity: 0; transform: translateY(20px);
+            transition: color 0.3s, opacity 0.4s, transform 0.4s;
+        }
+        .nav-overlay.open a { opacity: 1; transform: translateY(0); }
+        .nav-overlay.open a:nth-child(1) { transition-delay: 0.05s; }
+        .nav-overlay.open a:nth-child(2) { transition-delay: 0.10s; }
+        .nav-overlay.open a:nth-child(3) { transition-delay: 0.15s; }
+        .nav-overlay.open a:nth-child(4) { transition-delay: 0.20s; }
+        .nav-overlay.open a:nth-child(5) { transition-delay: 0.25s; }
+        .nav-overlay.open a:nth-child(6) { transition-delay: 0.30s; }
+        .nav-overlay a:hover { color: var(--accent); }
+        .nav-page-label {
+            font-family: 'Space Mono', monospace; font-size: 0.7rem;
+            color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .content-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 140px 5% 60px;
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .gallery-header h1 {
+            font-size: 3.5rem;
+            letter-spacing: -0.04em;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .gallery-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            margin-bottom: 2rem;
+        }
+
+        .gallery-viewport {
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--border);
+            background: #000;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gallery-main {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            transition: opacity 0.1s ease;
+        }
+
+        .glitch-active {
+            animation: glitch-anim 0.25s steps(2) infinite;
+            filter: hue-rotate(90deg) contrast(1.2);
+        }
+
+        @keyframes glitch-anim {
+            0%   { transform: translate(0);          clip-path: inset(10% 0 30% 0); }
+            20%  { transform: translate(-5px, 5px);  clip-path: inset(40% 0 10% 0); filter: drop-shadow(-2px 0 var(--error)); }
+            40%  { transform: translate(5px, -5px);  clip-path: inset(20% 0 50% 0); filter: drop-shadow(2px 0 var(--accent)); }
+            60%  { transform: translate(-2px, 2px);  clip-path: inset(80% 0 5% 0); }
+            80%  { transform: translate(2px, -2px);  clip-path: inset(5% 0 75% 0); }
+            100% { transform: translate(0); }
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 8%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 2.5rem;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            user-select: none;
+            opacity: 0.3;
+        }
+        .gallery-nav:hover { opacity: 1; color: var(--accent); background: rgba(0,0,0,0.4); }
+        .gallery-nav.prev { left: 0; }
+        .gallery-nav.next { right: 0; }
+
+        .scanline {
+            width: 100%; height: 100px; z-index: 10; position: absolute; top: -100px;
+            background: linear-gradient(to bottom, transparent, rgba(138, 43, 226, 0.1), transparent);
+            pointer-events: none; animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
+
+        .gallery-info {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .asset-label { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 4px; }
+        .gallery-counter { font-size: 0.8rem; color: var(--sub); letter-spacing: 2px; }
+
+        footer {
+            padding: 4rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: #444;
+            letter-spacing: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-header h1 { font-size: 2.5rem; }
+            .gallery-container { aspect-ratio: 4 / 3; }
+            .gallery-nav { width: 12%; font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo">BLK.</a>
+        <span class="nav-page-label">ASSET GALLERY</span>
+        <button class="nav-hamburger" id="navBtn" aria-label="Toggle menu">
+            <span class="bar1"></span>
+            <span class="bar2"></span>
+            <span class="bar3"></span>
+        </button>
+    </nav>
+    <div class="nav-overlay" id="navOverlay">
+        <a href="mission.html">Mission</a>
+        <a href="metaverse.html">Metaverse</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="roster.html">Roster</a>
+        <a href="presale.html">Presale</a>
+        <a href="economicframework.html">Sustainability</a>
+    </div>
+
+    <div class="content-main">
+        <div class="gallery-header">
+            <span style="font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase;">Repository</span>
+            <h1>Infrastructure Visuals.</h1>
+        </div>
+
+        <div class="gallery-container">
+            <div class="gallery-viewport" id="galleryViewport">
+                <div class="gallery-nav prev" onclick="moveSlide(-1)">&#10094;</div>
+                <div class="gallery-nav next" onclick="moveSlide(1)">&#10095;</div>
+                <img id="mainView" src="https://i.ibb.co/tMJFrdYz/2026-04-22-04-37-54.png" class="gallery-main" alt="BLK Asset View">
+                <div class="scanline"></div>
+            </div>
+        </div>
+
+        <div class="gallery-info">
+            <span class="asset-label">Infrastructure Visuals // Beta Renders</span>
+            <div id="counter" class="gallery-counter">1 / 47</div>
+        </div>
+    </div>
+
+    <footer>
+        2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.
+    </footer>
+
+    <script>
+        const images = [
+            "https://i.ibb.co/tMJFrdYz/2026-04-22-04-37-54.png",
+            "https://i.ibb.co/WvLrvSLm/2026-04-22-04-38-20.png",
+            "https://i.ibb.co/bMm7gdPy/2026-04-22-04-38-37.png",
+            "https://i.ibb.co/JWPSvyws/2026-04-22-04-41-01.png",
+            "https://i.ibb.co/4nPCXTcT/2026-04-22-04-41-07.png",
+            "https://i.ibb.co/zVQ2tVpF/2026-04-22-04-41-24.png",
+            "https://i.ibb.co/wFLxtDFC/2026-04-21-10-46-55.png",
+            "https://i.ibb.co/0pP5Qb9q/2026-04-21-10-46-43.png",
+            "https://i.ibb.co/7xdJXfbM/2026-04-21-10-45-02.png",
+            "https://i.ibb.co/2zHHp9x/2026-04-21-10-47-28.png",
+            "https://i.ibb.co/KjNNPPL4/2026-04-21-10-44-33.png",
+            "https://i.ibb.co/Q7NPngCy/2026-04-21-10-44-22.png",
+            "https://i.ibb.co/TBZ0jh45/2026-04-21-10-43-34.png",
+            "https://i.ibb.co/W4GZsRhq/2026-04-21-10-43-29.png",
+            "https://i.ibb.co/BH2F6S8M/2026-04-21-10-42-15.png",
+            "https://i.ibb.co/5x52g5fz/2026-04-21-10-41-45.png",
+            "https://i.ibb.co/VYh5h7f1/2026-04-21-10-40-01.png",
+            "https://i.ibb.co/wFXPj8pT/2026-04-21-10-39-40.png",
+            "https://i.ibb.co/cXQ0JBR3/2026-04-21-10-36-54.png",
+            "https://i.ibb.co/fdyX6rSr/2026-04-21-10-44-48.png",
+            "https://i.ibb.co/B5JpxYvB/2026-04-21-10-34-12.png",
+            "https://i.ibb.co/vvqZQ7Kn/2026-04-21-10-22-48.png",
+            "https://i.ibb.co/Hfq7bhdK/2026-04-21-10-22-42.png",
+            "https://i.ibb.co/MyWW5kPV/2026-04-21-10-22-39.png",
+            "https://i.ibb.co/36NkGp4/2026-04-21-10-21-20.png",
+            "https://i.ibb.co/bTL65sd/2026-04-21-10-21-05.png",
+            "https://i.ibb.co/93WwBgXC/2026-04-21-10-20-58.png",
+            "https://i.ibb.co/Ld8Z9T92/2026-04-21-10-34-37.png",
+            "https://i.ibb.co/1fLtbJQf/2026-04-21-10-47-11.png",
+            "https://i.ibb.co/gZfYdwx5/2026-04-21-15-29-24.png",
+            "https://i.ibb.co/sJ2dcr1S/2026-04-21-15-42-02.png",
+            "https://i.ibb.co/yn85KXVT/2026-04-21-15-41-39.png",
+            "https://i.ibb.co/whHvGyPG/2026-04-21-15-39-01.png",
+            "https://i.ibb.co/4x0PN2R/2026-04-21-15-36-18.png",
+            "https://i.ibb.co/SDZ5DZJ1/2026-04-21-15-35-53.png",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845565/jester1_hlnp45.gif",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/machinebrute1_c9omin.gif",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845563/machineelf1_q6cl0r.gif",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/mantis1_sylpe1.gif",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845565/shadow1_jru640.gif",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/aicube_mky1eg.gif",
+            "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/blaze1_souzjw.gif",
+            "https://i.ibb.co/DHzR0m83/2026-04-21-15-42-41.png",
+            "https://i.ibb.co/RGBmr8h3/2026-04-21-15-43-08.png",
+            "https://i.ibb.co/RpFFqFX1/image3.png",
+            "https://i.ibb.co/67HPHx6d/image2.png",
+            "https://i.ibb.co/h6ND5gs/image.png"
+        ];
+
+        // Preload all images
+        images.forEach(src => { const img = new Image(); img.src = src; });
+
+        let currentIndex = 0;
+        let isGlitching = false;
+
+        function moveSlide(direction) {
+            if (isGlitching) return;
+            currentIndex += direction;
+            if (currentIndex >= images.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = images.length - 1;
+            triggerGlitchUpdate();
+        }
+
+        function triggerGlitchUpdate() {
+            const view = document.getElementById('mainView');
+            isGlitching = true;
+            view.classList.add('glitch-active');
+            setTimeout(() => {
+                view.src = images[currentIndex];
+                document.getElementById('counter').innerText = `${currentIndex + 1} / ${images.length}`;
+            }, 125);
+            setTimeout(() => {
+                view.classList.remove('glitch-active');
+                isGlitching = false;
+            }, 250);
+        }
+
+        // Arrow key navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft')  moveSlide(-1);
+            if (e.key === 'ArrowRight') moveSlide(1);
+        });
+
+        // Mobile swipe
+        const viewport = document.getElementById('galleryViewport');
+        let touchStartX = 0;
+        let touchStartY = 0;
+        viewport.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
+        }, { passive: true });
+        viewport.addEventListener('touchend', (e) => {
+            const dx = touchStartX - e.changedTouches[0].clientX;
+            const dy = touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+                moveSlide(dx > 0 ? 1 : -1);
+            }
+        }, { passive: true });
+
+        // Nav hamburger
+        const navBtn = document.getElementById('navBtn');
+        const navOverlay = document.getElementById('navOverlay');
+        navBtn.addEventListener('click', () => {
+            navBtn.classList.toggle('open');
+            navOverlay.classList.toggle('open');
+            document.body.style.overflow = navOverlay.classList.contains('open') ? 'hidden' : '';
+        });
+        navOverlay.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => {
+                navBtn.classList.remove('open');
+                navOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            });
+        });
+    </script>
+</body>
+</html>
