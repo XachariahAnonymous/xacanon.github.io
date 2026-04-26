@@ -289,7 +289,6 @@
             "https://i.ibb.co/h6ND5gs/image.png"
         ];
 
-        // Preload all images
         images.forEach(src => { const img = new Image(); img.src = src; });
 
         let currentIndex = 0;
@@ -317,13 +316,11 @@
             }, 250);
         }
 
-        // Arrow key navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft')  moveSlide(-1);
             if (e.key === 'ArrowRight') moveSlide(1);
         });
 
-        // Mobile swipe
         const viewport = document.getElementById('galleryViewport');
         let touchStartX = 0;
         let touchStartY = 0;
@@ -339,7 +336,6 @@
             }
         }, { passive: true });
 
-        // Nav hamburger
         const navBtn = document.getElementById('navBtn');
         const navOverlay = document.getElementById('navOverlay');
         navBtn.addEventListener('click', () => {
