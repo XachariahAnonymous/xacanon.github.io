@@ -13,13 +13,14 @@
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         // ── PASTE YOUR FIREBASE CONFIG HERE ──
-  apiKey: "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
-  authDomain: "blkcoin-72d5a.firebaseapp.com",
-  projectId: "blkcoin-72d5a",
-  storageBucket: "blkcoin-72d5a.firebasestorage.app",
-  messagingSenderId: "950996555443",
-  appId: "1:950996555443:web:1c13f5481e46a32271c2c6",
-  measurementId: "G-3ENRZMXQP6"
+        const firebaseConfig = {
+            apiKey:            "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
+            authDomain:        "blkcoin-72d5a.firebaseapp.com",
+            projectId:         "blkcoin-72d5a",
+            storageBucket:     "blkcoin-72d5a.firebasestorage.app",
+            messagingSenderId: "950996555443",
+            appId:             "1:950996555443:web:1c13f5481e46a32271c2c6",
+            measurementId:     "G-3ENRZMXQP6"
         };
 
         const app  = initializeApp(firebaseConfig);
@@ -1535,38 +1536,17 @@
         return null;
     }
 
-    async function addSpotifyTrack() {
+    function addSpotifyTrack() {
         const url = document.getElementById('spotifyUrlInput').value.trim();
         if (!url) { showToast('Paste a Spotify URL first'); return; }
         const parsed = parseSpotifyUrl(url);
         if (!parsed) { showToast('Invalid Spotify URL — paste a track, album or playlist link'); return; }
 
-        showToast('Fetching track info...');
-
-        // Use Spotify's public oEmbed endpoint — no auth needed
-        let title = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
-        let artist = 'Spotify';
-        try {
-            const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
-            const res = await fetch(oembedUrl);
-            if (res.ok) {
-                const data = await res.json();
-                // oEmbed returns "Track Name by Artist" or "Playlist Name" in title field
-                const raw = data.title || '';
-                if (raw.includes(' by ')) {
-                    const parts = raw.split(' by ');
-                    title  = parts[0].trim();
-                    artist = parts.slice(1).join(' by ').trim();
-                } else {
-                    title = raw || title;
-                }
-            }
-        } catch(e) { /* oEmbed failed, fall back to defaults */ }
-
         const track = {
             id: 'sp_' + Date.now(),
             url: url,
-            title, artist,
+            title: parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track',
+            artist: 'Spotify',
             album: 'Spotify',
             duration: 0,
             dateAdded: new Date().toLocaleDateString(),
@@ -1584,7 +1564,7 @@
         document.getElementById('spotifyUrlInput').value = '';
         document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
         document.getElementById('spotifyConnectBtn').classList.add('connected');
-        showToast(`"${title}" added to library`, true);
+        showToast(`Spotify ${parsed.type} linked — click to open player`, true);
     }
 
     function renderSpotifyTracks() {
