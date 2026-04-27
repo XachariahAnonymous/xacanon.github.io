@@ -1146,6 +1146,7 @@
                 spotifyType: track.spotifyType || null,
                 soundcloudUrl: track.soundcloudUrl || null,
                 spotifyTrackId: track.spotifyTrackId || null,
+                artwork: track.artwork || null,
                 fileName: null
             });
             tx.oncomplete = res; tx.onerror = rej;
@@ -1170,7 +1171,8 @@
                             emoji: r.emoji, source: r.source,
                             spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
                             spotifyTrackId: r.spotifyTrackId,
-                            soundcloudUrl: r.soundcloudUrl
+                            soundcloudUrl: r.soundcloudUrl,
+                            artwork: r.artwork || null
                         };
                         library.push(track);
                         if (r.source === 'spotify') { spotifyTracks.push(track); }
@@ -1305,7 +1307,7 @@
             <div class="track-row ${currentIdx === libIdx ? 'playing' : ''} ${t.missing ? 'missing' : ''}" onclick="playTrack(${libIdx})">
                 <span class="track-idx">${currentIdx === libIdx ? '▶' : i+1}</span>
                 <div class="track-info">
-                    <div class="track-thumb"><span>${t.emoji}</span><div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
+                    <div class="track-thumb" style="${t.artwork ? `background-image:url('${t.artwork}');background-size:cover;background-position:center` : ''}">${t.artwork ? '' : `<span>${t.emoji}</span>`}<div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
                     <div><div class="track-name">${esc(t.title)}${sourceTag}</div><div class="track-name-artist">${esc(t.artist)}</div></div>
                 </div>
                 <span class="track-album">${esc(t.album)}</span>
@@ -1554,45 +1556,42 @@
         return null;
     }
 
+    async function fetchSpotifyMeta(url, parsed) {
+        try {
+            const resp = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+            if (!resp.ok) return {};
+            const d = await resp.json();
+            const raw = (d.title || '').split(' · ');
+            const title   = raw[0]?.trim() || (parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track');
+            const artist  = raw[1]?.trim() || d.author_name || 'Spotify';
+            const album   = raw[2]?.trim() || (parsed.type === 'album' ? raw[0]?.trim() : 'Spotify');
+            const artwork = d.thumbnail_url || null;
+            let duration = 0;
+            if (parsed.type === 'track' && d.html) {
+                const m = d.html.match(/data-duration="(\d+)"/);
+                if (m) duration = Math.round(parseInt(m[1]) / 1000);
+            }
+            return { title, artist, album, artwork, duration };
+        } catch(e) { return {}; }
+    }
+
     async function addSpotifyTrack() {
         const url = document.getElementById('spotifyUrlInput').value.trim();
         if (!url) { showToast('Paste a Spotify URL first'); return; }
         const parsed = parseSpotifyUrl(url);
         if (!parsed) { showToast('Invalid Spotify URL — paste a track, album or playlist link'); return; }
 
-        showToast('Fetching track info…');
-
-        // Try to get real metadata via Spotify oEmbed
-        let title = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
-        let artist = 'Spotify';
-        let album = 'Spotify';
-
-        try {
-            const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
-            const resp = await fetch(oembedUrl);
-            if (resp.ok) {
-                const data = await resp.json();
-                // oEmbed title is usually "Song Name" or "Song Name · Artist Name"
-                const raw = data.title || '';
-                if (raw.includes(' · ')) {
-                    const parts = raw.split(' · ');
-                    title = parts[0].trim();
-                    artist = parts[1].trim();
-                    album = parts.length > 2 ? parts[2].trim() : 'Spotify';
-                } else {
-                    title = raw || title;
-                    // provider_name is always "Spotify", author_name is the artist
-                    artist = data.author_name || 'Spotify';
-                    album = 'Spotify';
-                }
-            }
-        } catch(e) { /* silently fall back to defaults */ }
+        showToast('Fetching Spotify metadata…');
+        const meta = await fetchSpotifyMeta(url, parsed);
 
         const track = {
             id: 'sp_' + Date.now(),
-            url: url,
-            title, artist, album,
-            duration: 0,
+            url,
+            title:    meta.title   || (parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track'),
+            artist:   meta.artist  || 'Spotify',
+            album:    meta.album   || 'Spotify',
+            duration: meta.duration || 0,
+            artwork:  meta.artwork  || null,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '🎵',
             source: 'spotify',
@@ -1608,7 +1607,7 @@
         document.getElementById('spotifyUrlInput').value = '';
         document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
         document.getElementById('spotifyConnectBtn').classList.add('connected');
-        showToast(`"${title}" added to library`, true);
+        showToast(`"${track.title}" by ${track.artist} added`, true);
     }
 
     function renderSpotifyTracks() {
@@ -1616,32 +1615,49 @@
         if (!spotifyTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No Spotify tracks linked yet</div>'; return; }
         el.innerHTML = spotifyTracks.map((t) => `
             <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon spotify">🎵</div>
+                <div class="stream-track-icon spotify" style="${t.artwork ? `background-image:url('${t.artwork}');background-size:cover;background-position:center;font-size:0` : ''}">${t.artwork ? '' : '🎵'}</div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
-                    <div class="stream-track-artist">${t.spotifyType || 'track'} · Spotify</div>
+                    <div class="stream-track-artist">${esc(t.artist)}${t.album && t.album !== 'Spotify' ? ' · ' + esc(t.album) : ''}</div>
                 </div>
             </div>
         `).join('');
     }
 
-    function addSoundcloudTrack() {
+    async function addSoundcloudTrack() {
         const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
         if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
 
-        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const artist = (parts[parts.length - 2] || 'SoundCloud Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const title  = (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
+        showToast('Fetching SoundCloud metadata…');
+        let title = 'SoundCloud Track', artist = 'SoundCloud Artist', album = 'SoundCloud', artwork = null, duration = 0;
+        try {
+            const resp = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+            if (resp.ok) {
+                const d = await resp.json();
+                const raw = d.title || '';
+                if (raw.includes(' by ')) {
+                    const idx = raw.lastIndexOf(' by ');
+                    title  = raw.slice(0, idx).trim();
+                    artist = raw.slice(idx + 4).trim();
+                } else {
+                    title  = raw || title;
+                    artist = d.author_name || artist;
+                }
+                album    = d.author_name || album;
+                artwork  = d.thumbnail_url || null;
+                duration = d.duration ? Math.round(d.duration / 1000) : 0;
+            }
+        } catch(e) {
+            const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+            artist = (parts[parts.length-2]||'SoundCloud Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+            title  = (parts[parts.length-1]||'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        }
         const track = {
             id: 'sc_' + Date.now(),
-            url: url,
-            title, artist,
-            album: 'SoundCloud',
-            duration: 0,
+            url, title, artist, album, duration, artwork,
             dateAdded: new Date().toLocaleDateString(),
-            emoji: '☁',
+            emoji: '☁️',
             source: 'soundcloud',
             soundcloudUrl: url
         };
@@ -1653,7 +1669,7 @@
         document.getElementById('soundcloudUrlInput').value = '';
         document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
         document.getElementById('soundcloudConnectBtn').classList.add('connected');
-        showToast(`SoundCloud track linked — click to open player`, true);
+        showToast(`"${track.title}" by ${track.artist} added`, true);
     }
 
     function renderSoundcloudTracks() {
@@ -1661,10 +1677,10 @@
         if (!soundcloudTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>'; return; }
         el.innerHTML = soundcloudTracks.map((t) => `
             <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon soundcloud">☁</div>
+                <div class="stream-track-icon soundcloud" style="${t.artwork ? `background-image:url('${t.artwork}');background-size:cover;background-position:center;font-size:0` : ''}">${t.artwork ? '' : '☁️'}</div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
-                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
+                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud${t.duration ? ' · ' + fmt(t.duration) : ''}</div>
                 </div>
             </div>
         `).join('');
