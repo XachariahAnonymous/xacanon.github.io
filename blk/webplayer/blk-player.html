@@ -317,10 +317,13 @@
         /* track list */
         .track-list { padding: 1rem 0; }
         .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
-        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
         .track-row:hover { background: rgba(255,255,255,0.03); }
         .track-row.playing { background: var(--accent-dim); }
         .track-row.playing::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+        .track-remove-btn { opacity: 0; background: none; border: none; color: var(--sub); font-size: 0.65rem; cursor: pointer; padding: 4px 6px; transition: all 0.15s; border-radius: 2px; line-height: 1; }
+        .track-row:hover .track-remove-btn { opacity: 1; }
+        .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
         .track-idx { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-align: center; }
         .track-row.playing .track-idx { color: var(--accent); }
         .track-info { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
@@ -494,7 +497,7 @@
             .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
             .player-track { justify-content: center; }
             .player-right { justify-content: center; }
-            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px; }
+            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px; }
             .track-album, .track-meta { display: none; }
             .auth-box { width: 95%; padding: 2rem; }
         }
@@ -1273,6 +1276,20 @@
     // ════════════════════════════════════════
     // LIBRARY RENDER
     // ════════════════════════════════════════
+    function removeTrack(libIdx, e) {
+        e.stopPropagation();
+        const t = library[libIdx];
+        if (!t) return;
+        library.splice(libIdx, 1);
+        if (t.source === 'spotify') { const si = spotifyTracks.indexOf(t); if (si > -1) spotifyTracks.splice(si, 1); }
+        if (t.source === 'soundcloud') { const si = soundcloudTracks.indexOf(t); if (si > -1) soundcloudTracks.splice(si, 1); }
+        idbDeleteTrack(t.id);
+        if (currentIdx === libIdx) { currentIdx = -1; audio.pause(); isPlaying = false; updatePlayerUI(null); }
+        else if (currentIdx > libIdx) { currentIdx--; }
+        renderLibrary(); renderQueue(); renderSpotifyTracks(); renderSoundcloudTracks();
+        showToast(`"${t.title}" removed from library`);
+    }
+
     function renderLibrary(filtered) {
         const tracks = filtered ?? library;
         const body = document.getElementById('trackListBody');
@@ -1294,6 +1311,7 @@
                 <span class="track-album">${esc(t.album)}</span>
                 <span class="track-meta">${t.dateAdded}</span>
                 <span class="track-duration">${t.missing ? '⚠ missing' : fmt(t.duration)}</span>
+                <button class="track-remove-btn" onclick="removeTrack(${libIdx}, event)" title="Remove from library">✕</button>
             </div>`;
         }).join('');
     }
@@ -1536,18 +1554,44 @@
         return null;
     }
 
-    function addSpotifyTrack() {
+    async function addSpotifyTrack() {
         const url = document.getElementById('spotifyUrlInput').value.trim();
         if (!url) { showToast('Paste a Spotify URL first'); return; }
         const parsed = parseSpotifyUrl(url);
         if (!parsed) { showToast('Invalid Spotify URL — paste a track, album or playlist link'); return; }
 
+        showToast('Fetching track info…');
+
+        // Try to get real metadata via Spotify oEmbed
+        let title = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
+        let artist = 'Spotify';
+        let album = 'Spotify';
+
+        try {
+            const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
+            const resp = await fetch(oembedUrl);
+            if (resp.ok) {
+                const data = await resp.json();
+                // oEmbed title is usually "Song Name" or "Song Name · Artist Name"
+                const raw = data.title || '';
+                if (raw.includes(' · ')) {
+                    const parts = raw.split(' · ');
+                    title = parts[0].trim();
+                    artist = parts[1].trim();
+                    album = parts.length > 2 ? parts[2].trim() : 'Spotify';
+                } else {
+                    title = raw || title;
+                    // provider_name is always "Spotify", author_name is the artist
+                    artist = data.author_name || 'Spotify';
+                    album = 'Spotify';
+                }
+            }
+        } catch(e) { /* silently fall back to defaults */ }
+
         const track = {
             id: 'sp_' + Date.now(),
             url: url,
-            title: parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track',
-            artist: 'Spotify',
-            album: 'Spotify',
+            title, artist, album,
             duration: 0,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '🎵',
@@ -1564,7 +1608,7 @@
         document.getElementById('spotifyUrlInput').value = '';
         document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
         document.getElementById('spotifyConnectBtn').classList.add('connected');
-        showToast(`Spotify ${parsed.type} linked — click to open player`, true);
+        showToast(`"${title}" added to library`, true);
     }
 
     function renderSpotifyTracks() {
