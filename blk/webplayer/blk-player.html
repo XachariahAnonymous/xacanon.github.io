@@ -13,7 +13,7 @@
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         // ── PASTE YOUR FIREBASE CONFIG HERE ──
-const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
   authDomain: "blkcoin-72d5a.firebaseapp.com",
   projectId: "blkcoin-72d5a",
@@ -432,9 +432,47 @@ const firebaseConfig = {
         .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
         .profile-stat-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-top: 0.3rem; }
 
+        /* ── STREAMING SERVICES ── */
+        .stream-section { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+        .stream-connect-btn {
+            display: flex; align-items: center; gap: 0.7rem; width: 100%;
+            padding: 0.7rem 1rem; margin-bottom: 0.5rem;
+            background: none; border: 1px solid var(--border); color: var(--sub);
+            font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.2s; text-align: left;
+        }
+        .stream-connect-btn:hover { border-color: rgba(255,255,255,0.2); color: #fff; }
+        .stream-connect-btn.connected { border-color: var(--success); color: var(--success); }
+        .stream-connect-btn .stream-icon { font-size: 1rem; flex-shrink: 0; }
+        .stream-connect-btn .stream-status { margin-left: auto; font-size: 0.5rem; opacity: 0.7; }
+        .stream-tracks { margin-top: 0.8rem; }
+        .stream-track-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0; cursor: pointer; transition: opacity 0.2s; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .stream-track-item:hover { opacity: 0.8; }
+        .stream-track-item:last-child { border-bottom: none; }
+        .stream-track-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 2px; font-size: 0.7rem; }
+        .stream-track-icon.spotify { background: rgba(30,215,96,0.15); color: #1ED760; }
+        .stream-track-icon.soundcloud { background: rgba(255,85,0,0.15); color: #ff5500; }
+        .stream-track-info { flex: 1; min-width: 0; }
+        .stream-track-name { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stream-track-artist { font-size: 0.6rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stream-input-url { width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; font-family: 'Space Mono', monospace; font-size: 0.65rem; padding: 0.6rem 0.8rem; outline: none; margin-top: 0.6rem; transition: border-color 0.2s; }
+        .stream-input-url:focus { border-color: var(--accent); }
+        .stream-add-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+        .stream-add-btn { font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 1px; padding: 0.5rem 0.8rem; border: none; cursor: pointer; background: var(--accent); color: #fff; white-space: nowrap; transition: opacity 0.2s; }
+        .stream-add-btn:hover { opacity: 0.85; }
+        .stream-add-btn.sc { background: #ff5500; }
+
+        /* ── INSUFFICIENT BLK WARNING ── */
+        .toast.warn { border-left-color: var(--warn) !important; }
+        .blk-warn-modal { max-width: 380px !important; }
+        .blk-warn-modal::before { background: linear-gradient(90deg, var(--warn), transparent) !important; }
+        .blk-warn-amount { font-family: 'Space Mono', monospace; font-size: 2rem; color: var(--warn); font-weight: 700; text-align: center; padding: 1rem; background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2); margin-bottom: 1.5rem; }
+        .blk-warn-detail { display: flex; justify-content: space-between; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); margin-bottom: 0.5rem; }
+        .blk-warn-detail span:last-child { color: #fff; }
+
         @media (max-width: 900px) {
             #app-shell { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "nav" "sidebar" "main" "player"; height: auto; min-height: 100vh; overflow: auto; }
-            aside { max-height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
+            aside { max-height: 360px; border-right: none; border-bottom: 1px solid var(--border); }
             main { overflow-y: visible; }
             .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
             .player-track { justify-content: center; }
@@ -549,6 +587,44 @@ const firebaseConfig = {
             <div class="sidebar-label">Queue <span id="queueCount" style="color:var(--accent);">0</span></div>
             <div class="queue-list" id="queueList">
                 <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>
+            </div>
+        </div>
+
+        <!-- SPOTIFY -->
+        <div class="stream-section">
+            <div class="sidebar-label">Spotify</div>
+            <button class="stream-connect-btn" id="spotifyConnectBtn" onclick="toggleSpotifyPanel()">
+                <span class="stream-icon">🎵</span>
+                <span id="spotifyBtnText">Add from Spotify</span>
+                <span class="stream-status" id="spotifyStatus"></span>
+            </button>
+            <div id="spotifyPanel" style="display:none;">
+                <div class="stream-add-row">
+                    <input class="stream-input-url" id="spotifyUrlInput" type="text" placeholder="Paste Spotify track/playlist URL...">
+                </div>
+                <div class="stream-add-row" style="margin-top:0.4rem;">
+                    <button class="stream-add-btn" onclick="addSpotifyTrack()">Add Track</button>
+                </div>
+                <div class="stream-tracks" id="spotifyTracks"></div>
+            </div>
+        </div>
+
+        <!-- SOUNDCLOUD -->
+        <div class="stream-section">
+            <div class="sidebar-label">SoundCloud</div>
+            <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
+                <span class="stream-icon">☁</span>
+                <span id="soundcloudBtnText">Add from SoundCloud</span>
+                <span class="stream-status" id="soundcloudStatus"></span>
+            </button>
+            <div id="soundcloudPanel" style="display:none;">
+                <div class="stream-add-row">
+                    <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL...">
+                </div>
+                <div class="stream-add-row" style="margin-top:0.4rem;">
+                    <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
+                </div>
+                <div class="stream-tracks" id="soundcloudTracks"></div>
             </div>
         </div>
     </aside>
@@ -667,6 +743,24 @@ const firebaseConfig = {
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- INSUFFICIENT BLK MODAL -->
+<div class="modal-bg" id="blkWarnModal" onclick="if(event.target===this)closeBlkWarn()">
+    <div class="modal blk-warn-modal">
+        <button class="modal-close" onclick="closeBlkWarn()">✕</button>
+        <span class="modal-tag">BLK Store // Insufficient Balance</span>
+        <h3>Not Enough BLK</h3>
+        <div class="modal-artist" style="margin-bottom:1.5rem;">You don't have enough BLK coins to purchase this track.</div>
+        <div class="blk-warn-amount" id="blkWarnShortfall">—</div>
+        <div class="blk-warn-detail"><span>Your balance</span><span id="blkWarnBalance">—</span></div>
+        <div class="blk-warn-detail"><span>Track price</span><span id="blkWarnPrice">—</span></div>
+        <div class="blk-warn-detail" style="margin-bottom:1.5rem;padding-top:0.5rem;border-top:1px solid var(--border);"><span>You still need</span><span id="blkWarnNeed" style="color:var(--warn);">—</span></div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;line-height:1.8;margin-bottom:1.5rem;">
+            Earn BLK by listening to music.<br>Every 10 minutes of listening = <span style="color:var(--accent);">+0.01 BLK</span>
+        </div>
+        <button class="modal-btn" onclick="closeBlkWarn();switchView('library')">Keep Listening →</button>
     </div>
 </div>
 
@@ -1107,6 +1201,16 @@ const firebaseConfig = {
     // ── PURCHASE ──
     function openModal(id) {
         const s = STORE.find(x => x.id === id); if (!s || s.owned) return;
+        // ── INSUFFICIENT BLK CHECK ──
+        if (coins < s.price) {
+            const shortfall = s.price - coins;
+            document.getElementById('blkWarnBalance').textContent = coins.toFixed(2) + ' BLK';
+            document.getElementById('blkWarnPrice').textContent   = '$' + s.price.toFixed(2);
+            document.getElementById('blkWarnNeed').textContent    = shortfall.toFixed(2) + ' BLK needed';
+            document.getElementById('blkWarnShortfall').textContent = '-' + shortfall.toFixed(2) + ' BLK';
+            document.getElementById('blkWarnModal').classList.add('open');
+            return;
+        }
         pendingPurchase = s;
         document.getElementById('modalTitle').textContent  = s.title;
         document.getElementById('modalArtist').textContent = s.artist + ' · ' + s.genre;
@@ -1114,6 +1218,7 @@ const firebaseConfig = {
         const btn = document.getElementById('modalBtn'); btn.textContent = 'Confirm Purchase'; btn.className = 'modal-btn';
         document.getElementById('modalBg').classList.add('open');
     }
+    function closeBlkWarn() { document.getElementById('blkWarnModal').classList.remove('open'); }
     function closeModal(e) { if (e.target === document.getElementById('modalBg')) closeModalDirect(); }
     function closeModalDirect() { document.getElementById('modalBg').classList.remove('open'); pendingPurchase = null; }
 
@@ -1122,15 +1227,18 @@ const firebaseConfig = {
         const s = pendingPurchase;
         const btn = document.getElementById('modalBtn');
         btn.textContent = 'Processing...'; btn.disabled = true;
+        // Deduct coins
+        coins = Math.max(0, coins - s.price);
+        updateCoins();
         // Save purchase to Firestore
         if (currentUser && FB) {
             const ref = FB.doc(FB.db, 'users', currentUser.uid);
-            await FB.updateDoc(ref, { purchases: FB.increment(1), lastActive: FB.serverTimestamp() });
+            await FB.updateDoc(ref, { purchases: FB.increment(1), coins: FB.increment(-s.price), lastActive: FB.serverTimestamp() });
             await FB.setDoc(FB.doc(FB.db, 'purchases', currentUser.uid + '_' + s.id), {
                 uid: currentUser.uid, trackId: s.id, title: s.title,
                 artist: s.artist, price: s.price, purchasedAt: FB.serverTimestamp()
             });
-            if (userProfile) userProfile.purchases = (userProfile.purchases || 0) + 1;
+            if (userProfile) { userProfile.purchases = (userProfile.purchases || 0) + 1; userProfile.coins = coins; }
         }
         setTimeout(() => {
             s.owned = true;
@@ -1159,6 +1267,135 @@ const firebaseConfig = {
         if (e.code === 'ArrowRight') nextTrack();
         if (e.code === 'ArrowLeft') prevTrack();
     });
+
+    // ════════════════════════════════════════
+    // SPOTIFY INTEGRATION
+    // ════════════════════════════════════════
+    let spotifyTracks = [];
+    let soundcloudTracks = [];
+    let spotifyPanelOpen = false;
+    let soundcloudPanelOpen = false;
+
+    function toggleSpotifyPanel() {
+        spotifyPanelOpen = !spotifyPanelOpen;
+        document.getElementById('spotifyPanel').style.display = spotifyPanelOpen ? 'block' : 'none';
+        document.getElementById('spotifyBtnText').textContent = spotifyPanelOpen ? 'Spotify Library' : 'Add from Spotify';
+        document.getElementById('spotifyConnectBtn').classList.toggle('connected', spotifyPanelOpen && spotifyTracks.length > 0);
+        renderSpotifyTracks();
+    }
+
+    function toggleSoundcloudPanel() {
+        soundcloudPanelOpen = !soundcloudPanelOpen;
+        document.getElementById('soundcloudPanel').style.display = soundcloudPanelOpen ? 'block' : 'none';
+        document.getElementById('soundcloudBtnText').textContent = soundcloudPanelOpen ? 'SoundCloud Library' : 'Add from SoundCloud';
+        document.getElementById('soundcloudConnectBtn').classList.toggle('connected', soundcloudPanelOpen && soundcloudTracks.length > 0);
+        renderSoundcloudTracks();
+    }
+
+    function parseSpotifyUrl(url) {
+        // Extract track id or return null for playlists/albums (not directly playable without API)
+        const match = url.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
+        if (match) return { type: 'track', id: match[1] };
+        const pl = url.match(/spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+        if (pl) return { type: 'playlist', id: pl[1] };
+        return null;
+    }
+
+    function addSpotifyTrack() {
+        const url = document.getElementById('spotifyUrlInput').value.trim();
+        if (!url) { showToast('Paste a Spotify URL first'); return; }
+        const parsed = parseSpotifyUrl(url);
+        if (!parsed) { showToast('Invalid Spotify URL — paste a track or playlist link'); return; }
+
+        // Since Spotify requires auth + Web Playback SDK for real streaming,
+        // we store the reference and show it as a linked track
+        const trackName = url.split('/').pop().split('?')[0];
+        const track = {
+            id: 'sp_' + Date.now(),
+            url: url,
+            title: parsed.type === 'playlist' ? 'Spotify Playlist' : 'Spotify Track',
+            artist: 'Spotify',
+            album: 'Spotify',
+            duration: 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '🎵',
+            source: 'spotify',
+            spotifyUrl: url,
+            spotifyType: parsed.type
+        };
+        spotifyTracks.push(track);
+        library.push(track);
+        renderSpotifyTracks();
+        renderLibrary(); renderQueue();
+        document.getElementById('spotifyUrlInput').value = '';
+        document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
+        document.getElementById('spotifyConnectBtn').classList.add('connected');
+        showToast(`Spotify ${parsed.type} linked to library`, true);
+    }
+
+    function renderSpotifyTracks() {
+        const el = document.getElementById('spotifyTracks');
+        if (!spotifyTracks.length) { el.innerHTML = ''; return; }
+        el.innerHTML = spotifyTracks.map((t,i) => `
+            <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
+                <div class="stream-track-icon spotify">🎵</div>
+                <div class="stream-track-info">
+                    <div class="stream-track-name">${esc(t.title)}</div>
+                    <div class="stream-track-artist">${t.spotifyType === 'playlist' ? 'Playlist' : 'Track'} · Spotify</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function parseSoundcloudUrl(url) {
+        return url.includes('soundcloud.com/') ? url : null;
+    }
+
+    function addSoundcloudTrack() {
+        const url = document.getElementById('soundcloudUrlInput').value.trim();
+        if (!url) { showToast('Paste a SoundCloud URL first'); return; }
+        if (!parseSoundcloudUrl(url)) { showToast('Invalid SoundCloud URL'); return; }
+
+        // Extract a title from the URL path
+        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const artist = parts[parts.length - 2] || 'SoundCloud Artist';
+        const title = (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ');
+
+        const track = {
+            id: 'sc_' + Date.now(),
+            url: url,  // SoundCloud tracks can be embedded/played via their widget
+            title: title.replace(/\b\w/g, c => c.toUpperCase()),
+            artist: artist.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            album: 'SoundCloud',
+            duration: 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '☁',
+            source: 'soundcloud',
+            soundcloudUrl: url
+        };
+        soundcloudTracks.push(track);
+        library.push(track);
+        renderSoundcloudTracks();
+        renderLibrary(); renderQueue();
+        document.getElementById('soundcloudUrlInput').value = '';
+        document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
+        document.getElementById('soundcloudConnectBtn').classList.add('connected');
+        showToast(`SoundCloud track linked to library`, true);
+    }
+
+    function renderSoundcloudTracks() {
+        const el = document.getElementById('soundcloudTracks');
+        if (!soundcloudTracks.length) { el.innerHTML = ''; return; }
+        el.innerHTML = soundcloudTracks.map((t,i) => `
+            <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
+                <div class="stream-track-icon soundcloud">☁</div>
+                <div class="stream-track-info">
+                    <div class="stream-track-name">${esc(t.title)}</div>
+                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
+                </div>
+            </div>
+        `).join('');
+    }
 
     // Boot
     initAuth();
