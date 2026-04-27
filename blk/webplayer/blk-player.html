@@ -1561,17 +1561,12 @@
             const resp = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
             if (!resp.ok) return {};
             const d = await resp.json();
-            const raw = (d.title || '').split(' · ');
-            const title   = raw[0]?.trim() || (parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track');
-            const artist  = raw[1]?.trim() || d.author_name || 'Spotify';
-            const album   = raw[2]?.trim() || (parsed.type === 'album' ? raw[0]?.trim() : 'Spotify');
+            // Spotify oEmbed: title = track/album/playlist name, author_name = artist name
+            const title   = d.title   || null;
+            const artist  = d.author_name || null;
             const artwork = d.thumbnail_url || null;
-            let duration = 0;
-            if (parsed.type === 'track' && d.html) {
-                const m = d.html.match(/data-duration="(\d+)"/);
-                if (m) duration = Math.round(parseInt(m[1]) / 1000);
-            }
-            return { title, artist, album, artwork, duration };
+            // No duration available from oEmbed — leave as 0
+            return { title, artist, album: null, artwork, duration: 0 };
         } catch(e) { return {}; }
     }
 
@@ -1584,14 +1579,15 @@
         showToast('Fetching Spotify metadata…');
         const meta = await fetchSpotifyMeta(url, parsed);
 
+        const fallbackTitle = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
         const track = {
             id: 'sp_' + Date.now(),
             url,
-            title:    meta.title   || (parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track'),
+            title:    meta.title   || fallbackTitle,
             artist:   meta.artist  || 'Spotify',
-            album:    meta.album   || 'Spotify',
-            duration: meta.duration || 0,
-            artwork:  meta.artwork  || null,
+            album:    meta.album   || fallbackTitle,
+            duration: 0,
+            artwork:  meta.artwork || null,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '🎵',
             source: 'spotify',
@@ -1624,38 +1620,46 @@
         `).join('');
     }
 
+    async function fetchSoundcloudMeta(url) {
+        try {
+            const resp = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+            if (!resp.ok) return {};
+            const d = await resp.json();
+            // SoundCloud oEmbed: title = "Track Name by Artist Name"
+            let title = d.title || null;
+            let artist = d.author_name || null;
+            if (title && title.toLowerCase().includes(' by ')) {
+                const idx = title.lastIndexOf(' by ');
+                artist = title.slice(idx + 4).trim() || artist;
+                title  = title.slice(0, idx).trim();
+            }
+            // thumbnail_url and duration are NOT in SoundCloud oEmbed
+            const artwork = d.thumbnail_url || null;
+            return { title, artist, artwork, duration: 0 };
+        } catch(e) { return {}; }
+    }
     async function addSoundcloudTrack() {
         const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
         if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
 
         showToast('Fetching SoundCloud metadata…');
-        let title = 'SoundCloud Track', artist = 'SoundCloud Artist', album = 'SoundCloud', artwork = null, duration = 0;
-        try {
-            const resp = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
-            if (resp.ok) {
-                const d = await resp.json();
-                const raw = d.title || '';
-                if (raw.includes(' by ')) {
-                    const idx = raw.lastIndexOf(' by ');
-                    title  = raw.slice(0, idx).trim();
-                    artist = raw.slice(idx + 4).trim();
-                } else {
-                    title  = raw || title;
-                    artist = d.author_name || artist;
-                }
-                album    = d.author_name || album;
-                artwork  = d.thumbnail_url || null;
-                duration = d.duration ? Math.round(d.duration / 1000) : 0;
-            }
-        } catch(e) {
+        const meta = await fetchSoundcloudMeta(url);
+
+        // Fallback: parse title/artist from URL slug
+        let title = meta.title, artist = meta.artist;
+        if (!title || !artist) {
             const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-            artist = (parts[parts.length-2]||'SoundCloud Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-            title  = (parts[parts.length-1]||'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+            if (!artist) artist = (parts[parts.length-2]||'SoundCloud Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+            if (!title)  title  = (parts[parts.length-1]||'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
         }
+
         const track = {
             id: 'sc_' + Date.now(),
-            url, title, artist, album, duration, artwork,
+            url, title, artist,
+            album: artist,
+            duration: 0,
+            artwork: meta.artwork || null,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '☁️',
             source: 'soundcloud',
