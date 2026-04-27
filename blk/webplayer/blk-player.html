@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="display-mode" content="standalone">
     <title>BLK | Music</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
@@ -203,13 +202,10 @@
             grid-area: nav;
             display: flex; justify-content: space-between; align-items: center;
             padding: 1.2rem 2rem;
-            padding-top: max(1.2rem, env(titlebar-area-height, 1.2rem));
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.95);
             backdrop-filter: blur(20px); z-index: 100;
-            -webkit-app-region: drag;
         }
-        nav a, nav button, nav .nav-tabs, nav .nav-right, nav .nav-user { -webkit-app-region: no-drag; }
         .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--text); text-decoration: none; }
         .nav-tabs { display: flex; gap: 0; border: 1px solid var(--border); }
         .nav-tab {
@@ -317,23 +313,14 @@
         .search-bar { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); padding: 0.6rem 1rem; background: var(--surface); min-width: 220px; }
         .search-bar input { background: none; border: none; outline: none; color: #fff; font-family: 'Space Mono', monospace; font-size: 0.7rem; width: 100%; letter-spacing: 1px; }
         .search-bar input::placeholder { color: var(--sub); }
-        .filter-btns { display: flex; gap: 0; border: 1px solid var(--border); flex-shrink: 0; }
-        .filter-btn { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.5rem 0.9rem; background: none; border: none; border-right: 1px solid var(--border); color: var(--sub); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-        .filter-btn:last-child { border-right: none; }
-        .filter-btn.active { color: #fff; background: var(--accent-dim); }
-        .filter-btn.sp.active { color: #1ED760; background: rgba(30,215,96,0.1); }
-        .filter-btn.sc.active { color: #ff5500; background: rgba(255,85,0,0.1); }
 
         /* track list */
         .track-list { padding: 1rem 0; }
         .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
-        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
         .track-row:hover { background: rgba(255,255,255,0.03); }
         .track-row.playing { background: var(--accent-dim); }
         .track-row.playing::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
-        .track-remove-btn { opacity: 0; background: none; border: none; color: var(--sub); font-size: 0.65rem; cursor: pointer; padding: 4px 6px; transition: all 0.15s; border-radius: 2px; line-height: 1; }
-        .track-row:hover .track-remove-btn { opacity: 1; }
-        .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
         .track-idx { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-align: center; }
         .track-row.playing .track-idx { color: var(--accent); }
         .track-info { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
@@ -347,6 +334,19 @@
         .track-meta { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); }
         .track-duration { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); text-align: right; }
         .empty-library { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 2rem; text-align: center; gap: 1rem; }
+
+        /* ── LIBRARY FILTER TABS ── */
+        .lib-filter-tab {
+            background: none; border: none; border-bottom: 2px solid transparent;
+            color: var(--sub); font-family: 'Space Mono', monospace;
+            font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.8rem 1.2rem; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap; margin-bottom: -1px;
+        }
+        .lib-filter-tab:hover { color: #fff; }
+        .lib-filter-tab.active { color: #fff; border-bottom-color: var(--accent); }
+        .lib-filter-tab.blk-filter { color: var(--accent); }
+        .lib-filter-tab.blk-filter.active { border-bottom-color: var(--accent); }
         .empty-icon { font-size: 3rem; opacity: 0.2; }
         .empty-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; }
         .empty-hint { font-size: 0.85rem; color: rgba(255,255,255,0.3); }
@@ -434,15 +434,12 @@
             padding: 2.5rem;
         }
         .profile-avatar-lg {
-            width: 80px; height: 80px;
-            background: var(--accent-dim); border: 2px solid var(--accent);
+            width: 72px; height: 72px;
+            background: var(--accent-dim); border: 1px solid var(--accent);
             display: flex; align-items: center; justify-content: center;
             font-family: 'Space Mono', monospace; font-size: 1.8rem; color: var(--accent);
-            margin-bottom: 0;
-            background-size: cover; background-position: center;
-            transition: opacity 0.2s;
+            margin-bottom: 1rem;
         }
-        .profile-avatar-lg:hover { opacity: 0.8; }
         .profile-stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); margin: 2rem 0; }
         .profile-stat { background: var(--surface); padding: 1.2rem; text-align: center; }
         .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
@@ -510,7 +507,7 @@
             .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
             .player-track { justify-content: center; }
             .player-right { justify-content: center; }
-            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px; }
+            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px; }
             .track-album, .track-meta { display: none; }
             .auth-box { width: 95%; padding: 2rem; }
         }
@@ -671,18 +668,17 @@
                     <div class="view-sub">Local Music</div>
                     <div class="view-title">Your Library</div>
                 </div>
-                <div style="display:flex;align-items:center;gap:0.8rem;">
-                    <div class="filter-btns">
-                        <button class="filter-btn active" id="fb-all"      onclick="setFilter('all')">All</button>
-                        <button class="filter-btn"        id="fb-local"    onclick="setFilter('local')">Local</button>
-                        <button class="filter-btn sp"     id="fb-spotify"  onclick="setFilter('spotify')">Spotify</button>
-                        <button class="filter-btn sc"     id="fb-soundcloud" onclick="setFilter('soundcloud')">SoundCloud</button>
-                    </div>
-                    <div class="search-bar">
-                        <span style="color:var(--sub);">⌕</span>
-                        <input type="text" id="searchInput" placeholder="Search tracks..." oninput="filterTracks()">
-                    </div>
+                <div class="search-bar">
+                    <span style="color:var(--sub);">⌕</span>
+                    <input type="text" id="searchInput" placeholder="Search tracks..." oninput="filterTracks()">
                 </div>
+            </div>
+            <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 2.5rem;overflow-x:auto;">
+                <button class="lib-filter-tab active" id="filter-all"       onclick="setLibFilter('all')">All</button>
+                <button class="lib-filter-tab"         id="filter-local"     onclick="setLibFilter('local')">Local</button>
+                <button class="lib-filter-tab"         id="filter-spotify"   onclick="setLibFilter('spotify')">Spotify</button>
+                <button class="lib-filter-tab"         id="filter-soundcloud" onclick="setLibFilter('soundcloud')">SoundCloud</button>
+                <button class="lib-filter-tab blk-filter" id="filter-store" onclick="setLibFilter('store')">◈ BLK Songs</button>
             </div>
             <div class="track-list">
                 <div class="track-list-header">
@@ -722,11 +718,7 @@
                 </div>
             </div>
             <div class="profile-panel">
-                <div style="position:relative;display:inline-block;margin-bottom:1rem;">
-                    <div class="profile-avatar-lg" id="profileAvatarLg" onclick="document.getElementById('avatarFileInput').click()" style="cursor:pointer;position:relative;overflow:hidden;" title="Click to change photo">?</div>
-                    <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.6rem;cursor:pointer;" onclick="document.getElementById('avatarFileInput').click()">✏️</div>
-                    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarChange(event)">
-                </div>
+                <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
                 <div style="font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;" id="profileName">—</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);" id="profileEmail">—</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--accent);letter-spacing:2px;margin-top:0.5rem;" id="profileRole">USER</div>
@@ -745,11 +737,7 @@
                     </div>
                 </div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Member Since</div>
-                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;margin-bottom:2rem;" id="profileJoined">—</div>
-                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Settings</div>
-                <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
-                    <button onclick="sendPasswordReset()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.2rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--sub)'">Change Password</button>
-                </div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;" id="profileJoined">—</div>
             </div>
         </div>
     </main>
@@ -848,7 +836,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<audio id="audioEl" preload="auto"></audio>
+<audio id="audioEl"></audio>
 
 <!-- ════════════════════════════════════════
      SCRIPTS
@@ -868,13 +856,22 @@
     // ── PLAYER STATE ──
     let library = [], currentIdx = -1, isPlaying = false;
     let shuffle = false, repeat = false, muted = false, volume = 0.8;
-    let activeFilter = 'all'; // 'all' | 'local' | 'spotify' | 'soundcloud'
+    let shuffleQueue = [];
     let coins = 0, listenCount = 0, lastCoinTick = 0, pendingPurchase = null;
 
     const audio = document.getElementById('audioEl');
     audio.volume = volume;
 
-    const STORE = [];
+    const STORE = [
+        { id: 's1', title: 'Neon Protocol',    artist: 'AXIOM',       price: 1.99, genre: 'Electronic', emoji: '⬡', color: '#2e0040', owned: false, badge: 'NEW' },
+        { id: 's2', title: 'Midnight Circuit',  artist: 'VOID.EXE',    price: 2.49, genre: 'Synthwave',  emoji: '◈', color: '#0a001f', owned: false, badge: null  },
+        { id: 's3', title: 'Ghost Data',        artist: 'PHANTOM_KEY', price: 0.99, genre: 'Lo-Fi',      emoji: '⊕', color: '#001a10', owned: false, badge: 'HOT' },
+        { id: 's4', title: 'Shadow Frequency',  artist: 'BLK001',      price: 3.49, genre: 'Hip-Hop',    emoji: '⬢', color: '#1a0030', owned: false, badge: null  },
+        { id: 's5', title: 'Archive Zero',      artist: 'DATA_GHOST',  price: 1.49, genre: 'Ambient',    emoji: '◇', color: '#000d1a', owned: false, badge: 'NEW' },
+        { id: 's6', title: 'System Override',   artist: 'MXCHINE',     price: 2.99, genre: 'Industrial', emoji: '⬛', color: '#1a0a00', owned: false, badge: null  },
+        { id: 's7', title: 'Entropy Loop',      artist: 'AXIOM',       price: 1.99, genre: 'Electronic', emoji: '⊗', color: '#0d001a', owned: false, badge: null  },
+        { id: 's8', title: 'Null Signal',       artist: 'VOID.EXE',    price: 0.99, genre: 'Experimental',emoji:'◉', color: '#001a1a', owned: false, badge: null  },
+    ];
 
     // ════════════════════════════════════════
     // AUTH
@@ -1038,74 +1035,12 @@
         const isAdmin = userProfile.role === 'admin';
         document.getElementById('navAdminBadge').style.display   = isAdmin ? 'inline' : 'none';
         document.getElementById('adminPanelLink').style.display  = isAdmin ? 'flex'   : 'none';
-        // Restore saved avatar in nav
-        if (currentUser) {
-            try {
-                const saved = localStorage.getItem('blk_avatar_' + currentUser.uid);
-                if (saved) applyAvatarToUI(saved);
-            } catch(e) {}
-        }
     }
 
-    function handleAvatarChange(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB'); return; }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const dataUrl = e.target.result;
-            // Store in localStorage keyed by uid so it persists
-            if (currentUser) {
-                try { localStorage.setItem('blk_avatar_' + currentUser.uid, dataUrl); } catch(err) {}
-            }
-            applyAvatarToUI(dataUrl);
-            showToast('Profile photo updated', true);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function applyAvatarToUI(dataUrl) {
-        const lg = document.getElementById('profileAvatarLg');
-        if (dataUrl) {
-            lg.style.backgroundImage = `url('${dataUrl}')`;
-            lg.style.backgroundSize = 'cover';
-            lg.style.backgroundPosition = 'center';
-            lg.textContent = '';
-            // Also update nav avatar
-            const nav = document.getElementById('navAvatar');
-            nav.style.backgroundImage = `url('${dataUrl}')`;
-            nav.style.backgroundSize = 'cover';
-            nav.style.backgroundPosition = 'center';
-            nav.textContent = '';
-        } else {
-            lg.style.backgroundImage = '';
-            lg.textContent = (userProfile?.displayName || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-            const nav = document.getElementById('navAvatar');
-            nav.style.backgroundImage = '';
-        }
-    }
-
-    async function sendPasswordReset() {
-        if (!currentUser || !FB) return;
-        try {
-            await FB.sendPasswordResetEmail(FB.auth, currentUser.email);
-            showToast('Password reset email sent to ' + currentUser.email, true);
-        } catch(e) {
-            showToast('Error: ' + (e.message || 'Could not send reset email'));
-        }
-    }
-
-        function updateProfileView() {
+    function updateProfileView() {
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
         document.getElementById('profileAvatarLg').textContent = initials;
-        // Restore saved avatar photo if any
-        if (currentUser) {
-            try {
-                const saved = localStorage.getItem('blk_avatar_' + currentUser.uid);
-                if (saved) applyAvatarToUI(saved);
-            } catch(e) {}
-        }
         document.getElementById('profileName').textContent     = userProfile.displayName || '—';
         document.getElementById('profileEmail').textContent    = userProfile.email || '—';
         document.getElementById('profileRole').textContent     = (userProfile.role || 'user').toUpperCase();
@@ -1229,7 +1164,6 @@
                 spotifyType: track.spotifyType || null,
                 soundcloudUrl: track.soundcloudUrl || null,
                 spotifyTrackId: track.spotifyTrackId || null,
-                artwork: track.artwork || null,
                 fileName: null
             });
             tx.oncomplete = res; tx.onerror = rej;
@@ -1254,8 +1188,7 @@
                             emoji: r.emoji, source: r.source,
                             spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
                             spotifyTrackId: r.spotifyTrackId,
-                            soundcloudUrl: r.soundcloudUrl,
-                            artwork: r.artwork || null
+                            soundcloudUrl: r.soundcloudUrl
                         };
                         library.push(track);
                         if (r.source === 'spotify') { spotifyTracks.push(track); }
@@ -1361,22 +1294,8 @@
     // ════════════════════════════════════════
     // LIBRARY RENDER
     // ════════════════════════════════════════
-    function removeTrack(libIdx, e) {
-        e.stopPropagation();
-        const t = library[libIdx];
-        if (!t) return;
-        library.splice(libIdx, 1);
-        if (t.source === 'spotify') { const si = spotifyTracks.indexOf(t); if (si > -1) spotifyTracks.splice(si, 1); }
-        if (t.source === 'soundcloud') { const si = soundcloudTracks.indexOf(t); if (si > -1) soundcloudTracks.splice(si, 1); }
-        idbDeleteTrack(t.id);
-        if (currentIdx === libIdx) { currentIdx = -1; audio.pause(); isPlaying = false; updatePlayerUI(null); }
-        else if (currentIdx > libIdx) { currentIdx--; }
-        renderLibrary(); renderQueue(); renderSpotifyTracks(); renderSoundcloudTracks();
-        showToast(`"${t.title}" removed from library`);
-    }
-
     function renderLibrary(filtered) {
-        const tracks = filtered ?? getFilteredLibrary();
+        const tracks = filtered ?? library;
         const body = document.getElementById('trackListBody');
         if (!tracks.length) {
             body.innerHTML = `<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>`;
@@ -1390,36 +1309,31 @@
             <div class="track-row ${currentIdx === libIdx ? 'playing' : ''} ${t.missing ? 'missing' : ''}" onclick="playTrack(${libIdx})">
                 <span class="track-idx">${currentIdx === libIdx ? '▶' : i+1}</span>
                 <div class="track-info">
-                    <div class="track-thumb" style="${t.artwork ? `background-image:url('${t.artwork}');background-size:cover;background-position:center` : ''}">${t.artwork ? '' : `<span>${t.emoji}</span>`}<div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
+                    <div class="track-thumb"><span>${t.emoji}</span><div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
                     <div><div class="track-name">${esc(t.title)}${sourceTag}</div><div class="track-name-artist">${esc(t.artist)}</div></div>
                 </div>
                 <span class="track-album">${esc(t.album)}</span>
                 <span class="track-meta">${t.dateAdded}</span>
                 <span class="track-duration">${t.missing ? '⚠ missing' : fmt(t.duration)}</span>
-                <button class="track-remove-btn" onclick="removeTrack(${libIdx}, event)" title="Remove from library">✕</button>
             </div>`;
         }).join('');
     }
 
-    function setFilter(f) {
-        activeFilter = f;
-        ['all','local','spotify','soundcloud'].forEach(id => {
-            const el = document.getElementById('fb-' + id);
-            if (el) el.classList.toggle('active', id === f);
-        });
+    let activeLibFilter = 'all';
+
+    function setLibFilter(filter) {
+        activeLibFilter = filter;
+        document.querySelectorAll('.lib-filter-tab').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('filter-' + filter).classList.add('active');
         filterTracks();
     }
 
-    function getFilteredLibrary() {
-        let tracks = library;
-        if (activeFilter !== 'all') tracks = tracks.filter(t => t.source === activeFilter);
-        const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
-        if (q) tracks = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
-        return tracks;
-    }
-
     function filterTracks() {
-        renderLibrary(getFilteredLibrary());
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        let tracks = library;
+        if (activeLibFilter !== 'all') tracks = tracks.filter(t => t.source === activeLibFilter);
+        if (q) tracks = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+        renderLibrary(tracks.length === library.length && !q ? undefined : tracks);
     }
 
     function renderQueue() {
@@ -1457,36 +1371,40 @@
         closeEmbed();
         currentIdx = idx;
         audio.src = t.url;
-        audio.load();
         audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
     }
-    async function togglePlay() {
+    function togglePlay() {
         if (currentIdx < 0) { if (library.length) playTrack(0); return; }
         const t = library[currentIdx];
         if (t && (t.source === 'spotify' || t.source === 'soundcloud')) { openEmbedPlayer(t); return; }
-        if (isPlaying) {
-            audio.pause();
-            isPlaying = false;
-            updatePlayBtn();
-        } else {
-            try { await audio.play(); isPlaying = true; } catch(e) {}
-            updatePlayBtn();
-        }
+        if (isPlaying) { audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
+        updatePlayBtn();
     }
     function prevTrack() { if (!library.length) return; if (audio.currentTime > 3 && library[currentIdx]?.source === 'local') { audio.currentTime = 0; return; } playTrack(currentIdx <= 0 ? library.length-1 : currentIdx-1); }
+    function buildShuffleQueue() {
+        // Fisher-Yates shuffle of all indices except the current one
+        const indices = library.map((_, i) => i).filter(i => i !== currentIdx);
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        shuffleQueue = indices;
+    }
     function nextTrack() {
         if (!library.length) return;
         if (shuffle) {
-            // Only shuffle within currently filtered, local-playable tracks
-            const pool = getFilteredLibrary().filter(t => t.source === 'local' && !t.missing);
-            if (!pool.length) return;
-            const pick = pool[Math.floor(Math.random() * pool.length)];
-            playTrack(library.indexOf(pick));
+            if (!shuffleQueue.length) buildShuffleQueue(); // all played — rebuild for next cycle
+            if (!shuffleQueue.length) return; // only 1 track in library
+            playTrack(shuffleQueue.shift());
             return;
         }
         playTrack((currentIdx + 1) % library.length);
     }
-    function toggleShuffle() { shuffle = !shuffle; document.getElementById('btnShuffle').classList.toggle('active', shuffle); }
+    function toggleShuffle() {
+        shuffle = !shuffle;
+        document.getElementById('btnShuffle').classList.toggle('active', shuffle);
+        if (shuffle) buildShuffleQueue(); else shuffleQueue = [];
+    }
     function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
     function seekTo(e) { const b = document.getElementById('progressBar'); if (!audio.duration) return; audio.currentTime = (e.offsetX/b.offsetWidth)*audio.duration; }
     function setVolume(e) { const b = document.getElementById('volBar'); volume = Math.max(0, Math.min(1, e.offsetX/b.offsetWidth)); audio.volume = volume; document.getElementById('volFill').style.width = (volume*100)+'%'; muted = false; }
@@ -1672,38 +1590,19 @@
         return null;
     }
 
-    async function fetchSpotifyMeta(url, parsed) {
-        try {
-            const resp = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
-            if (!resp.ok) return {};
-            const d = await resp.json();
-            // Spotify oEmbed: title = track/album/playlist name, author_name = artist name
-            const title   = d.title   || null;
-            const artist  = d.author_name || null;
-            const artwork = d.thumbnail_url || null;
-            // No duration available from oEmbed — leave as 0
-            return { title, artist, album: null, artwork, duration: 0 };
-        } catch(e) { return {}; }
-    }
-
-    async function addSpotifyTrack() {
+    function addSpotifyTrack() {
         const url = document.getElementById('spotifyUrlInput').value.trim();
         if (!url) { showToast('Paste a Spotify URL first'); return; }
         const parsed = parseSpotifyUrl(url);
         if (!parsed) { showToast('Invalid Spotify URL — paste a track, album or playlist link'); return; }
 
-        showToast('Fetching Spotify metadata…');
-        const meta = await fetchSpotifyMeta(url, parsed);
-
-        const fallbackTitle = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
         const track = {
             id: 'sp_' + Date.now(),
-            url,
-            title:    meta.title   || fallbackTitle,
-            artist:   meta.artist  || 'Spotify',
-            album:    meta.album   || fallbackTitle,
+            url: url,
+            title: parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track',
+            artist: 'Spotify',
+            album: 'Spotify',
             duration: 0,
-            artwork:  meta.artwork || null,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '🎵',
             source: 'spotify',
@@ -1719,7 +1618,7 @@
         document.getElementById('spotifyUrlInput').value = '';
         document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
         document.getElementById('spotifyConnectBtn').classList.add('connected');
-        showToast(`"${track.title}" by ${track.artist} added`, true);
+        showToast(`Spotify ${parsed.type} linked — click to open player`, true);
     }
 
     function renderSpotifyTracks() {
@@ -1727,57 +1626,32 @@
         if (!spotifyTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No Spotify tracks linked yet</div>'; return; }
         el.innerHTML = spotifyTracks.map((t) => `
             <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon spotify" style="${t.artwork ? `background-image:url('${t.artwork}');background-size:cover;background-position:center;font-size:0` : ''}">${t.artwork ? '' : '🎵'}</div>
+                <div class="stream-track-icon spotify">🎵</div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
-                    <div class="stream-track-artist">${esc(t.artist)}${t.album && t.album !== 'Spotify' ? ' · ' + esc(t.album) : ''}</div>
+                    <div class="stream-track-artist">${t.spotifyType || 'track'} · Spotify</div>
                 </div>
             </div>
         `).join('');
     }
 
-    async function fetchSoundcloudMeta(url) {
-        try {
-            const resp = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
-            if (!resp.ok) return {};
-            const d = await resp.json();
-            // SoundCloud oEmbed: title = "Track Name by Artist Name"
-            let title = d.title || null;
-            let artist = d.author_name || null;
-            if (title && title.toLowerCase().includes(' by ')) {
-                const idx = title.lastIndexOf(' by ');
-                artist = title.slice(idx + 4).trim() || artist;
-                title  = title.slice(0, idx).trim();
-            }
-            // thumbnail_url and duration are NOT in SoundCloud oEmbed
-            const artwork = d.thumbnail_url || null;
-            return { title, artist, artwork, duration: 0 };
-        } catch(e) { return {}; }
-    }
-    async function addSoundcloudTrack() {
+    function addSoundcloudTrack() {
         const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
         if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
 
-        showToast('Fetching SoundCloud metadata…');
-        const meta = await fetchSoundcloudMeta(url);
-
-        // Fallback: parse title/artist from URL slug
-        let title = meta.title, artist = meta.artist;
-        if (!title || !artist) {
-            const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-            if (!artist) artist = (parts[parts.length-2]||'SoundCloud Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-            if (!title)  title  = (parts[parts.length-1]||'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        }
+        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const artist = (parts[parts.length - 2] || 'SoundCloud Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const title  = (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
         const track = {
             id: 'sc_' + Date.now(),
-            url, title, artist,
-            album: artist,
+            url: url,
+            title, artist,
+            album: 'SoundCloud',
             duration: 0,
-            artwork: meta.artwork || null,
             dateAdded: new Date().toLocaleDateString(),
-            emoji: '☁️',
+            emoji: '☁',
             source: 'soundcloud',
             soundcloudUrl: url
         };
@@ -1789,7 +1663,7 @@
         document.getElementById('soundcloudUrlInput').value = '';
         document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
         document.getElementById('soundcloudConnectBtn').classList.add('connected');
-        showToast(`"${track.title}" by ${track.artist} added`, true);
+        showToast(`SoundCloud track linked — click to open player`, true);
     }
 
     function renderSoundcloudTracks() {
@@ -1797,10 +1671,10 @@
         if (!soundcloudTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>'; return; }
         el.innerHTML = soundcloudTracks.map((t) => `
             <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon soundcloud" style="${t.artwork ? `background-image:url('${t.artwork}');background-size:cover;background-position:center;font-size:0` : ''}">${t.artwork ? '' : '☁️'}</div>
+                <div class="stream-track-icon soundcloud">☁</div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
-                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud${t.duration ? ' · ' + fmt(t.duration) : ''}</div>
+                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
                 </div>
             </div>
         `).join('');
