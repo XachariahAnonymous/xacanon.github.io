@@ -9,10 +9,11 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
         // ── PASTE YOUR SAME FIREBASE CONFIG HERE ──
-const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
   authDomain: "blkcoin-72d5a.firebaseapp.com",
   projectId: "blkcoin-72d5a",
@@ -26,7 +27,8 @@ const firebaseConfig = {
         const auth = getAuth(app);
         const db   = getFirestore(app);
 
-        window._adminFB = { auth, db, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy };
+        const storage = getStorage(app);
+        window._adminFB = { auth, db, storage, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp, storageRef, uploadBytesResumable, getDownloadURL };
     </script>
 
     <style>
@@ -165,12 +167,49 @@ const firebaseConfig = {
         .modal-btn.confirm { background: var(--error); color: #fff; }
         .modal-btn.confirm:hover { opacity: 0.85; }
 
+        /* ── ADD COINS MODAL ── */
+        .modal-accent::before { background: linear-gradient(90deg, var(--accent), transparent) !important; }
+        .modal-success::before { background: linear-gradient(90deg, var(--success), transparent) !important; }
+        .modal-input-group { margin-bottom: 1.2rem; }
+        .modal-input-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
+        .modal-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; font-family: 'Space Mono', monospace; font-size: 1rem; padding: 0.8rem 1rem; outline: none; transition: border-color 0.2s; }
+        .modal-input:focus { border-color: var(--accent); }
+        .modal-input select { background: var(--bg); color: #fff; border: none; outline: none; font-family: 'Space Mono', monospace; font-size: 0.8rem; width: 100%; }
+        .coin-preset-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .coin-preset { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 1px; padding: 0.4rem 0.8rem; border: 1px solid var(--border); background: none; color: var(--sub); cursor: pointer; transition: all 0.2s; }
+        .coin-preset:hover { border-color: var(--accent); color: var(--accent); }
+        .modal-btn-accent { background: var(--accent) !important; }
+        .modal-btn-accent:hover { opacity: 0.85; }
+        .modal-btn-success { background: var(--success) !important; color: #000 !important; }
+
+        /* ── MUSIC UPLOAD STYLES ── */
+        .upload-drop-zone { border: 1px dashed rgba(138,43,226,0.4); padding: 2.5rem 1.5rem; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; margin-bottom: 1.5rem; }
+        .upload-drop-zone:hover, .upload-drop-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+        .upload-drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+        .upload-drop-zone-icon { font-size: 2rem; opacity: 0.4; margin-bottom: 0.8rem; }
+        .upload-drop-zone p { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 1px; line-height: 1.8; }
+        .upload-progress-bar { height: 2px; background: var(--border); margin: 1rem 0; position: relative; overflow: hidden; display: none; }
+        .upload-progress-fill { height: 100%; background: var(--accent); transition: width 0.2s; width: 0%; }
+        .metadata-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .metadata-full { grid-column: 1 / -1; }
+        .genre-select { appearance: none; background: var(--bg); border: 1px solid var(--border); color: #fff; font-family: 'Space Mono', monospace; font-size: 0.8rem; padding: 0.8rem 1rem; width: 100%; outline: none; cursor: pointer; }
+        .genre-select:focus { border-color: var(--accent); }
+        .track-store-list { margin-top: 2rem; }
+        .store-track-item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        .store-track-item:hover { background: rgba(255,255,255,0.02); }
+        .store-track-title { font-size: 0.85rem; font-weight: 600; }
+        .store-track-meta { font-size: 0.7rem; color: var(--sub); font-family: 'Space Mono', monospace; }
+        .store-track-price { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.8rem; }
+        .tbl-btn.edit { color: var(--warn); border-color: var(--warn); }
+        .tbl-btn.edit:hover { background: var(--warn); color: #000; }
+
         @media (max-width: 768px) {
             .admin-layout { grid-template-columns: 1fr; }
             .admin-sidebar { display: flex; overflow-x: auto; padding: 0; border-right: none; border-bottom: 1px solid var(--border); }
             .sidebar-nav-item { white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; }
             .sidebar-nav-item.active { border-bottom-color: var(--accent); border-left: none; }
             .sidebar-section-label { display: none; }
+            .metadata-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -201,6 +240,7 @@ const firebaseConfig = {
         <div class="sidebar-section-label">Manage</div>
         <div class="sidebar-nav-item" onclick="showView('users')">◈ &nbsp;Users</div>
         <div class="sidebar-nav-item" onclick="showView('purchases')">⊕ &nbsp;Purchases</div>
+        <div class="sidebar-nav-item" onclick="showView('store')">⬡ &nbsp;Store Music</div>
     </div>
 
     <!-- MAIN -->
@@ -267,10 +307,150 @@ const firebaseConfig = {
                 </table>
             </div>
         </div>
+        <!-- STORE MUSIC -->
+        <div class="admin-view" id="view-store">
+            <div class="page-header">
+                <div class="page-tag">BLK Admin // Content</div>
+                <div class="page-title">Store Music</div>
+            </div>
+
+            <!-- Upload Zone -->
+            <div class="table-wrap" style="margin-bottom:2rem;">
+                <div class="table-toolbar">
+                    <span class="table-toolbar-title">Upload New Track</span>
+                </div>
+                <div style="padding:1.5rem;">
+                    <div class="upload-drop-zone" id="adminUploadZone">
+                        <input type="file" id="adminAudioFile" accept="audio/*">
+                        <div class="upload-drop-zone-icon">⊕</div>
+                        <p>Drop audio file here or click to browse<br>MP3 · WAV · FLAC · AAC</p>
+                    </div>
+                    <div class="upload-progress-bar" id="uploadProgressBar">
+                        <div class="upload-progress-fill" id="uploadProgressFill"></div>
+                    </div>
+                    <div id="uploadFileName" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);letter-spacing:1px;margin-bottom:1rem;display:none;"></div>
+
+                    <!-- Metadata Form -->
+                    <div id="metadataForm" style="display:none;">
+                        <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1.2rem;">Track Metadata</div>
+                        <div class="metadata-grid">
+                            <div class="modal-input-group">
+                                <label class="modal-input-label">Title *</label>
+                                <input class="modal-input" id="metaTitle" type="text" placeholder="Track title">
+                            </div>
+                            <div class="modal-input-group">
+                                <label class="modal-input-label">Artist *</label>
+                                <input class="modal-input" id="metaArtist" type="text" placeholder="Artist name">
+                            </div>
+                            <div class="modal-input-group">
+                                <label class="modal-input-label">Genre</label>
+                                <select class="genre-select" id="metaGenre">
+                                    <option value="Electronic">Electronic</option>
+                                    <option value="Synthwave">Synthwave</option>
+                                    <option value="Hip-Hop">Hip-Hop</option>
+                                    <option value="Lo-Fi">Lo-Fi</option>
+                                    <option value="Ambient">Ambient</option>
+                                    <option value="Industrial">Industrial</option>
+                                    <option value="Experimental">Experimental</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="modal-input-group">
+                                <label class="modal-input-label">Price ($)</label>
+                                <input class="modal-input" id="metaPrice" type="number" step="0.01" min="0" placeholder="1.99">
+                            </div>
+                            <div class="modal-input-group metadata-full">
+                                <label class="modal-input-label">Badge (optional)</label>
+                                <input class="modal-input" id="metaBadge" type="text" placeholder="e.g. NEW, HOT, EXCLUSIVE">
+                            </div>
+                        </div>
+                        <button class="tbl-btn promote" style="margin-top:0.5rem;padding:0.7rem 2rem;font-size:0.65rem;" onclick="uploadStoreTrack()">⊕ &nbsp;Upload to Store</button>
+                        <span id="uploadStatus" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);margin-left:1rem;letter-spacing:1px;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Tracks -->
+            <div class="table-wrap">
+                <div class="table-toolbar">
+                    <span class="table-toolbar-title">Store Tracks</span>
+                    <span id="storeTrackCount" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);">Loading...</span>
+                </div>
+                <div id="storeTrackList"><div class="loading">Loading</div></div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- CONFIRM MODAL -->
+<!-- ADD COINS MODAL -->
+<div class="modal-bg" id="addCoinsModal">
+    <div class="modal modal-accent">
+        <h3 id="addCoinsTitle">Add BLK Coins</h3>
+        <p id="addCoinsSubtitle" style="margin-bottom:1.5rem;">Manually add BLK coins to user's balance.</p>
+        <div class="modal-input-group">
+            <label class="modal-input-label">Quick Amounts</label>
+            <div class="coin-preset-row">
+                <button class="coin-preset" onclick="setCoinAmount(1)">+1 BLK</button>
+                <button class="coin-preset" onclick="setCoinAmount(5)">+5 BLK</button>
+                <button class="coin-preset" onclick="setCoinAmount(10)">+10 BLK</button>
+                <button class="coin-preset" onclick="setCoinAmount(25)">+25 BLK</button>
+                <button class="coin-preset" onclick="setCoinAmount(50)">+50 BLK</button>
+                <button class="coin-preset" onclick="setCoinAmount(100)">+100 BLK</button>
+            </div>
+        </div>
+        <div class="modal-input-group">
+            <label class="modal-input-label">Custom Amount (BLK)</label>
+            <input class="modal-input" id="coinAmountInput" type="number" step="0.01" min="0" placeholder="Enter amount...">
+        </div>
+        <div class="modal-input-group">
+            <label class="modal-input-label">Note (optional)</label>
+            <input class="modal-input" id="coinNoteInput" type="text" placeholder="e.g. Bonus reward, Referral...">
+        </div>
+        <div class="modal-btns">
+            <button class="modal-btn cancel" onclick="closeAddCoins()">Cancel</button>
+            <button class="modal-btn confirm modal-btn-accent" onclick="confirmAddCoins()">Add Coins</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT TRACK MODAL -->
+<div class="modal-bg" id="editTrackModal">
+    <div class="modal modal-accent" style="max-width:500px;">
+        <h3>Edit Track</h3>
+        <p style="margin-bottom:1.5rem;">Update metadata for this store track.</p>
+        <input type="hidden" id="editTrackId">
+        <div class="metadata-grid" style="margin-bottom:1rem;">
+            <div class="modal-input-group">
+                <label class="modal-input-label">Title</label>
+                <input class="modal-input" id="editMetaTitle" type="text">
+            </div>
+            <div class="modal-input-group">
+                <label class="modal-input-label">Artist</label>
+                <input class="modal-input" id="editMetaArtist" type="text">
+            </div>
+            <div class="modal-input-group">
+                <label class="modal-input-label">Genre</label>
+                <select class="genre-select" id="editMetaGenre">
+                    <option>Electronic</option><option>Synthwave</option><option>Hip-Hop</option>
+                    <option>Lo-Fi</option><option>Ambient</option><option>Industrial</option>
+                    <option>Experimental</option><option>Other</option>
+                </select>
+            </div>
+            <div class="modal-input-group">
+                <label class="modal-input-label">Price ($)</label>
+                <input class="modal-input" id="editMetaPrice" type="number" step="0.01" min="0">
+            </div>
+            <div class="modal-input-group metadata-full">
+                <label class="modal-input-label">Badge</label>
+                <input class="modal-input" id="editMetaBadge" type="text" placeholder="e.g. NEW, HOT">
+            </div>
+        </div>
+        <div class="modal-btns">
+            <button class="modal-btn cancel" onclick="closeEditTrack()">Cancel</button>
+            <button class="modal-btn confirm modal-btn-accent" onclick="saveEditTrack()">Save Changes</button>
+        </div>
+    </div>
+</div>
 <div class="modal-bg" id="confirmModal">
     <div class="modal">
         <h3 id="confirmTitle">Are you sure?</h3>
@@ -367,6 +547,7 @@ const firebaseConfig = {
                             ? `<button class="tbl-btn demote"  onclick="changeRole('${u.id}','user',  '${esc(u.displayName||u.email)}')">Demote</button>`
                             : `<button class="tbl-btn promote" onclick="changeRole('${u.id}','admin', '${esc(u.displayName||u.email)}')">Promote</button>`
                         }
+                        ${u.id !== currentAdminUid ? `<button class="tbl-btn promote" onclick="openAddCoins('${u.id}','${esc(u.displayName||u.email)}')">+ BLK</button>` : ''}
                         ${u.id !== currentAdminUid ? `<button class="tbl-btn delete" onclick="confirmDelete('${u.id}','${esc(u.displayName||u.email)}')">Delete</button>` : ''}
                     </td>
                 </tr>`).join('')
@@ -424,8 +605,9 @@ const firebaseConfig = {
         document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
         document.getElementById('view-'+v).classList.add('active');
         document.querySelectorAll('.sidebar-nav-item').forEach((el, i) => {
-            el.classList.toggle('active', ['dashboard','users','purchases'][i] === v);
+            el.classList.toggle('active', ['dashboard','users','purchases','store'][i] === v);
         });
+        if (v === 'store') loadStoreTracks();
     }
 
     // ── CONFIRM MODAL ──
@@ -451,7 +633,195 @@ const firebaseConfig = {
         clearTimeout(t._timer); t._timer = setTimeout(()=>t.className='toast', 3000);
     }
 
-    init();
-</script>
+    // ── ADD COINS ──
+    let addCoinsTargetUid = null;
+    let addCoinsTargetName = null;
+
+    function openAddCoins(uid, name) {
+        addCoinsTargetUid = uid;
+        addCoinsTargetName = name;
+        document.getElementById('addCoinsTitle').textContent = `Add BLK to ${name}`;
+        document.getElementById('addCoinsSubtitle').textContent = `Current balance: ${(allUsers.find(u=>u.id===uid)?.coins||0).toFixed(2)} BLK`;
+        document.getElementById('coinAmountInput').value = '';
+        document.getElementById('coinNoteInput').value = '';
+        document.getElementById('addCoinsModal').classList.add('open');
+    }
+    function closeAddCoins() { document.getElementById('addCoinsModal').classList.remove('open'); addCoinsTargetUid = null; }
+    function setCoinAmount(n) { document.getElementById('coinAmountInput').value = n; }
+
+    async function confirmAddCoins() {
+        const amount = parseFloat(document.getElementById('coinAmountInput').value);
+        if (!amount || amount <= 0) { showToast('Enter a valid amount', false, true); return; }
+        if (!addCoinsTargetUid) return;
+        try {
+            await FB.updateDoc(FB.doc(FB.db, 'users', addCoinsTargetUid), {
+                coins: (allUsers.find(u=>u.id===addCoinsTargetUid)?.coins||0) + amount
+            });
+            const u = allUsers.find(x => x.id === addCoinsTargetUid);
+            if (u) u.coins = (u.coins || 0) + amount;
+            renderUserTable(allUsers);
+            updateDashboard();
+            showToast(`+${amount} BLK added to ${addCoinsTargetName}`, true);
+            closeAddCoins();
+        } catch(e) {
+            showToast('Failed to update coins', false, true);
+        }
+    }
+
+    // ── STORE MUSIC UPLOAD ──
+    let uploadedAudioFile = null;
+    let allStoreTracks = [];
+
+    const adminUploadZone = document.getElementById('adminUploadZone');
+    document.getElementById('adminAudioFile').addEventListener('change', e => handleAdminAudioFile(e.target.files[0]));
+    adminUploadZone.addEventListener('dragover', e => { e.preventDefault(); adminUploadZone.classList.add('drag-over'); });
+    adminUploadZone.addEventListener('dragleave', () => adminUploadZone.classList.remove('drag-over'));
+    adminUploadZone.addEventListener('drop', e => { e.preventDefault(); adminUploadZone.classList.remove('drag-over'); if(e.dataTransfer.files[0]) handleAdminAudioFile(e.dataTransfer.files[0]); });
+
+    function handleAdminAudioFile(file) {
+        if (!file || !file.type.startsWith('audio/')) { showToast('Please select an audio file', false, true); return; }
+        uploadedAudioFile = file;
+        const nameEl = document.getElementById('uploadFileName');
+        nameEl.textContent = `◈ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
+        nameEl.style.display = 'block';
+        // Auto-parse title/artist from filename
+        const name = file.name.replace(/\.[^.]+$/, '');
+        if (name.includes(' - ')) {
+            const parts = name.split(' - ');
+            document.getElementById('metaArtist').value = parts[0].trim();
+            document.getElementById('metaTitle').value = parts.slice(1).join(' - ').trim();
+        } else {
+            document.getElementById('metaTitle').value = name;
+            document.getElementById('metaArtist').value = '';
+        }
+        document.getElementById('metadataForm').style.display = 'block';
+    }
+
+    async function uploadStoreTrack() {
+        if (!uploadedAudioFile) { showToast('No file selected', false, true); return; }
+        const title = document.getElementById('metaTitle').value.trim();
+        const artist = document.getElementById('metaArtist').value.trim();
+        const genre = document.getElementById('metaGenre').value;
+        const price = parseFloat(document.getElementById('metaPrice').value) || 0.99;
+        const badge = document.getElementById('metaBadge').value.trim() || null;
+        if (!title || !artist) { showToast('Title and artist are required', false, true); return; }
+
+        const statusEl = document.getElementById('uploadStatus');
+        const progressBar = document.getElementById('uploadProgressBar');
+        const progressFill = document.getElementById('uploadProgressFill');
+        statusEl.textContent = 'Uploading...';
+        progressBar.style.display = 'block';
+
+        try {
+            // Upload to Firebase Storage
+            const fileRef = FB.storageRef(FB.storage, `store-tracks/${Date.now()}_${uploadedAudioFile.name}`);
+            const uploadTask = FB.uploadBytesResumable(fileRef, uploadedAudioFile);
+            uploadTask.on('state_changed',
+                snap => { const pct = (snap.bytesTransferred/snap.totalBytes*100).toFixed(0); progressFill.style.width = pct+'%'; statusEl.textContent = `Uploading... ${pct}%`; },
+                err => { showToast('Upload failed: ' + err.message, false, true); statusEl.textContent = ''; progressBar.style.display = 'none'; },
+                async () => {
+                    const url = await FB.getDownloadURL(uploadTask.snapshot.ref);
+                    const emojis = ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'];
+                    await FB.addDoc(FB.collection(FB.db, 'storeTracks'), {
+                        title, artist, genre, price, badge,
+                        url, emoji: emojis[Math.floor(Math.random()*emojis.length)],
+                        color: '#0d001a',
+                        createdAt: FB.serverTimestamp(),
+                        addedBy: currentAdminUid
+                    });
+                    showToast(`"${title}" uploaded to store`, true);
+                    statusEl.textContent = '✓ Uploaded successfully';
+                    progressBar.style.display = 'none';
+                    uploadedAudioFile = null;
+                    document.getElementById('metadataForm').style.display = 'none';
+                    document.getElementById('uploadFileName').style.display = 'none';
+                    document.getElementById('adminAudioFile').value = '';
+                    loadStoreTracks();
+                }
+            );
+        } catch(e) {
+            showToast('Upload error: ' + e.message, false, true);
+            statusEl.textContent = '';
+            progressBar.style.display = 'none';
+        }
+    }
+
+    async function loadStoreTracks() {
+        document.getElementById('storeTrackList').innerHTML = '<div class="loading">Loading</div>';
+        try {
+            const snap = await FB.getDocs(FB.collection(FB.db, 'storeTracks'));
+            allStoreTracks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            document.getElementById('storeTrackCount').textContent = `${allStoreTracks.length} track${allStoreTracks.length !== 1 ? 's' : ''}`;
+            renderStoreTracks();
+        } catch(e) {
+            document.getElementById('storeTrackList').innerHTML = `<div class="empty-row"><td colspan="4">Could not load tracks — check Firestore permissions</td></div>`;
+        }
+    }
+
+    function renderStoreTracks() {
+        const list = document.getElementById('storeTrackList');
+        if (!allStoreTracks.length) {
+            list.innerHTML = `<div style="text-align:center;padding:3rem;font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--sub);letter-spacing:2px;">No tracks in store yet</div>`;
+            return;
+        }
+        list.innerHTML = allStoreTracks.map(t => `
+            <div class="store-track-item">
+                <div>
+                    <div class="store-track-title">${esc(t.title)}</div>
+                    <div class="store-track-meta">${esc(t.artist)} · ${esc(t.genre)} ${t.badge ? `· <span style="color:var(--accent);">${esc(t.badge)}</span>` : ''}</div>
+                </div>
+                <div class="store-track-price">$${(t.price||0).toFixed(2)}</div>
+                <div>
+                    <button class="tbl-btn edit" onclick="openEditTrack('${t.id}')">Edit</button>
+                    <button class="tbl-btn delete" onclick="deleteStoreTrack('${t.id}','${esc(t.title)}')">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openEditTrack(id) {
+        const t = allStoreTracks.find(x => x.id === id);
+        if (!t) return;
+        document.getElementById('editTrackId').value = id;
+        document.getElementById('editMetaTitle').value = t.title || '';
+        document.getElementById('editMetaArtist').value = t.artist || '';
+        document.getElementById('editMetaGenre').value = t.genre || 'Electronic';
+        document.getElementById('editMetaPrice').value = t.price || '';
+        document.getElementById('editMetaBadge').value = t.badge || '';
+        document.getElementById('editTrackModal').classList.add('open');
+    }
+    function closeEditTrack() { document.getElementById('editTrackModal').classList.remove('open'); }
+
+    async function saveEditTrack() {
+        const id = document.getElementById('editTrackId').value;
+        const title = document.getElementById('editMetaTitle').value.trim();
+        const artist = document.getElementById('editMetaArtist').value.trim();
+        const genre = document.getElementById('editMetaGenre').value;
+        const price = parseFloat(document.getElementById('editMetaPrice').value) || 0.99;
+        const badge = document.getElementById('editMetaBadge').value.trim() || null;
+        if (!title || !artist) { showToast('Title and artist required', false, true); return; }
+        try {
+            await FB.updateDoc(FB.doc(FB.db, 'storeTracks', id), { title, artist, genre, price, badge });
+            const t = allStoreTracks.find(x => x.id === id);
+            if (t) Object.assign(t, { title, artist, genre, price, badge });
+            renderStoreTracks();
+            showToast(`"${title}" updated`, true);
+            closeEditTrack();
+        } catch(e) {
+            showToast('Failed to update track', false, true);
+        }
+    }
+
+    async function deleteStoreTrack(id, name) {
+        showConfirm('Delete Track', `Remove "${name}" from the store? This cannot be undone.`, async () => {
+            await FB.deleteDoc(FB.doc(FB.db, 'storeTracks', id));
+            allStoreTracks = allStoreTracks.filter(t => t.id !== id);
+            document.getElementById('storeTrackCount').textContent = `${allStoreTracks.length} tracks`;
+            renderStoreTracks();
+            showToast(`"${name}" removed from store`, false, true);
+        });
+    }
+
+    init();</script>
 </body>
 </html>
