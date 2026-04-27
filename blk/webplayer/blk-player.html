@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="display-mode" content="standalone">
     <title>BLK | Music</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
@@ -202,10 +203,13 @@
             grid-area: nav;
             display: flex; justify-content: space-between; align-items: center;
             padding: 1.2rem 2rem;
+            padding-top: max(1.2rem, env(titlebar-area-height, 1.2rem));
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.95);
             backdrop-filter: blur(20px); z-index: 100;
+            -webkit-app-region: drag;
         }
+        nav a, nav button, nav .nav-tabs, nav .nav-right, nav .nav-user { -webkit-app-region: no-drag; }
         .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--text); text-decoration: none; }
         .nav-tabs { display: flex; gap: 0; border: 1px solid var(--border); }
         .nav-tab {
@@ -313,6 +317,12 @@
         .search-bar { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); padding: 0.6rem 1rem; background: var(--surface); min-width: 220px; }
         .search-bar input { background: none; border: none; outline: none; color: #fff; font-family: 'Space Mono', monospace; font-size: 0.7rem; width: 100%; letter-spacing: 1px; }
         .search-bar input::placeholder { color: var(--sub); }
+        .filter-btns { display: flex; gap: 0; border: 1px solid var(--border); flex-shrink: 0; }
+        .filter-btn { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.5rem 0.9rem; background: none; border: none; border-right: 1px solid var(--border); color: var(--sub); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .filter-btn:last-child { border-right: none; }
+        .filter-btn.active { color: #fff; background: var(--accent-dim); }
+        .filter-btn.sp.active { color: #1ED760; background: rgba(30,215,96,0.1); }
+        .filter-btn.sc.active { color: #ff5500; background: rgba(255,85,0,0.1); }
 
         /* track list */
         .track-list { padding: 1rem 0; }
@@ -424,12 +434,15 @@
             padding: 2.5rem;
         }
         .profile-avatar-lg {
-            width: 72px; height: 72px;
-            background: var(--accent-dim); border: 1px solid var(--accent);
+            width: 80px; height: 80px;
+            background: var(--accent-dim); border: 2px solid var(--accent);
             display: flex; align-items: center; justify-content: center;
             font-family: 'Space Mono', monospace; font-size: 1.8rem; color: var(--accent);
-            margin-bottom: 1rem;
+            margin-bottom: 0;
+            background-size: cover; background-position: center;
+            transition: opacity 0.2s;
         }
+        .profile-avatar-lg:hover { opacity: 0.8; }
         .profile-stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); margin: 2rem 0; }
         .profile-stat { background: var(--surface); padding: 1.2rem; text-align: center; }
         .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
@@ -658,9 +671,17 @@
                     <div class="view-sub">Local Music</div>
                     <div class="view-title">Your Library</div>
                 </div>
-                <div class="search-bar">
-                    <span style="color:var(--sub);">⌕</span>
-                    <input type="text" id="searchInput" placeholder="Search tracks..." oninput="filterTracks()">
+                <div style="display:flex;align-items:center;gap:0.8rem;">
+                    <div class="filter-btns">
+                        <button class="filter-btn active" id="fb-all"      onclick="setFilter('all')">All</button>
+                        <button class="filter-btn"        id="fb-local"    onclick="setFilter('local')">Local</button>
+                        <button class="filter-btn sp"     id="fb-spotify"  onclick="setFilter('spotify')">Spotify</button>
+                        <button class="filter-btn sc"     id="fb-soundcloud" onclick="setFilter('soundcloud')">SoundCloud</button>
+                    </div>
+                    <div class="search-bar">
+                        <span style="color:var(--sub);">⌕</span>
+                        <input type="text" id="searchInput" placeholder="Search tracks..." oninput="filterTracks()">
+                    </div>
                 </div>
             </div>
             <div class="track-list">
@@ -701,7 +722,11 @@
                 </div>
             </div>
             <div class="profile-panel">
-                <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+                <div style="position:relative;display:inline-block;margin-bottom:1rem;">
+                    <div class="profile-avatar-lg" id="profileAvatarLg" onclick="document.getElementById('avatarFileInput').click()" style="cursor:pointer;position:relative;overflow:hidden;" title="Click to change photo">?</div>
+                    <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.6rem;cursor:pointer;" onclick="document.getElementById('avatarFileInput').click()">✏️</div>
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarChange(event)">
+                </div>
                 <div style="font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;" id="profileName">—</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);" id="profileEmail">—</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--accent);letter-spacing:2px;margin-top:0.5rem;" id="profileRole">USER</div>
@@ -720,7 +745,11 @@
                     </div>
                 </div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Member Since</div>
-                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;" id="profileJoined">—</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;margin-bottom:2rem;" id="profileJoined">—</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Settings</div>
+                <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+                    <button onclick="sendPasswordReset()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.2rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--sub)'">Change Password</button>
+                </div>
             </div>
         </div>
     </main>
@@ -819,7 +848,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<audio id="audioEl"></audio>
+<audio id="audioEl" preload="auto"></audio>
 
 <!-- ════════════════════════════════════════
      SCRIPTS
@@ -839,21 +868,13 @@
     // ── PLAYER STATE ──
     let library = [], currentIdx = -1, isPlaying = false;
     let shuffle = false, repeat = false, muted = false, volume = 0.8;
+    let activeFilter = 'all'; // 'all' | 'local' | 'spotify' | 'soundcloud'
     let coins = 0, listenCount = 0, lastCoinTick = 0, pendingPurchase = null;
 
     const audio = document.getElementById('audioEl');
     audio.volume = volume;
 
-    const STORE = [
-        { id: 's1', title: 'Neon Protocol',    artist: 'AXIOM',       price: 1.99, genre: 'Electronic', emoji: '⬡', color: '#2e0040', owned: false, badge: 'NEW' },
-        { id: 's2', title: 'Midnight Circuit',  artist: 'VOID.EXE',    price: 2.49, genre: 'Synthwave',  emoji: '◈', color: '#0a001f', owned: false, badge: null  },
-        { id: 's3', title: 'Ghost Data',        artist: 'PHANTOM_KEY', price: 0.99, genre: 'Lo-Fi',      emoji: '⊕', color: '#001a10', owned: false, badge: 'HOT' },
-        { id: 's4', title: 'Shadow Frequency',  artist: 'BLK001',      price: 3.49, genre: 'Hip-Hop',    emoji: '⬢', color: '#1a0030', owned: false, badge: null  },
-        { id: 's5', title: 'Archive Zero',      artist: 'DATA_GHOST',  price: 1.49, genre: 'Ambient',    emoji: '◇', color: '#000d1a', owned: false, badge: 'NEW' },
-        { id: 's6', title: 'System Override',   artist: 'MXCHINE',     price: 2.99, genre: 'Industrial', emoji: '⬛', color: '#1a0a00', owned: false, badge: null  },
-        { id: 's7', title: 'Entropy Loop',      artist: 'AXIOM',       price: 1.99, genre: 'Electronic', emoji: '⊗', color: '#0d001a', owned: false, badge: null  },
-        { id: 's8', title: 'Null Signal',       artist: 'VOID.EXE',    price: 0.99, genre: 'Experimental',emoji:'◉', color: '#001a1a', owned: false, badge: null  },
-    ];
+    const STORE = [];
 
     // ════════════════════════════════════════
     // AUTH
@@ -1017,12 +1038,74 @@
         const isAdmin = userProfile.role === 'admin';
         document.getElementById('navAdminBadge').style.display   = isAdmin ? 'inline' : 'none';
         document.getElementById('adminPanelLink').style.display  = isAdmin ? 'flex'   : 'none';
+        // Restore saved avatar in nav
+        if (currentUser) {
+            try {
+                const saved = localStorage.getItem('blk_avatar_' + currentUser.uid);
+                if (saved) applyAvatarToUI(saved);
+            } catch(e) {}
+        }
     }
 
-    function updateProfileView() {
+    function handleAvatarChange(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            // Store in localStorage keyed by uid so it persists
+            if (currentUser) {
+                try { localStorage.setItem('blk_avatar_' + currentUser.uid, dataUrl); } catch(err) {}
+            }
+            applyAvatarToUI(dataUrl);
+            showToast('Profile photo updated', true);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function applyAvatarToUI(dataUrl) {
+        const lg = document.getElementById('profileAvatarLg');
+        if (dataUrl) {
+            lg.style.backgroundImage = `url('${dataUrl}')`;
+            lg.style.backgroundSize = 'cover';
+            lg.style.backgroundPosition = 'center';
+            lg.textContent = '';
+            // Also update nav avatar
+            const nav = document.getElementById('navAvatar');
+            nav.style.backgroundImage = `url('${dataUrl}')`;
+            nav.style.backgroundSize = 'cover';
+            nav.style.backgroundPosition = 'center';
+            nav.textContent = '';
+        } else {
+            lg.style.backgroundImage = '';
+            lg.textContent = (userProfile?.displayName || '?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+            const nav = document.getElementById('navAvatar');
+            nav.style.backgroundImage = '';
+        }
+    }
+
+    async function sendPasswordReset() {
+        if (!currentUser || !FB) return;
+        try {
+            await FB.sendPasswordResetEmail(FB.auth, currentUser.email);
+            showToast('Password reset email sent to ' + currentUser.email, true);
+        } catch(e) {
+            showToast('Error: ' + (e.message || 'Could not send reset email'));
+        }
+    }
+
+        function updateProfileView() {
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
         document.getElementById('profileAvatarLg').textContent = initials;
+        // Restore saved avatar photo if any
+        if (currentUser) {
+            try {
+                const saved = localStorage.getItem('blk_avatar_' + currentUser.uid);
+                if (saved) applyAvatarToUI(saved);
+            } catch(e) {}
+        }
         document.getElementById('profileName').textContent     = userProfile.displayName || '—';
         document.getElementById('profileEmail').textContent    = userProfile.email || '—';
         document.getElementById('profileRole').textContent     = (userProfile.role || 'user').toUpperCase();
@@ -1293,7 +1376,7 @@
     }
 
     function renderLibrary(filtered) {
-        const tracks = filtered ?? library;
+        const tracks = filtered ?? getFilteredLibrary();
         const body = document.getElementById('trackListBody');
         if (!tracks.length) {
             body.innerHTML = `<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>`;
@@ -1318,10 +1401,25 @@
         }).join('');
     }
 
+    function setFilter(f) {
+        activeFilter = f;
+        ['all','local','spotify','soundcloud'].forEach(id => {
+            const el = document.getElementById('fb-' + id);
+            if (el) el.classList.toggle('active', id === f);
+        });
+        filterTracks();
+    }
+
+    function getFilteredLibrary() {
+        let tracks = library;
+        if (activeFilter !== 'all') tracks = tracks.filter(t => t.source === activeFilter);
+        const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        if (q) tracks = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+        return tracks;
+    }
+
     function filterTracks() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        if (!q) { renderLibrary(); return; }
-        renderLibrary(library.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)));
+        renderLibrary(getFilteredLibrary());
     }
 
     function renderQueue() {
@@ -1359,17 +1457,35 @@
         closeEmbed();
         currentIdx = idx;
         audio.src = t.url;
+        audio.load();
         audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
     }
-    function togglePlay() {
+    async function togglePlay() {
         if (currentIdx < 0) { if (library.length) playTrack(0); return; }
         const t = library[currentIdx];
         if (t && (t.source === 'spotify' || t.source === 'soundcloud')) { openEmbedPlayer(t); return; }
-        if (isPlaying) { audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
-        updatePlayBtn();
+        if (isPlaying) {
+            audio.pause();
+            isPlaying = false;
+            updatePlayBtn();
+        } else {
+            try { await audio.play(); isPlaying = true; } catch(e) {}
+            updatePlayBtn();
+        }
     }
     function prevTrack() { if (!library.length) return; if (audio.currentTime > 3 && library[currentIdx]?.source === 'local') { audio.currentTime = 0; return; } playTrack(currentIdx <= 0 ? library.length-1 : currentIdx-1); }
-    function nextTrack() { if (!library.length) return; if (shuffle) { playTrack(Math.floor(Math.random()*library.length)); return; } playTrack((currentIdx+1)%library.length); }
+    function nextTrack() {
+        if (!library.length) return;
+        if (shuffle) {
+            // Only shuffle within currently filtered, local-playable tracks
+            const pool = getFilteredLibrary().filter(t => t.source === 'local' && !t.missing);
+            if (!pool.length) return;
+            const pick = pool[Math.floor(Math.random() * pool.length)];
+            playTrack(library.indexOf(pick));
+            return;
+        }
+        playTrack((currentIdx + 1) % library.length);
+    }
     function toggleShuffle() { shuffle = !shuffle; document.getElementById('btnShuffle').classList.toggle('active', shuffle); }
     function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
     function seekTo(e) { const b = document.getElementById('progressBar'); if (!audio.duration) return; audio.currentTime = (e.offsetX/b.offsetWidth)*audio.duration; }
