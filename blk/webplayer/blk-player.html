@@ -9,7 +9,7 @@
     <!-- ── FIREBASE ── -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         // ── PASTE YOUR FIREBASE CONFIG HERE ──
@@ -29,7 +29,7 @@
         const googleProvider = new GoogleAuthProvider();
 
         // ── expose to window so non-module scripts can call ──
-        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs };
+        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs };
     </script>
 
     <style>
@@ -445,6 +445,19 @@
         .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
         .profile-stat-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-top: 0.3rem; }
 
+        /* ── SETTINGS BUTTONS ── */
+        .settings-btn-group { display: flex; flex-direction: column; gap: 2px; }
+        .settings-btn {
+            display: flex; align-items: center; gap: 1rem;
+            width: 100%; padding: 1rem 1.2rem;
+            background: var(--surface); border: 1px solid var(--border);
+            color: #fff; cursor: pointer; text-align: left; transition: all 0.2s;
+        }
+        .settings-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .settings-btn-icon { font-size: 1.1rem; color: var(--accent); width: 24px; text-align: center; flex-shrink: 0; }
+        .settings-btn-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; margin-bottom: 0.2rem; }
+        .settings-btn-sub { font-size: 0.7rem; color: var(--sub); }
+
         /* ── FILE MISSING WARNING ── */
         .track-row.missing { opacity: 0.5; }
         .track-row.missing .track-name::after { content: ' ⚠'; color: var(--warn); font-size: 0.7rem; }
@@ -720,7 +733,8 @@
             <div class="profile-panel">
                 <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
                 <div style="font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;" id="profileName">—</div>
-                <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);" id="profileEmail">—</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);display:flex;align-items:center;gap:0.6rem;" id="profileEmail">—</div>
+                <div id="emailVerifiedBadge" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;padding:0.2rem 0.6rem;margin-top:0.4rem;border:1px solid;display:inline-block;"></div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--accent);letter-spacing:2px;margin-top:0.5rem;" id="profileRole">USER</div>
                 <div class="profile-stat-grid">
                     <div class="profile-stat">
@@ -737,7 +751,33 @@
                     </div>
                 </div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Member Since</div>
-                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;" id="profileJoined">—</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;margin-bottom:2.5rem;" id="profileJoined">—</div>
+
+                <!-- SETTINGS SECTION -->
+                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;padding-top:1.5rem;border-top:1px solid var(--border);">Account Settings</div>
+                <div class="settings-btn-group">
+                    <button class="settings-btn" id="verifyEmailBtn" onclick="sendVerificationEmail()">
+                        <span class="settings-btn-icon">✉</span>
+                        <div>
+                            <div class="settings-btn-label">Verify Email</div>
+                            <div class="settings-btn-sub">Resend verification link to your inbox</div>
+                        </div>
+                    </button>
+                    <button class="settings-btn" onclick="openChangeEmailModal()">
+                        <span class="settings-btn-icon">@</span>
+                        <div>
+                            <div class="settings-btn-label">Change Email</div>
+                            <div class="settings-btn-sub">Update your email address</div>
+                        </div>
+                    </button>
+                    <button class="settings-btn" onclick="sendPasswordChangeEmail()">
+                        <span class="settings-btn-icon">⚿</span>
+                        <div>
+                            <div class="settings-btn-label">Change Password</div>
+                            <div class="settings-btn-sub">Send a password reset link to your email</div>
+                        </div>
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -832,6 +872,25 @@
             <div class="modal-include-item">Earn BLK coins on every listen</div>
         </div>
         <button class="modal-btn" id="modalBtn" onclick="confirmPurchase()">Confirm Purchase</button>
+    </div>
+</div>
+
+<!-- CHANGE EMAIL MODAL -->
+<div class="modal-bg" id="changeEmailModal" onclick="if(event.target===this)closeChangeEmailModal()">
+    <div class="modal">
+        <button class="modal-close" onclick="closeChangeEmailModal()">✕</button>
+        <span class="modal-tag">Account Settings // Change Email</span>
+        <h3 style="margin-bottom:1.5rem;">Update Email</h3>
+        <div class="auth-field">
+            <label>Current Password</label>
+            <input type="password" id="changeEmailPass" placeholder="Enter your password to confirm" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;font-family:'Space Mono',monospace;font-size:0.8rem;padding:0.8rem 1rem;outline:none;">
+        </div>
+        <div class="auth-field" style="margin-top:0.8rem;">
+            <label>New Email Address</label>
+            <input type="email" id="changeEmailNew" placeholder="new@example.com" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;font-family:'Space Mono',monospace;font-size:0.8rem;padding:0.8rem 1rem;outline:none;">
+        </div>
+        <div class="auth-error" id="changeEmailError" style="margin-top:0.5rem;min-height:1rem;"></div>
+        <button class="modal-btn" id="changeEmailBtn" onclick="doChangeEmail()" style="margin-top:1rem;">Send Verification Link</button>
     </div>
 </div>
 
@@ -973,6 +1032,11 @@
                 role: 'user', coins: 0, listenCount: 0, purchases: 0,
                 joinedAt: new Date().toISOString()
             });
+            // Send email verification
+            await FB.sendEmailVerification(cred.user);
+            btn.textContent = 'Account Created';
+            document.getElementById('reg-error').style.color = 'var(--success)';
+            document.getElementById('reg-error').textContent = 'Account created! Check your email to verify your address.';
         } catch(e) {
             err.textContent = friendlyError(e.code);
             btn.disabled = false; btn.textContent = 'Create Account';
@@ -998,6 +1062,76 @@
             document.getElementById('login-error').textContent = 'Reset email sent — check your inbox.';
         } catch(e) {
             document.getElementById('login-error').textContent = friendlyError(e.code);
+        }
+    }
+
+    // ════════════════════════════════════════
+    // ACCOUNT SETTINGS (Verify / Change Email / Change Password)
+    // ════════════════════════════════════════
+    async function sendVerificationEmail() {
+        if (!currentUser) return;
+        try {
+            await FB.sendEmailVerification(currentUser);
+            showToast('Verification email sent — check your inbox ✓', true);
+        } catch(e) {
+            if (e.code === 'auth/too-many-requests') showToast('Too many attempts — wait a few minutes before resending');
+            else showToast('Could not send verification email. Try again later.');
+        }
+    }
+
+    function openChangeEmailModal() {
+        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        if (isGoogle) { showToast('Google accounts manage email through Google — change it there'); return; }
+        document.getElementById('changeEmailPass').value = '';
+        document.getElementById('changeEmailNew').value = '';
+        document.getElementById('changeEmailError').textContent = '';
+        document.getElementById('changeEmailError').style.color = 'var(--error)';
+        document.getElementById('changeEmailBtn').textContent = 'Send Verification Link';
+        document.getElementById('changeEmailBtn').disabled = false;
+        document.getElementById('changeEmailModal').classList.add('open');
+    }
+
+    function closeChangeEmailModal() {
+        document.getElementById('changeEmailModal').classList.remove('open');
+    }
+
+    async function doChangeEmail() {
+        const pass     = document.getElementById('changeEmailPass').value;
+        const newEmail = document.getElementById('changeEmailNew').value.trim();
+        const errEl    = document.getElementById('changeEmailError');
+        const btn      = document.getElementById('changeEmailBtn');
+        errEl.style.color = 'var(--error)';
+        if (!pass)     { errEl.textContent = 'Enter your current password.'; return; }
+        if (!newEmail) { errEl.textContent = 'Enter a new email address.'; return; }
+        if (newEmail === currentUser.email) { errEl.textContent = 'New email must be different from your current email.'; return; }
+        btn.textContent = 'Sending...'; btn.disabled = true;
+        try {
+            // Re-authenticate before sensitive operation
+            const credential = FB.EmailAuthProvider.credential(currentUser.email, pass);
+            await FB.reauthenticateWithCredential(currentUser, credential);
+            // Send verification to new address — change only takes effect when user clicks the link
+            await FB.verifyBeforeUpdateEmail(currentUser, newEmail);
+            // Update Firestore
+            if (FB) await FB.updateDoc(FB.doc(FB.db, 'users', currentUser.uid), { email: newEmail });
+            errEl.style.color = 'var(--success)';
+            errEl.textContent = 'Verification sent to ' + newEmail + '. Click the link to confirm your new email.';
+            btn.textContent = '✓ Email Sent';
+            setTimeout(closeChangeEmailModal, 3000);
+        } catch(e) {
+            btn.textContent = 'Send Verification Link'; btn.disabled = false;
+            errEl.textContent = friendlyError(e.code) || 'Failed to update email. Check your password and try again.';
+        }
+    }
+
+    async function sendPasswordChangeEmail() {
+        if (!currentUser?.email) return;
+        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        if (isGoogle) { showToast('Google accounts manage passwords through Google'); return; }
+        try {
+            await FB.sendPasswordResetEmail(FB.auth, currentUser.email);
+            showToast('Password reset email sent to ' + currentUser.email + ' ✓', true);
+        } catch(e) {
+            showToast('Could not send reset email. Try again later.');
         }
     }
 
@@ -1049,6 +1183,23 @@
         document.getElementById('statPurchases').textContent   = userProfile.purchases || 0;
         const joined = userProfile.joinedAt ? new Date(userProfile.joinedAt).toLocaleDateString('en-AU', { year:'numeric', month:'long', day:'numeric' }) : '—';
         document.getElementById('profileJoined').textContent   = joined;
+        // Email verified badge
+        const badge = document.getElementById('emailVerifiedBadge');
+        const verifyBtn = document.getElementById('verifyEmailBtn');
+        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        if (isGoogle || currentUser?.emailVerified) {
+            badge.style.display = 'inline-block';
+            badge.style.color = 'var(--success)'; badge.style.borderColor = 'var(--success)';
+            badge.textContent = '✓ Verified';
+            if (verifyBtn) verifyBtn.style.opacity = '0.4';
+            if (verifyBtn) verifyBtn.style.pointerEvents = 'none';
+        } else {
+            badge.style.display = 'inline-block';
+            badge.style.color = 'var(--warn, #ffaa00)'; badge.style.borderColor = 'var(--warn, #ffaa00)';
+            badge.textContent = '⚠ Not Verified';
+            if (verifyBtn) verifyBtn.style.opacity = '1';
+            if (verifyBtn) verifyBtn.style.pointerEvents = 'auto';
+        }
     }
 
     function toggleDropdown(forceClose = false) {
