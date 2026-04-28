@@ -316,8 +316,10 @@
 
         /* track list */
         .track-list { padding: 1rem 0; }
-        .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
-        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-remove-btn { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.7rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
+        .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
         .track-row:hover { background: rgba(255,255,255,0.03); }
         .track-row.playing { background: var(--accent-dim); }
         .track-row.playing::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
@@ -523,7 +525,7 @@
             .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
             .player-track { justify-content: center; }
             .player-right { justify-content: center; }
-            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px; }
+            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px; }
             .track-album, .track-meta { display: none; }
             .auth-box { width: 95%; padding: 2rem; }
         }
@@ -698,7 +700,7 @@
             </div>
             <div class="track-list">
                 <div class="track-list-header">
-                    <span>#</span><span>Title</span><span>Album</span><span>Added</span><span style="text-align:right;">Time</span>
+                    <span>#</span><span>Title</span><span>Album</span><span>Added</span><span style="text-align:right;">Time</span><span></span>
                 </div>
                 <div id="trackListBody">
                     <div class="empty-library">
@@ -1459,18 +1461,53 @@
             const libIdx = library.indexOf(t);
             const isStream = t.source === 'spotify' || t.source === 'soundcloud';
             const sourceTag = isStream ? `<span style="font-family:'Space Mono',monospace;font-size:0.5rem;color:${t.source==='spotify'?'#1ED760':'#ff5500'};letter-spacing:1px;margin-left:4px;">${t.source==='spotify'?'SPOTIFY':'SC'}</span>` : '';
+            const thumbInner = t.albumArt
+                ? `<img src="${esc(t.albumArt)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`
+                : `<span>${t.emoji}</span>`;
             return `
             <div class="track-row ${currentIdx === libIdx ? 'playing' : ''} ${t.missing ? 'missing' : ''}" onclick="playTrack(${libIdx})">
                 <span class="track-idx">${currentIdx === libIdx ? '▶' : i+1}</span>
                 <div class="track-info">
-                    <div class="track-thumb"><span>${t.emoji}</span><div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
+                    <div class="track-thumb">${thumbInner}<div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
                     <div><div class="track-name">${esc(t.title)}${sourceTag}</div><div class="track-name-artist">${esc(t.artist)}</div></div>
                 </div>
                 <span class="track-album">${esc(t.album)}</span>
                 <span class="track-meta">${t.dateAdded}</span>
                 <span class="track-duration">${t.missing ? '⚠ missing' : fmt(t.duration)}</span>
+                <button class="track-remove-btn" onclick="removeTrack(event,${libIdx})" title="Remove track">✕</button>
             </div>`;
         }).join('');
+    }
+
+    function removeTrack(e, libIdx) {
+        e.stopPropagation();
+        const t = library[libIdx];
+        if (!t) return;
+        if (t.source === 'spotify') {
+            const si = spotifyTracks.indexOf(t);
+            if (si !== -1) spotifyTracks.splice(si, 1);
+            document.getElementById('spotifyStatus').textContent = spotifyTracks.length ? `${spotifyTracks.length} linked` : '';
+            if (!spotifyTracks.length) document.getElementById('spotifyConnectBtn').classList.remove('connected');
+            renderSpotifyTracks();
+        } else if (t.source === 'soundcloud') {
+            const si = soundcloudTracks.indexOf(t);
+            if (si !== -1) soundcloudTracks.splice(si, 1);
+            document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? `${soundcloudTracks.length} linked` : '';
+            if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
+            renderSoundcloudTracks();
+        }
+        idbDeleteTrack(t.id);
+        if (currentIdx === libIdx) {
+            audio.pause(); isPlaying = false; currentIdx = -1;
+            document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
+            document.getElementById('playerArtist').textContent = '';
+            document.getElementById('playerArtEmoji').textContent = '◈';
+            closeEmbed();
+        } else if (currentIdx > libIdx) { currentIdx--; }
+        library.splice(libIdx, 1);
+        filterTracks();
+        renderQueue();
+        showToast(`"${t.title}" removed`);
     }
 
     let activeLibFilter = 'all';
