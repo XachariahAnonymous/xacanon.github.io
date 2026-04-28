@@ -504,6 +504,9 @@
         .stream-add-btn { font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 1px; padding: 0.5rem 0.8rem; border: none; cursor: pointer; background: var(--accent); color: #fff; white-space: nowrap; transition: opacity 0.2s; }
         .stream-add-btn:hover { opacity: 0.85; }
         .stream-add-btn.sc { background: #ff5500; }
+        .stream-track-remove { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 0.75rem; padding: 0 0.3rem; flex-shrink: 0; transition: color 0.2s; line-height: 1; }
+        .stream-track-remove:hover { color: var(--error); }
+        .stream-track-album { font-size: 0.55rem; color: rgba(255,255,255,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
 
         /* ── INSUFFICIENT BLK WARNING ── */
         .toast.warn { border-left-color: var(--warn) !important; }
@@ -1741,23 +1744,47 @@
         return null;
     }
 
-    function addSpotifyTrack() {
+    async function addSpotifyTrack() {
         const url = document.getElementById('spotifyUrlInput').value.trim();
         if (!url) { showToast('Paste a Spotify URL first'); return; }
         const parsed = parseSpotifyUrl(url);
         if (!parsed) { showToast('Invalid Spotify URL — paste a track, album or playlist link'); return; }
 
+        // Derive a clean canonical URL for oEmbed
+        const cleanUrl = `https://open.spotify.com/${parsed.type}/${parsed.id}`;
+
+        // Placeholder defaults
+        let title  = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
+        let artist = 'Spotify';
+        let album  = parsed.type === 'album' ? '' : 'Spotify';
+
+        // Try fetching metadata via oEmbed
+        try {
+            const oembed = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(cleanUrl)}`).then(r => r.json());
+            if (oembed && oembed.title) {
+                // oEmbed title is usually "Song Title - Artist Name" or just "Playlist Name"
+                const parts = oembed.title.split(' - ');
+                if (parts.length >= 2 && parsed.type === 'track') {
+                    title  = parts[0].trim();
+                    artist = parts.slice(1).join(' - ').trim();
+                    album  = ''; // album not exposed via oEmbed; leave blank for tracks
+                } else {
+                    title  = oembed.title;
+                    artist = oembed.author_name || 'Spotify';
+                    album  = parsed.type === 'album' ? oembed.author_name || '' : 'Spotify';
+                }
+            }
+        } catch(e) { /* oEmbed failed — keep defaults */ }
+
         const track = {
             id: 'sp_' + Date.now(),
-            url: url,
-            title: parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track',
-            artist: 'Spotify',
-            album: 'Spotify',
+            url: cleanUrl,
+            title, artist, album,
             duration: 0,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '🎵',
             source: 'spotify',
-            spotifyUrl: url,
+            spotifyUrl: cleanUrl,
             spotifyType: parsed.type,
             spotifyTrackId: parsed.id
         };
@@ -1772,6 +1799,20 @@
         showToast(`Spotify ${parsed.type} linked — click to open player`, true);
     }
 
+    function removeSpotifyTrack(trackId, e) {
+        e.stopPropagation();
+        const idx = spotifyTracks.findIndex(t => t.id === trackId);
+        if (idx === -1) return;
+        const libIdx = library.indexOf(spotifyTracks[idx]);
+        if (libIdx !== -1) library.splice(libIdx, 1);
+        spotifyTracks.splice(idx, 1);
+        renderSpotifyTracks();
+        renderLibrary(); renderQueue();
+        document.getElementById('spotifyStatus').textContent = spotifyTracks.length ? `${spotifyTracks.length} linked` : '';
+        if (!spotifyTracks.length) document.getElementById('spotifyConnectBtn').classList.remove('connected');
+        showToast('Spotify track removed');
+    }
+
     function renderSpotifyTracks() {
         const el = document.getElementById('spotifyTracks');
         if (!spotifyTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No Spotify tracks linked yet</div>'; return; }
@@ -1780,26 +1821,46 @@
                 <div class="stream-track-icon spotify">🎵</div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
-                    <div class="stream-track-artist">${t.spotifyType || 'track'} · Spotify</div>
+                    <div class="stream-track-artist">${esc(t.artist)}${t.artist && t.artist !== 'Spotify' ? ' · Spotify' : 'Spotify'}</div>
+                    ${t.album ? `<div class="stream-track-album">${esc(t.album)}</div>` : ''}
                 </div>
+                <button class="stream-track-remove" onclick="removeSpotifyTrack('${t.id}',event)" title="Remove">✕</button>
             </div>
         `).join('');
     }
 
-    function addSoundcloudTrack() {
+    async function addSoundcloudTrack() {
         const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
         if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
 
         const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const artist = (parts[parts.length - 2] || 'SoundCloud Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const title  = (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        // Default metadata from URL slug
+        let artist = (parts[parts.length - 2] || 'SoundCloud Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        let title  = (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        let album  = 'SoundCloud';
+
+        // Try oEmbed for real metadata
+        try {
+            const oembed = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`).then(r => r.json());
+            if (oembed && oembed.title) {
+                // oEmbed title is usually "Song - Artist" or just "Song"
+                const sep = oembed.title.indexOf(' - ');
+                if (sep !== -1) {
+                    title  = oembed.title.slice(0, sep).trim();
+                    artist = oembed.title.slice(sep + 3).trim();
+                } else {
+                    title  = oembed.title;
+                }
+                if (oembed.author_name) artist = oembed.author_name;
+                album = 'SoundCloud';
+            }
+        } catch(e) { /* keep URL-derived defaults */ }
 
         const track = {
             id: 'sc_' + Date.now(),
             url: url,
-            title, artist,
-            album: 'SoundCloud',
+            title, artist, album,
             duration: 0,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '☁',
@@ -1817,6 +1878,20 @@
         showToast(`SoundCloud track linked — click to open player`, true);
     }
 
+    function removeSoundcloudTrack(trackId, e) {
+        e.stopPropagation();
+        const idx = soundcloudTracks.findIndex(t => t.id === trackId);
+        if (idx === -1) return;
+        const libIdx = library.indexOf(soundcloudTracks[idx]);
+        if (libIdx !== -1) library.splice(libIdx, 1);
+        soundcloudTracks.splice(idx, 1);
+        renderSoundcloudTracks();
+        renderLibrary(); renderQueue();
+        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? `${soundcloudTracks.length} linked` : '';
+        if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
+        showToast('SoundCloud track removed');
+    }
+
     function renderSoundcloudTracks() {
         const el = document.getElementById('soundcloudTracks');
         if (!soundcloudTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>'; return; }
@@ -1826,7 +1901,9 @@
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
                     <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
+                    ${t.album && t.album !== 'SoundCloud' ? `<div class="stream-track-album">${esc(t.album)}</div>` : ''}
                 </div>
+                <button class="stream-track-remove" onclick="removeSoundcloudTrack('${t.id}',event)" title="Remove">✕</button>
             </div>
         `).join('');
     }
