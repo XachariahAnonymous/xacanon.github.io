@@ -444,12 +444,18 @@
             padding: 2.5rem;
         }
         .profile-avatar-lg {
-            width: 72px; height: 72px;
+            width: 96px; height: 96px;
             background: var(--accent-dim); border: 1px solid var(--accent);
             display: flex; align-items: center; justify-content: center;
             font-family: 'Space Mono', monospace; font-size: 1.8rem; color: var(--accent);
-            margin-bottom: 1rem;
+            margin-bottom: 1rem; cursor: pointer; position: relative; overflow: hidden;
+            flex-shrink: 0;
         }
+        .profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .profile-avatar-lg:hover .avatar-upload-overlay { opacity: 1; }
+        .avatar-upload-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; font-family: 'Space Mono', monospace; font-size: 0.45rem; letter-spacing: 1px; color: #fff; gap: 4px; }
+        .avatar-upload-overlay span { font-size: 1.1rem; }
+        .nav-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
         .profile-stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); margin: 2rem 0; }
         .profile-stat { background: var(--surface); padding: 1.2rem; text-align: center; }
         .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
@@ -758,7 +764,10 @@
                 </div>
             </div>
             <div class="profile-panel">
-                <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+                <div class="profile-avatar-lg" id="profileAvatarLg" onclick="document.getElementById('avatarFileInput').click()" title="Click to change photo">
+                    <div class="avatar-upload-overlay"><span>⊕</span>CHANGE PHOTO</div>
+                </div>
+                <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
                 <div style="font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;" id="profileName">—</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);display:flex;align-items:center;gap:0.6rem;" id="profileEmail">—</div>
                 <div id="emailVerifiedBadge" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;padding:0.2rem 0.6rem;margin-top:0.4rem;border:1px solid;display:inline-block;"></div>
@@ -1186,7 +1195,12 @@
     function updateNavUser() {
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('navAvatar').textContent    = initials;
+        const navAvatar = document.getElementById('navAvatar');
+        if (userProfile.avatarUrl) {
+            navAvatar.innerHTML = `<img src="${userProfile.avatarUrl}" alt="avatar">`;
+        } else {
+            navAvatar.textContent = initials;
+        }
         document.getElementById('navUsername').textContent  = userProfile.displayName || userProfile.email;
         const isAdmin = userProfile.role === 'admin';
         document.getElementById('navAdminBadge').style.display   = isAdmin ? 'inline' : 'none';
@@ -1196,7 +1210,22 @@
     function updateProfileView() {
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('profileAvatarLg').textContent = initials;
+        const avatarEl = document.getElementById('profileAvatarLg');
+        // Keep the overlay, replace content before it
+        const overlay = avatarEl.querySelector('.avatar-upload-overlay');
+        if (userProfile.avatarUrl) {
+            // Remove old initials text node if any
+            [...avatarEl.childNodes].forEach(n => { if (n.nodeType === 3) n.remove(); });
+            let img = avatarEl.querySelector('img');
+            if (!img) { img = document.createElement('img'); avatarEl.insertBefore(img, overlay); }
+            img.src = userProfile.avatarUrl; img.alt = 'avatar';
+        } else {
+            let img = avatarEl.querySelector('img');
+            if (img) img.remove();
+            // Set initials as text node before overlay
+            [...avatarEl.childNodes].forEach(n => { if (n.nodeType === 3) n.remove(); });
+            avatarEl.insertBefore(document.createTextNode(initials), overlay);
+        }
         document.getElementById('profileName').textContent     = userProfile.displayName || '—';
         document.getElementById('profileEmail').textContent    = userProfile.email || '—';
         document.getElementById('profileRole').textContent     = (userProfile.role || 'user').toUpperCase();
@@ -1222,6 +1251,45 @@
             if (verifyBtn) verifyBtn.style.opacity = '1';
             if (verifyBtn) verifyBtn.style.pointerEvents = 'auto';
         }
+    }
+
+    async function handleAvatarUpload(e) {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        // Resize + convert to base64
+        const base64 = await new Promise((res, rej) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                const size = 256;
+                const canvas = document.createElement('canvas');
+                canvas.width = size; canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                // Crop square from centre
+                const min = Math.min(img.width, img.height);
+                const sx = (img.width - min) / 2, sy = (img.height - min) / 2;
+                ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+                res(canvas.toDataURL('image/jpeg', 0.82));
+            };
+            img.onerror = rej;
+            img.src = url;
+        });
+        // Save to Firestore
+        if (currentUser && FB) {
+            try {
+                const ref = FB.doc(FB.db, 'users', currentUser.uid);
+                await FB.updateDoc(ref, { avatarUrl: base64 });
+                if (userProfile) userProfile.avatarUrl = base64;
+                updateNavUser();
+                updateProfileView();
+                showToast('Profile photo updated', true);
+            } catch(err) {
+                showToast('Failed to save photo — try a smaller image');
+            }
+        }
+        // Reset input so same file can be re-selected
+        e.target.value = '';
     }
 
     function toggleDropdown(forceClose = false) {
@@ -1624,10 +1692,10 @@
     }
     function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
     // ── PROGRESS BAR DRAG ──
+    let isDraggingProgress = false;
     (function() {
         const bar = document.getElementById('progressBar');
         const fill = document.getElementById('progressFill');
-        let dragging = false;
 
         function getPct(e) {
             const rect = bar.getBoundingClientRect();
@@ -1636,44 +1704,45 @@
         }
         function applyPct(pct) {
             fill.style.width = (pct * 100) + '%';
+            if (audio.duration) document.getElementById('timeElapsed').textContent = fmt(pct * audio.duration);
         }
         function commitPct(pct) {
+            isDraggingProgress = false;
+            bar.classList.remove('dragging');
             if (audio.duration) audio.currentTime = pct * audio.duration;
         }
 
         bar.addEventListener('mousedown', e => {
-            dragging = true; bar.classList.add('dragging');
-            const pct = getPct(e); applyPct(pct);
+            isDraggingProgress = true; bar.classList.add('dragging');
+            applyPct(getPct(e));
             e.preventDefault();
         });
         bar.addEventListener('click', e => {
-            const pct = getPct(e); applyPct(pct); commitPct(pct);
+            applyPct(getPct(e)); commitPct(getPct(e));
         });
         document.addEventListener('mousemove', e => {
-            if (!dragging) return;
+            if (!isDraggingProgress) return;
             applyPct(getPct(e));
         });
         document.addEventListener('mouseup', e => {
-            if (!dragging) return;
-            dragging = false; bar.classList.remove('dragging');
+            if (!isDraggingProgress) return;
             commitPct(getPct(e));
         });
         // Touch support
         bar.addEventListener('touchstart', e => {
-            dragging = true; bar.classList.add('dragging');
+            isDraggingProgress = true; bar.classList.add('dragging');
             applyPct(getPct(e)); e.preventDefault();
         }, { passive: false });
         document.addEventListener('touchmove', e => {
-            if (!dragging) return; applyPct(getPct(e));
+            if (!isDraggingProgress) return; applyPct(getPct(e));
         }, { passive: true });
         document.addEventListener('touchend', e => {
-            if (!dragging) return;
-            dragging = false; bar.classList.remove('dragging');
+            if (!isDraggingProgress) return;
             if (e.changedTouches) {
                 const rect = bar.getBoundingClientRect();
                 const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
                 commitPct(pct);
-            }
+            } else { isDraggingProgress = false; bar.classList.remove('dragging'); }
         });
     })();
 
@@ -1730,8 +1799,10 @@
 
     audio.addEventListener('timeupdate', () => {
         if (!audio.duration) return;
-        document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100)+'%';
-        document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
+        if (!isDraggingProgress) {
+            document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100)+'%';
+            document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
+        }
         const now = Math.floor(audio.currentTime/10);
         if (now > lastCoinTick) {
             lastCoinTick = now;
