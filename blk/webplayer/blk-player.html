@@ -793,8 +793,7 @@
 <div style="position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;z-index:-1;pointer-events:none;" aria-hidden="true">
     <iframe id="scHiddenWidget" src="about:blank"
         style="width:1px;height:1px;border:none;display:block;"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 </div>
 
 <!-- AUTH SCREEN -->
@@ -2137,7 +2136,7 @@
         } else if (t.source === 'soundcloud') {
             const si = soundcloudTracks.findIndex(s => s.id === t.id);
             if (si !== -1) soundcloudTracks.splice(si, 1);
-            document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
+            const _scStatusEl = document.getElementById('soundcloudStatus'); if (_scStatusEl) _scStatusEl.textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
             if (!soundcloudTracks.length) { const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected'); }
             renderSoundcloudTracks();
         }
