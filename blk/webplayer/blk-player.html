@@ -1092,6 +1092,7 @@
                             style="flex:1;">
                         <button class="stream-add-btn sc" onclick="addSoundcloudTrack()" style="white-space:nowrap;flex-shrink:0;">Add to Library</button>
                     </div>
+                    <div id="soundcloudFetchStatus" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;margin-bottom:0.5rem;transition:color 0.2s;"></div>
                     <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;margin-bottom:0.8rem;">
                         <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
                         <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
@@ -3680,17 +3681,68 @@
 
     function toggleSoundcloudPanel() { openStreamingView('soundcloud'); }
 
+    let _scOembedTimer = null;
+    let _scOembedLastUrl = '';
+
     function soundcloudUrlHint() {
         const url   = document.getElementById('soundcloudUrlInput').value.trim();
         const valid = url.includes('soundcloud.com/');
-        const el    = document.getElementById('soundcloudMetaFields');
-        el.style.display = valid ? 'flex' : 'none';
-        if (!valid) return;
+        const metaEl   = document.getElementById('soundcloudMetaFields');
+        const statusEl = document.getElementById('soundcloudFetchStatus');
+        metaEl.style.display   = valid ? 'flex' : 'none';
+        statusEl.style.display = valid ? 'block' : 'none';
+        if (!valid) { _scOembedLastUrl = ''; return; }
+
+        // Slug fallback (instant)
         const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
         const tEl = document.getElementById('soundcloudMetaTitle');
         const aEl = document.getElementById('soundcloudMetaArtist');
         if (!tEl.value) tEl.value = (parts[parts.length-1]||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
         if (!aEl.value) aEl.value = (parts[parts.length-2]||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+
+        // Debounce oEmbed fetch
+        if (_scOembedLastUrl === url) return;
+        clearTimeout(_scOembedTimer);
+        _scOembedTimer = setTimeout(() => _scFetchOembed(url), 400);
+    }
+
+    async function _scFetchOembed(url) {
+        if (_scOembedLastUrl === url) return;
+        _scOembedLastUrl = url;
+        const statusEl = document.getElementById('soundcloudFetchStatus');
+        if (statusEl) { statusEl.style.color = 'var(--sub)'; statusEl.textContent = '\u27F3 Fetching metadata\u2026'; statusEl.style.display = 'block'; }
+        try {
+            const endpoint = 'https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url);
+            const res = await fetch(endpoint);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+
+            const tEl   = document.getElementById('soundcloudMetaTitle');
+            const aEl   = document.getElementById('soundcloudMetaArtist');
+            const artEl = document.getElementById('soundcloudMetaArt');
+
+            let oTitle  = data.title || '';
+            let oArtist = data.author_name || '';
+
+            // oEmbed often returns "Song Title by Artist Name" — split it
+            const byMatch = oTitle.match(/^(.+?)\s+by\s+(.+)$/i);
+            if (byMatch) { oTitle = byMatch[1].trim(); oArtist = byMatch[2].trim(); }
+
+            tEl.value = oTitle  || tEl.value;
+            aEl.value = oArtist || aEl.value;
+
+            // Upgrade thumbnail to high-res
+            let thumb = data.thumbnail_url || '';
+            if (thumb) {
+                thumb = thumb.replace(/-(t\d+x\d+|large|small|mini|crop|t67x67|badge|tiny)(\.\w+)$/, '-t500x500$2');
+                artEl.value = thumb;
+            }
+
+            if (statusEl) { statusEl.style.color = 'var(--success)'; statusEl.textContent = '\u2713 Metadata loaded'; }
+            setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 2000);
+        } catch(e) {
+            if (statusEl) { statusEl.style.color = 'var(--warn)'; statusEl.textContent = '\u26A0 Could not fetch metadata \u2014 edit fields manually'; }
+        }
     }
 
     function addSoundcloudTrack() {
