@@ -393,10 +393,18 @@
         .ctrl-play:hover { background: #7B27CC; transform: scale(1.05); }
         .player-progress { display: flex; align-items: center; gap: 0.8rem; width: 100%; }
         .progress-time { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); flex-shrink: 0; }
-        .progress-bar { flex: 1; height: 2px; background: var(--border); cursor: pointer; position: relative; }
-        .progress-bar:hover { height: 4px; }
-        .progress-fill { height: 100%; background: var(--accent); pointer-events: none; }
-        .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+        .progress-bar { flex: 1; height: 3px; background: var(--border); cursor: pointer; position: relative; border-radius: 2px; transition: height 0.15s; }
+        .progress-bar:hover, .progress-bar.dragging { height: 5px; }
+        .progress-fill { height: 100%; background: var(--accent); pointer-events: none; border-radius: 2px; position: relative; }
+        .progress-dot { position: absolute; right: -5px; top: 50%; transform: translateY(-50%) scale(0); width: 10px; height: 10px; background: #fff; border-radius: 50%; transition: transform 0.15s; pointer-events: none; }
+        .progress-bar:hover .progress-dot, .progress-bar.dragging .progress-dot { transform: translateY(-50%) scale(1); }
+        .volume-wrap { display: flex; align-items: center; gap: 0.6rem; }
+        .vol-icon { font-size: 0.85rem; color: var(--sub); cursor: pointer; }
+        .vol-bar { width: 80px; height: 3px; background: var(--border); cursor: pointer; position: relative; border-radius: 2px; transition: height 0.15s; }
+        .vol-bar:hover, .vol-bar.dragging { height: 5px; }
+        .vol-fill { height: 100%; background: rgba(255,255,255,0.4); border-radius: 2px; position: relative; pointer-events: none; }
+        .vol-dot { position: absolute; right: -5px; top: 50%; transform: translateY(-50%) scale(0); width: 10px; height: 10px; background: #fff; border-radius: 50%; transition: transform 0.15s; pointer-events: none; }
+        .vol-bar:hover .vol-dot, .vol-bar.dragging .vol-dot { transform: translateY(-50%) scale(1); }        .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
         .volume-wrap { display: flex; align-items: center; gap: 0.6rem; }
         .vol-icon { font-size: 0.85rem; color: var(--sub); cursor: pointer; }
         .vol-bar { width: 80px; height: 2px; background: var(--border); cursor: pointer; position: relative; }
@@ -810,8 +818,10 @@
             </div>
             <div class="player-progress">
                 <span class="progress-time" id="timeElapsed">0:00</span>
-                <div class="progress-bar" id="progressBar" onclick="seekTo(event)">
-                    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill" style="width:0%">
+                        <div class="progress-dot"></div>
+                    </div>
                 </div>
                 <span class="progress-time" id="timeDuration">0:00</span>
             </div>
@@ -820,8 +830,10 @@
             <div class="coin-earn" id="coinEarn">◈ +0.01 BLK</div>
             <div class="volume-wrap">
                 <span class="vol-icon" onclick="toggleMute()">🔊</span>
-                <div class="vol-bar" onclick="setVolume(event)">
-                    <div class="vol-fill" id="volFill" style="width:80%"></div>
+                <div class="vol-bar" id="volBar">
+                    <div class="vol-fill" id="volFill" style="width:80%">
+                        <div class="vol-dot"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -926,16 +938,7 @@
     const audio = document.getElementById('audioEl');
     audio.volume = volume;
 
-    const STORE = [
-        { id: 's1', title: 'Neon Protocol',    artist: 'AXIOM',       price: 1.99, genre: 'Electronic', emoji: '⬡', color: '#2e0040', owned: false, badge: 'NEW' },
-        { id: 's2', title: 'Midnight Circuit',  artist: 'VOID.EXE',    price: 2.49, genre: 'Synthwave',  emoji: '◈', color: '#0a001f', owned: false, badge: null  },
-        { id: 's3', title: 'Ghost Data',        artist: 'PHANTOM_KEY', price: 0.99, genre: 'Lo-Fi',      emoji: '⊕', color: '#001a10', owned: false, badge: 'HOT' },
-        { id: 's4', title: 'Shadow Frequency',  artist: 'BLK001',      price: 3.49, genre: 'Hip-Hop',    emoji: '⬢', color: '#1a0030', owned: false, badge: null  },
-        { id: 's5', title: 'Archive Zero',      artist: 'DATA_GHOST',  price: 1.49, genre: 'Ambient',    emoji: '◇', color: '#000d1a', owned: false, badge: 'NEW' },
-        { id: 's6', title: 'System Override',   artist: 'MXCHINE',     price: 2.99, genre: 'Industrial', emoji: '⬛', color: '#1a0a00', owned: false, badge: null  },
-        { id: 's7', title: 'Entropy Loop',      artist: 'AXIOM',       price: 1.99, genre: 'Electronic', emoji: '⊗', color: '#0d001a', owned: false, badge: null  },
-        { id: 's8', title: 'Null Signal',       artist: 'VOID.EXE',    price: 0.99, genre: 'Experimental',emoji:'◉', color: '#001a1a', owned: false, badge: null  },
-    ];
+    const STORE = [];
 
     // ════════════════════════════════════════
     // AUTH
@@ -1549,6 +1552,13 @@
         const t = library[idx];
         if (t.missing) { showToast('⚠ File missing — re-upload to restore playback'); return; }
 
+        // Clicking the currently-playing track → toggle pause/resume
+        if (idx === currentIdx) {
+            if (t.source === 'spotify' || t.source === 'soundcloud') { openEmbedPlayer(t); return; }
+            if (isPlaying) { audio.pause(); } else { audio.play(); }
+            return;
+        }
+
         // Spotify / SoundCloud → open embed overlay
         if (t.source === 'spotify' || t.source === 'soundcloud') {
             currentIdx = idx;
@@ -1597,8 +1607,109 @@
         if (shuffle) buildShuffleQueue(); else shuffleQueue = [];
     }
     function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
-    function seekTo(e) { const b = document.getElementById('progressBar'); if (!audio.duration) return; audio.currentTime = (e.offsetX/b.offsetWidth)*audio.duration; }
-    function setVolume(e) { const b = document.getElementById('volBar'); volume = Math.max(0, Math.min(1, e.offsetX/b.offsetWidth)); audio.volume = volume; document.getElementById('volFill').style.width = (volume*100)+'%'; muted = false; }
+    // ── PROGRESS BAR DRAG ──
+    (function() {
+        const bar = document.getElementById('progressBar');
+        const fill = document.getElementById('progressFill');
+        let dragging = false;
+
+        function getPct(e) {
+            const rect = bar.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        }
+        function applyPct(pct) {
+            fill.style.width = (pct * 100) + '%';
+        }
+        function commitPct(pct) {
+            if (audio.duration) audio.currentTime = pct * audio.duration;
+        }
+
+        bar.addEventListener('mousedown', e => {
+            dragging = true; bar.classList.add('dragging');
+            const pct = getPct(e); applyPct(pct);
+            e.preventDefault();
+        });
+        bar.addEventListener('click', e => {
+            const pct = getPct(e); applyPct(pct); commitPct(pct);
+        });
+        document.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            applyPct(getPct(e));
+        });
+        document.addEventListener('mouseup', e => {
+            if (!dragging) return;
+            dragging = false; bar.classList.remove('dragging');
+            commitPct(getPct(e));
+        });
+        // Touch support
+        bar.addEventListener('touchstart', e => {
+            dragging = true; bar.classList.add('dragging');
+            applyPct(getPct(e)); e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('touchmove', e => {
+            if (!dragging) return; applyPct(getPct(e));
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            if (!dragging) return;
+            dragging = false; bar.classList.remove('dragging');
+            if (e.changedTouches) {
+                const rect = bar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
+                commitPct(pct);
+            }
+        });
+    })();
+
+    // ── VOLUME BAR DRAG ──
+    (function() {
+        const bar = document.getElementById('volBar');
+        const fill = document.getElementById('volFill');
+        let dragging = false;
+
+        function getPct(e) {
+            const rect = bar.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        }
+        function applyPct(pct) {
+            fill.style.width = (pct * 100) + '%';
+            volume = pct; audio.volume = pct; muted = false;
+        }
+
+        bar.addEventListener('mousedown', e => {
+            dragging = true; bar.classList.add('dragging');
+            applyPct(getPct(e)); e.preventDefault();
+        });
+        bar.addEventListener('click', e => { applyPct(getPct(e)); });
+        document.addEventListener('mousemove', e => {
+            if (!dragging) return; applyPct(getPct(e));
+        });
+        document.addEventListener('mouseup', e => {
+            if (!dragging) return;
+            dragging = false; bar.classList.remove('dragging');
+            applyPct(getPct(e));
+        });
+        bar.addEventListener('touchstart', e => {
+            dragging = true; bar.classList.add('dragging');
+            applyPct(getPct(e)); e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('touchmove', e => {
+            if (!dragging) return; applyPct(getPct(e));
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            if (!dragging) return;
+            dragging = false; bar.classList.remove('dragging');
+            if (e.changedTouches) {
+                const rect = bar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
+                applyPct(pct);
+            }
+        });
+    })();
+
+    function seekTo(e) { /* legacy — handled by drag IIFE above */ }
+    function setVolume(e) { /* legacy — handled by drag IIFE above */ }
     function toggleMute() { muted = !muted; audio.muted = muted; }
 
     audio.addEventListener('timeupdate', () => {
@@ -1674,7 +1785,12 @@
     // ════════════════════════════════════════
     function renderStore(filtered) {
         const items = filtered ?? STORE;
-        document.getElementById('storeGrid').innerHTML = items.map(s => `
+        const grid = document.getElementById('storeGrid');
+        if (!items.length) {
+            grid.innerHTML = `<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1rem;"><div style="font-size:2.5rem;opacity:0.15;">◈</div><div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;">No tracks available</div><div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(255,255,255,0.15);letter-spacing:1px;">Check back soon</div></div>`;
+            return;
+        }
+        grid.innerHTML = items.map(s => `
             <div class="store-card">
                 ${s.badge ? `<span class="store-badge">${s.badge}</span>` : ''}
                 <div class="store-art">
