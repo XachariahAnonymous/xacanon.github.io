@@ -1757,11 +1757,19 @@
         }
         function applyPct(pct) {
             fill.style.width = (pct * 100) + '%';
-            if (audio.duration) document.getElementById('timeElapsed').textContent = fmt(pct * audio.duration);
+            const dur = audio.duration || spCurrentDuration || 0;
+            if (dur) document.getElementById('timeElapsed').textContent = fmt(pct * dur);
         }
         function commitPct(pct) {
             isDraggingProgress = false; bar.classList.remove('dragging');
-            if (audio.duration) audio.currentTime = pct * audio.duration;
+            if (spCurrentDuration && spPlayer && (spDeviceId || spNoPremium === false)) {
+                // Spotify seek
+                const ms = Math.round(pct * spCurrentDuration * 1000);
+                spCurrentPosition = pct * spCurrentDuration;
+                spPlayer.seek(ms);
+            } else if (audio.duration) {
+                audio.currentTime = pct * audio.duration;
+            }
         }
         bar.addEventListener('mousedown', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); commitPct(getPct(e)); });
@@ -2227,14 +2235,9 @@
         if (!append) _spBrowseRawTracks = tracks.filter(Boolean);
         else         _spBrowseRawTracks = _spBrowseRawTracks.concat(tracks.filter(Boolean));
 
-        // When inside a playlist, render into the inner #spPlaylistTrackList elements
-        // so the back button row is preserved
-        const sideEls   = intoInner
-            ? document.querySelectorAll('#spotifyTracks #spPlaylistTrackList')
-            : [document.getElementById('spotifyTracks')];
-        const browseEls = intoInner
-            ? document.querySelectorAll('#spBrowseTracks #spPlaylistTrackList')
-            : [document.getElementById('spBrowseTracks')];
+        // When inside a playlist, use the unique inner divs; otherwise use the main containers
+        const sideEl   = intoInner ? document.getElementById('spPlaylistTrackListSide')   : document.getElementById('spotifyTracks');
+        const browseEl = intoInner ? document.getElementById('spPlaylistTrackListBrowse') : document.getElementById('spBrowseTracks');
 
         const buildHtml = (t, browse) => {
             const key = _spTrackKey++;
@@ -2264,14 +2267,14 @@
 
         if (!tracks.length && !append) {
             const empty = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks found</div>';
-            sideEls.forEach(el => { if (el) el.innerHTML = empty; });
-            browseEls.forEach(el => { if (el) el.innerHTML = empty; });
+            if (sideEl)   sideEl.innerHTML = empty;
+            if (browseEl) browseEl.innerHTML = empty;
             return;
         }
         const sideHtml   = tracks.filter(Boolean).map(t => buildHtml(t, false)).join('');
         const browseHtml = tracks.filter(Boolean).map(t => buildHtml(t, true)).join('');
-        sideEls.forEach(el => { if (el) { if (append) el.innerHTML += sideHtml; else el.innerHTML = sideHtml; } });
-        browseEls.forEach(el => { if (el) { if (append) el.innerHTML += browseHtml; else el.innerHTML = browseHtml; } });
+        if (sideEl)   { if (append) sideEl.innerHTML   += sideHtml;   else sideEl.innerHTML   = sideHtml; }
+        if (browseEl) { if (append) browseEl.innerHTML += browseHtml; else browseEl.innerHTML = browseHtml; }
     }
 
     function filterSpotifyBrowse() {
@@ -2371,17 +2374,15 @@
 
     async function spOpenPlaylist(id, name) {
         spPlaylistId = id; spOffset = 0;
-        const backRow = '<div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;color:var(--sub);" onclick="spBackToPlaylists()">'
+        const backHtml = '<div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;color:var(--sub);" onclick="spBackToPlaylists()">'
             + '<span style="font-size:1rem;">‹</span>'
             + '<span style="font-family:Space Mono,monospace;font-size:0.6rem;letter-spacing:1px;">BACK TO PLAYLISTS</span>'
             + '<span style="font-size:0.75rem;font-weight:600;color:#fff;margin-left:0.4rem;">· ' + esc(name) + '</span>'
-            + '</div>'
-            + '<div id="spPlaylistTrackList"></div>';
+            + '</div>';
         const sideEl   = document.getElementById('spotifyTracks');
         const browseEl = document.getElementById('spBrowseTracks');
-        if (sideEl)   sideEl.innerHTML   = backRow;
-        if (browseEl) browseEl.innerHTML = backRow;
-        // Fetch into the inner divs
+        if (sideEl)   sideEl.innerHTML   = backHtml + '<div id="spPlaylistTrackListSide"></div>';
+        if (browseEl) browseEl.innerHTML = backHtml + '<div id="spPlaylistTrackListBrowse"></div>';
         await spFetchPage(false);
     }
 
