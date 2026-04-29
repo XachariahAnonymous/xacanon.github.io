@@ -10,7 +10,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey:            "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
@@ -31,7 +31,7 @@
         const db   = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
-        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs };
+        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc };
         window.SPOTIFY_CLIENT_ID    = SPOTIFY_CLIENT_ID;
         window.SPOTIFY_REDIRECT_URI = SPOTIFY_REDIRECT_URI;
         window.SPOTIFY_SCOPES       = SPOTIFY_SCOPES;
@@ -1439,7 +1439,7 @@
         if (!currentUser || !FB) return;
         try {
             const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', trackId);
-            await FB.setDoc(ref, { _deleted: true }, { merge: true });
+            await FB.deleteDoc(ref);
         } catch(e) { /* non-fatal */ }
     }
 
