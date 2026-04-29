@@ -1476,17 +1476,17 @@
 
     async function fbLoadStreamingTracks(uid) {
         if (!FB) return;
-        // Skip Firestore read if IDB already has streaming tracks loaded (saves quota)
-        const alreadyHasStreaming = library.some(t => t.source === 'spotify' || t.source === 'soundcloud');
-        if (alreadyHasStreaming) return;
         try {
             // Timeout after 5s so it never blocks login/showApp
             const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
             const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
             const snap = await Promise.race([FB.getDocs(colRef), timeoutPromise]);
+            const tombstones = _getTombstones();
             snap.forEach(docSnap => {
                 const r = docSnap.data();
                 if (r._deleted) return;
+                // Skip locally tombstoned tracks (deleted on this device, Firestore may lag)
+                if (tombstones.has(r.id)) return;
                 // Don't duplicate if already in library (from IDB restore)
                 const alreadyIn = library.some(t => t.id === r.id);
                 if (alreadyIn) return;
@@ -1973,8 +1973,15 @@
             const req = tx.objectStore(IDB_STORE).getAll();
             req.onsuccess = () => {
                 const records = req.result || [];
+                const tombstones = _getTombstones();
                 let missingCount = 0;
                 records.forEach(r => {
+                    // Skip tracks the user has deleted — tombstone prevents resurrection
+                    if (tombstones.has(r.id)) {
+                        // Also clean up the stale IDB entry asynchronously
+                        idbDeleteTrack(r.id);
+                        return;
+                    }
                     let track;
                     if (r.source === 'spotify' || r.source === 'soundcloud') {
                         track = {
