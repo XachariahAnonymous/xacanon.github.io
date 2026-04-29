@@ -2975,8 +2975,15 @@
         } else {
             spStopProgressLoop();
             // Spotify signals natural track end by resetting position to 0 while paused.
-            // A user-initiated pause keeps position > 0, so this distinguishes end vs pause.
-            const trackEndedNaturally = !spTransitioning && spCurrentDuration > 0 && (state.position || 0) === 0;
+            // Guard: only treat as ended if we weren't already transitioning, the track had real
+            // duration, position is at 0, AND the previous-tracks list in the state window shows
+            // the track we just played (meaning Spotify itself advanced past it).
+            const prevTracks = (state.track_window && state.track_window.previous_tracks) || [];
+            const justFinished = prevTracks.length > 0 && prevTracks[prevTracks.length - 1].uri === (spOnStateChange._lastUri || null);
+            const trackEndedNaturally = !spTransitioning
+                && spCurrentDuration > 0
+                && (state.position || 0) === 0
+                && (justFinished || spCurrentPosition >= spCurrentDuration - 1);
             if (trackEndedNaturally) {
                 if (repeat === 2) {
                     spPlayer.seek(0).then(() => spPlayer.resume());
@@ -3297,10 +3304,23 @@
         }
         await spRefreshIfNeeded();
         try {
-            // Single call — transfer + play in one shot to avoid race
+            // Build a queue of all Spotify track URIs from the library, starting at the selected one
+            // This lets BLK's nextTrack() drive playback order rather than Spotify's own queue
+            const spUris = library
+                .filter(t => t.source === 'spotify' && t.spUri && t.spUri.startsWith('spotify:track:'))
+                .map(t => t.spUri);
+            const startIdx = spUris.indexOf(uri);
+            // Rotate the array so the selected track is first (Spotify plays from index 0)
+            const orderedUris = startIdx > 0
+                ? spUris.slice(startIdx).concat(spUris.slice(0, startIdx))
+                : spUris;
+            // Spotify's uris[] payload is capped at 750; send up to that limit
+            const payload = orderedUris.length > 1
+                ? { uris: orderedUris.slice(0, 750), position_ms: 0 }
+                : { uris: [uri], position_ms: 0 };
             await spAPI('/me/player/play?device_id=' + spDeviceId, {
                 method: 'PUT',
-                body: JSON.stringify({ uris: [uri], position_ms: 0 })
+                body: JSON.stringify(payload)
             });
         } catch(e) {
             if (trackId) openSpotifyEmbed(trackId, title, artist);
