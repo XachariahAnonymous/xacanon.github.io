@@ -1278,6 +1278,16 @@
         FB = await waitForFB();
         FB.onAuthStateChanged(FB.auth, async user => {
             if (user) {
+                // Reload to get fresh emailVerified status (avoids stale cache)
+                try { await user.reload(); user = FB.auth.currentUser; } catch(e) {}
+                const isGoogle = user.providerData && user.providerData.some(p => p.providerId === 'google.com');
+                if (!isGoogle && !user.emailVerified) {
+                    // Don't let unverified email users into the app
+                    currentUser = null; userProfile = null;
+                    await FB.signOut(FB.auth);
+                    showAuth();
+                    return;
+                }
                 currentUser = user;
                 await loadUserProfile(user);
                 showApp();
@@ -1341,6 +1351,9 @@
 
     async function fbLoadStreamingTracks(uid) {
         if (!FB) return;
+        // Skip Firestore read if IDB already has streaming tracks loaded (saves quota)
+        const alreadyHasStreaming = library.some(t => t.source === 'spotify' || t.source === 'soundcloud');
+        if (alreadyHasStreaming) return;
         try {
             const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
             const snap = await FB.getDocs(colRef);
@@ -1427,12 +1440,18 @@
         btn.disabled = true; btn.textContent = 'Signing in...';
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
-            if (!cred.user.emailVerified) {
+            // Reload to get fresh emailVerified status from server
+            try { await cred.user.reload(); } catch(e) {}
+            const freshUser = FB.auth.currentUser;
+            if (freshUser && !freshUser.emailVerified) {
                 await FB.signOut(FB.auth);
                 err.style.color = 'var(--warn, #ffaa00)';
                 err.textContent = 'Please verify your email before signing in. Check your inbox for the verification link.';
                 const resendBtn = document.getElementById('resend-verify-btn');
                 if (resendBtn) { resendBtn.style.display = 'inline-block'; resendBtn.dataset.email = email; resendBtn.dataset.pass = pass; }
+                btn.disabled = false; btn.textContent = 'Sign In';
+            } else {
+                // Verified — onAuthStateChanged handles showApp(); reset button
                 btn.disabled = false; btn.textContent = 'Sign In';
             }
         } catch(e) {
