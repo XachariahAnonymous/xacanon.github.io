@@ -2600,7 +2600,7 @@
                 if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
             }
         });
-        scWidget.bind(SC.Widget.Events.ERROR, () => { showToast('☁ SoundCloud: track unavailable or geo-blocked'); });
+        scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
 
     function scStartProgressLoop() { scStopProgressLoop(); }
@@ -2630,12 +2630,57 @@
         scEnsureAPI(() => _scLoadAndPlay(trackUrl));
     }
 
-    function _scLoadAndPlay(trackUrl) {
-        const iframe   = document.getElementById('scHiddenWidget');
-        const embedUrl = 'https://w.soundcloud.com/player/?url='
+    // SC_CLIENT_ID is the public SoundCloud JS SDK client ID used for resolve/stream lookups.
+    // This is the same public key baked into the SC Widget itself — not a secret.
+    const SC_CLIENT_ID = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX';
+
+    function _scBuildEmbedUrl(trackUrl) {
+        // Use the most permissive widget params to minimise geo-restriction triggers.
+        // - show_playback=true  : required in some regions to enable the play button
+        // - buying/liking/sharing/download=false : strips commerce flags that can trip
+        //   content-restriction checks on certain tracks
+        return 'https://w.soundcloud.com/player/?url='
             + encodeURIComponent(trackUrl)
             + '&color=%238A2BE2&auto_play=true&hide_related=true'
-            + '&show_comments=false&show_user=false&show_reposts=false&show_teaser=false';
+            + '&show_comments=false&show_user=false&show_reposts=false&show_teaser=false'
+            + '&show_playback=true&buying=false&liking=false&sharing=false&download=false';
+    }
+
+    // Resolve a SC track URL to a direct stream URL via the public API.
+    // Gracefully returns null on failure so the caller can still fall back to a toast.
+    async function _scResolveStreamUrl(trackUrl) {
+        try {
+            const res = await fetch('https://api.soundcloud.com/resolve?url='
+                + encodeURIComponent(trackUrl) + '&client_id=' + SC_CLIENT_ID);
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (data && data.stream_url) return data.stream_url + '?client_id=' + SC_CLIENT_ID;
+            return null;
+        } catch(e) { return null; }
+    }
+
+    // Called when the SC widget fires an ERROR event (geo-block / unavailable).
+    // Tries to fall back to a direct audio stream via the resolve API.
+    async function _scHandleError() {
+        const t = library[currentIdx];
+        if (!t || t.source !== 'soundcloud') return;
+        showToast('\u2601 SoundCloud: trying direct stream fallback\u2026');
+        const streamUrl = await _scResolveStreamUrl(t.soundcloudUrl || t.url);
+        if (streamUrl) {
+            if (scWidget) { try { scWidget.pause(); } catch(_) {} }
+            scWidgetReady = false; scWidgetUrl = null;
+            audio.src = streamUrl; audio.load();
+            audio.play().catch(() => showToast('\u2601 SoundCloud: track unavailable in your region'));
+            isPlaying = true; updatePlayBtn();
+            document.getElementById('playerArt').classList.add('playing');
+        } else {
+            showToast('\u2601 SoundCloud: track unavailable or geo-blocked in your region');
+        }
+    }
+
+    function _scLoadAndPlay(trackUrl) {
+        const iframe   = document.getElementById('scHiddenWidget');
+        const embedUrl = _scBuildEmbedUrl(trackUrl);
 
         if (scWidgetUrl === trackUrl && scWidgetReady) {
             // Same track — just restart
@@ -3568,6 +3613,11 @@
         tEl.value = ''; aEl.value = ''; if (artEl) artEl.value = '';
         document.getElementById('soundcloudMetaFields').style.display = 'none';
         showToast('"' + title + '" added to library', true);
+        // Background availability check — warn the user early if the track is geo-blocked
+        // so they know before pressing play. Uses the same resolve path as the error fallback.
+        _scResolveStreamUrl(url).then(streamUrl => {
+            if (!streamUrl) showToast('\u26A0 "' + title + '" may be geo-blocked in your region', false);
+        });
     }
 
     function removeSoundcloudTrack(trackId, e) {
