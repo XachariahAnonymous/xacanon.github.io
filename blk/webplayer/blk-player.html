@@ -383,6 +383,7 @@
         .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
         .track-remove-btn { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.7rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
         .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
+        .track-row:hover .track-remove-btn { color: rgba(255,255,255,0.35); }
         .track-addpl-btn { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 0.9rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
         .track-addpl-btn:hover { color: var(--accent); background: var(--accent-dim); }
         .track-row:hover { background: rgba(255,255,255,0.03); }
@@ -2135,7 +2136,9 @@
             playTrack(shuffleQueue.shift());
             return;
         }
-        playTrack((currentIdx + 1) % library.length);
+        const nextIdx = (currentIdx + 1) % library.length;
+        if (nextIdx === currentIdx) { restartCurrentTrack(); return; }
+        playTrack(nextIdx);
     }
 
     function prevTrack() {
