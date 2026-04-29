@@ -2401,6 +2401,19 @@
         if (repeat === 0)      { btn.classList.remove('active'); btn.textContent = '↺'; btn.title = 'Repeat Off'; }
         else if (repeat === 1) { btn.classList.add('active');    btn.textContent = '↺'; btn.title = 'Repeat All'; }
         else                   { btn.classList.add('active');    btn.textContent = '↻'; btn.title = 'Repeat One'; }
+        renderQueue();
+        // If a Spotify track is currently playing, re-issue the play command with the
+        // correct payload (single URI for repeat-one, full list otherwise) so Spotify's
+        // auto-advance behaviour matches the new repeat mode immediately.
+        if (spPlayer && spDeviceId && currentIdx >= 0) {
+            const t = library[currentIdx];
+            if (t && t.source === 'spotify') {
+                const uri = t.spUri || t.url || null;
+                if (uri && uri.startsWith('spotify:')) {
+                    spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
+                }
+            }
+        }
     }
 
     // ── PROGRESS BAR DRAG ──
@@ -3375,20 +3388,27 @@
         }
         await spRefreshIfNeeded();
         try {
-            // Build a queue of all Spotify track URIs from the library, starting at the selected one
-            // This lets BLK's nextTrack() drive playback order rather than Spotify's own queue
-            const spUris = library
-                .filter(t => t.source === 'spotify' && t.spUri && t.spUri.startsWith('spotify:track:'))
-                .map(t => t.spUri);
-            const startIdx = spUris.indexOf(uri);
-            // Rotate the array so the selected track is first (Spotify plays from index 0)
-            const orderedUris = startIdx > 0
-                ? spUris.slice(startIdx).concat(spUris.slice(0, startIdx))
-                : spUris;
-            // Spotify's uris[] payload is capped at 750; send up to that limit
-            const payload = orderedUris.length > 1
-                ? { uris: orderedUris.slice(0, 750), position_ms: 0 }
-                : { uris: [uri], position_ms: 0 };
+            // When Repeat One is active, send only the single URI so Spotify halts after
+            // the track ends (paused + position=0), giving spOnStateChange the signal it
+            // needs to detect a natural end and restart. Sending a multi-track list causes
+            // Spotify to auto-advance, bypassing our repeat logic entirely.
+            let payload;
+            if (repeat === 2) {
+                payload = { uris: [uri], position_ms: 0 };
+            } else {
+                // Build a queue of all Spotify track URIs from the library, starting at the selected one
+                // This lets BLK's nextTrack() drive playback order rather than Spotify's own queue
+                const spUris = library
+                    .filter(t => t.source === 'spotify' && t.spUri && t.spUri.startsWith('spotify:track:'))
+                    .map(t => t.spUri);
+                const startIdx = spUris.indexOf(uri);
+                const orderedUris = startIdx > 0
+                    ? spUris.slice(startIdx).concat(spUris.slice(0, startIdx))
+                    : spUris;
+                payload = orderedUris.length > 1
+                    ? { uris: orderedUris.slice(0, 750), position_ms: 0 }
+                    : { uris: [uri], position_ms: 0 };
+            }
             await spAPI('/me/player/play?device_id=' + spDeviceId, {
                 method: 'PUT',
                 body: JSON.stringify(payload)
