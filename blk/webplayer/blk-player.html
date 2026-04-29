@@ -2267,7 +2267,14 @@
         }
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
-    audio.addEventListener('ended', () => { if (repeat === 2) { restartCurrentTrack(); return; } nextTrack(); });
+    audio.addEventListener('ended', () => {
+        if (repeat === 2) {
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+            return;
+        }
+        nextTrack();
+    });
     audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
 
