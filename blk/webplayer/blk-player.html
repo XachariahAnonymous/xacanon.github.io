@@ -2314,6 +2314,7 @@
         }
         // Stop whatever is currently playing
         audio.pause();
+        if (spPlayer) { try { spPlayer.pause(); } catch(e) {} }  // pause Spotify SDK player
         spStopProgressLoop();
         // Pause SC widget if active
         if (scWidget && scWidgetUrl && t.source !== 'soundcloud') {
