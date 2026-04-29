@@ -2621,12 +2621,15 @@
 
     async function spOnConnected() {
         if (!window.Spotify) {
+            // Set the callback BEFORE loading the script so the SDK can fire it immediately on load
+            window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
             await new Promise((res, rej) => {
                 const s = document.createElement('script'); s.src = 'https://sdk.scdn.co/spotify-player.js';
                 s.onload = res; s.onerror = rej; document.head.appendChild(s);
             });
+        } else {
+            window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
         }
-        window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
         if (window.Spotify && window.Spotify.Player) spInitPlayer();
         document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
         document.getElementById('spotifyConnectBtn').classList.add('connected');
