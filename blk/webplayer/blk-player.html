@@ -1718,7 +1718,6 @@
         library = []; currentIdx = -1; isPlaying = false; coins = 0;
         spotifyTracks = []; soundcloudTracks = [];
         audio.pause(); audio.src = '';
-        storeTickStop();
         if (scWidget) { try { scWidget.pause(); } catch(_) {} scWidgetUrl = null; scWidgetReady = false; }
         renderLibrary(); renderQueue(); updateCoins();
         toggleDropdown(true);
@@ -2310,12 +2309,6 @@
         if (idx === currentIdx) {
             if (t.source === 'soundcloud') { scTogglePlay(); return; }
             if (t.source === 'spotify')    { spTogglePlay(); return; }
-            if (t.source === 'store') {
-                if (isPlaying) { storeTickStop(); isPlaying = false; } else { storeTickStart(); isPlaying = true; }
-                updatePlayBtn();
-                document.getElementById('playerArt').classList.toggle('playing', isPlaying);
-                return;
-            }
             if (isPlaying) { audio.pause(); } else { audio.play().catch(()=>{}); }
             return;
         }
@@ -2333,12 +2326,10 @@
         renderLibrary(); renderQueue();
         if (t.source === 'soundcloud') {
             isPlaying = false;
-            storeTickStop();
             scLoadAndPlay(t.soundcloudUrl || t.url);
             return;
         }
         if (t.source === 'spotify') {
-            storeTickStop();
             const uri = t.spUri || t.url || null;
             if (uri && uri.startsWith('spotify:')) {
                 spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
@@ -2350,15 +2341,6 @@
         // Local file — reset state before loading new src
         audio.src = '';
         audio.currentTime = 0;
-        if (t.source === 'store') {
-            // Store tracks have no audio file — simulate playback with coin timer
-            storeTickStart();
-            isPlaying = true;
-            updatePlayBtn();
-            document.getElementById('playerArt').classList.add('playing');
-            return;
-        }
-        storeTickStop();
         audio.src = t.url;
         audio.load();
         audio.play().catch(()=>{});
@@ -2369,12 +2351,6 @@
         const t = library[currentIdx];
         if (t && t.source === 'soundcloud') { scTogglePlay(); return; }
         if (t && t.source === 'spotify')    { spTogglePlay(); return; }
-        if (t && t.source === 'store') {
-            if (isPlaying) { storeTickStop(); isPlaying = false; } else { storeTickStart(); isPlaying = true; }
-            updatePlayBtn();
-            document.getElementById('playerArt').classList.toggle('playing', isPlaying);
-            return;
-        }
         if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) { spTogglePlay(); return; }
         if (audio.paused) { audio.play().catch(()=>{}); } else { audio.pause(); }
     }
@@ -2608,26 +2584,6 @@
     }
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
     function updateCoins()   { document.getElementById('coinDisplay').textContent = coins.toFixed(2)+' BLK'; document.getElementById('statCoins').textContent = coins.toFixed(2); }
-
-    // ── Store track coin ticker (fires every 10 s while a store track is playing) ──
-    let _storeTickTimer  = null;
-    let _storeTickCount  = 0; // seconds elapsed in current store session
-
-    function storeTickStart() {
-        storeTickStop();
-        _storeTickCount = 0;
-        _storeTickTimer = setInterval(() => {
-            const t = library[currentIdx];
-            if (!t || t.source !== 'store' || !isPlaying) { storeTickStop(); return; }
-            _storeTickCount += 10;
-            listenCount++;
-            if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
-        }, 10000);
-    }
-
-    function storeTickStop() {
-        if (_storeTickTimer) { clearInterval(_storeTickTimer); _storeTickTimer = null; }
-    }
 
     // ════════════════════════════════════════
     // EMBED PLAYER (SoundCloud)
@@ -3762,11 +3718,6 @@
         tEl.value = ''; aEl.value = ''; if (artEl) artEl.value = '';
         document.getElementById('soundcloudMetaFields').style.display = 'none';
         showToast('"' + title + '" added to library', true);
-        // Background availability check — warn the user early if the track is geo-blocked
-        // so they know before pressing play. Uses the same resolve path as the error fallback.
-        _scResolveStreamUrl(url).then(streamUrl => {
-            if (!streamUrl) showToast('\u26A0 "' + title + '" may be geo-blocked in your region', false);
-        });
     }
 
     function removeSoundcloudTrack(trackId, e) {
