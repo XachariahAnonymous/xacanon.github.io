@@ -3042,16 +3042,16 @@
                 && (justFinished || spCurrentPosition >= spCurrentDuration - 1);
             if (trackEndedNaturally) {
                 if (repeat === 2) {
-                    // Repeat One: seek back to start and resume.
-                    // Use a short delay so Spotify's internal state settles after the track ends.
+                    // Repeat One: re-issue a full play command via the Web API rather than
+                    // seek(0)+resume(), which is unreliable after a track ends because
+                    // Spotify's internal state is no longer in a "paused mid-track" state.
+                    // restartCurrentTrack() calls spPlayTrack() → POST /me/player/play with
+                    // the track URI, which is the only reliable way to restart a finished track.
                     spTransitioning = true;
                     setTimeout(() => {
-                        spPlayer.seek(0);
-                        setTimeout(() => {
-                            spPlayer.resume().catch(() => {});
-                            spTransitioning = false;
-                        }, 150);
-                    }, 100);
+                        restartCurrentTrack();
+                        spTransitioning = false;
+                    }, 200);
                 } else if (currentIdx >= 0) {
                     nextTrack();
                 }
