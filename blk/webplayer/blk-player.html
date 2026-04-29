@@ -1226,6 +1226,7 @@
         <span class="queue-panel-title">Queue</span>
         <div style="display:flex;align-items:center;gap:0.5rem;">
             <span id="queueShuffleTag" style="display:none;font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-dim);padding:0.15rem 0.5rem;">SHUFFLE</span>
+            <span id="queueRepeatTag" style="display:none;font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-dim);padding:0.15rem 0.5rem;">↻ ONE</span>
             <button class="queue-panel-close" onclick="toggleQueuePanel()">✕</button>
         </div>
     </div>
@@ -2172,6 +2173,8 @@
         const body = document.getElementById('queuePanelBody');
         const shuffleTag = document.getElementById('queueShuffleTag');
         if (shuffleTag) shuffleTag.style.display = shuffle ? 'inline' : 'none';
+        const repeatTag = document.getElementById('queueRepeatTag');
+        if (repeatTag) repeatTag.style.display = repeat === 2 ? 'inline' : 'none';
 
         if (!library.length) {
             body.innerHTML = '<div class="qp-empty">No tracks loaded</div>';
@@ -2205,7 +2208,10 @@
 
         // ── Build next-up list ──
         let nextList = [];
-        if (shuffle && shuffleQueue.length) {
+        if (repeat === 2 && currentIdx >= 0 && library[currentIdx]) {
+            // Repeat One: next up is always the same track, looping
+            for (let i = 0; i < 5; i++) nextList.push({ idx: currentIdx, t: library[currentIdx] });
+        } else if (shuffle && shuffleQueue.length) {
             nextList = shuffleQueue.slice(0, 20).map(i => ({ idx: i, t: library[i] })).filter(x => x.t);
         } else {
             // Linear: tracks after currentIdx, then wrap
