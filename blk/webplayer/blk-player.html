@@ -2119,8 +2119,10 @@
                 spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
             }
         } else if (t.source === 'soundcloud') {
-            if (scWidget && scWidgetReady) { scWidget.seekTo(0); scWidget.play(); }
-            else scLoadAndPlay(t.soundcloudUrl || t.url);
+            // Always force a fresh load — seekTo(0)+play() on a finished widget triggers ERROR
+            scWidgetReady = false;
+            scWidgetUrl = null;
+            scLoadAndPlay(t.soundcloudUrl || t.url);
         } else {
             audio.currentTime = 0;
             audio.play().catch(() => {});
@@ -2267,14 +2269,7 @@
         }
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
-    audio.addEventListener('ended', () => {
-        if (repeat === 2) {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});
-            return;
-        }
-        nextTrack();
-    });
+    audio.addEventListener('ended', () => { if (repeat === 2) { restartCurrentTrack(); return; } nextTrack(); });
     audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
 
@@ -2344,6 +2339,9 @@
             isPlaying = false;
             scStopProgressLoop();
             document.getElementById('progressFill').style.width = '100%';
+            // Reset widget state so any subsequent scLoadAndPlay does a fresh load
+            scWidgetReady = false;
+            scWidgetUrl = null;
             if (repeat === 2) { restartCurrentTrack(); return; }
             nextTrack();
         });
