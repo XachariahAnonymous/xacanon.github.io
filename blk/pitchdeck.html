@@ -3,866 +3,2130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLK | Pitch Deck</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <title>BLK | Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- ── FIREBASE ── -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        // ── PASTE YOUR FIREBASE CONFIG HERE ──
+        const firebaseConfig = {
+            apiKey:            "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
+            authDomain:        "blkcoin-72d5a.firebaseapp.com",
+            projectId:         "blkcoin-72d5a",
+            storageBucket:     "blkcoin-72d5a.firebasestorage.app",
+            messagingSenderId: "950996555443",
+            appId:             "1:950996555443:web:1c13f5481e46a32271c2c6",
+            measurementId:     "G-3ENRZMXQP6"
+        };
+
+        const app  = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db   = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // ── expose to window so non-module scripts can call ──
+        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs };
+    </script>
+
     <style>
         :root {
             --bg: #000000;
             --surface: #0a0a0a;
+            --surface2: #111111;
             --text: #ffffff;
             --sub: #888888;
             --accent: #8A2BE2;
-            --border: rgba(255, 255, 255, 0.08);
+            --accent-dim: rgba(138,43,226,0.15);
+            --accent-glow: rgba(138,43,226,0.4);
+            --border: rgba(255,255,255,0.08);
             --success: #00ff66;
             --error: #ff0033;
-            --color-directors: #2e0040;
-            --color-investor: #5a007f;
-            --color-artists: #6f2fa1;
-            --color-public: #3f3f4c;
-            --burn: #ff4500;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.8; overflow-x: hidden; }
 
-        .container { max-width: 1200px; margin: 200px auto 100px; padding: 0 5%; }
-        .tag { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 1.5rem; display: block; letter-spacing: 4px; }
-        h1 { font-size: clamp(3rem, 10vw, 6.5rem); line-height: 0.85; margin-bottom: 3rem; font-weight: 700; letter-spacing: -0.05em; }
-        .hero-lead { font-size: 1.6rem; color: var(--sub); max-width: 900px; margin-bottom: 5rem; font-weight: 300; }
+        /* ── AUTH SCREEN ── */
+        #auth-screen {
+            position: fixed; inset: 0;
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9000;
+            transition: opacity 0.4s;
+        }
+        #auth-screen.hidden { opacity: 0; pointer-events: none; }
 
-        .stat-section { margin-bottom: 3rem; }
-        .stat-section:last-of-type { margin-bottom: 150px; }
-        .stat-section-header { display: flex; align-items: baseline; gap: 1.5rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-        .stat-section-tag { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-transform: uppercase; letter-spacing: 3px; }
-        .stat-section-title { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; font-family: 'Space Mono', monospace; letter-spacing: 0.05em; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-        .stat-card--breakdown { padding: 3rem; }
-        .spend-tiers { display: flex; flex-direction: column; gap: 1.1rem; margin-bottom: 1.8rem; }
-        .spend-tier { display: grid; grid-template-columns: 130px 1fr 140px; align-items: center; gap: 1rem; }
-        .spend-players { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-transform: uppercase; letter-spacing: 1px; }
-        .spend-bar-wrap { height: 2px; background: rgba(255,255,255,0.06); width: 100%; }
-        .spend-bar { height: 100%; background: var(--accent); opacity: 0.7; }
-        .spend-amount { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff; text-align: right; letter-spacing: 0.5px; }
-        .spend-amount--top { color: var(--accent); font-weight: 700; }
-        .coin-economy { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 0.5rem; }
-        .coin-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
-        .coin-key { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); text-transform: uppercase; letter-spacing: 2px; }
-        .coin-val { font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #fff; text-align: right; }
-        .coin-formula { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
-        .coin-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
-        .coin-row--total .coin-key { color: var(--accent); }
-        .coin-val--big { font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
-        .spend-note { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.8; border-top: 1px solid var(--border); padding-top: 1.2rem; margin-top: 0.5rem; }
-        .stat-card { padding: 4rem 3rem; background: var(--bg); }
-        .stat-val { font-size: 4.5rem; font-weight: 700; display: block; line-height: 1; margin-bottom: 0.5rem; letter-spacing: -0.04em; }
-        .stat-label { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
-
-        section { margin-bottom: 180px; }
-        .section-header { margin-bottom: 4rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem; }
-        h2 { font-size: 3.5rem; letter-spacing: -0.04em; font-weight: 700; margin-bottom: 1rem; }
-
-        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 4rem; }
-        .feature-block { margin-bottom: 3rem; }
-        .feature-block h3 { font-size: 1.5rem; margin-bottom: 1rem; color: #fff; border-left: 2px solid var(--accent); padding-left: 20px; }
-        .feature-block p { color: var(--sub); font-size: 1.1rem; }
-
-        .technical-box { padding: 5rem; background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; }
-        .technical-box::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
-
-        .invest-table { width: 100%; border-collapse: collapse; margin-top: 2rem; font-family: 'Space Mono', monospace; font-size: 0.85rem; }
-        .invest-table th { text-align: left; padding: 1.5rem; border-bottom: 2px solid var(--accent); color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-        .invest-table td { padding: 1.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-        .tier-highlight { color: #fff; font-weight: 700; font-size: 1.2rem; }
-        .allocation-list { list-style: none; color: var(--sub); font-size: 0.8rem; line-height: 1.8; margin-top: 10px; }
-
-        .fiscal-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 6rem; align-items: center; }
-        .svg-wrap { width: 320px; height: 320px; transform: rotate(-90deg); position: relative; justify-self: center; }
-        .slice { fill: none; stroke-width: 32; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); }
-        .slice-glitch:hover { animation: tremor 0.08s infinite; stroke: var(--error) !important; filter: drop-shadow(0 0 10px var(--error)); cursor: crosshair; }
-
-        .legend { list-style: none; font-family: 'Space Mono', monospace; }
-        .legend-item { margin-bottom: 1.5rem; display: flex; align-items: center; font-size: 0.85rem; position: relative; }
-        .legend-color { width: 12px; height: 12px; margin-right: 1.5rem; border-radius: 2px; flex-shrink: 0; }
-        .legend-text { transition: opacity 0.2s; }
-        .error-text { position: absolute; left: 2.3rem; color: var(--error); opacity: 0; font-weight: bold; pointer-events: none; white-space: nowrap; }
-
-        .trigger-glitch:hover .legend-text { opacity: 0; }
-        .trigger-glitch:hover .error-text { opacity: 1; animation: flicker 0.15s infinite; }
-
-        @keyframes tremor { 0% { transform: translate(0.3px, -0.3px); } 50% { transform: translate(-0.3px, 0.3px); } 100% { transform: translate(0); } }
-        @keyframes flicker { 0% { opacity: 0.8; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
-
-        .gallery-container { margin-top: 4rem; position: relative; width: 100%; max-width: 900px; margin-left: auto; margin-right: auto; }
-        .gallery-viewport { width: 100%; aspect-ratio: 16 / 9; max-height: 500px; border: 1px solid var(--border); background: #000; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .gallery-main { width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: opacity 0.1s ease; }
-
-        .glitch-active { animation: gallery-glitch 0.25s steps(2) infinite; filter: hue-rotate(90deg) contrast(1.3); }
-
-        @keyframes gallery-glitch {
-            0% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
-            20% { transform: translate(-8px, 4px); clip-path: inset(40% 0 10% 0); filter: drop-shadow(-2px 0 var(--error)); }
-            40% { transform: translate(8px, -4px); clip-path: inset(20% 0 50% 0); filter: drop-shadow(2px 0 var(--accent)); }
-            60% { transform: translate(-4px, 2px); clip-path: inset(80% 0 5% 0); }
-            100% { transform: translate(0); }
+        .auth-bg-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(138,43,226,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(138,43,226,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .auth-glow {
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(138,43,226,0.12) 0%, transparent 70%);
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
-        .gallery-nav { position: absolute; top: 0; height: 100%; width: 8%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; cursor: pointer; z-index: 100; transition: all 0.3s ease; user-select: none; opacity: 0.3; }
-        .gallery-nav.prev { left: 0; background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%); }
-        .gallery-nav.next { right: 0; background: linear-gradient(to left, rgba(0,0,0,0.8) 0%, transparent 100%); }
-        .gallery-nav:hover { opacity: 1; color: var(--accent); width: 12%; }
+        .auth-box {
+            position: relative; z-index: 1;
+            width: 420px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 3rem;
+        }
+        .auth-box::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+        .auth-logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.4rem; font-weight: 700;
+            letter-spacing: 4px; color: #fff;
+            margin-bottom: 0.3rem;
+        }
+        .auth-tagline {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem; color: var(--sub);
+            letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 2.5rem;
+        }
+        .auth-tabs {
+            display: flex; gap: 0;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .auth-tab {
+            flex: 1; text-align: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.7rem; cursor: pointer;
+            background: none; border: none; color: var(--sub);
+            transition: all 0.2s; border-right: 1px solid var(--border);
+        }
+        .auth-tab:last-child { border-right: none; }
+        .auth-tab.active { color: #fff; background: var(--accent-dim); }
 
-        .gallery-footer { display: flex; justify-content: flex-end; margin-top: 10px; }
-        .gallery-counter { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 2px; }
+        .auth-field { margin-bottom: 1rem; }
+        .auth-field label {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem; color: var(--sub);
+            letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .auth-field input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.8rem 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .auth-field input:focus { border-color: var(--accent); }
 
-        .scanline { width: 100%; height: 100px; z-index: 10; position: absolute; top: -100px; background: linear-gradient(to bottom, transparent, rgba(138, 43, 226, 0.05), transparent); pointer-events: none; animation: scan 4s linear infinite; }
-        @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
+        .auth-btn {
+            width: 100%; margin-top: 0.5rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase;
+            padding: 0.9rem;
+            background: var(--accent); border: none; color: #fff;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .auth-btn:hover { background: #7B27CC; }
+        .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        footer { padding: 8rem 0 4rem; text-align: center; border-top: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 0.7rem; color: #444; letter-spacing: 4px; }
-
-        .economy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; margin-bottom: 3rem; }
-        .eco-card { border: 1px solid var(--border); padding: 3.5rem; background: linear-gradient(180deg, #080808 0%, #000 100%); }
-        .eco-card h2 { font-size: 1rem; margin-bottom: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: var(--sub); font-family: 'Space Mono', monospace; }
-        .eco-pct { font-size: 4.5rem; font-weight: 700; color: var(--accent); line-height: 1; margin-bottom: 1.5rem; display: block; letter-spacing: -0.03em; }
-        .eco-card.burn-card .eco-pct { color: var(--burn); }
-        .eco-card p { color: #b0b0b0; font-size: 0.95rem; line-height: 1.8; }
-
-        .protocol-mandate { margin-top: 2rem; padding: 2.5rem 3rem; border: 1px solid var(--accent); background: rgba(138, 43, 226, 0.03); position: relative; }
-        .protocol-mandate::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
-        .protocol-mandate h3 { font-family: 'Space Mono', monospace; color: var(--accent); text-transform: uppercase; font-size: 0.75rem; margin-bottom: 1rem; letter-spacing: 3px; }
-        .protocol-mandate p { font-size: 1rem; color: #ccc; line-height: 1.8; }
-
-        .revenue-streams { margin-top: 3rem; padding: 3.5rem; border: 1px solid var(--border); background: rgba(255,255,255,0.01); }
-        .revenue-streams h3 { font-family: 'Space Mono', monospace; text-transform: uppercase; font-size: 0.75rem; margin-bottom: 2.5rem; color: var(--sub); letter-spacing: 3px; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        .stream-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 2rem 0; border-bottom: 1px solid var(--border); gap: 2rem; }
-        .stream-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .stream-name { font-weight: 700; font-size: 1.1rem; display: block; margin-bottom: 0.4rem; color: #fff; }
-        .stream-desc { font-size: 0.9rem; color: #888; max-width: 600px; line-height: 1.7; }
-        .yield-label { font-family: 'Space Mono', monospace; color: var(--accent); border: 1px solid var(--accent); padding: 6px 14px; white-space: nowrap; font-size: 0.75rem; flex-shrink: 0; margin-top: 4px; }
-
-        .lock-contract { margin-top: 3rem; padding: 3.5rem; border: 1px dashed rgba(255,255,255,0.15); background: rgba(0,0,0,0.6); position: relative; overflow: hidden; }
-        .lock-contract::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--sub), transparent); }
-        .lock-badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); border: 1px solid rgba(255,255,255,0.1); padding: 4px 12px; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
-        .lock-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sub); animation: lock-pulse 2s ease-in-out infinite; }
-        @keyframes lock-pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        .lock-contract h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.03em; color: rgba(255,255,255,0.4); }
-        .lock-contract p { color: var(--sub); font-size: 0.95rem; line-height: 1.8; max-width: 700px; }
-        .lock-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-top: 2.5rem; }
-        .lock-field { border: 1px solid rgba(255,255,255,0.06); padding: 1.5rem; }
-        .lock-field-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; display: block; }
-        .lock-field-val { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: rgba(255,255,255,0.25); font-weight: 700; }
-        .lock-field-val.pending { color: rgba(255, 69, 0, 0.5); font-size: 0.75rem; letter-spacing: 1px; }
-
-        /* ── APP EXPLAINER FEATURE GRID ── */
-        .app-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 3.5rem; }
-        .app-feature-item { border-left: 2px solid var(--accent); padding-left: 1.5rem; }
-        .app-feature-tag { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.8rem; display: block; }
-        .app-feature-title { color: #fff; font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .app-feature-desc { color: var(--sub); font-size: 0.9rem; line-height: 1.7; }
-
-        @media (max-width: 1000px) {
-            .feature-grid, .fiscal-layout { grid-template-columns: 1fr; }
-            h1 { font-size: 4rem; }
+        .auth-divider {
+            display: flex; align-items: center; gap: 1rem;
+            margin: 1.2rem 0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem; color: var(--sub);
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: ""; flex: 1; height: 1px; background: var(--border);
         }
 
-        @media (max-width: 768px) {
-            .container { margin: 120px auto 80px; }
-            h1 { font-size: clamp(2.2rem, 9vw, 3.5rem); line-height: 0.9; margin-bottom: 2.5rem; }
-            h2 { font-size: 2rem; }
-            .hero-lead { font-size: 1.1rem; margin-bottom: 3.5rem; }
-            .tag { font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 1.2rem; }
-            .stat-section { margin-bottom: 3.5rem; }
-            .stat-section:last-of-type { margin-bottom: 80px; }
-            .stat-section-header { margin-bottom: 1.5rem; }
-            .stats-grid { grid-template-columns: 1fr; gap: 0; }
-            .stat-card { padding: 2.5rem 1.8rem; }
-            .stat-card--breakdown { padding: 2.5rem 1.8rem; }
-            .stat-val { font-size: 3rem; }
-            .spend-tiers { gap: 1.4rem; margin-bottom: 2rem; }
-            .spend-tier { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-            .spend-bar-wrap { display: none; }
-            .spend-players { font-size: 0.65rem; }
-            .spend-amount { font-size: 0.7rem; }
-            .coin-economy { gap: 1.1rem; }
-            .coin-val { font-size: 0.75rem; word-break: break-word; text-align: right; }
-            .coin-formula { font-size: 0.65rem; }
-            section { margin-bottom: 100px; }
-            .section-header { margin-bottom: 3rem; padding-bottom: 2rem; }
-            .feature-grid { grid-template-columns: 1fr; gap: 0; margin-top: 2.5rem; }
-            .feature-block { margin-bottom: 2.5rem; padding-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
-            .feature-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-            .feature-block h3 { font-size: 1.2rem; margin-bottom: 0.8rem; }
-            .feature-block p { font-size: 1rem; line-height: 1.7; }
-            .technical-box { padding: 2.5rem 2rem; }
-            .invest-table { font-size: 0.75rem; }
-            .invest-table th { padding: 1.2rem 1rem; font-size: 0.65rem; }
-            .invest-table td { padding: 1.2rem 1rem; }
-            .tier-highlight { font-size: 1rem; }
-            .allocation-list { font-size: 0.72rem; line-height: 2; }
-            .fiscal-layout { grid-template-columns: 1fr; gap: 4rem; }
-            .svg-wrap { width: 220px; height: 220px; }
-            .legend-item { font-size: 0.75rem; margin-bottom: 1.8rem; }
-            .error-text { white-space: normal; font-size: 0.7rem; }
-            .economy-grid { grid-template-columns: 1fr; gap: 1.5rem; margin-top: 4rem; margin-bottom: 4rem; }
-            .eco-card { padding: 2.5rem 2rem; }
-            .eco-pct { font-size: 3.5rem; margin-bottom: 1.2rem; }
-            .protocol-mandate { padding: 2rem 1.8rem; margin-top: 2.5rem; }
-            .revenue-streams { padding: 2.5rem 2rem; margin-top: 3rem; }
-            .stream-item { flex-direction: column; gap: 1.2rem; padding: 2rem 0; }
-            .stream-name { font-size: 1rem; margin-bottom: 0.6rem; }
-            .stream-desc { font-size: 0.85rem; }
-            .yield-label { align-self: flex-start; font-size: 0.7rem; }
-            .lock-contract { padding: 2.5rem 2rem; margin-top: 3rem; }
-            .lock-fields { grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem; }
-            .lock-field { padding: 1.2rem; }
-            .gallery-nav { width: 12%; font-size: 1.4rem; }
-            .gallery-container { margin-top: 3rem; }
-            .app-feature-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-            .token-inner-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
-            .access-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
-            .valuation-grid { grid-template-columns: 1fr !important; }
-            .vesting-grid { grid-template-columns: 1fr !important; }
-            .section-h3 { font-size: 1.3rem !important; }
-            footer { padding: 5rem 0 3rem; font-size: 0.6rem; letter-spacing: 2px; }
+        .auth-google-btn {
+            width: 100%;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.8rem;
+            background: none; border: 1px solid var(--border); color: #fff;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
         }
+        .auth-google-btn:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
 
-        @media (max-width: 480px) {
-            h1 { font-size: clamp(1.9rem, 8vw, 2.8rem); }
-            h2 { font-size: 1.8rem; }
-            .hero-lead { font-size: 1rem; margin-bottom: 3rem; }
-            .stat-val { font-size: 2.5rem; }
-            .technical-box { padding: 2rem 1.5rem; }
-            .svg-wrap { width: 200px; height: 200px; }
-            .gallery-nav { width: 14%; font-size: 1.2rem; opacity: 0.6; }
-            .eco-pct { font-size: 3rem; }
-            .lock-fields { grid-template-columns: 1fr; }
-            .invest-table thead { display: none; }
-            .invest-table tr { display: block; border-bottom: 1px solid var(--border); padding: 1.5rem 0; }
-            .invest-table td { display: block; padding: 0.5rem 0; border-bottom: none; }
+        .auth-error {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem; color: var(--error);
+            letter-spacing: 1px; margin-top: 0.8rem;
+            min-height: 1rem;
         }
+        .auth-forgot {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem; color: var(--sub);
+            letter-spacing: 1px; cursor: pointer;
+            text-align: right; margin-top: 0.5rem;
+            text-decoration: underline;
+        }
+        .auth-forgot:hover { color: #fff; }
 
+        /* ── MAIN APP ── */
+        #app-shell {
+            display: none;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            grid-template-rows: auto 1fr auto;
+            grid-template-columns: 260px 1fr;
+            grid-template-areas:
+                "nav    nav"
+                "sidebar main"
+                "player  player";
+            overflow: hidden;
+        }
+        #app-shell.visible { display: grid; }
+
+        /* ── NAV ── */
         nav {
-            position: fixed; top: 0; width: 100%; padding: 1.5rem 5%;
+            grid-area: nav;
             display: flex; justify-content: space-between; align-items: center;
+            padding: 1.2rem 2rem;
             border-bottom: 1px solid var(--border);
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 2000;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px); z-index: 100;
         }
-        .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.2rem; letter-spacing: 3px; color: var(--text); text-decoration: none; z-index: 2001; }
-        .nav-hamburger { display: flex; flex-direction: column; gap: 6px; cursor: pointer; z-index: 2001; padding: 8px; background: none; border: none; }
-        .nav-hamburger span { width: 24px; height: 1.5px; background: #fff; display: block; transition: transform 0.4s cubic-bezier(0.77,0,0.175,1), opacity 0.3s; }
-        .nav-hamburger.open .bar1 { transform: rotate(-45deg) translate(-4px, 5px); }
-        .nav-hamburger.open .bar2 { opacity: 0; transform: scaleX(0); }
-        .nav-hamburger.open .bar3 { transform: rotate(45deg) translate(-4px, -5px); }
-        .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.97); backdrop-filter: blur(20px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s cubic-bezier(0.77,0,0.175,1); }
-        .nav-overlay.open { opacity: 1; pointer-events: all; }
-        .nav-overlay a { color: #fff; font-family: 'Space Mono', monospace; font-size: clamp(1.2rem, 4vw, 2rem); text-decoration: none; text-transform: uppercase; letter-spacing: 6px; margin: 1rem 0; opacity: 0; transform: translateY(20px); transition: color 0.3s, opacity 0.4s, transform 0.4s; }
-        .nav-overlay.open a { opacity: 1; transform: translateY(0); }
-        .nav-overlay.open a:nth-child(1) { transition-delay: 0.05s; }
-        .nav-overlay.open a:nth-child(2) { transition-delay: 0.10s; }
-        .nav-overlay.open a:nth-child(3) { transition-delay: 0.15s; }
-        .nav-overlay.open a:nth-child(4) { transition-delay: 0.20s; }
-        .nav-overlay.open a:nth-child(5) { transition-delay: 0.25s; }
-        .nav-overlay.open a:nth-child(6) { transition-delay: 0.30s; }
-        .nav-overlay.open a:nth-child(7) { transition-delay: 0.35s; }
-        .nav-overlay a:hover { color: var(--accent); }
-        .nav-page-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.35); letter-spacing: 2px; text-transform: uppercase; }
-    </style>
-    <style>
-        @media (max-width: 768px) {
-            #tokenomics .technical-box [style*="grid-template-columns: 1fr 1fr"] {
-                grid-template-columns: 1fr !important;
-                gap: 2.5rem !important;
-            }
-            #fiscal .technical-box [style*="grid-template-columns: repeat(auto-fit"] {
-                grid-template-columns: 1fr !important;
-            }
-            .technical-box h3 { font-size: 1.25rem !important; letter-spacing: -0.5px !important; }
-            #tokenomics .technical-box [style*="padding: 2.5rem"] {
-                padding: 1.8rem !important;
-            }
-            #tokenomics .technical-box .tag {
-                display: block;
-                margin-bottom: 1.2rem;
-                line-height: 1.5;
-            }
+        .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--text); text-decoration: none; }
+        .nav-tabs { display: flex; gap: 0; border: 1px solid var(--border); }
+        .nav-tab {
+            font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.6rem 1.4rem; cursor: pointer; background: none; border: none; color: var(--sub);
+            transition: all 0.2s; border-right: 1px solid var(--border);
         }
-        @media (max-width: 480px) {
-            #tokenomics .technical-box h3 { font-size: 1.1rem !important; }
-            #tokenomics .technical-box [style*="padding: 2.5rem"] {
-                padding: 1.4rem !important;
-            }
+        .nav-tab:last-child { border-right: none; }
+        .nav-tab.active { color: #fff; background: var(--accent-dim); }
+        .nav-tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.04); }
+
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .nav-coins {
+            display: flex; align-items: center; gap: 0.6rem;
+            font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--accent);
+            border: 1px solid var(--accent-dim); padding: 0.5rem 1rem;
+        }
+        .nav-coins::before { content: "◈"; font-size: 0.9rem; }
+        .nav-user {
+            display: flex; align-items: center; gap: 0.6rem;
+            cursor: pointer; position: relative;
+        }
+        .nav-avatar {
+            width: 32px; height: 32px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--accent);
+            font-weight: 700;
+        }
+        .nav-username { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); }
+        .nav-admin-badge {
+            font-family: 'Space Mono', monospace; font-size: 0.5rem;
+            letter-spacing: 2px; padding: 0.2rem 0.5rem;
+            background: var(--accent); color: #fff; text-transform: uppercase;
+        }
+
+        /* user dropdown */
+        .user-dropdown {
+            position: absolute; top: calc(100% + 0.8rem); right: 0;
+            background: var(--surface); border: 1px solid var(--border);
+            min-width: 200px; z-index: 500;
+            opacity: 0; pointer-events: none; transform: translateY(-6px);
+            transition: all 0.2s;
+        }
+        .user-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .user-dropdown::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--accent); }
+        .dropdown-item {
+            display: flex; align-items: center; gap: 0.8rem;
+            padding: 0.8rem 1rem;
+            font-family: 'Space Mono', monospace; font-size: 0.6rem;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--sub);
+            cursor: pointer; transition: all 0.2s; border-bottom: 1px solid var(--border);
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+        .dropdown-item.danger:hover { color: var(--error); }
+        .dropdown-item.admin-link { color: var(--accent); }
+        .dropdown-item.admin-link:hover { background: var(--accent-dim); }
+
+        /* ── SIDEBAR ── */
+        aside {
+            grid-area: sidebar; border-right: 1px solid var(--border);
+            overflow-y: auto; background: var(--surface); display: flex; flex-direction: column;
+        }
+        aside::-webkit-scrollbar { width: 2px; }
+        aside::-webkit-scrollbar-thumb { background: var(--accent-dim); }
+        .sidebar-section { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+        .sidebar-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1rem; }
+
+        .upload-zone {
+            border: 1px dashed rgba(138,43,226,0.4); padding: 1.5rem 1rem;
+            text-align: center; cursor: pointer; transition: all 0.3s; position: relative;
+        }
+        .upload-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .upload-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); transform: scale(1.01); }
+        .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+        .upload-zone-icon { font-size: 1.5rem; margin-bottom: 0.5rem; opacity: 0.5; }
+        .upload-zone p { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 1px; line-height: 1.6; }
+
+        .queue-list { display: flex; flex-direction: column; gap: 2px; }
+        .queue-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 0.8rem; cursor: pointer; transition: background 0.2s; position: relative; }
+        .queue-item:hover { background: rgba(255,255,255,0.04); }
+        .queue-item.active { background: var(--accent-dim); }
+        .queue-item.active::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+        .queue-num { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); width: 16px; text-align: center; flex-shrink: 0; }
+        .queue-item.active .queue-num { color: var(--accent); }
+        .queue-art { width: 34px; height: 34px; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; overflow: hidden; }
+        .queue-info { flex: 1; min-width: 0; }
+        .queue-title { font-size: 0.75rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+        .queue-artist { font-size: 0.65rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .queue-duration { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); flex-shrink: 0; }
+
+        /* ── MAIN ── */
+        main { grid-area: main; overflow-y: auto; background: var(--bg); }
+        main::-webkit-scrollbar { width: 2px; }
+        main::-webkit-scrollbar-thumb { background: var(--border); }
+
+        .view-header {
+            padding: 2.5rem 2.5rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem;
+        }
+        .view-title { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+        .view-sub { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.4rem; }
+        .search-bar { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); padding: 0.6rem 1rem; background: var(--surface); min-width: 220px; }
+        .search-bar input { background: none; border: none; outline: none; color: #fff; font-family: 'Space Mono', monospace; font-size: 0.7rem; width: 100%; letter-spacing: 1px; }
+        .search-bar input::placeholder { color: var(--sub); }
+
+        /* track list */
+        .track-list { padding: 1rem 0; }
+        .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-remove-btn { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.7rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
+        .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
+        .track-row:hover { background: rgba(255,255,255,0.03); }
+        .track-row.playing { background: var(--accent-dim); }
+        .track-row.playing::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
+        .track-idx { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); text-align: center; }
+        .track-row.playing .track-idx { color: var(--accent); }
+        .track-info { display: flex; align-items: center; gap: 0.8rem; min-width: 0; }
+        .track-thumb { width: 40px; height: 40px; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1rem; overflow: hidden; position: relative; }
+        .track-thumb .play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; font-size: 0.8rem; }
+        .track-row:hover .play-overlay { opacity: 1; }
+        .track-row.playing .play-overlay { opacity: 1; }
+        .track-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-name-artist { font-size: 0.7rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-album { font-size: 0.75rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-meta { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); }
+        .track-duration { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); text-align: right; }
+        .empty-library { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 2rem; text-align: center; gap: 1rem; }
+
+        /* ── LIBRARY FILTER TABS ── */
+        .lib-filter-tab {
+            background: none; border: none; border-bottom: 2px solid transparent;
+            color: var(--sub); font-family: 'Space Mono', monospace;
+            font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.8rem 1.2rem; cursor: pointer; transition: all 0.2s;
+            white-space: nowrap; margin-bottom: -1px;
+        }
+        .lib-filter-tab:hover { color: #fff; }
+        .lib-filter-tab.active { color: #fff; border-bottom-color: var(--accent); }
+        .lib-filter-tab.blk-filter { color: var(--accent); }
+        .lib-filter-tab.blk-filter.active { border-bottom-color: var(--accent); }
+        .empty-icon { font-size: 3rem; opacity: 0.2; }
+        .empty-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; }
+        .empty-hint { font-size: 0.85rem; color: rgba(255,255,255,0.3); }
+
+        /* ── STORE ── */
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--border); margin: 1.5rem; border: 1px solid var(--border); }
+        .store-card { background: var(--bg); cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
+        .store-card:hover { background: var(--surface); }
+        .store-card:hover .store-card-overlay { opacity: 1; }
+        .store-art { width: 100%; aspect-ratio: 1; background: var(--surface2); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .store-art-gradient { position: absolute; inset: 0; opacity: 0.6; }
+        .store-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        .store-play-btn { width: 44px; height: 44px; border: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; background: rgba(0,0,0,0.6); cursor: pointer; transition: background 0.2s; }
+        .store-play-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .store-info { padding: 1rem; }
+        .store-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .store-artist { font-size: 0.7rem; color: var(--sub); margin-bottom: 0.8rem; }
+        .store-footer { display: flex; justify-content: space-between; align-items: center; }
+        .store-price { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); font-weight: 700; }
+        .store-buy-btn { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.4rem 0.8rem; background: none; border: 1px solid var(--accent); color: var(--accent); cursor: pointer; transition: all 0.2s; }
+        .store-buy-btn:hover { background: var(--accent); color: #fff; }
+        .store-buy-btn.owned { border-color: var(--success); color: var(--success); cursor: default; }
+        .store-buy-btn.owned:hover { background: none; }
+        .store-badge { position: absolute; top: 0.6rem; right: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.2rem 0.5rem; background: var(--accent); color: #fff; z-index: 2; }
+
+        /* ── PLAYER BAR ── */
+        .player-bar { grid-area: player; height: 88px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.97); backdrop-filter: blur(20px); display: grid; grid-template-columns: 280px 1fr 280px; align-items: center; padding: 0 2rem; gap: 1rem; z-index: 100; }
+        .player-track { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+        .player-art { width: 52px; height: 52px; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; overflow: hidden; position: relative; }
+        .player-art .spin-ring { position: absolute; inset: -2px; border: 1px solid transparent; border-top-color: var(--accent); border-radius: 50%; animation: spin 2s linear infinite; opacity: 0; transition: opacity 0.3s; }
+        .player-art.playing .spin-ring { opacity: 1; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .player-track-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-track-artist { font-size: 0.7rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-track-none { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: rgba(255,255,255,0.2); letter-spacing: 2px; text-transform: uppercase; }
+        .player-controls { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+        .player-btns { display: flex; align-items: center; gap: 1.2rem; }
+        .ctrl-btn { background: none; border: none; color: var(--sub); cursor: pointer; font-size: 1rem; transition: color 0.2s; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+        .ctrl-btn:hover { color: #fff; }
+        .ctrl-btn.active { color: var(--accent); }
+        .ctrl-play { background: var(--accent); border: none; color: #fff; cursor: pointer; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.2s; }
+        .ctrl-play:hover { background: #7B27CC; transform: scale(1.05); }
+        .player-progress { display: flex; align-items: center; gap: 0.8rem; width: 100%; }
+        .progress-time { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); flex-shrink: 0; }
+        .progress-bar { flex: 1; height: 3px; background: var(--border); cursor: pointer; position: relative; border-radius: 2px; transition: height 0.15s; }
+        .progress-bar:hover, .progress-bar.dragging { height: 5px; }
+        .progress-fill { height: 100%; background: var(--accent); pointer-events: none; border-radius: 2px; position: relative; }
+        .progress-dot { position: absolute; right: -5px; top: 50%; transform: translateY(-50%) scale(0); width: 10px; height: 10px; background: #fff; border-radius: 50%; transition: transform 0.15s; pointer-events: none; }
+        .progress-bar:hover .progress-dot, .progress-bar.dragging .progress-dot { transform: translateY(-50%) scale(1); }
+        .volume-wrap { display: flex; align-items: center; gap: 0.6rem; }
+        .vol-icon { font-size: 0.85rem; color: var(--sub); cursor: pointer; }
+        .vol-bar { width: 80px; height: 3px; background: var(--border); cursor: pointer; position: relative; border-radius: 2px; transition: height 0.15s; }
+        .vol-bar:hover, .vol-bar.dragging { height: 5px; }
+        .vol-fill { height: 100%; background: rgba(255,255,255,0.4); border-radius: 2px; position: relative; pointer-events: none; }
+        .vol-dot { position: absolute; right: -5px; top: 50%; transform: translateY(-50%) scale(0); width: 10px; height: 10px; background: #fff; border-radius: 50%; transition: transform 0.15s; pointer-events: none; }
+        .vol-bar:hover .vol-dot, .vol-bar.dragging .vol-dot { transform: translateY(-50%) scale(1); }        .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+        .volume-wrap { display: flex; align-items: center; gap: 0.6rem; }
+        .vol-icon { font-size: 0.85rem; color: var(--sub); cursor: pointer; }
+        .vol-bar { width: 80px; height: 2px; background: var(--border); cursor: pointer; position: relative; }
+        .vol-fill { height: 100%; background: rgba(255,255,255,0.4); }
+        .coin-earn { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 0.3rem; opacity: 0; transition: opacity 0.5s; }
+        .coin-earn.visible { opacity: 1; }
+        .scanline { width: 100%; height: 100%; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px); pointer-events: none; }
+
+        /* ── MODALS ── */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-bg.open { opacity: 1; pointer-events: all; }
+        .modal { background: var(--surface); border: 1px solid var(--border); padding: 3rem; max-width: 420px; width: 90%; position: relative; transform: translateY(20px); transition: transform 0.3s; }
+        .modal-bg.open .modal { transform: translateY(0); }
+        .modal::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--sub); cursor: pointer; font-size: 1.2rem; }
+        .modal-tag { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 1.5rem; display: block; }
+        .modal h3 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+        .modal-artist { color: var(--sub); font-size: 0.9rem; margin-bottom: 2rem; }
+        .modal-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1rem; background: var(--bg); border: 1px solid var(--border); }
+        .modal-price-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; }
+        .modal-price-val { font-family: 'Space Mono', monospace; font-size: 1.3rem; color: var(--accent); font-weight: 700; }
+        .modal-includes { margin-bottom: 2rem; }
+        .modal-includes-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.8rem; }
+        .modal-include-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 0.4rem; }
+        .modal-include-item::before { content: "✓"; color: var(--success); font-family: 'Space Mono', monospace; font-size: 0.7rem; }
+        .modal-btn { width: 100%; font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 3px; text-transform: uppercase; padding: 1rem; background: var(--accent); border: none; color: #fff; cursor: pointer; transition: all 0.2s; }
+        .modal-btn:hover { background: #7B27CC; }
+        .modal-btn.success { background: var(--success); color: #000; }
+
+        /* ── TOAST ── */
+        .toast { position: fixed; bottom: 108px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--surface); border: 1px solid var(--border); border-left: 2px solid var(--accent); padding: 0.8rem 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; color: #fff; z-index: 500; opacity: 0; transition: all 0.3s; pointer-events: none; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.success { border-left-color: var(--success); }
+
+        /* ── PROFILE PANEL ── */
+        .profile-panel {
+            padding: 2.5rem;
+        }
+        .profile-avatar-lg {
+            width: 72px; height: 72px;
+            background: var(--accent-dim); border: 1px solid var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Mono', monospace; font-size: 1.8rem; color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        .profile-stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: var(--border); margin: 2rem 0; }
+        .profile-stat { background: var(--surface); padding: 1.2rem; text-align: center; }
+        .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
+        .profile-stat-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-top: 0.3rem; }
+
+        /* ── SETTINGS BUTTONS ── */
+        .settings-btn-group { display: flex; flex-direction: column; gap: 2px; }
+        .settings-btn {
+            display: flex; align-items: center; gap: 1rem;
+            width: 100%; padding: 1rem 1.2rem;
+            background: var(--surface); border: 1px solid var(--border);
+            color: #fff; cursor: pointer; text-align: left; transition: all 0.2s;
+        }
+        .settings-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .settings-btn-icon { font-size: 1.1rem; color: var(--accent); width: 24px; text-align: center; flex-shrink: 0; }
+        .settings-btn-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; margin-bottom: 0.2rem; }
+        .settings-btn-sub { font-size: 0.7rem; color: var(--sub); }
+
+        /* ── FILE MISSING WARNING ── */
+        .track-row.missing { opacity: 0.5; }
+        .track-row.missing .track-name::after { content: ' ⚠'; color: var(--warn); font-size: 0.7rem; }
+        .missing-banner { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1.5rem; background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2); border-left: 3px solid var(--warn); margin: 1rem 2.5rem 0; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--warn); letter-spacing: 1px; }
+        .missing-banner-icon { font-size: 1rem; flex-shrink: 0; }
+
+        /* ── EMBED PLAYER (Spotify/SoundCloud iframes) ── */
+        .embed-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(16px); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .embed-overlay.open { opacity: 1; pointer-events: all; }
+        .embed-box { width: min(520px, 94vw); background: var(--surface); border: 1px solid var(--border); position: relative; }
+        .embed-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+        .embed-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+        .embed-title { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; }
+        .embed-close { background: none; border: none; color: var(--sub); cursor: pointer; font-size: 1.2rem; }
+        .embed-close:hover { color: #fff; }
+        .embed-iframe-wrap { width: 100%; }
+        .embed-iframe-wrap iframe { width: 100%; border: none; display: block; }
+        .embed-note { padding: 0.8rem 1.2rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 1px; border-top: 1px solid var(--border); text-align: center; }
+        .stream-section { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+        .stream-connect-btn {
+            display: flex; align-items: center; gap: 0.7rem; width: 100%;
+            padding: 0.7rem 1rem; margin-bottom: 0.5rem;
+            background: none; border: 1px solid var(--border); color: var(--sub);
+            font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.2s; text-align: left;
+        }
+        .stream-connect-btn:hover { border-color: rgba(255,255,255,0.2); color: #fff; }
+        .stream-connect-btn.connected { border-color: var(--success); color: var(--success); }
+        .stream-connect-btn .stream-icon { font-size: 1rem; flex-shrink: 0; }
+        .stream-connect-btn .stream-status { margin-left: auto; font-size: 0.5rem; opacity: 0.7; }
+        .stream-tracks { margin-top: 0.8rem; }
+        .stream-track-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0; cursor: pointer; transition: opacity 0.2s; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .stream-track-item:hover { opacity: 0.8; }
+        .stream-track-item:last-child { border-bottom: none; }
+        .stream-track-icon { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 2px; font-size: 0.7rem; }
+        .stream-track-icon.spotify { background: rgba(30,215,96,0.15); color: #1ED760; }
+        .stream-track-icon.soundcloud { background: rgba(255,85,0,0.15); color: #ff5500; }
+        .stream-track-info { flex: 1; min-width: 0; }
+        .stream-track-name { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stream-track-artist { font-size: 0.6rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stream-input-url { width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; font-family: 'Space Mono', monospace; font-size: 0.65rem; padding: 0.6rem 0.8rem; outline: none; margin-top: 0.6rem; transition: border-color 0.2s; }
+        .stream-input-url:focus { border-color: var(--accent); }
+        .stream-add-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+        .stream-add-btn { font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 1px; padding: 0.5rem 0.8rem; border: none; cursor: pointer; background: var(--accent); color: #fff; white-space: nowrap; transition: opacity 0.2s; }
+        .stream-add-btn:hover { opacity: 0.85; }
+        .stream-add-btn.sc { background: #ff5500; }
+        .stream-track-remove { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 0.75rem; padding: 0 0.3rem; flex-shrink: 0; transition: color 0.2s; line-height: 1; }
+        .stream-track-remove:hover { color: var(--error); }
+        .stream-track-album { font-size: 0.55rem; color: rgba(255,255,255,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+        .stream-meta-fields { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.4rem; }
+        .stream-meta-input { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: #fff; font-family: 'Space Mono', monospace; font-size: 0.6rem; padding: 0.4rem 0.6rem; outline: none; width: 100%; box-sizing: border-box; letter-spacing: 0.5px; }
+        .stream-meta-input:focus { border-color: var(--accent); }
+        .stream-meta-input::placeholder { color: rgba(255,255,255,0.2); }
+
+        /* ── INSUFFICIENT BLK WARNING ── */
+        .toast.warn { border-left-color: var(--warn) !important; }
+        .blk-warn-modal { max-width: 380px !important; }
+        .blk-warn-modal::before { background: linear-gradient(90deg, var(--warn), transparent) !important; }
+        .blk-warn-amount { font-family: 'Space Mono', monospace; font-size: 2rem; color: var(--warn); font-weight: 700; text-align: center; padding: 1rem; background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2); margin-bottom: 1.5rem; }
+        .blk-warn-detail { display: flex; justify-content: space-between; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); margin-bottom: 0.5rem; }
+        .blk-warn-detail span:last-child { color: #fff; }
+
+        @media (max-width: 900px) {
+            #app-shell { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "nav" "sidebar" "main" "player"; height: auto; min-height: 100vh; overflow: auto; }
+            aside { max-height: 360px; border-right: none; border-bottom: 1px solid var(--border); }
+            main { overflow-y: visible; }
+            .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
+            .player-track { justify-content: center; }
+            .player-right { justify-content: center; }
+            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px; }
+            .track-album, .track-meta { display: none; }
+            .auth-box { width: 95%; padding: 2rem; }
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html" class="nav-logo">BLK.</a>
-        <span class="nav-page-label">PITCH DECK</span>
-        <button class="nav-hamburger" id="navBtn" aria-label="Toggle menu">
-            <span class="bar1"></span>
-            <span class="bar2"></span>
-            <span class="bar3"></span>
-        </button>
-    </nav>
-    <div class="nav-overlay" id="navOverlay">
-        <a href="mission.html">Mission</a>
-        <a href="metaverse.html">Metaverse</a>
-        <a href="gallery.html">Gallery</a>
-        <a href="roster.html">Roster</a>
-        <a href="presale.html">Presale</a>
-        <a href="economicframework.html">Sustainability</a>
-    </div>
 
-    <div class="container">
-        <header>
-            <span class="tag">System Thesis</span>
-            <h1>Spatial Asset & Infrastructure.</h1>
-            <p class="hero-lead">The first user-funded, artist-approved major record label. BLK provides the sovereign technical layer for content distribution, immersive monetization, and frictionless user ingress within the 212M+ monthly active Minecraft user base.</p>
+<!-- ════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════ -->
+<div id="auth-screen">
+    <div class="auth-bg-grid"></div>
+    <div class="auth-glow"></div>
+    <div class="auth-box">
+        <div class="auth-logo">BLK.</div>
+        <div class="auth-tagline">Music Platform // Sign In</div>
 
-            <div class="stat-section">
-                <div class="stat-section-header">
-                    <span class="stat-section-tag">Platform Data</span>
-                    <h3 class="stat-section-title">Minecraft Stats</h3>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card"><span class="stat-val">212M+</span><span class="stat-label">Monthly Active Users</span></div>
-                    <div class="stat-card"><span class="stat-val">$10B</span><span class="stat-label">Marketplace Total Sales</span></div>
-                    <div class="stat-card"><span class="stat-val">13–35</span><span class="stat-label">Core Age Demographic</span></div>
-                </div>
-            </div>
-
-            <div class="stat-section">
-                <div class="stat-section-header">
-                    <span class="stat-section-tag">BLK Projections</span>
-                    <h3 class="stat-section-title">Projected Stats for BLK</h3>
-                </div>
-                <div class="stats-grid stats-grid--blk">
-                    <div class="stat-card stat-card--breakdown">
-                        <span class="stat-label" style="margin-bottom: 1.8rem; display: block;">Net Customer Spend - Current Active Users</span>
-                        <div class="spend-tiers">
-                            <div class="spend-tier">
-                                <span class="spend-players">500 – 3K players</span>
-                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 4%"></div></div>
-                                <span class="spend-amount">$5K – $50K</span>
-                            </div>
-                            <div class="spend-tier">
-                                <span class="spend-players">5K concurrent</span>
-                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 22%"></div></div>
-                                <span class="spend-amount">$100K – $400K</span>
-                            </div>
-                            <div class="spend-tier">
-                                <span class="spend-players">10K players</span>
-                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 55%"></div></div>
-                                <span class="spend-amount">$1M – $2M / mo</span>
-                            </div>
-                            <div class="spend-tier">
-                                <span class="spend-players">100K players</span>
-                                <div class="spend-bar-wrap"><div class="spend-bar" style="width: 100%"></div></div>
-                                <span class="spend-amount spend-amount--top">$10M+</span>
-                            </div>
-                        </div>
-                        <p class="spend-note">Net Customer Spend derived from in-world transactions and digital asset sales.</p>
-                    </div>
-                    <div class="stat-card stat-card--breakdown">
-                        <span class="stat-label" style="margin-bottom: 1.8rem; display: block;">BLK Coin Economy - Media Player App</span>
-                        <div class="coin-economy">
-                            <div class="coin-row">
-                                <span class="coin-key">Supply</span>
-                                <span class="coin-val">100M coins</span>
-                            </div>
-                            <div class="coin-row">
-                                <span class="coin-key">Rate</span>
-                                <span class="coin-val">$0.01 per 100 listens</span>
-                            </div>
-                            <div class="coin-row">
-                                <span class="coin-key">Formula</span>
-                                <span class="coin-val coin-formula">100M × 10 (0.1) × 100 listens</span>
-                            </div>
-                            <div class="coin-divider"></div>
-                            <div class="coin-row coin-row--total">
-                                <span class="coin-key">Coin Capacity</span>
-                                <span class="coin-val coin-val--big">100,000,000,000 plays</span>
-                            </div>
-                        </div>
-                        <p class="spend-note" style="margin-top: 1.5rem;">Media Player App connected to the Metaverse, listeners earn and spend within the BLK ecosystem.</p>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- ══════════════════════════════════════════════════════ -->
-        <!-- SECTION: WEB3 DIGITAL RECORD LABEL                    -->
-        <!-- ══════════════════════════════════════════════════════ -->
-        <section id="business-logic">
-            <div class="section-header"><h2>Web3 Digital Record Label.</h2></div>
-            <div class="technical-box">
-                <p class="hero-lead" style="font-size: 1.3rem; margin-bottom: 3rem;">We operate the full machinery of a major label: contracts, venues, media production, and marketing, reimagined for a decentralized era.</p>
-
-                <div class="feature-grid">
-                    <div class="feature-block">
-                        <h3>Business Architecture</h3>
-                        <p>Managing the critical path: high-level contracts, virtual venue management, 4K media production, and strategic sponsorships that bridge digital and physical markets.</p>
-                    </div>
-                    <div class="feature-block">
-                        <h3>The Passthrough Protocol</h3>
-                        <p>To attract and retain elite talent, BLK enforces 100% financial passthrough. Artists keep every cent of their Spotify, Apple Music, and physical merch revenue. We facilitate the growth, they keep the value.</p>
-                    </div>
-                    <div class="feature-block">
-                        <h3>Licensing & Likeness</h3>
-                        <p>Creating additional revenue streams through the licensing of artist avatars and music within the metaverse, vs. the "sink or swim" model of traditional labels that drain artist masters.</p>
-                    </div>
-                    <div class="feature-block">
-                        <h3>Sovereign Independence</h3>
-                        <p>We provide the marketing and production assistance that usually requires a major label, but leave the artist with the skills and ownership to remain truly independent.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-grid" style="align-items: flex-start; margin-top: 4rem;">
-                <div>
-                    <p class="hero-lead" style="font-size: 1.2rem;">Our in-house production collective manages the full creative pipeline, from composition to professional-grade vocal mixing and video production.</p>
-                    <div style="margin-bottom: 2.5rem;">
-                        <p style="color: var(--sub); font-size: 0.95rem;">BLK leverages an expansive media network to drive ingress. We produce cinematic trailers and music videos promoted to our <b>1.44M Subscribers</b>, ensuring project visibility long before users enter the Creator Cities.</p>
-                    </div>
-                    <p style="color: var(--sub);">This model facilitates high-performance development cycles and architectural world-building without interfering with the 100% Pass-Through distribution model.</p>
-                </div>
-                <div class="technical-box" style="padding: 3rem;">
-                    <h3 style="margin-bottom: 1.5rem;">The 70/30 Model</h3>
-                    <p style="color: var(--sub); font-size: 1rem;">The 30% operational allotment is utilized exclusively for technical overhead: immersive hosting, world-building, and code maintenance. <br><br><b>Crucially, all external royalties and streaming revenue remain completely untouched by the protocol.</b></p>
-                </div>
-            </div>
-
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- BLK MEDIA PLAYER APP - FULL EXPLAINER                      -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <div class="technical-box" style="margin-top: 4rem; padding: 5rem;">
-                <span class="tag" style="font-size: 0.65rem; margin-bottom: 1.5rem;">BLK Media Player // Live Product</span>
-                <h3 style="font-size: 2.2rem; letter-spacing: -0.04em; font-weight: 700; margin-bottom: 1rem;">The BLK App.</h3>
-                <p style="color: var(--sub); font-size: 1.1rem; max-width: 820px; line-height: 1.8; margin-bottom: 4rem;">A web-based music platform fully wired into the BLK ecosystem. Users authenticate, build a personal library, earn BLK coins passively through listening, and spend those coins on exclusive tracks in the BLK Store - creating a self-sustaining economy that connects fans, artists, and the label in a single interface.</p>
-
-                <!-- Four core pillars -->
-                <div class="app-feature-grid">
-                    <div class="app-feature-item">
-                        <span class="app-feature-tag">01 // Authentication</span>
-                        <p class="app-feature-title">Firebase-Backed Identity</p>
-                        <p class="app-feature-desc">Email/password and Google sign-in, both powered by Firebase Auth. Every account carries a verified Firestore profile tracking coin balance, total listen count, and full purchase history. Built-in flows for email verification, password reset, and secure email change mean users manage their identity entirely within the app - no external dashboards required.</p>
-                    </div>
-                    <div class="app-feature-item">
-                        <span class="app-feature-tag">02 // Library</span>
-                        <p class="app-feature-title">Personal Audio Library</p>
-                        <p class="app-feature-desc">Users upload local audio files - MP3, FLAC, WAV - directly from their device. Tracks are stored in-browser via IndexedDB so the library survives page refreshes and sessions. Spotify links (tracks, albums, playlists) and SoundCloud URLs can also be pinned. Five source filters - All, Local, Spotify, SoundCloud, and <span style="color: var(--accent); font-family: 'Space Mono', monospace;">◈ BLK Songs</span> - let users isolate exactly what they want to hear.</p>
-                    </div>
-                    <div class="app-feature-item">
-                        <span class="app-feature-tag">03 // Listen-to-Earn</span>
-                        <p class="app-feature-title">Passive BLK Coin Accumulation</p>
-                        <p class="app-feature-desc">Every 10 minutes of active listening awards <span style="color: var(--accent); font-family: 'Space Mono', monospace;">+0.01 BLK</span> to the user's account. Balances sync to Firestore in real time and are permanently tied to the user's profile. This creates measurable, growing demand for the coin without any additional purchase requirement - the longer someone listens, the more they earn and spend within the ecosystem.</p>
-                    </div>
-                    <div class="app-feature-item">
-                        <span class="app-feature-tag">04 // BLK Store</span>
-                        <p class="app-feature-title">Exclusive Track Marketplace</p>
-                        <p class="app-feature-desc">A curated grid of exclusive BLK-released tracks, each priced in BLK coins. Purchases deduct from the user's coin balance, write a permanent purchase record to Firestore, and add the track directly to the library under the <span style="color: var(--accent); font-family: 'Space Mono', monospace;">◈ BLK Songs</span> filter. Users who lack sufficient coins see their shortfall displayed and are directed back to listening to earn more - closing the loop between content consumption and commerce.</p>
-                    </div>
-                </div>
-
-                <!-- Playback Engine panel -->
-                <div style="background: rgba(138,43,226,0.04); border: 1px solid rgba(138,43,226,0.2); padding: 3rem; margin-bottom: 3.5rem;">
-                    <span class="tag" style="font-size: 0.6rem; margin-bottom: 1.8rem;">Playback Engine // Technical Spec</span>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2.5rem;">
-                        <div>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.72rem; color: #fff; margin-bottom: 0.6rem; letter-spacing: 1px;">SMART SHUFFLE QUEUE</p>
-                            <p style="color: var(--sub); font-size: 0.85rem; line-height: 1.7;">Fisher-Yates algorithm constructs a full randomised queue from the library on shuffle activation. No track plays twice until the entire library has been heard - then the queue automatically rebuilds. Spotify and SoundCloud tracks are excluded, keeping shuffle strictly within locally playable audio.</p>
-                        </div>
-                        <div>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.72rem; color: #fff; margin-bottom: 0.6rem; letter-spacing: 1px;">QUEUE & REPEAT</p>
-                            <p style="color: var(--sub); font-size: 0.85rem; line-height: 1.7;">A live sidebar queue mirrors the current play order in real time. Repeat mode loops the active track indefinitely. The previous track button snaps to the start of the current song if more than 3 seconds have elapsed - otherwise it steps back through the queue.</p>
-                        </div>
-                        <div>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.72rem; color: #fff; margin-bottom: 0.6rem; letter-spacing: 1px;">STREAMING INTEGRATION</p>
-                            <p style="color: var(--sub); font-size: 0.85rem; line-height: 1.7;">Spotify tracks open inside a fullscreen embedded Spotify player overlay - supporting full tracks, albums, and playlists. SoundCloud URLs render via the SoundCloud widget with autoplay. Both sources persist in IndexedDB so linked URLs survive browser restarts with no re-linking required.</p>
-                        </div>
-                        <div>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.72rem; color: #fff; margin-bottom: 0.6rem; letter-spacing: 1px;">ACCOUNT SECURITY</p>
-                            <p style="color: var(--sub); font-size: 0.85rem; line-height: 1.7;">The Profile page surfaces a verified / unverified badge on every email account. One-click flows handle email verification, secure email change (using Firebase's <span style="font-family: 'Space Mono', monospace; color: #fff;">verifyBeforeUpdateEmail</span> to prevent lockouts), and password reset via the user's current address. Google accounts are detected and routed to Google for credential changes.</p>
-                        </div>
-                    </div>
-                </div>
-
-
-            </div>
-            <!-- END BLK APP EXPLAINER -->
-
-        </section>
-
-        <section id="engineering">
-            <div class="section-header"><h2>Vanilla.</h2></div>
-            <div class="technical-box">
-                <p class="hero-lead" style="font-size: 1.3rem; margin-bottom: 3rem;">BLK operates exclusively on the standard game client. By removing the requirement for external mods, we ensure 100% accessibility for the entire global user base.</p>
-                <div class="feature-grid">
-                    <div class="feature-block">
-                        <h3>Proprietary Asset Rendering</h3>
-                        <p>We render high-fidelity assets including custom branded apparel, vehicles, and companions directly within the vanilla environment via server-side injection.</p>
-                    </div>
-                    <div class="feature-block">
-                        <h3>Transportation Infrastructure</h3>
-                        <p>Native implementation of functional supercars, helicopters, and planes. Each asset provides high-utility movement within the Creator Cities.</p>
-                    </div>
-                    <div class="feature-block">
-                        <h3>Earth-Scale Mapping</h3>
-                        <p>The "Earth Render" project maps physical geography 1:1 into the grid, allowing artists to own and develop sovereign territories based on real-world locations.</p>
-                    </div>
-                    <div class="feature-block">
-                        <h3>Gameplay Customization</h3>
-                        <p>Minigames and gameplay loops are engineered to reflect the brand lore of specific projects, turning static environments into interactive gaming verticals.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="compliance-banner" style="margin-top: -40px; margin-bottom: 80px; padding: 1.5rem 2rem; border: 1px solid var(--success); background: rgba(0, 255, 102, 0.02);">
-            <h4 style="font-family: 'Space Mono', monospace; color: var(--success); text-transform: uppercase; margin-bottom: 0.5rem; font-size: 0.75rem; letter-spacing: 2px;">EULA Compliance & Risk Mitigation</h4>
-            <p style="color: var(--sub); font-size: 0.85rem; line-height: 1.6;">BLK operates under strict adherence to Microsoft/Mojang EULA and Commercial Usage Guidelines. All financial transactions occur on a proprietary off-game layer. No core gameplay features are locked behind paywalls, ensuring long-term platform stability.</p>
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="setAuthTab('login')">Sign In</button>
+            <button class="auth-tab" onclick="setAuthTab('register')">Create Account</button>
         </div>
 
-        <section id="fiscal">
-            <div class="section-header"><h2>Investment Tiers.</h2></div>
-            <div class="technical-box" style="padding: 0; border: none;">
-                <table class="invest-table">
-                    <thead>
-                        <tr>
-                            <th>Investment</th>
-                            <th>Equity & Coin Allocation</th>
-                            <th>Financial Roadmap</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="tier-highlight">$1,000,000</td>
-                            <td>5% Coin (500M Supply)<br>5% Metaverse Equity<br><small style="color:var(--sub)">(Prime Estate Branding)</small></td>
-                            <td><ul class="allocation-list"><li>• $500k: Coin Burn (Scarcity Injection)</li><li>• $200k: Dev Team</li><li>• $250k: Creative Team</li><li>• $50k: Artist Travel & Production</li></ul></td>
-                        </tr>
-                        <tr>
-                            <td class="tier-highlight">$3,000,000</td>
-                            <td>7.5% Total Coin Supply<br>7.5% Metaverse Equity</td>
-                            <td><ul class="allocation-list"><li>• $1.5M: Strategic Coin Burn</li><li>• $600k: Dev Team</li><li>• $500k: Creative Team</li><li>• $250k: Artist Travel & Logistics</li></ul></td>
-                        </tr>
-                        <tr>
-                            <td class="tier-highlight">$5,000,000</td>
-                            <td>10% Total Coin Supply<br>10% Metaverse Equity<br><span style="color:var(--accent)">+ BLKGTA6 & BLKBlox Dev</span></td>
-                            <td><ul class="allocation-list"><li>• $2.5M: Heavy Coin Burn</li><li>• $1.1M: Dev Team</li><li>• $1M: Creative Team</li><li>• $400k: Artist Travel & Production</li><li><span style="color: var(--success);">+$1M 10m YT Channel Year Promo</span></li></ul></td>
-                        </tr>
-                        <tr>
-                            <td class="tier-highlight">$10,000,000</td>
-                            <td>15% Total Coin Supply<br>15% BLKVerse Equity<br><span style="color:var(--success)">10M Sub YT Acquisition</span></td>
-                            <td><ul class="allocation-list"><li>• $4M: 10M Channel Acquisition/Promo</li><li>• $3M: Coin Burn</li><li>• $1.3M: Dev Team</li><li>• $1M: Creative Team</li><li>• $500k: Global Artist Travel</li></ul></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- LOGIN -->
+        <div id="auth-login">
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()">
             </div>
-
-            <div class="technical-box" style="margin-top: 4rem; padding: 4rem;">
-                <h3 style="margin-bottom: 2rem;">Coin Valuation Projections</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem;">Base (10c)</span>
-                        <p style="color: #fff; font-weight: 700;">$350,000,000</p>
-                        <p style="font-size: 0.85rem; color: #666;">Stagnant Valuation.</p>
-                    </div>
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem;">Mid ($1.00)</span>
-                        <p style="color: #fff; font-weight: 700;">$3,500,000,000</p>
-                        <p style="font-size: 0.85rem; color: #666;">Standard Utility Adoption.</p>
-                    </div>
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem;">High ($10.00)</span>
-                        <p style="color: #fff; font-weight: 700;">$35,000,000,000</p>
-                        <p style="font-size: 0.85rem; color: #666;">Global Market Dominance.</p>
-                    </div>
-                </div>
+            <div class="auth-field">
+                <label>Password</label>
+                <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
             </div>
-        </section>
+            <div class="auth-forgot" onclick="doForgotPassword()">Forgot password?</div>
+            <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+            <div class="auth-divider">or</div>
+            <button class="auth-google-btn" onclick="doGoogle()">
+                <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6-6C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l6-6C34.5 6.2 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.6 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.8l6.2 5.2C40.8 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+                Continue with Google
+            </button>
+            <div class="auth-error" id="login-error"></div>
+        </div>
 
-        <section id="tokenomics">
-            <div class="section-header"><h2>Distribution & Scarcity.</h2></div>
-            <div class="fiscal-layout">
-                <div class="svg-wrap">
-                    <svg viewBox="0 0 64 64">
-                        <circle class="slice" cx="32" cy="32" r="16" stroke="var(--color-public)" stroke-dasharray="35.2 100.5" stroke-dashoffset="0"></circle>
-                        <circle class="slice" cx="32" cy="32" r="16" stroke="var(--color-artists)" stroke-dasharray="25.1 100.5" stroke-dashoffset="-35.2"></circle>
-                        <circle class="slice slice-glitch" cx="32" cy="32" r="16" stroke="var(--color-investor)" stroke-dasharray="10.1 100.5" stroke-dashoffset="-60.3"></circle>
-                        <circle class="slice slice-glitch" cx="32" cy="32" r="16" stroke="var(--color-directors)" stroke-dasharray="30.1 100.5" stroke-dashoffset="-70.4"></circle>
-                    </svg>
-                </div>
-                <div class="legend-wrap">
-                    <p style="margin-bottom: 2.5rem; color: var(--sub);">The fiscal engine is built for long-term asset appreciation. 50% of net operational surplus is dedicated to an automated buy-back and burn program.</p>
-                    <ul class="legend">
-                        <li class="legend-item trigger-glitch">
-                            <div class="legend-color" style="background: var(--color-directors);"></div>
-                            <span class="legend-text">30.0% // FOUNDERS & DEVELOPMENT</span>
-                            <span class="error-text">ERROR 404 // LOCKED ASSET</span>
-                        </li>
-                        <li class="legend-item trigger-glitch">
-                            <div class="legend-color" style="background: var(--color-investor);"></div>
-                            <span class="legend-text">10.0% // EARLY INVESTOR POOL</span>
-                            <span class="error-text">ERROR 404 // LOCKED ASSET</span>
-                        </li>
-                        <li class="legend-item">
-                            <div class="legend-color" style="background: var(--color-artists);"></div>
-                            <span class="legend-text">25.0% // ARTIST RETAINER ALLOCATION</span>
-                        </li>
-                        <li class="legend-item">
-                            <div class="legend-color" style="background: var(--color-public);"></div>
-                            <span class="legend-text">35.0% // PUBLIC LIQUIDITY</span>
-                        </li>
-                    </ul>
-                </div>
+        <!-- REGISTER -->
+        <div id="auth-register" style="display:none;">
+            <div class="auth-field">
+                <label>Display Name</label>
+                <input type="text" id="reg-name" placeholder="Your name">
             </div>
-
-            <div class="technical-box" style="margin-top: 4rem; padding: 4rem;">
-                <h3 style="margin-bottom: 2rem; letter-spacing: -1.2px;">Vesting & Institutional Lock-Up</h3>
-                <p style="color: var(--sub); font-size: 1.1rem; margin-bottom: 2rem;">To ensure market stability, 65% of the total supply is subject to an <b>18-month hard lock</b>. Post-lock, liquidity is released via a tiered exit protocol designed to prevent volatility.</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem; margin-bottom: 0.5rem;">Phase 01</span>
-                        <p style="color: #fff; font-weight: 700;">0.1% Unlock</p>
-                        <p style="font-size: 0.85rem; color: #666;">Monthly release for 6 months post-cliff.</p>
-                    </div>
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem; margin-bottom: 0.5rem;">Phase 02</span>
-                        <p style="color: #fff; font-weight: 700;">0.2% Unlock</p>
-                        <p style="font-size: 0.85rem; color: #666;">Scaling release over the following 12 months.</p>
-                    </div>
-                    <div style="border-left: 2px solid var(--accent); padding-left: 20px;">
-                        <span class="tag" style="font-size: 0.65rem; margin-bottom: 0.5rem;">Terminal Phase</span>
-                        <p style="color: #fff; font-weight: 700;">0.5% Ceiling</p>
-                        <p style="font-size: 0.85rem; color: #666;">Capped at 6.0% maximum annual exit.</p>
-                    </div>
-                </div>
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="you@example.com">
             </div>
-
-            <div class="technical-box" style="margin-top: 4rem; padding: 4rem;">
-                <h3 style="margin-bottom: 0.75rem; letter-spacing: -1.2px;">BLK Token & Smart Contract Infrastructure</h3>
-                <p style="color: var(--sub); font-size: 1rem; margin-bottom: 3rem;">The BLK ecosystem is governed by a dual-layer architecture: a publicly tradeable utility token and a permissioned label layer accessible only to verified artists and institutional partners.</p>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-bottom: 3.5rem;">
-                    <div>
-                        <span class="tag" style="font-size: 0.65rem; margin-bottom: 1.2rem;">Token Specification</span>
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--sub);">TICKER</span>
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #fff; font-weight: 700;">TO ADD</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--sub);">STANDARD</span>
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #fff; font-weight: 700;">TO ADD</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--sub);">TOTAL SUPPLY</span>
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: #fff; font-weight: 700;">TO ADD</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--sub);">BURN MECHANISM</span>
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--accent); font-weight: 700;">TO ADD</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--sub);">BUYBACK ALLOCATION</span>
-                                <span style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--success); font-weight: 700;">TO ADD</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <span class="tag" style="font-size: 0.65rem; margin-bottom: 1.2rem;">Smart Contract Modules</span>
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="border-left: 2px solid var(--accent); padding-left: 1.2rem;">
-                                <p style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem;">Royalty Splitter</p>
-                                <p style="color: var(--sub); font-size: 0.8rem;">On-chain revenue routing enforces 100% passthrough to artist wallets with zero label capture on external streams.</p>
-                            </div>
-                            <div style="border-left: 2px solid var(--accent); padding-left: 1.2rem;">
-                                <p style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem;">Burn Engine</p>
-                                <p style="color: var(--sub); font-size: 0.8rem;">Automated deflationary contract executes buyback-and-burn on 50% of all net operational surplus each fiscal cycle.</p>
-                            </div>
-                            <div style="border-left: 2px solid var(--accent); padding-left: 1.2rem;">
-                                <p style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem;">Vesting Escrow</p>
-                                <p style="color: var(--sub); font-size: 0.8rem;">Time-locked escrow enforces the 18-month hard lock with tiered release. No manual override, fully trustless.</p>
-                            </div>
-                            <div style="border-left: 2px solid var(--accent); padding-left: 1.2rem;">
-                                <p style="color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem;">License Registry</p>
-                                <p style="color: var(--sub); font-size: 0.8rem;">On-chain asset licensing for in-metaverse avatar and music IP. Transfers and royalties are fully on-chain.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <span class="tag" style="font-size: 0.65rem; margin-bottom: 1.5rem;">Access Architecture // Label vs. Independent</span>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div style="background: rgba(138, 43, 226, 0.05); border: 1px solid rgba(138, 43, 226, 0.3); padding: 2.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                            <div style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px;">BLK Label Tier</p>
-                        </div>
-                        <p style="color: var(--sub); font-size: 0.85rem; margin-bottom: 1.5rem;">Permissioned access for signed artists and institutional partners. Unlocks the full production and distribution stack.</p>
-                        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff;">✦ Contract & deal management</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff;">✦ 4K media & music production</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff;">✦ Creator City estate allocation</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff;">✦ Sponsored virtual events & venues</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff;">✦ 100% external royalty passthrough</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #fff;">✦ On-chain IP & avatar licensing</p>
-                        </div>
-                    </div>
-                    <div style="background: rgba(63, 63, 76, 0.15); border: 1px solid rgba(255,255,255,0.08); padding: 2.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                            <div style="width: 8px; height: 8px; background: var(--sub); border-radius: 50%;"></div>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--sub); text-transform: uppercase; letter-spacing: 2px;">Independent User Base</p>
-                        </div>
-                        <p style="color: var(--sub); font-size: 0.85rem; margin-bottom: 1.5rem;">Open access for the 212M+ Minecraft user base. Token holders participate in the ecosystem economy without requiring a label deal.</p>
-                        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #ccc;">◈ $BLK token acquisition & trading</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #ccc;">◈ In-world asset & cosmetic purchases</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #ccc;">◈ Event access & venue participation</p>
-                            <p style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #ccc;">◈ Burn-driven scarcity appreciation</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="auth-field">
+                <label>Password</label>
+                <input type="password" id="reg-pass" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')doRegister()">
             </div>
-
-            <div class="economy-grid">
-                <div class="eco-card">
-                    <span class="eco-pct">70/30</span>
-                    <h2>Digital Capital Allotment Model</h2>
-                    <p>BLK operates a high-fidelity revenue framework strictly confined to transactions occurring within the immersive metaverse ecosystem. Creators command a 70% gross dividend on all digital commerce and performance ticketing. This model ensures that the creative force behind the content is the primary beneficiary of the value generated on the platform.</p>
-                </div>
-                <div class="eco-card burn-card">
-                    <span class="eco-pct">50%</span>
-                    <h2>Operational Burn Protocol</h2>
-                    <p>To secure the long-term appreciation of the $BLK asset, 50% of all net operational surpluses derived from metaverse activity are utilized for an automated buy-back and permanent asset retirement program. This deflationary logic leverages ecosystem growth to drive systemic scarcity for all token holders.</p>
-                </div>
-            </div>
-
-            <div class="protocol-mandate">
-                <h3>Infrastructure & Development Mandate</h3>
-                <p>The 30% operational allotment is utilized exclusively to facilitate the rigorous technical demands of the BLK environment. This includes the localized management of immersive hosting, architectural world-building, and high-performance development cycles. Crucially, this framework does not interfere with the BLK 100% Pass-Through distribution model; all external royalties and streaming revenue remain completely untouched by the protocol.</p>
-            </div>
-
-            <div class="revenue-streams">
-                <h3>Metaverse-Specific Revenue Verticals</h3>
-                <div class="stream-item">
-                    <div>
-                        <span class="stream-name">Meta-Asset Virtual Commerce</span>
-                        <p class="stream-desc">The high-margin distribution of digital-native assets, wearables, and immersive collectibles. These items utilize the BLK proprietary social layers to drive consistent transactional volume.</p>
-                    </div>
-                    <span class="yield-label">70% NET CREATOR YIELD</span>
-                </div>
-                <div class="stream-item">
-                    <div>
-                        <span class="stream-name">Immersive Performance Infrastructure</span>
-                        <p class="stream-desc">Our scalable metaverse venue provides an alternative to physical logistics by utilizing smart-contract ticketing and tiered access protocols.</p>
-                    </div>
-                    <span class="yield-label">70% NET CREATOR YIELD</span>
-                </div>
-                <div class="stream-item">
-                    <div>
-                        <span class="stream-name">Decentralized Intellectual Property</span>
-                        <p class="stream-desc">The primary distribution of creative works via the BLK decentralized node. We enable creators to monetize full-length projects and exclusive drops with total on-chain transparency.</p>
-                    </div>
-                    <span class="yield-label">70% NET CREATOR YIELD</span>
-                </div>
-            </div>
-
-            <div class="lock-contract">
-                <span class="lock-badge">PENDING DEPLOYMENT</span>
-                <h3>On-Chain Lock Contract</h3>
-                <div class="lock-fields">
-                    <div class="lock-field">
-                        <span class="lock-field-label">Contract Address</span>
-                        <span class="lock-field-val pending">PENDING DEPLOYMENT</span>
-                    </div>
-                    <div class="lock-field">
-                        <span class="lock-field-label">Network</span>
-                        <span class="lock-field-val pending">To Add</span>
-                    </div>
-                    <div class="lock-field">
-                        <span class="lock-field-label">Audit Status</span>
-                        <span class="lock-field-val pending">To Add</span>
-                    </div>
-                    <div class="lock-field">
-                        <span class="lock-field-label">Lock Duration</span>
-                        <span class="lock-field-val">To Add</span>
-                    </div>
-                    <div class="lock-field">
-                        <span class="lock-field-label">Locked Supply</span>
-                        <span class="lock-field-val">To Add</span>
-                    </div>
-                    <div class="lock-field">
-                        <span class="lock-field-label">Max Annual Exit</span>
-                        <span class="lock-field-val">To Add</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="gallery">
-            <div style="max-width: 900px; margin-left: auto; margin-right: auto;">
-                <div class="section-header"><h2>Infrastructure Gallery.</h2></div>
-                <div class="gallery-container" style="margin-left: 0; margin-right: 0;">
-                    <span class="tag">Infrastructure Visuals // Beta Renders</span>
-                    <div class="gallery-viewport">
-                        <div class="gallery-nav prev" onclick="moveSlide(-1)">&#10094;</div>
-                        <div class="gallery-nav next" onclick="moveSlide(1)">&#10095;</div>
-                        <img id="mainView" src="https://i.ibb.co/tMJFrdYz/2026-04-22-04-37-54.png" class="gallery-main" alt="BLK Infrastructure View">
-                        <div class="scanline"></div>
-                    </div>
-                    <div class="gallery-footer"><div id="counter" class="gallery-counter">1 / 50</div></div>
-                </div>
-
-                <script>
-                    const images = [
-                        "https://i.ibb.co/tMJFrdYz/2026-04-22-04-37-54.png","https://i.ibb.co/WvLrvSLm/2026-04-22-04-38-20.png","https://i.ibb.co/bMm7gdPy/2026-04-22-04-38-37.png","https://i.ibb.co/JWPSvyws/2026-04-22-04-41-01.png","https://i.ibb.co/4nPCXTcT/2026-04-22-04-41-07.png","https://i.ibb.co/zVQ2tVpF/2026-04-22-04-41-24.png","https://i.ibb.co/wFLxtDFC/2026-04-21-10-46-55.png","https://i.ibb.co/0pP5Qb9q/2026-04-21-10-46-43.png","https://i.ibb.co/7xdJXfbM/2026-04-21-10-45-02.png","https://i.ibb.co/2zHHp9x/2026-04-21-10-47-28.png","https://i.ibb.co/KjNNPPL4/2026-04-21-10-44-33.png","https://i.ibb.co/Q7NPngCy/2026-04-21-10-44-22.png","https://i.ibb.co/TBZ0jh45/2026-04-21-10-43-34.png","https://i.ibb.co/W4GZsRhq/2026-04-21-10-43-29.png","https://i.ibb.co/BH2F6S8M/2026-04-21-10-42-15.png","https://i.ibb.co/5x52g5fz/2026-04-21-10-41-45.png","https://i.ibb.co/VYh5h7f1/2026-04-21-10-40-01.png","https://i.ibb.co/wFXPj8pT/2026-04-21-10-39-40.png","https://i.ibb.co/cXQ0JBR3/2026-04-21-10-36-54.png","https://i.ibb.co/fdyX6rSr/2026-04-21-10-44-48.png","https://i.ibb.co/B5JpxYvB/2026-04-21-10-34-12.png","https://i.ibb.co/vvqZQ7Kn/2026-04-21-10-22-48.png","https://i.ibb.co/Hfq7bhdK/2026-04-21-10-22-42.png","https://i.ibb.co/MyWW5kPV/2026-04-21-10-22-39.png","https://i.ibb.co/36NkGp4/2026-04-21-10-21-20.png","https://i.ibb.co/bTL65sd/2026-04-21-10-21-05.png","https://i.ibb.co/93WwBgXC/2026-04-21-10-20-58.png","https://i.ibb.co/Ld8Z9T92/2026-04-21-10-34-37.png","https://i.ibb.co/1fLtbJQf/2026-04-21-10-47-11.png",
-                        "https://i.ibb.co/gZfYdwx5/2026-04-21-15-29-24.png","https://i.ibb.co/sJ2dcr1S/2026-04-21-15-42-02.png","https://i.ibb.co/yn85KXVT/2026-04-21-15-41-39.png","https://i.ibb.co/whHvGyPG/2026-04-21-15-39-01.png","https://i.ibb.co/4x0PN2R/2026-04-21-15-36-18.png","https://i.ibb.co/SDZ5DZJ1/2026-04-21-15-35-53.png",
-                        "https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845565/jester1_hlnp45.gif","https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/machinebrute1_c9omin.gif","https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845563/machineelf1_q6cl0r.gif","https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/mantis1_sylpe1.gif","https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845565/shadow1_jru640.gif","https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/aicube_mky1eg.gif","https://res.cloudinary.com/dqmwlgboq/image/upload/v1776845564/blaze1_souzjw.gif","https://i.ibb.co/DHzR0m83/2026-04-21-15-42-41.png","https://i.ibb.co/RGBmr8h3/2026-04-21-15-43-08.png",
-                        "https://i.ibb.co/RpFFqFX1/image3.png","https://i.ibb.co/67HPHx6d/image2.png","https://i.ibb.co/h6ND5gs/image.png","https://i.ibb.co/cSPcjQvK/image3.png","https://i.ibb.co/3yMMRKXc/image2.png","https://i.ibb.co/Kc7PZ55b/image.png"
-                    ];
-                    let currentIndex = 0, isGlitching = false;
-                    const preloadCache = images.map(src => { const img = new Image(); img.src = src; return img; });
-                    function moveSlide(direction) {
-                        if (isGlitching) return;
-                        currentIndex += direction;
-                        if (currentIndex >= images.length) currentIndex = 0;
-                        if (currentIndex < 0) currentIndex = images.length - 1;
-                        triggerGlitchUpdate();
-                    }
-                    function triggerGlitchUpdate() {
-                        const view = document.getElementById('mainView');
-                        isGlitching = true;
-                        view.classList.add('glitch-active');
-                        setTimeout(() => { view.src = images[currentIndex]; document.getElementById('counter').innerText = `${currentIndex + 1} / ${images.length}`; }, 125);
-                        setTimeout(() => { view.classList.remove('glitch-active'); isGlitching = false; }, 250);
-                    }
-                    const viewport = document.querySelector('.gallery-viewport');
-                    let touchStartX = 0;
-                    viewport.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
-                    viewport.addEventListener('touchend', e => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 40) moveSlide(diff > 0 ? 1 : -1); }, { passive: true });
-                </script>
-            </div>
-        </section>
-
-        <footer>2026 BLK WEB3 ECOSYSTEM. ALL RIGHTS RESERVED.</footer>
+            <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create Account</button>
+            <div class="auth-divider">or</div>
+            <button class="auth-google-btn" onclick="doGoogle()">
+                <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l6-6C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l6-6C34.5 6.2 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.6 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.8l6.2 5.2C40.8 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+                Continue with Google
+            </button>
+            <div class="auth-error" id="reg-error"></div>
+        </div>
     </div>
+</div>
 
-    <script>
-        const navBtn = document.getElementById('navBtn');
-        const navOverlay = document.getElementById('navOverlay');
-        navBtn.addEventListener('click', () => {
-            navBtn.classList.toggle('open');
-            navOverlay.classList.toggle('open');
-            document.body.style.overflow = navOverlay.classList.contains('open') ? 'hidden' : '';
+<!-- ════════════════════════════════════════
+     MAIN APP SHELL
+════════════════════════════════════════ -->
+<div id="app-shell">
+
+    <!-- NAV -->
+    <nav>
+        <a href="#" class="nav-logo">BLK.</a>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchView('library')">Library</button>
+            <button class="nav-tab" onclick="switchView('store')">Store</button>
+            <button class="nav-tab" onclick="switchView('profile')">Profile</button>
+        </div>
+        <div class="nav-right">
+            <div class="nav-coins" id="coinDisplay">0 BLK</div>
+            <div class="nav-user" id="navUser" onclick="toggleDropdown()">
+                <div class="nav-avatar" id="navAvatar">?</div>
+                <span class="nav-username" id="navUsername">Loading...</span>
+                <span class="nav-admin-badge" id="navAdminBadge" style="display:none;">Admin</span>
+                <div class="user-dropdown" id="userDropdown">
+                    <div class="dropdown-item" onclick="switchView('profile')">◈ &nbsp;Profile</div>
+                    <div class="dropdown-item admin-link" id="adminPanelLink" style="display:none;" onclick="openAdminPanel()">⬡ &nbsp;Admin Panel</div>
+                    <div class="dropdown-item danger" onclick="doSignOut()">→ &nbsp;Sign Out</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- SIDEBAR -->
+    <aside>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Upload Music</div>
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" multiple accept="audio/*">
+                <div class="upload-zone-icon">⊕</div>
+                <p>Drop audio files here<br>or click to browse<br><br>MP3 · WAV · FLAC · AAC</p>
+            </div>
+        </div>
+        <div class="sidebar-section" style="flex:1;">
+            <div class="sidebar-label">Queue <span id="queueCount" style="color:var(--accent);">0</span></div>
+            <div class="queue-list" id="queueList">
+                <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>
+            </div>
+        </div>
+
+        <!-- SPOTIFY -->
+        <div class="stream-section">
+            <div class="sidebar-label">Spotify</div>
+            <button class="stream-connect-btn" id="spotifyConnectBtn" onclick="toggleSpotifyPanel()">
+                <span class="stream-icon">🎵</span>
+                <span id="spotifyBtnText">Add from Spotify</span>
+                <span class="stream-status" id="spotifyStatus"></span>
+            </button>
+            <div id="spotifyPanel" style="display:none;">
+                <div class="stream-add-row">
+                    <input class="stream-input-url" id="spotifyUrlInput" type="text" placeholder="Paste Spotify track/playlist URL..." oninput="spotifyUrlHint()">
+                </div>
+                <div class="stream-meta-fields" id="spotifyMetaFields" style="display:none;">
+                    <input class="stream-meta-input" id="spotifyMetaTitle"  type="text" placeholder="Song title">
+                    <input class="stream-meta-input" id="spotifyMetaArtist" type="text" placeholder="Artist name">
+                    <input class="stream-meta-input" id="spotifyMetaArt"    type="text" placeholder="Album art URL (optional)">
+                </div>
+                <div class="stream-add-row" style="margin-top:0.4rem;">
+                    <button class="stream-add-btn" onclick="addSpotifyTrack()">Add Track</button>
+                </div>
+                <div class="stream-tracks" id="spotifyTracks"></div>
+            </div>
+        </div>
+
+        <!-- SOUNDCLOUD -->
+        <div class="stream-section">
+            <div class="sidebar-label">SoundCloud</div>
+            <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
+                <span class="stream-icon">☁</span>
+                <span id="soundcloudBtnText">Add from SoundCloud</span>
+                <span class="stream-status" id="soundcloudStatus"></span>
+            </button>
+            <div id="soundcloudPanel" style="display:none;">
+                <div class="stream-add-row">
+                    <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL..." oninput="soundcloudUrlHint()">
+                </div>
+                <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;">
+                    <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
+                    <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
+                    <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
+                </div>
+                <div class="stream-add-row" style="margin-top:0.4rem;">
+                    <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
+                </div>
+                <div class="stream-tracks" id="soundcloudTracks"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- LIBRARY -->
+        <div id="view-library">
+            <div class="view-header">
+                <div>
+                    <div class="view-sub">Local Music</div>
+                    <div class="view-title">Your Library</div>
+                </div>
+                <div class="search-bar">
+                    <span style="color:var(--sub);">⌕</span>
+                    <input type="text" id="searchInput" placeholder="Search tracks..." oninput="filterTracks()">
+                </div>
+            </div>
+            <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 2.5rem;overflow-x:auto;">
+                <button class="lib-filter-tab active" id="filter-all"       onclick="setLibFilter('all')">All</button>
+                <button class="lib-filter-tab"         id="filter-local"     onclick="setLibFilter('local')">Local</button>
+                <button class="lib-filter-tab"         id="filter-spotify"   onclick="setLibFilter('spotify')">Spotify</button>
+                <button class="lib-filter-tab"         id="filter-soundcloud" onclick="setLibFilter('soundcloud')">SoundCloud</button>
+                <button class="lib-filter-tab blk-filter" id="filter-store" onclick="setLibFilter('store')">◈ BLK Songs</button>
+            </div>
+            <div class="track-list">
+                <div class="track-list-header">
+                    <span>#</span><span>Title</span><span>Album</span><span>Added</span><span style="text-align:right;">Time</span><span></span>
+                </div>
+                <div id="trackListBody">
+                    <div class="empty-library">
+                        <div class="empty-icon">◈</div>
+                        <div class="empty-label">Library Empty</div>
+                        <div class="empty-hint">Upload audio files using the panel on the left</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STORE -->
+        <div id="view-store" style="display:none;">
+            <div class="view-header">
+                <div>
+                    <div class="view-sub">BLK Marketplace</div>
+                    <div class="view-title">Music Store</div>
+                </div>
+                <div class="search-bar">
+                    <span style="color:var(--sub);">⌕</span>
+                    <input type="text" id="storeSearch" placeholder="Search store..." oninput="filterStore()">
+                </div>
+            </div>
+            <div class="store-grid" id="storeGrid"></div>
+        </div>
+
+        <!-- PROFILE -->
+        <div id="view-profile" style="display:none;">
+            <div class="view-header">
+                <div>
+                    <div class="view-sub">Account</div>
+                    <div class="view-title">Your Profile</div>
+                </div>
+            </div>
+            <div class="profile-panel">
+                <div class="profile-avatar-lg" id="profileAvatarLg">?</div>
+                <div style="font-size:1.4rem;font-weight:700;margin-bottom:0.3rem;" id="profileName">—</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);display:flex;align-items:center;gap:0.6rem;" id="profileEmail">—</div>
+                <div id="emailVerifiedBadge" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;padding:0.2rem 0.6rem;margin-top:0.4rem;border:1px solid;display:inline-block;"></div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--accent);letter-spacing:2px;margin-top:0.5rem;" id="profileRole">USER</div>
+                <div class="profile-stat-grid">
+                    <div class="profile-stat">
+                        <div class="profile-stat-val" id="statCoins">0</div>
+                        <div class="profile-stat-label">BLK Coins</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-val" id="statListens">0</div>
+                        <div class="profile-stat-label">Total Listens</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-val" id="statPurchases">0</div>
+                        <div class="profile-stat-label">Purchases</div>
+                    </div>
+                </div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Member Since</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;margin-bottom:2.5rem;" id="profileJoined">—</div>
+
+                <!-- SETTINGS SECTION -->
+                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;padding-top:1.5rem;border-top:1px solid var(--border);">Account Settings</div>
+                <div class="settings-btn-group">
+                    <button class="settings-btn" id="verifyEmailBtn" onclick="sendVerificationEmail()">
+                        <span class="settings-btn-icon">✉</span>
+                        <div>
+                            <div class="settings-btn-label">Verify Email</div>
+                            <div class="settings-btn-sub">Resend verification link to your inbox</div>
+                        </div>
+                    </button>
+                    <button class="settings-btn" onclick="openChangeEmailModal()">
+                        <span class="settings-btn-icon">@</span>
+                        <div>
+                            <div class="settings-btn-label">Change Email</div>
+                            <div class="settings-btn-sub">Update your email address</div>
+                        </div>
+                    </button>
+                    <button class="settings-btn" onclick="sendPasswordChangeEmail()">
+                        <span class="settings-btn-icon">⚿</span>
+                        <div>
+                            <div class="settings-btn-label">Change Password</div>
+                            <div class="settings-btn-sub">Send a password reset link to your email</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PLAYER BAR -->
+    <div class="player-bar">
+        <div class="player-track">
+            <div class="player-art" id="playerArt">
+                <span id="playerArtEmoji">◈</span>
+                <div class="spin-ring"></div>
+                <div class="scanline"></div>
+            </div>
+            <div>
+                <div class="player-track-name" id="playerName"><span class="player-track-none">No track selected</span></div>
+                <div class="player-track-artist" id="playerArtist"></div>
+            </div>
+        </div>
+        <div class="player-controls">
+            <div class="player-btns">
+                <button class="ctrl-btn" id="btnShuffle" onclick="toggleShuffle()" title="Shuffle">⇄</button>
+                <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
+                <button class="ctrl-play" id="btnPlay" onclick="togglePlay()">▶</button>
+                <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
+                <button class="ctrl-btn" id="btnRepeat" onclick="toggleRepeat()">↺</button>
+            </div>
+            <div class="player-progress">
+                <span class="progress-time" id="timeElapsed">0:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill" style="width:0%">
+                        <div class="progress-dot"></div>
+                    </div>
+                </div>
+                <span class="progress-time" id="timeDuration">0:00</span>
+            </div>
+        </div>
+        <div class="player-right">
+            <div class="coin-earn" id="coinEarn">◈ +0.01 BLK</div>
+            <div class="volume-wrap">
+                <span class="vol-icon" onclick="toggleMute()">🔊</span>
+                <div class="vol-bar" id="volBar">
+                    <div class="vol-fill" id="volFill" style="width:80%">
+                        <div class="vol-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EMBED PLAYER OVERLAY (Spotify / SoundCloud) -->
+<div class="embed-overlay" id="embedOverlay" onclick="if(event.target===this)closeEmbed()">
+    <div class="embed-box">
+        <div class="embed-header">
+            <span class="embed-title" id="embedTitle">Now Playing</span>
+            <button class="embed-close" onclick="closeEmbed()">✕</button>
+        </div>
+        <div class="embed-iframe-wrap" id="embedIframeWrap"></div>
+        <div class="embed-note" id="embedNote"></div>
+    </div>
+</div>
+
+<!-- INSUFFICIENT BLK MODAL -->
+<div class="modal-bg" id="blkWarnModal" onclick="if(event.target===this)closeBlkWarn()">
+    <div class="modal blk-warn-modal">
+        <button class="modal-close" onclick="closeBlkWarn()">✕</button>
+        <span class="modal-tag">BLK Store // Insufficient Balance</span>
+        <h3>Not Enough BLK</h3>
+        <div class="modal-artist" style="margin-bottom:1.5rem;">You don't have enough BLK coins to purchase this track.</div>
+        <div class="blk-warn-amount" id="blkWarnShortfall">—</div>
+        <div class="blk-warn-detail"><span>Your balance</span><span id="blkWarnBalance">—</span></div>
+        <div class="blk-warn-detail"><span>Track price</span><span id="blkWarnPrice">—</span></div>
+        <div class="blk-warn-detail" style="margin-bottom:1.5rem;padding-top:0.5rem;border-top:1px solid var(--border);"><span>You still need</span><span id="blkWarnNeed" style="color:var(--warn);">—</span></div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;line-height:1.8;margin-bottom:1.5rem;">
+            Earn BLK by listening to music.<br>Every 10 minutes of listening = <span style="color:var(--accent);">+0.01 BLK</span>
+        </div>
+        <button class="modal-btn" onclick="closeBlkWarn();switchView('library')">Keep Listening →</button>
+    </div>
+</div>
+
+<!-- PURCHASE MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModalDirect()">✕</button>
+        <span class="modal-tag">BLK Store // Purchase</span>
+        <h3 id="modalTitle">Track Title</h3>
+        <div class="modal-artist" id="modalArtist">Artist</div>
+        <div class="modal-price-row">
+            <span class="modal-price-label">Price</span>
+            <span class="modal-price-val" id="modalPrice">$0.00</span>
+        </div>
+        <div class="modal-includes">
+            <div class="modal-includes-label">Includes</div>
+            <div class="modal-include-item">Instant download to your library</div>
+            <div class="modal-include-item">Full quality audio</div>
+            <div class="modal-include-item">BLK ecosystem access</div>
+            <div class="modal-include-item">Earn BLK coins on every listen</div>
+        </div>
+        <button class="modal-btn" id="modalBtn" onclick="confirmPurchase()">Confirm Purchase</button>
+    </div>
+</div>
+
+<!-- CHANGE EMAIL MODAL -->
+<div class="modal-bg" id="changeEmailModal" onclick="if(event.target===this)closeChangeEmailModal()">
+    <div class="modal">
+        <button class="modal-close" onclick="closeChangeEmailModal()">✕</button>
+        <span class="modal-tag">Account Settings // Change Email</span>
+        <h3 style="margin-bottom:1.5rem;">Update Email</h3>
+        <div class="auth-field">
+            <label>Current Password</label>
+            <input type="password" id="changeEmailPass" placeholder="Enter your password to confirm" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;font-family:'Space Mono',monospace;font-size:0.8rem;padding:0.8rem 1rem;outline:none;">
+        </div>
+        <div class="auth-field" style="margin-top:0.8rem;">
+            <label>New Email Address</label>
+            <input type="email" id="changeEmailNew" placeholder="new@example.com" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;font-family:'Space Mono',monospace;font-size:0.8rem;padding:0.8rem 1rem;outline:none;">
+        </div>
+        <div class="auth-error" id="changeEmailError" style="margin-top:0.5rem;min-height:1rem;"></div>
+        <button class="modal-btn" id="changeEmailBtn" onclick="doChangeEmail()" style="margin-top:1rem;">Send Verification Link</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<audio id="audioEl"></audio>
+
+<!-- ════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════ -->
+<script>
+    // Wait for Firebase module to load
+    let FB = null;
+    let currentUser = null;
+    let userProfile = null;
+
+    const waitForFB = () => new Promise(res => {
+        const check = setInterval(() => {
+            if (window._blkFB) { clearInterval(check); res(window._blkFB); }
+        }, 50);
+    });
+
+    // ── PLAYER STATE ──
+    let library = [], currentIdx = -1, isPlaying = false;
+    let shuffle = false, repeat = false, muted = false, volume = 0.8;
+    let shuffleQueue = [];
+    let coins = 0, listenCount = 0, lastCoinTick = 0, pendingPurchase = null;
+
+    const audio = document.getElementById('audioEl');
+    audio.volume = volume;
+
+    const STORE = [];
+
+    // ════════════════════════════════════════
+    // AUTH
+    // ════════════════════════════════════════
+    async function initAuth() {
+        FB = await waitForFB();
+        FB.onAuthStateChanged(FB.auth, async user => {
+            if (user) {
+                currentUser = user;
+                await loadUserProfile(user);
+                showApp();
+            } else {
+                currentUser = null;
+                userProfile = null;
+                showAuth();
+            }
         });
-        navOverlay.querySelectorAll('a').forEach(a => {
-            a.addEventListener('click', () => {
-                navBtn.classList.remove('open');
-                navOverlay.classList.remove('open');
-                document.body.style.overflow = '';
+    }
+
+    async function loadUserProfile(user) {
+        const { db, doc, getDoc } = FB;
+        const ref = doc(db, 'users', user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+            userProfile = snap.data();
+            coins = userProfile.coins || 0;
+            listenCount = userProfile.listenCount || 0;
+        } else {
+            // First sign-in — create profile
+            userProfile = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0],
+                role: 'user',
+                coins: 0,
+                listenCount: 0,
+                purchases: 0,
+                joinedAt: new Date().toISOString()
+            };
+            await FB.setDoc(ref, userProfile);
+        }
+        updateNavUser();
+        updateCoins();
+        updateProfileView();
+    }
+
+    function showAuth() {
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('app-shell').classList.remove('visible');
+    }
+
+    function showApp() {
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('app-shell').classList.add('visible');
+    }
+
+    // ── TAB TOGGLE ──
+    function setAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+        document.getElementById('auth-login').style.display    = tab === 'login'    ? 'block' : 'none';
+        document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
+        document.getElementById('login-error').textContent = '';
+        document.getElementById('reg-error').textContent   = '';
+    }
+
+    // ── LOGIN ──
+    async function doLogin() {
+        const email = document.getElementById('login-email').value.trim();
+        const pass  = document.getElementById('login-pass').value;
+        const btn   = document.getElementById('login-btn');
+        const err   = document.getElementById('login-error');
+        if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+        btn.disabled = true; btn.textContent = 'Signing in...';
+        try {
+            await FB.signInWithEmailAndPassword(FB.auth, email, pass);
+        } catch(e) {
+            err.textContent = friendlyError(e.code);
+            btn.disabled = false; btn.textContent = 'Sign In';
+        }
+    }
+
+    // ── REGISTER ──
+    async function doRegister() {
+        const name  = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const pass  = document.getElementById('reg-pass').value;
+        const btn   = document.getElementById('reg-btn');
+        const err   = document.getElementById('reg-error');
+        if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+        if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
+        btn.disabled = true; btn.textContent = 'Creating account...';
+        try {
+            const cred = await FB.createUserWithEmailAndPassword(FB.auth, email, pass);
+            // Override displayName with what they typed
+            userProfile = null; // force fresh create
+            const ref = FB.doc(FB.db, 'users', cred.user.uid);
+            await FB.setDoc(ref, {
+                uid: cred.user.uid, email, displayName: name,
+                role: 'user', coins: 0, listenCount: 0, purchases: 0,
+                joinedAt: new Date().toISOString()
             });
+            // Send email verification
+            await FB.sendEmailVerification(cred.user);
+            btn.textContent = 'Account Created';
+            document.getElementById('reg-error').style.color = 'var(--success)';
+            document.getElementById('reg-error').textContent = 'Account created! Check your email to verify your address.';
+        } catch(e) {
+            err.textContent = friendlyError(e.code);
+            btn.disabled = false; btn.textContent = 'Create Account';
+        }
+    }
+
+    // ── GOOGLE ──
+    async function doGoogle() {
+        try {
+            await FB.signInWithPopup(FB.auth, FB.googleProvider);
+        } catch(e) {
+            document.getElementById('login-error').textContent = friendlyError(e.code);
+        }
+    }
+
+    // ── FORGOT PASSWORD ──
+    async function doForgotPassword() {
+        const email = document.getElementById('login-email').value.trim();
+        if (!email) { document.getElementById('login-error').textContent = 'Enter your email first.'; return; }
+        try {
+            await FB.sendPasswordResetEmail(FB.auth, email);
+            document.getElementById('login-error').style.color = 'var(--success)';
+            document.getElementById('login-error').textContent = 'Reset email sent — check your inbox.';
+        } catch(e) {
+            document.getElementById('login-error').textContent = friendlyError(e.code);
+        }
+    }
+
+    // ════════════════════════════════════════
+    // ACCOUNT SETTINGS (Verify / Change Email / Change Password)
+    // ════════════════════════════════════════
+    async function sendVerificationEmail() {
+        if (!currentUser) return;
+        try {
+            await FB.sendEmailVerification(currentUser);
+            showToast('Verification email sent — check your inbox ✓', true);
+        } catch(e) {
+            if (e.code === 'auth/too-many-requests') showToast('Too many attempts — wait a few minutes before resending');
+            else showToast('Could not send verification email. Try again later.');
+        }
+    }
+
+    function openChangeEmailModal() {
+        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        if (isGoogle) { showToast('Google accounts manage email through Google — change it there'); return; }
+        document.getElementById('changeEmailPass').value = '';
+        document.getElementById('changeEmailNew').value = '';
+        document.getElementById('changeEmailError').textContent = '';
+        document.getElementById('changeEmailError').style.color = 'var(--error)';
+        document.getElementById('changeEmailBtn').textContent = 'Send Verification Link';
+        document.getElementById('changeEmailBtn').disabled = false;
+        document.getElementById('changeEmailModal').classList.add('open');
+    }
+
+    function closeChangeEmailModal() {
+        document.getElementById('changeEmailModal').classList.remove('open');
+    }
+
+    async function doChangeEmail() {
+        const pass     = document.getElementById('changeEmailPass').value;
+        const newEmail = document.getElementById('changeEmailNew').value.trim();
+        const errEl    = document.getElementById('changeEmailError');
+        const btn      = document.getElementById('changeEmailBtn');
+        errEl.style.color = 'var(--error)';
+        if (!pass)     { errEl.textContent = 'Enter your current password.'; return; }
+        if (!newEmail) { errEl.textContent = 'Enter a new email address.'; return; }
+        if (newEmail === currentUser.email) { errEl.textContent = 'New email must be different from your current email.'; return; }
+        btn.textContent = 'Sending...'; btn.disabled = true;
+        try {
+            // Re-authenticate before sensitive operation
+            const credential = FB.EmailAuthProvider.credential(currentUser.email, pass);
+            await FB.reauthenticateWithCredential(currentUser, credential);
+            // Send verification to new address — change only takes effect when user clicks the link
+            await FB.verifyBeforeUpdateEmail(currentUser, newEmail);
+            // Update Firestore
+            if (FB) await FB.updateDoc(FB.doc(FB.db, 'users', currentUser.uid), { email: newEmail });
+            errEl.style.color = 'var(--success)';
+            errEl.textContent = 'Verification sent to ' + newEmail + '. Click the link to confirm your new email.';
+            btn.textContent = '✓ Email Sent';
+            setTimeout(closeChangeEmailModal, 3000);
+        } catch(e) {
+            btn.textContent = 'Send Verification Link'; btn.disabled = false;
+            errEl.textContent = friendlyError(e.code) || 'Failed to update email. Check your password and try again.';
+        }
+    }
+
+    async function sendPasswordChangeEmail() {
+        if (!currentUser?.email) return;
+        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        if (isGoogle) { showToast('Google accounts manage passwords through Google'); return; }
+        try {
+            await FB.sendPasswordResetEmail(FB.auth, currentUser.email);
+            showToast('Password reset email sent to ' + currentUser.email + ' ✓', true);
+        } catch(e) {
+            showToast('Could not send reset email. Try again later.');
+        }
+    }
+
+    // ── SIGN OUT ──
+    async function doSignOut() {
+        await FB.signOut(FB.auth);
+        library = []; currentIdx = -1; isPlaying = false; coins = 0;
+        audio.pause(); audio.src = '';
+        renderLibrary(); renderQueue(); updateCoins();
+        toggleDropdown(true);
+    }
+
+    function friendlyError(code) {
+        const map = {
+            'auth/user-not-found':       'No account found with that email.',
+            'auth/wrong-password':       'Incorrect password.',
+            'auth/invalid-credential':   'Invalid email or password.',
+            'auth/email-already-in-use': 'An account with this email already exists.',
+            'auth/weak-password':        'Password must be at least 6 characters.',
+            'auth/invalid-email':        'Please enter a valid email address.',
+            'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
+            'auth/too-many-requests':    'Too many attempts. Try again later.',
+        };
+        return map[code] || 'Something went wrong. Please try again.';
+    }
+
+    // ════════════════════════════════════════
+    // NAV / USER UI
+    // ════════════════════════════════════════
+    function updateNavUser() {
+        if (!userProfile) return;
+        const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('navAvatar').textContent    = initials;
+        document.getElementById('navUsername').textContent  = userProfile.displayName || userProfile.email;
+        const isAdmin = userProfile.role === 'admin';
+        document.getElementById('navAdminBadge').style.display   = isAdmin ? 'inline' : 'none';
+        document.getElementById('adminPanelLink').style.display  = isAdmin ? 'flex'   : 'none';
+    }
+
+    function updateProfileView() {
+        if (!userProfile) return;
+        const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('profileAvatarLg').textContent = initials;
+        document.getElementById('profileName').textContent     = userProfile.displayName || '—';
+        document.getElementById('profileEmail').textContent    = userProfile.email || '—';
+        document.getElementById('profileRole').textContent     = (userProfile.role || 'user').toUpperCase();
+        document.getElementById('statCoins').textContent       = (userProfile.coins || 0).toFixed(2);
+        document.getElementById('statListens').textContent     = userProfile.listenCount || 0;
+        document.getElementById('statPurchases').textContent   = userProfile.purchases || 0;
+        const joined = userProfile.joinedAt ? new Date(userProfile.joinedAt).toLocaleDateString('en-AU', { year:'numeric', month:'long', day:'numeric' }) : '—';
+        document.getElementById('profileJoined').textContent   = joined;
+        // Email verified badge
+        const badge = document.getElementById('emailVerifiedBadge');
+        const verifyBtn = document.getElementById('verifyEmailBtn');
+        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        if (isGoogle || currentUser?.emailVerified) {
+            badge.style.display = 'inline-block';
+            badge.style.color = 'var(--success)'; badge.style.borderColor = 'var(--success)';
+            badge.textContent = '✓ Verified';
+            if (verifyBtn) verifyBtn.style.opacity = '0.4';
+            if (verifyBtn) verifyBtn.style.pointerEvents = 'none';
+        } else {
+            badge.style.display = 'inline-block';
+            badge.style.color = 'var(--warn, #ffaa00)'; badge.style.borderColor = 'var(--warn, #ffaa00)';
+            badge.textContent = '⚠ Not Verified';
+            if (verifyBtn) verifyBtn.style.opacity = '1';
+            if (verifyBtn) verifyBtn.style.pointerEvents = 'auto';
+        }
+    }
+
+    function toggleDropdown(forceClose = false) {
+        const dd = document.getElementById('userDropdown');
+        if (forceClose) { dd.classList.remove('open'); return; }
+        dd.classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+        if (!document.getElementById('navUser').contains(e.target)) {
+            document.getElementById('userDropdown').classList.remove('open');
+        }
+    });
+
+    function openAdminPanel() {
+        window.open('blk-admin.html', '_blank');
+        toggleDropdown(true);
+    }
+
+    // ════════════════════════════════════════
+    // COIN SYNC TO FIRESTORE
+    // ════════════════════════════════════════
+    async function syncCoinsToFirestore(delta) {
+        if (!currentUser || !FB) return;
+        const ref = FB.doc(FB.db, 'users', currentUser.uid);
+        await FB.updateDoc(ref, {
+            coins: FB.increment(delta),
+            listenCount: FB.increment(1),
+            lastActive: FB.serverTimestamp()
         });
-    </script>
+        if (userProfile) {
+            userProfile.coins = (userProfile.coins || 0) + delta;
+            userProfile.listenCount = (userProfile.listenCount || 0) + 1;
+        }
+        updateProfileView();
+    }
+
+    // ════════════════════════════════════════
+    // VIEWS
+    // ════════════════════════════════════════
+    function switchView(v) {
+        ['library','store','profile'].forEach(id => {
+            document.getElementById('view-' + id).style.display = id === v ? 'block' : 'none';
+        });
+        document.querySelectorAll('.nav-tab').forEach((t, i) => {
+            t.classList.toggle('active', ['library','store','profile'][i] === v);
+        });
+        if (v === 'store') renderStore();
+        if (v === 'profile') updateProfileView();
+        toggleDropdown(true);
+    }
+
+    // ════════════════════════════════════════
+    // INDEXEDDB — persist local audio files
+    // ════════════════════════════════════════
+    let idb = null;
+    const IDB_NAME = 'blk-library', IDB_VER = 1, IDB_STORE = 'tracks';
+
+    function openIDB() {
+        return new Promise((res, rej) => {
+            const req = indexedDB.open(IDB_NAME, IDB_VER);
+            req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE, { keyPath: 'id' });
+            req.onsuccess = e => res(e.target.result);
+            req.onerror   = e => rej(e);
+        });
+    }
+
+    async function idbSaveTrack(track, file) {
+        if (!idb) return;
+        return new Promise((res, rej) => {
+            const tx = idb.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put({
+                id: track.id, file,
+                title: track.title, artist: track.artist, album: track.album,
+                duration: track.duration, dateAdded: track.dateAdded,
+                emoji: track.emoji, source: track.source,
+                fileName: file.name
+            });
+            tx.oncomplete = res; tx.onerror = rej;
+        });
+    }
+
+    async function idbUpdateDuration(id, duration) {
+        if (!idb) return;
+        return new Promise((res, rej) => {
+            const tx = idb.transaction(IDB_STORE, 'readwrite');
+            const store = tx.objectStore(IDB_STORE);
+            const req = store.get(id);
+            req.onsuccess = () => { if (req.result) { req.result.duration = duration; store.put(req.result); } };
+            tx.oncomplete = res; tx.onerror = rej;
+        });
+    }
+
+    async function idbDeleteTrack(id) {
+        if (!idb) return;
+        return new Promise((res, rej) => {
+            const tx = idb.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).delete(id);
+            tx.oncomplete = res; tx.onerror = rej;
+        });
+    }
+
+    async function idbSaveStreaming(track) {
+        // Save spotify/soundcloud track metadata (no file)
+        if (!idb) return;
+        return new Promise((res, rej) => {
+            const tx = idb.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put({
+                id: track.id, file: null,
+                title: track.title, artist: track.artist, album: track.album,
+                albumArt: track.albumArt || null,
+                duration: track.duration, dateAdded: track.dateAdded,
+                emoji: track.emoji, source: track.source,
+                spotifyUrl: track.spotifyUrl || null,
+                spotifyType: track.spotifyType || null,
+                soundcloudUrl: track.soundcloudUrl || null,
+                spotifyTrackId: track.spotifyTrackId || null,
+                fileName: null
+            });
+            tx.oncomplete = res; tx.onerror = rej;
+        });
+    }
+
+    async function restoreLibraryFromIDB() {
+        if (!idb) return;
+        return new Promise((res, rej) => {
+            const tx  = idb.transaction(IDB_STORE, 'readonly');
+            const req = tx.objectStore(IDB_STORE).getAll();
+            req.onsuccess = () => {
+                const records = req.result || [];
+                let missingCount = 0;
+                records.forEach(r => {
+                    let track;
+                    if (r.source === 'spotify' || r.source === 'soundcloud') {
+                        track = {
+                            id: r.id, url: r.spotifyUrl || r.soundcloudUrl || '',
+                            title: r.title, artist: r.artist, album: r.album,
+                            albumArt: r.albumArt || null,
+                            duration: r.duration, dateAdded: r.dateAdded,
+                            emoji: r.emoji, source: r.source,
+                            spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
+                            spotifyTrackId: r.spotifyTrackId,
+                            soundcloudUrl: r.soundcloudUrl
+                        };
+                        library.push(track);
+                        if (r.source === 'spotify') { spotifyTracks.push(track); }
+                        else { soundcloudTracks.push(track); }
+                    } else if (r.file) {
+                        // Local file still present in IDB
+                        const url = URL.createObjectURL(r.file);
+                        track = {
+                            id: r.id, url, title: r.title, artist: r.artist,
+                            album: r.album, duration: r.duration,
+                            dateAdded: r.dateAdded, emoji: r.emoji, source: 'local',
+                            fileName: r.fileName, missing: false
+                        };
+                        library.push(track);
+                    } else {
+                        // Metadata exists but no file (shouldn't happen for local, but handle gracefully)
+                        track = {
+                            id: r.id, url: '', title: r.title, artist: r.artist,
+                            album: r.album, duration: r.duration,
+                            dateAdded: r.dateAdded, emoji: r.emoji, source: 'local',
+                            fileName: r.fileName, missing: true
+                        };
+                        library.push(track);
+                        missingCount++;
+                    }
+                });
+                if (missingCount > 0) showMissingBanner(missingCount);
+                renderLibrary(); renderQueue();
+                renderSpotifyTracks(); renderSoundcloudTracks();
+                if (spotifyTracks.length) {
+                    document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
+                    document.getElementById('spotifyConnectBtn').classList.add('connected');
+                }
+                if (soundcloudTracks.length) {
+                    document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
+                    document.getElementById('soundcloudConnectBtn').classList.add('connected');
+                }
+                res();
+            };
+            req.onerror = rej;
+        });
+    }
+
+    function showMissingBanner(count) {
+        let banner = document.getElementById('missingBanner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'missingBanner';
+            banner.className = 'missing-banner';
+            const trackList = document.querySelector('.track-list');
+            trackList.parentNode.insertBefore(banner, trackList);
+        }
+        banner.innerHTML = `<span class="missing-banner-icon">⚠</span> ${count} track${count>1?'s':''} could not be restored — the file${count>1?'s have':' has'} moved or been deleted. Re-upload to fix.`;
+    }
+
+    // ════════════════════════════════════════
+    // FILE UPLOAD
+    // ════════════════════════════════════════
+    document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
+    const uploadZone = document.getElementById('uploadZone');
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+
+    function handleFiles(files) {
+        let added = 0;
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('audio/')) return;
+            // If this filename matches a missing track, restore it
+            const existing = library.find(t => t.missing && t.fileName === file.name);
+            if (existing) {
+                existing.url = URL.createObjectURL(file);
+                existing.missing = false;
+                idbSaveTrack(existing, file);
+                const banner = document.getElementById('missingBanner');
+                const stillMissing = library.filter(t => t.missing).length;
+                if (banner && stillMissing === 0) banner.remove();
+                else if (banner) showMissingBanner(stillMissing);
+                renderLibrary(); renderQueue();
+                showToast(`"${existing.title}" restored ✓`, true);
+                return;
+            }
+            const url = URL.createObjectURL(file);
+            const name = file.name.replace(/\.[^.]+$/, '');
+            let title = name, artist = 'Unknown Artist', album = 'Local Upload';
+            if (name.includes(' - ')) { const p = name.split(' - '); artist = p[0].trim(); title = p.slice(1).join(' - ').trim(); }
+            const track = { id: 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2), url, title, artist, album, duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: randomEmoji(), source: 'local', fileName: file.name, missing: false };
+            library.push(track);
+            idbSaveTrack(track, file);
+            const tmp = new Audio(url);
+            tmp.addEventListener('loadedmetadata', () => {
+                track.duration = tmp.duration;
+                idbUpdateDuration(track.id, tmp.duration);
+                renderLibrary(); renderQueue();
+            });
+            added++;
+        });
+        if (added) { renderLibrary(); renderQueue(); showToast(`${added} track${added > 1 ? 's' : ''} added to library`); }
+    }
+
+    function randomEmoji() { return ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'][Math.floor(Math.random()*8)]; }
+
+    // ════════════════════════════════════════
+    // LIBRARY RENDER
+    // ════════════════════════════════════════
+    function renderLibrary(filtered) {
+        const tracks = filtered ?? library;
+        const body = document.getElementById('trackListBody');
+        if (!tracks.length) {
+            body.innerHTML = `<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>`;
+            return;
+        }
+        body.innerHTML = tracks.map((t, i) => {
+            const libIdx = library.indexOf(t);
+            const isStream = t.source === 'spotify' || t.source === 'soundcloud';
+            const sourceTag = isStream ? `<span style="font-family:'Space Mono',monospace;font-size:0.5rem;color:${t.source==='spotify'?'#1ED760':'#ff5500'};letter-spacing:1px;margin-left:4px;">${t.source==='spotify'?'SPOTIFY':'SC'}</span>` : '';
+            const thumbInner = t.albumArt
+                ? `<img src="${esc(t.albumArt)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`
+                : `<span>${t.emoji}</span>`;
+            return `
+            <div class="track-row ${currentIdx === libIdx ? 'playing' : ''} ${t.missing ? 'missing' : ''}" onclick="playTrack(${libIdx})">
+                <span class="track-idx">${currentIdx === libIdx ? '▶' : i+1}</span>
+                <div class="track-info">
+                    <div class="track-thumb">${thumbInner}<div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
+                    <div><div class="track-name">${esc(t.title)}${sourceTag}</div><div class="track-name-artist">${esc(t.artist)}</div></div>
+                </div>
+                <span class="track-album">${esc(t.album)}</span>
+                <span class="track-meta">${t.dateAdded}</span>
+                <span class="track-duration">${t.missing ? '⚠ missing' : fmt(t.duration)}</span>
+                <button class="track-remove-btn" onclick="removeTrack(event,${libIdx})" title="Remove track">✕</button>
+            </div>`;
+        }).join('');
+    }
+
+    function removeTrack(e, libIdx) {
+        e.stopPropagation();
+        const t = library[libIdx];
+        if (!t) return;
+        if (t.source === 'spotify') {
+            const si = spotifyTracks.indexOf(t);
+            if (si !== -1) spotifyTracks.splice(si, 1);
+            document.getElementById('spotifyStatus').textContent = spotifyTracks.length ? `${spotifyTracks.length} linked` : '';
+            if (!spotifyTracks.length) document.getElementById('spotifyConnectBtn').classList.remove('connected');
+            renderSpotifyTracks();
+        } else if (t.source === 'soundcloud') {
+            const si = soundcloudTracks.indexOf(t);
+            if (si !== -1) soundcloudTracks.splice(si, 1);
+            document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? `${soundcloudTracks.length} linked` : '';
+            if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
+            renderSoundcloudTracks();
+        }
+        idbDeleteTrack(t.id);
+        if (currentIdx === libIdx) {
+            audio.pause(); isPlaying = false; currentIdx = -1;
+            document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
+            document.getElementById('playerArtist').textContent = '';
+            document.getElementById('playerArtEmoji').textContent = '◈';
+            closeEmbed();
+        } else if (currentIdx > libIdx) { currentIdx--; }
+        library.splice(libIdx, 1);
+        filterTracks();
+        renderQueue();
+        showToast(`"${t.title}" removed`);
+    }
+
+    let activeLibFilter = 'all';
+
+    function setLibFilter(filter) {
+        activeLibFilter = filter;
+        document.querySelectorAll('.lib-filter-tab').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('filter-' + filter).classList.add('active');
+        filterTracks();
+    }
+
+    function filterTracks() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        let tracks = library;
+        if (activeLibFilter !== 'all') tracks = tracks.filter(t => t.source === activeLibFilter);
+        if (q) tracks = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+        renderLibrary(tracks.length === library.length && !q ? undefined : tracks);
+    }
+
+    function renderQueue() {
+        document.getElementById('queueCount').textContent = library.length;
+        const list = document.getElementById('queueList');
+        if (!library.length) { list.innerHTML = `<div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>`; return; }
+        list.innerHTML = library.map((t, i) => `
+            <div class="queue-item ${i === currentIdx ? 'active' : ''}" onclick="playTrack(${i})">
+                <span class="queue-num">${i === currentIdx ? '▶' : i+1}</span>
+                <div class="queue-art"><span>${t.emoji}</span></div>
+                <div class="queue-info"><div class="queue-title">${esc(t.title)}</div><div class="queue-artist">${esc(t.artist)}</div></div>
+                <span class="queue-duration">${t.missing ? '⚠' : fmt(t.duration)}</span>
+            </div>
+        `).join('');
+    }
+
+    // ════════════════════════════════════════
+    // PLAYBACK
+    // ════════════════════════════════════════
+    function playTrack(idx) {
+        if (idx < 0 || idx >= library.length) return;
+        const t = library[idx];
+        if (t.missing) { showToast('⚠ File missing — re-upload to restore playback'); return; }
+
+        // Clicking the currently-playing track → toggle pause/resume
+        if (idx === currentIdx) {
+            if (t.source === 'spotify' || t.source === 'soundcloud') { openEmbedPlayer(t); return; }
+            if (isPlaying) { audio.pause(); } else { audio.play(); }
+            return;
+        }
+
+        // Spotify / SoundCloud → open embed overlay
+        if (t.source === 'spotify' || t.source === 'soundcloud') {
+            currentIdx = idx;
+            openEmbedPlayer(t);
+            updatePlayerUI(t);
+            renderLibrary(); renderQueue();
+            return;
+        }
+
+        // Close any open embed when switching to local track
+        closeEmbed();
+        currentIdx = idx;
+        audio.src = t.url;
+        audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
+    }
+    function togglePlay() {
+        if (currentIdx < 0) { if (library.length) playTrack(0); return; }
+        const t = library[currentIdx];
+        if (t && (t.source === 'spotify' || t.source === 'soundcloud')) { openEmbedPlayer(t); return; }
+        if (isPlaying) { audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
+        updatePlayBtn();
+    }
+    function prevTrack() { if (!library.length) return; if (audio.currentTime > 3 && library[currentIdx]?.source === 'local') { audio.currentTime = 0; return; } playTrack(currentIdx <= 0 ? library.length-1 : currentIdx-1); }
+    function buildShuffleQueue() {
+        // Fisher-Yates shuffle — local/store tracks only, excluding current
+        const indices = library.map((_, i) => i).filter(i => i !== currentIdx && library[i].source !== 'spotify' && library[i].source !== 'soundcloud');
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        shuffleQueue = indices;
+    }
+    function nextTrack() {
+        if (!library.length) return;
+        if (shuffle) {
+            if (!shuffleQueue.length) buildShuffleQueue(); // all played — rebuild for next cycle
+            if (!shuffleQueue.length) return; // only 1 track in library
+            playTrack(shuffleQueue.shift());
+            return;
+        }
+        playTrack((currentIdx + 1) % library.length);
+    }
+    function toggleShuffle() {
+        shuffle = !shuffle;
+        document.getElementById('btnShuffle').classList.toggle('active', shuffle);
+        if (shuffle) buildShuffleQueue(); else shuffleQueue = [];
+    }
+    function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
+    // ── PROGRESS BAR DRAG ──
+    let isDraggingProgress = false;
+    (function() {
+        const bar = document.getElementById('progressBar');
+        const fill = document.getElementById('progressFill');
+
+        function getPct(e) {
+            const rect = bar.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        }
+        function applyPct(pct) {
+            fill.style.width = (pct * 100) + '%';
+            if (audio.duration) document.getElementById('timeElapsed').textContent = fmt(pct * audio.duration);
+        }
+        function commitPct(pct) {
+            isDraggingProgress = false;
+            bar.classList.remove('dragging');
+            if (audio.duration) audio.currentTime = pct * audio.duration;
+        }
+
+        bar.addEventListener('mousedown', e => {
+            isDraggingProgress = true; bar.classList.add('dragging');
+            applyPct(getPct(e));
+            e.preventDefault();
+        });
+        bar.addEventListener('click', e => {
+            applyPct(getPct(e)); commitPct(getPct(e));
+        });
+        document.addEventListener('mousemove', e => {
+            if (!isDraggingProgress) return;
+            applyPct(getPct(e));
+        });
+        document.addEventListener('mouseup', e => {
+            if (!isDraggingProgress) return;
+            commitPct(getPct(e));
+        });
+        // Touch support
+        bar.addEventListener('touchstart', e => {
+            isDraggingProgress = true; bar.classList.add('dragging');
+            applyPct(getPct(e)); e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('touchmove', e => {
+            if (!isDraggingProgress) return; applyPct(getPct(e));
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            if (!isDraggingProgress) return;
+            if (e.changedTouches) {
+                const rect = bar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
+                commitPct(pct);
+            } else { isDraggingProgress = false; bar.classList.remove('dragging'); }
+        });
+    })();
+
+    // ── VOLUME BAR DRAG ──
+    (function() {
+        const bar = document.getElementById('volBar');
+        const fill = document.getElementById('volFill');
+        let dragging = false;
+
+        function getPct(e) {
+            const rect = bar.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        }
+        function applyPct(pct) {
+            fill.style.width = (pct * 100) + '%';
+            volume = pct; audio.volume = pct; muted = false;
+        }
+
+        bar.addEventListener('mousedown', e => {
+            dragging = true; bar.classList.add('dragging');
+            applyPct(getPct(e)); e.preventDefault();
+        });
+        bar.addEventListener('click', e => { applyPct(getPct(e)); });
+        document.addEventListener('mousemove', e => {
+            if (!dragging) return; applyPct(getPct(e));
+        });
+        document.addEventListener('mouseup', e => {
+            if (!dragging) return;
+            dragging = false; bar.classList.remove('dragging');
+            applyPct(getPct(e));
+        });
+        bar.addEventListener('touchstart', e => {
+            dragging = true; bar.classList.add('dragging');
+            applyPct(getPct(e)); e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('touchmove', e => {
+            if (!dragging) return; applyPct(getPct(e));
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            if (!dragging) return;
+            dragging = false; bar.classList.remove('dragging');
+            if (e.changedTouches) {
+                const rect = bar.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
+                applyPct(pct);
+            }
+        });
+    })();
+
+    function seekTo(e) { /* legacy — handled by drag IIFE above */ }
+    function setVolume(e) { /* legacy — handled by drag IIFE above */ }
+    function toggleMute() { muted = !muted; audio.muted = muted; }
+
+    audio.addEventListener('timeupdate', () => {
+        if (!audio.duration) return;
+        if (!isDraggingProgress) {
+            document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100)+'%';
+            document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
+        }
+        const now = Math.floor(audio.currentTime/10);
+        if (now > lastCoinTick) {
+            lastCoinTick = now;
+            listenCount++;
+            if (listenCount % 10 === 0) {
+                coins += 0.01;
+                updateCoins();
+                flashCoinEarn();
+                syncCoinsToFirestore(0.01);
+            }
+        }
+    });
+    audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
+    audio.addEventListener('ended', () => { if (repeat) { audio.play(); return; } nextTrack(); });
+    audio.addEventListener('play', () => { isPlaying = true; updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
+    audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
+
+    function updatePlayerUI(t) {
+        const isStream = t.source === 'spotify' || t.source === 'soundcloud';
+        document.getElementById('playerName').innerHTML = esc(t.title) + (isStream ? `<span style="font-size:0.55rem;color:${t.source==='spotify'?'#1ED760':'#ff5500'};font-family:'Space Mono',monospace;margin-left:6px;">${t.source==='spotify'?'SPOTIFY':'SOUNDCLOUD'}</span>` : '');
+        document.getElementById('playerArtist').textContent = t.artist;
+        const artEl = document.getElementById('playerArt');
+        const emojiEl = document.getElementById('playerArtEmoji');
+        if (t.albumArt) {
+            artEl.style.backgroundImage = `url('${t.albumArt}')`;
+            artEl.style.backgroundSize = 'cover';
+            artEl.style.backgroundPosition = 'center';
+            emojiEl.style.display = 'none';
+        } else {
+            artEl.style.backgroundImage = '';
+            emojiEl.style.display = '';
+            emojiEl.textContent = t.emoji;
+        }
+        updatePlayBtn();
+    }
+    function updatePlayBtn() { document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶'; renderLibrary(); renderQueue(); }
+    function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
+    function updateCoins() { document.getElementById('coinDisplay').textContent = coins.toFixed(2)+' BLK'; document.getElementById('statCoins').textContent = coins.toFixed(2); }
+
+    // ════════════════════════════════════════
+    // EMBED PLAYER (Spotify / SoundCloud)
+    // ════════════════════════════════════════
+    function openEmbedPlayer(t) {
+        let iframeSrc = '', note = '', title = '';
+        if (t.source === 'spotify') {
+            // Convert open.spotify.com URL → embed URL
+            const embedUrl = (t.spotifyUrl || '').replace('open.spotify.com/', 'open.spotify.com/embed/').replace('https://spotify.com/', 'https://open.spotify.com/embed/').replace('https://open.spotify.com/track/', 'https://open.spotify.com/embed/track/').replace('https://open.spotify.com/playlist/', 'https://open.spotify.com/embed/playlist/');
+            iframeSrc = embedUrl;
+            note = '🎵 Playing via Spotify Embed · Requires Spotify account for full tracks';
+            title = 'Spotify // ' + esc(t.title);
+        } else if (t.source === 'soundcloud') {
+            // SoundCloud widget embed
+            const scUrl = encodeURIComponent(t.soundcloudUrl || '');
+            iframeSrc = `https://w.soundcloud.com/player/?url=${scUrl}&color=%238A2BE2&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+            note = '☁ Playing via SoundCloud Widget';
+            title = 'SoundCloud // ' + esc(t.title);
+        }
+        document.getElementById('embedTitle').innerHTML = title;
+        document.getElementById('embedNote').textContent = note;
+        document.getElementById('embedIframeWrap').innerHTML = `<iframe
+            src="${iframeSrc}"
+            height="${t.source === 'spotify' ? '152' : '166'}"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+        ></iframe>`;
+        document.getElementById('embedOverlay').classList.add('open');
+        // Pause local audio when embed opens
+        audio.pause(); isPlaying = false; updatePlayBtn();
+    }
+
+    function closeEmbed() {
+        document.getElementById('embedOverlay').classList.remove('open');
+        document.getElementById('embedIframeWrap').innerHTML = ''; // stops iframe audio
+    }
+
+    // ════════════════════════════════════════
+    // STORE
+    // ════════════════════════════════════════
+    function renderStore(filtered) {
+        const items = filtered ?? STORE;
+        const grid = document.getElementById('storeGrid');
+        if (!items.length) {
+            grid.innerHTML = `<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1rem;"><div style="font-size:2.5rem;opacity:0.15;">◈</div><div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;">No tracks available</div><div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(255,255,255,0.15);letter-spacing:1px;">Check back soon</div></div>`;
+            return;
+        }
+        grid.innerHTML = items.map(s => `
+            <div class="store-card">
+                ${s.badge ? `<span class="store-badge">${s.badge}</span>` : ''}
+                <div class="store-art">
+                    <div class="store-art-gradient" style="background:radial-gradient(circle at 30% 70%, ${s.color} 0%, #000 70%);"></div>
+                    <span style="position:relative;z-index:1;font-size:2.5rem;">${s.emoji}</span>
+                    <div class="store-card-overlay"><div class="store-play-btn" onclick="previewStore('${s.id}')">▶</div></div>
+                </div>
+                <div class="store-info">
+                    <div class="store-title">${esc(s.title)}</div>
+                    <div class="store-artist">${esc(s.artist)} · ${esc(s.genre)}</div>
+                    <div class="store-footer">
+                        <span class="store-price">$${s.price.toFixed(2)}</span>
+                        <button class="store-buy-btn ${s.owned?'owned':''}" onclick="openModal('${s.id}')">${s.owned?'✓ Owned':'Buy'}</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    function filterStore() { const q = document.getElementById('storeSearch').value.toLowerCase(); if (!q){renderStore();return;} renderStore(STORE.filter(s=>s.title.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q)||s.genre.toLowerCase().includes(q))); }
+    function previewStore() { showToast('Preview: 30s sample — purchase for full track'); }
+
+    // ── PURCHASE ──
+    function openModal(id) {
+        const s = STORE.find(x => x.id === id); if (!s || s.owned) return;
+        // ── INSUFFICIENT BLK CHECK ──
+        if (coins < s.price) {
+            const shortfall = s.price - coins;
+            document.getElementById('blkWarnBalance').textContent = coins.toFixed(2) + ' BLK';
+            document.getElementById('blkWarnPrice').textContent   = '$' + s.price.toFixed(2);
+            document.getElementById('blkWarnNeed').textContent    = shortfall.toFixed(2) + ' BLK needed';
+            document.getElementById('blkWarnShortfall').textContent = '-' + shortfall.toFixed(2) + ' BLK';
+            document.getElementById('blkWarnModal').classList.add('open');
+            return;
+        }
+        pendingPurchase = s;
+        document.getElementById('modalTitle').textContent  = s.title;
+        document.getElementById('modalArtist').textContent = s.artist + ' · ' + s.genre;
+        document.getElementById('modalPrice').textContent  = '$' + s.price.toFixed(2);
+        const btn = document.getElementById('modalBtn'); btn.textContent = 'Confirm Purchase'; btn.className = 'modal-btn';
+        document.getElementById('modalBg').classList.add('open');
+    }
+    function closeBlkWarn() { document.getElementById('blkWarnModal').classList.remove('open'); }
+    function closeModal(e) { if (e.target === document.getElementById('modalBg')) closeModalDirect(); }
+    function closeModalDirect() { document.getElementById('modalBg').classList.remove('open'); pendingPurchase = null; }
+
+    async function confirmPurchase() {
+        if (!pendingPurchase) return;
+        const s = pendingPurchase;
+        const btn = document.getElementById('modalBtn');
+        btn.textContent = 'Processing...'; btn.disabled = true;
+        // Deduct coins
+        coins = Math.max(0, coins - s.price);
+        updateCoins();
+        // Save purchase to Firestore
+        if (currentUser && FB) {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid);
+            await FB.updateDoc(ref, { purchases: FB.increment(1), coins: FB.increment(-s.price), lastActive: FB.serverTimestamp() });
+            await FB.setDoc(FB.doc(FB.db, 'purchases', currentUser.uid + '_' + s.id), {
+                uid: currentUser.uid, trackId: s.id, title: s.title,
+                artist: s.artist, price: s.price, purchasedAt: FB.serverTimestamp()
+            });
+            if (userProfile) { userProfile.purchases = (userProfile.purchases || 0) + 1; userProfile.coins = coins; }
+        }
+        setTimeout(() => {
+            s.owned = true;
+            library.push({ id: s.id+'_lib', url: '', title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
+            btn.textContent = '✓ Added to Library'; btn.className = 'modal-btn success'; btn.disabled = false;
+            renderLibrary(); renderQueue(); renderStore(); updateProfileView();
+            showToast(`"${s.title}" added to your library`, true);
+            setTimeout(closeModalDirect, 1500);
+        }, 800);
+    }
+
+    // ════════════════════════════════════════
+    // SPOTIFY / SOUNDCLOUD INTEGRATION
+    // ════════════════════════════════════════
+    let spotifyTracks = [];
+    let soundcloudTracks = [];
+    let spotifyPanelOpen = false;
+    let soundcloudPanelOpen = false;
+
+    function toggleSpotifyPanel() {
+        spotifyPanelOpen = !spotifyPanelOpen;
+        document.getElementById('spotifyPanel').style.display = spotifyPanelOpen ? 'block' : 'none';
+        document.getElementById('spotifyBtnText').textContent = spotifyPanelOpen ? 'Spotify Library' : 'Add from Spotify';
+        renderSpotifyTracks();
+    }
+
+    function toggleSoundcloudPanel() {
+        soundcloudPanelOpen = !soundcloudPanelOpen;
+        document.getElementById('soundcloudPanel').style.display = soundcloudPanelOpen ? 'block' : 'none';
+        document.getElementById('soundcloudBtnText').textContent = soundcloudPanelOpen ? 'SoundCloud Library' : 'Add from SoundCloud';
+        renderSoundcloudTracks();
+    }
+
+    function parseSpotifyUrl(url) {
+        // Normalise various Spotify URL formats
+        const trackMatch = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([a-zA-Z0-9]+)/);
+        if (trackMatch) return { type: 'track', id: trackMatch[1] };
+        const plMatch = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?playlist\/([a-zA-Z0-9]+)/);
+        if (plMatch) return { type: 'playlist', id: plMatch[1] };
+        const albumMatch = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?album\/([a-zA-Z0-9]+)/);
+        if (albumMatch) return { type: 'album', id: albumMatch[1] };
+        return null;
+    }
+
+    function spotifyUrlHint() {
+        const url = document.getElementById('spotifyUrlInput').value.trim();
+        const parsed = url ? parseSpotifyUrl(url) : null;
+        const fieldsEl = document.getElementById('spotifyMetaFields');
+        if (!parsed) { fieldsEl.style.display = 'none'; return; }
+        fieldsEl.style.display = 'flex';
+        // Pre-fill title from URL slug if blank
+        const titleEl = document.getElementById('spotifyMetaTitle');
+        const artistEl = document.getElementById('spotifyMetaArtist');
+        if (!titleEl.value) {
+            // Extract readable hint from URL: last path segment
+            const slug = url.replace(/\?.*$/, '').split('/').filter(Boolean).pop() || '';
+            titleEl.value = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+        if (!artistEl.value) artistEl.value = '';
+    }
+
+    function addSpotifyTrack() {
+        const url = document.getElementById('spotifyUrlInput').value.trim();
+        if (!url) { showToast('Paste a Spotify URL first'); return; }
+        const parsed = parseSpotifyUrl(url);
+        if (!parsed) { showToast('Invalid Spotify URL — paste a track, album or playlist link'); return; }
+
+        const cleanUrl = `https://open.spotify.com/${parsed.type}/${parsed.id}`;
+        const titleEl  = document.getElementById('spotifyMetaTitle');
+        const artistEl = document.getElementById('spotifyMetaArtist');
+        const artEl    = document.getElementById('spotifyMetaArt');
+
+        const title    = titleEl.value.trim()  || (parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track');
+        const artist   = artistEl.value.trim() || 'Unknown Artist';
+        const albumArt = artEl.value.trim()    || null;
+        const album    = parsed.type === 'album' ? title : parsed.type === 'playlist' ? title : 'Spotify';
+
+        const track = {
+            id: 'sp_' + Date.now(),
+            url: cleanUrl,
+            title, artist, album, albumArt,
+            duration: 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '🎵',
+            source: 'spotify',
+            spotifyUrl: cleanUrl,
+            spotifyType: parsed.type,
+            spotifyTrackId: parsed.id
+        };
+        spotifyTracks.push(track);
+        library.push(track);
+        idbSaveStreaming(track);
+        renderSpotifyTracks();
+        renderLibrary(); renderQueue();
+        // Reset fields
+        document.getElementById('spotifyUrlInput').value = '';
+        titleEl.value = ''; artistEl.value = ''; artEl.value = '';
+        document.getElementById('spotifyMetaFields').style.display = 'none';
+        document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
+        document.getElementById('spotifyConnectBtn').classList.add('connected');
+        showToast(`Spotify ${parsed.type} linked — click to open player`, true);
+    }
+
+    function removeSpotifyTrack(trackId, e) {
+        e.stopPropagation();
+        const idx = spotifyTracks.findIndex(t => t.id === trackId);
+        if (idx === -1) return;
+        const libIdx = library.indexOf(spotifyTracks[idx]);
+        if (libIdx !== -1) library.splice(libIdx, 1);
+        spotifyTracks.splice(idx, 1);
+        renderSpotifyTracks();
+        renderLibrary(); renderQueue();
+        document.getElementById('spotifyStatus').textContent = spotifyTracks.length ? `${spotifyTracks.length} linked` : '';
+        if (!spotifyTracks.length) document.getElementById('spotifyConnectBtn').classList.remove('connected');
+        showToast('Spotify track removed');
+    }
+
+    function renderSpotifyTracks() {
+        const el = document.getElementById('spotifyTracks');
+        if (!spotifyTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No Spotify tracks linked yet</div>'; return; }
+        el.innerHTML = spotifyTracks.map((t) => `
+            <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
+                <div class="stream-track-icon spotify" style="${t.albumArt ? `background-image:url('${esc(t.albumArt)}');background-size:cover;background-position:center;` : ''}">
+                    ${t.albumArt ? '' : '🎵'}
+                </div>
+                <div class="stream-track-info">
+                    <div class="stream-track-name">${esc(t.title)}</div>
+                    <div class="stream-track-artist">${esc(t.artist)}${t.artist && t.artist !== 'Spotify' ? ' · Spotify' : 'Spotify'}</div>
+                    ${t.album ? `<div class="stream-track-album">${esc(t.album)}</div>` : ''}
+                </div>
+                <button class="stream-track-remove" onclick="removeSpotifyTrack('${t.id}',event)" title="Remove">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function soundcloudUrlHint() {
+        const url = document.getElementById('soundcloudUrlInput').value.trim();
+        const valid = url.includes('soundcloud.com/');
+        const fieldsEl = document.getElementById('soundcloudMetaFields');
+        if (!valid) { fieldsEl.style.display = 'none'; return; }
+        fieldsEl.style.display = 'flex';
+        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const titleEl  = document.getElementById('soundcloudMetaTitle');
+        const artistEl = document.getElementById('soundcloudMetaArtist');
+        if (!titleEl.value)  titleEl.value  = (parts[parts.length - 1] || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (!artistEl.value) artistEl.value = (parts[parts.length - 2] || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    async function addSoundcloudTrack() {
+        const url = document.getElementById('soundcloudUrlInput').value.trim();
+        if (!url) { showToast('Paste a SoundCloud URL first'); return; }
+        if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
+
+        const titleEl  = document.getElementById('soundcloudMetaTitle');
+        const artistEl = document.getElementById('soundcloudMetaArtist');
+        const artEl    = document.getElementById('soundcloudMetaArt');
+
+        // Use manual inputs; fall back to URL slug
+        const parts  = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const title  = titleEl.value.trim()  || (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const artist = artistEl.value.trim() || (parts[parts.length - 2] || 'Unknown Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const albumArt = artEl.value.trim()  || null;
+
+        const track = {
+            id: 'sc_' + Date.now(),
+            url, title, artist, album: 'SoundCloud', albumArt,
+            duration: 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '☁',
+            source: 'soundcloud',
+            soundcloudUrl: url
+        };
+        soundcloudTracks.push(track);
+        library.push(track);
+        idbSaveStreaming(track);
+        renderSoundcloudTracks();
+        renderLibrary(); renderQueue();
+        // Reset fields
+        document.getElementById('soundcloudUrlInput').value = '';
+        titleEl.value = ''; artistEl.value = ''; artEl.value = '';
+        document.getElementById('soundcloudMetaFields').style.display = 'none';
+        document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
+        document.getElementById('soundcloudConnectBtn').classList.add('connected');
+        showToast(`SoundCloud track linked — click to open player`, true);
+    }
+
+    function removeSoundcloudTrack(trackId, e) {
+        e.stopPropagation();
+        const idx = soundcloudTracks.findIndex(t => t.id === trackId);
+        if (idx === -1) return;
+        const libIdx = library.indexOf(soundcloudTracks[idx]);
+        if (libIdx !== -1) library.splice(libIdx, 1);
+        soundcloudTracks.splice(idx, 1);
+        renderSoundcloudTracks();
+        renderLibrary(); renderQueue();
+        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? `${soundcloudTracks.length} linked` : '';
+        if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
+        showToast('SoundCloud track removed');
+    }
+
+    function renderSoundcloudTracks() {
+        const el = document.getElementById('soundcloudTracks');
+        if (!soundcloudTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>'; return; }
+        el.innerHTML = soundcloudTracks.map((t) => `
+            <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
+                <div class="stream-track-icon soundcloud" style="${t.albumArt ? `background-image:url('${esc(t.albumArt)}');background-size:cover;background-position:center;` : ''}">
+                    ${t.albumArt ? '' : '☁'}
+                </div>
+                <div class="stream-track-info">
+                    <div class="stream-track-name">${esc(t.title)}</div>
+                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
+                    ${t.album && t.album !== 'SoundCloud' ? `<div class="stream-track-album">${esc(t.album)}</div>` : ''}
+                </div>
+                <button class="stream-track-remove" onclick="removeSoundcloudTrack('${t.id}',event)" title="Remove">✕</button>
+            </div>
+        `).join('');
+    }
+
+    // ════════════════════════════════════════
+    // UTILS
+    // ════════════════════════════════════════
+    function fmt(s) { if (!s||isNaN(s)) return '0:00'; return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,'0')}`; }
+    function esc(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function showToast(msg, success=false) {
+        const t = document.getElementById('toast'); t.textContent = msg;
+        t.className = 'toast show'+(success?' success':'');
+        clearTimeout(t._timer); t._timer = setTimeout(()=>t.className='toast', 3500);
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+        if (e.code === 'ArrowRight') nextTrack();
+        if (e.code === 'ArrowLeft') prevTrack();
+        if (e.code === 'Escape') closeEmbed();
+    });
+
+    // Boot — open IDB first, then restore library, then init auth
+    openIDB().then(db => {
+        idb = db;
+        return restoreLibraryFromIDB();
+    }).catch(() => {}).finally(() => {
+        initAuth();
+    });
+</script>
 </body>
 </html>
