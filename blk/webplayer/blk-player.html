@@ -1243,7 +1243,7 @@
 
     // ── PLAYER STATE ──
     let library = [], currentIdx = -1, isPlaying = false;
-    let shuffle = false, repeat = false, muted = false, volume = 0.8;
+    let shuffle = false, repeat = 0, muted = false, volume = 0.8;
     let shuffleQueue = [];
     let coins = 0, listenCount = 0, lastCoinTick = 0, pendingPurchase = null;
 
@@ -1290,6 +1290,77 @@
         updateNavUser();
         updateCoins();
         updateProfileView();
+        // Restore streaming tracks from Firestore (cross-device sync)
+        await fbLoadStreamingTracks(user.uid);
+    }
+
+    async function fbSaveStreamingTrack(track) {
+        if (!currentUser || !FB) return;
+        try {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', track.id);
+            await FB.setDoc(ref, {
+                id: track.id, title: track.title, artist: track.artist,
+                album: track.album || '', albumArt: track.albumArt || null,
+                duration: track.duration || 0, dateAdded: track.dateAdded || '',
+                emoji: track.emoji || '🎵', source: track.source,
+                spUri: track.spUri || null,
+                soundcloudUrl: track.soundcloudUrl || null,
+                spotifyType: track.spotifyType || null,
+                spotifyTrackId: track.spotifyTrackId || null,
+                playlist: track.playlist || null
+            });
+        } catch(e) { /* non-fatal */ }
+    }
+
+    async function fbDeleteStreamingTrack(trackId) {
+        if (!currentUser || !FB) return;
+        try {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', trackId);
+            await FB.setDoc(ref, { _deleted: true }, { merge: true });
+        } catch(e) { /* non-fatal */ }
+    }
+
+    async function fbLoadStreamingTracks(uid) {
+        if (!FB) return;
+        try {
+            const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
+            const snap = await FB.getDocs(colRef);
+            snap.forEach(docSnap => {
+                const r = docSnap.data();
+                if (r._deleted) return;
+                // Don't duplicate if already in library (from IDB restore)
+                const alreadyIn = library.some(t => t.id === r.id);
+                if (alreadyIn) return;
+                const track = {
+                    id: r.id, url: r.spUri || r.soundcloudUrl || '',
+                    title: r.title, artist: r.artist, album: r.album || '',
+                    albumArt: r.albumArt || null, duration: r.duration || 0,
+                    dateAdded: r.dateAdded || new Date().toLocaleDateString(),
+                    emoji: r.emoji || '🎵', source: r.source,
+                    spUri: r.spUri || null,
+                    soundcloudUrl: r.soundcloudUrl || null,
+                    spotifyType: r.spotifyType || null,
+                    spotifyTrackId: r.spotifyTrackId || null,
+                    playlist: r.playlist || null
+                };
+                library.push(track);
+                if (r.source === 'spotify') spotifyTracks.push(track);
+                else if (r.source === 'soundcloud') soundcloudTracks.push(track);
+                // Also save to IDB for offline access
+                if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+            });
+            if (spotifyTracks.length || soundcloudTracks.length) {
+                renderLibrary(); renderQueue();
+                if (spotifyTracks.length) {
+                    document.getElementById('spotifyStatus').textContent = spotifyTracks.length + ' linked';
+                    document.getElementById('spotifyConnectBtn').classList.add('connected');
+                }
+                if (soundcloudTracks.length) {
+                    document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
+                    const _scBtn = document.getElementById('soundcloudConnectBtn'); if (_scBtn) _scBtn.classList.add('connected');
+                }
+            }
+        } catch(e) { /* non-fatal: offline or no data yet */ }
     }
 
     function showAuth() {
@@ -1709,6 +1780,7 @@
                 title: track.title, artist: track.artist, album: track.album,
                 albumArt: track.albumArt || null, duration: track.duration,
                 dateAdded: track.dateAdded, emoji: track.emoji, source: track.source,
+                spUri: track.spUri || null,
                 spotifyUrl: track.spotifyUrl || null, spotifyType: track.spotifyType || null,
                 soundcloudUrl: track.soundcloudUrl || null, spotifyTrackId: track.spotifyTrackId || null,
                 fileName: null
@@ -1729,10 +1801,11 @@
                     let track;
                     if (r.source === 'spotify' || r.source === 'soundcloud') {
                         track = {
-                            id: r.id, url: r.spotifyUrl || r.soundcloudUrl || '',
+                            id: r.id, url: r.spUri || r.spotifyUrl || r.soundcloudUrl || '',
                             title: r.title, artist: r.artist, album: r.album,
                             albumArt: r.albumArt || null, duration: r.duration,
                             dateAdded: r.dateAdded, emoji: r.emoji, source: r.source,
+                            spUri: r.spUri || null,
                             spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
                             spotifyTrackId: r.spotifyTrackId, soundcloudUrl: r.soundcloudUrl
                         };
@@ -1886,6 +1959,7 @@
             renderSoundcloudTracks();
         }
         idbDeleteTrack(t.id);
+        fbDeleteStreamingTrack(t.id);
         if (currentIdx === libIdx) {
             audio.pause(); isPlaying = false; currentIdx = -1;
             document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
@@ -1950,17 +2024,30 @@
             if (isPlaying) { audio.pause(); } else { audio.play(); }
             return;
         }
-        if (t.source === 'spotify' || t.source === 'soundcloud') {
-            currentIdx = idx;
-            if (t.source === 'soundcloud') openEmbedPlayer(t);
+        // Stop current audio if switching tracks
+        if (audio.src) { audio.pause(); }
+        spStopProgressLoop();
+        currentIdx = idx;
+        if (t.source === 'soundcloud') {
             updatePlayerUI(t);
             renderLibrary(); renderQueue();
+            openEmbedPlayer(t);
+            return;
+        }
+        if (t.source === 'spotify') {
+            updatePlayerUI(t);
+            renderLibrary(); renderQueue();
+            const uri = t.spUri || t.url || null;
+            if (uri && uri.startsWith('spotify:')) {
+                spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
+            } else {
+                showToast('Cannot play — Spotify URI missing. Re-add track from Spotify.');
+            }
             return;
         }
         closeEmbed();
-        currentIdx = idx;
         audio.src = t.url;
-        audio.play().then(() => { spStopProgressLoop(); isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
+        audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
     }
 
     function togglePlay() {
@@ -1973,21 +2060,6 @@
         updatePlayBtn();
     }
 
-    function prevTrack() {
-        if (!library.length) return;
-        if (audio.currentTime > 3 && library[currentIdx]?.source === 'local') { audio.currentTime = 0; return; }
-        playTrack(currentIdx <= 0 ? library.length-1 : currentIdx-1);
-    }
-
-    function buildShuffleQueue() {
-        const indices = library.map((_, i) => i).filter(i => i !== currentIdx && library[i].source !== 'spotify' && library[i].source !== 'soundcloud');
-        for (let i = indices.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [indices[i], indices[j]] = [indices[j], indices[i]];
-        }
-        shuffleQueue = indices;
-    }
-
     function nextTrack() {
         if (!library.length) return;
         if (shuffle) {
@@ -1996,8 +2068,29 @@
             playTrack(shuffleQueue.shift());
             return;
         }
+        if (repeat === 2) { playTrack(currentIdx); return; }
         playTrack((currentIdx + 1) % library.length);
     }
+
+    function prevTrack() {
+        if (!library.length) return;
+        const t = library[currentIdx];
+        // For local audio, if >3s in, restart; for Spotify seek to 0
+        if (t && t.source === 'local' && audio.currentTime > 3) { audio.currentTime = 0; return; }
+        if (t && t.source === 'spotify' && spPlayer && spCurrentPosition > 3) { spPlayer.seek(0); return; }
+        if (repeat === 2) { playTrack(currentIdx); return; }
+        playTrack(currentIdx <= 0 ? library.length - 1 : currentIdx - 1);
+    }
+
+    function buildShuffleQueue() {
+        const indices = library.map((_, i) => i).filter(i => i !== currentIdx);
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+        shuffleQueue = indices;
+    }
+
 
     function toggleShuffle() {
         shuffle = !shuffle;
@@ -2005,7 +2098,14 @@
         if (shuffle) buildShuffleQueue(); else shuffleQueue = [];
     }
 
-    function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
+    // repeat: 0 = off, 1 = repeat-all, 2 = repeat-one
+    function toggleRepeat() {
+        repeat = (repeat + 1) % 3;
+        const btn = document.getElementById('btnRepeat');
+        if (repeat === 0)      { btn.classList.remove('active'); btn.textContent = '↺'; btn.title = 'Repeat Off'; }
+        else if (repeat === 1) { btn.classList.add('active');    btn.textContent = '↺'; btn.title = 'Repeat All'; }
+        else                   { btn.classList.add('active');    btn.textContent = '↻'; btn.title = 'Repeat One'; }
+    }
 
     // ── PROGRESS BAR DRAG ──
     let isDraggingProgress = false;
@@ -2095,7 +2195,7 @@
         }
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
-    audio.addEventListener('ended', () => { if (repeat) { audio.play(); return; } nextTrack(); });
+    audio.addEventListener('ended', () => { if (repeat === 2) { audio.play(); return; } if (repeat === 1 && library.length === 1) { audio.play(); return; } nextTrack(); });
     audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
 
@@ -2419,6 +2519,14 @@
             }
         } else {
             spStopProgressLoop();
+            // Handle repeat-one: if track ended (paused at ~end), replay it
+            if (repeat === 2 && spCurrentDuration > 0 && spCurrentPosition >= spCurrentDuration - 1) {
+                spPlayer.seek(0).then(() => spPlayer.resume());
+            }
+            // Handle repeat-all / next for Spotify: if track ended and not user-paused
+            else if (repeat !== 2 && spCurrentDuration > 0 && spCurrentPosition >= spCurrentDuration - 1) {
+                if (currentIdx >= 0) nextTrack();
+            }
         }
     }
     spOnStateChange._lastUri = null;
@@ -2602,6 +2710,7 @@
         library.push(track);
         spotifyTracks.push(track);
         if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+        fbSaveStreamingTrack(track);
         renderLibrary(); renderQueue();
         if (btn) { btn.textContent = '✓ Added'; btn.style.color = '#1ED760'; btn.style.borderColor = '#1ED760'; btn.style.background = 'rgba(30,215,96,0.15)'; }
         showToast('"' + t.title + '" added to library', true);
@@ -2693,6 +2802,7 @@
             library.push(track);
             spotifyTracks.push(track);
             if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+            fbSaveStreamingTrack(track);
             added++;
         });
 
@@ -2984,6 +3094,7 @@
         };
         soundcloudTracks.push(track); library.push(track);
         idbSaveStreaming(track);
+        fbSaveStreamingTrack(track);
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
         document.getElementById('soundcloudUrlInput').value = '';
         titleEl.value = ''; artistEl.value = ''; artEl.value = '';
