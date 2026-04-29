@@ -2334,9 +2334,31 @@
     function scStartProgressLoop() { scStopProgressLoop(); }
     function scStopProgressLoop()  { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
 
-    function scLoadAndPlay(trackUrl) {
-        if (!window.SC || !window.SC.Widget) { showToast('SC Widget API not loaded'); return; }
+    function scEnsureAPI(cb) {
+        if (window.SC && window.SC.Widget) { cb(); return; }
+        // SC API script not ready yet — inject it dynamically and retry
+        const existing = document.querySelector('script[src*="soundcloud.com/player/api"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://w.soundcloud.com/player/api.js';
+            s.onload = cb;
+            s.onerror = () => showToast('☁ Could not load SoundCloud player API');
+            document.head.appendChild(s);
+        } else {
+            // Script tag exists but SC object not ready — poll briefly
+            let tries = 0;
+            const poll = setInterval(() => {
+                if (window.SC && window.SC.Widget) { clearInterval(poll); cb(); }
+                else if (++tries > 40) { clearInterval(poll); showToast('☁ SoundCloud API failed to initialise'); }
+            }, 100);
+        }
+    }
 
+    function scLoadAndPlay(trackUrl) {
+        scEnsureAPI(() => _scLoadAndPlay(trackUrl));
+    }
+
+    function _scLoadAndPlay(trackUrl) {
         const iframe   = document.getElementById('scHiddenWidget');
         const embedUrl = 'https://w.soundcloud.com/player/?url='
             + encodeURIComponent(trackUrl)
@@ -3243,9 +3265,27 @@
         e.stopPropagation();
         const idx = soundcloudTracks.findIndex(t => t.id === trackId);
         if (idx === -1) return;
-        const libIdx = library.indexOf(soundcloudTracks[idx]);
+        const t = soundcloudTracks[idx];
+        const libIdx = library.indexOf(t);
+        // Stop playback if this track is currently playing
+        if (currentIdx === libIdx) {
+            if (scWidget) { try { scWidget.pause(); } catch(_) {} }
+            audio.pause(); isPlaying = false; currentIdx = -1;
+            document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
+            document.getElementById('playerArtist').textContent = '';
+            document.getElementById('playerArtEmoji').textContent = '◈';
+        } else if (currentIdx > libIdx && libIdx !== -1) {
+            currentIdx--;
+        }
         if (libIdx !== -1) library.splice(libIdx, 1);
         soundcloudTracks.splice(idx, 1);
+        // Persist deletion so track doesn't reappear on reload
+        idbDeleteTrack(t.id);
+        fbDeleteStreamingTrack(t.id);
+        // Update status badge
+        const statusEl = document.getElementById('soundcloudStatus');
+        if (statusEl) statusEl.textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
+        if (!soundcloudTracks.length) { const _scBtnR = document.getElementById('soundcloudConnectBtn'); if (_scBtnR) _scBtnR.classList.remove('connected'); }
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
         showToast('Track removed');
     }
