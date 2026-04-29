@@ -1274,17 +1274,18 @@
     // ════════════════════════════════════════
     // AUTH
     // ════════════════════════════════════════
+    let _authHandling = false;
     async function initAuth() {
         FB = await waitForFB();
         FB.onAuthStateChanged(FB.auth, async user => {
+            if (_authHandling) return;
             if (user) {
-                // Reload to get fresh emailVerified status (avoids stale cache)
-                try { await user.reload(); user = FB.auth.currentUser; } catch(e) {}
                 const isGoogle = user.providerData && user.providerData.some(p => p.providerId === 'google.com');
                 if (!isGoogle && !user.emailVerified) {
-                    // Don't let unverified email users into the app
+                    _authHandling = true;
                     currentUser = null; userProfile = null;
                     await FB.signOut(FB.auth);
+                    _authHandling = false;
                     showAuth();
                     return;
                 }
