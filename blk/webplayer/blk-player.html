@@ -1915,17 +1915,9 @@
         try {
             const oembed = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(cleanUrl)}`).then(r => r.json());
             if (oembed && oembed.title) {
-                // oEmbed title is usually "Song Title - Artist Name" or just "Playlist Name"
-                const parts = oembed.title.split(' - ');
-                if (parts.length >= 2 && parsed.type === 'track') {
-                    title  = parts[0].trim();
-                    artist = parts.slice(1).join(' - ').trim();
-                    album  = ''; // album not exposed via oEmbed; leave blank for tracks
-                } else {
-                    title  = oembed.title;
-                    artist = oembed.author_name || 'Spotify';
-                    album  = parsed.type === 'album' ? oembed.author_name || '' : 'Spotify';
-                }
+                title  = oembed.title;
+                artist = oembed.author_name || 'Unknown Artist';
+                album  = parsed.type === 'album' ? oembed.title : (parsed.type === 'playlist' ? oembed.title : 'Spotify');
             }
         } catch(e) { /* oEmbed failed — keep defaults */ }
 
