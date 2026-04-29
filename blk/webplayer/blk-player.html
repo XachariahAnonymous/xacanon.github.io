@@ -578,6 +578,8 @@
                 Continue with Google
             </button>
             <div class="auth-error" id="login-error"></div>
+            <button id="resend-verify-btn" onclick="resendVerification()" style="display:none;width:100%;margin-top:0.5rem;font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:1px;padding:0.6rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;">Resend Verification Email</button>
+            <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;text-align:center;margin-top:1rem;">Email verification required to access BLK</div>
         </div>
         <!-- REGISTER -->
         <div id="auth-register" style="display:none;">
@@ -709,7 +711,7 @@
             <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 2.5rem;overflow-x:auto;">
                 <button class="lib-filter-tab active" id="filter-all"        onclick="setLibFilter('all')">All</button>
                 <button class="lib-filter-tab"         id="filter-local"      onclick="setLibFilter('local')">Local</button>
-                <button class="lib-filter-tab"         id="filter-spotify"    onclick="setLibFilter('spotify')" style="display:none;">Spotify</button>
+                <button class="lib-filter-tab"         id="filter-spotify"    onclick="setLibFilter('spotify')">Spotify</button>
                 <button class="lib-filter-tab"         id="filter-soundcloud" onclick="setLibFilter('soundcloud')">SoundCloud</button>
                 <button class="lib-filter-tab blk-filter" id="filter-store"  onclick="setLibFilter('store')">◈ BLK Songs</button>
             </div>
@@ -723,6 +725,42 @@
                         <div class="empty-label">Library Empty</div>
                         <div class="empty-hint">Upload audio files using the panel on the left</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- SPOTIFY BROWSE PANEL (shown when Spotify filter active) -->
+            <div id="spotifyBrowsePanel" style="display:none;flex:1;overflow-y:auto;padding:1.5rem 2.5rem;">
+                <!-- Not connected state -->
+                <div id="spBrowseConnect" style="text-align:center;padding:4rem 2rem;">
+                    <div style="font-size:3rem;margin-bottom:1rem;">🎵</div>
+                    <div style="font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:2px;margin-bottom:0.5rem;">CONNECT SPOTIFY</div>
+                    <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);margin-bottom:2rem;line-height:1.8;">Browse your Spotify library and add tracks directly to BLK</div>
+                    <button onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.8rem 2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;">Connect Spotify</button>
+                </div>
+                <!-- Connected state -->
+                <div id="spBrowseMain" style="display:none;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:gap:0.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.6rem;">
+                            <span style="font-size:1rem;">🎵</span>
+                            <span id="spBrowseUser" style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#1ED760;letter-spacing:1px;"></span>
+                        </div>
+                        <button onclick="spotifyLogout()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.3rem 0.8rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;">Disconnect</button>
+                    </div>
+                    <!-- Search + tab row -->
+                    <div style="display:flex;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface2);border:1px solid var(--border);padding:0.4rem 0.8rem;flex:1;min-width:160px;">
+                            <span style="color:var(--sub);font-size:0.7rem;">⌕</span>
+                            <input type="text" id="spBrowseSearch" placeholder="Filter tracks..." oninput="filterSpotifyBrowse()" style="background:none;border:none;outline:none;color:#fff;font-family:'Space Mono',monospace;font-size:0.65rem;width:100%;">
+                        </div>
+                        <div style="display:flex;border:1px solid var(--border);">
+                            <button id="spBTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
+                            <button id="spBTab-playlists" onclick="loadSpotifyTab('playlists')" class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:none;border:none;border-right:1px solid var(--border);color:var(--sub);cursor:pointer;">Playlists</button>
+                            <button id="spBTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
+                        </div>
+                    </div>
+                    <!-- Track list -->
+                    <div id="spBrowseTracks"></div>
+                    <button id="spBrowseLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.6rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:0.8rem;">Load More</button>
                 </div>
             </div>
         </div>
@@ -1022,6 +1060,20 @@
     }
 
     // FIX 2 applied to doLogin, doRegister, doGoogle, doForgotPassword
+    async function resendVerification() {
+        const btn = document.getElementById('resend-verify-btn');
+        const email = btn.dataset.email, pass = btn.dataset.pass;
+        if (!email || !pass) { showToast('Sign in first to resend'); return; }
+        try {
+            const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
+            await FB.sendEmailVerification(cred.user);
+            await FB.signOut(FB.auth);
+            document.getElementById('login-error').style.color = 'var(--success)';
+            document.getElementById('login-error').textContent = 'Verification email sent! Check your inbox.';
+            btn.style.display = 'none';
+        } catch(e) { showToast('Could not resend: ' + friendlyError(e.code)); }
+    }
+
     async function doLogin() {
         if (!FB) FB = await waitForFB();
         const email = document.getElementById('login-email').value.trim();
@@ -1031,7 +1083,15 @@
         if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
         btn.disabled = true; btn.textContent = 'Signing in...';
         try {
-            await FB.signInWithEmailAndPassword(FB.auth, email, pass);
+            const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
+            if (!cred.user.emailVerified) {
+                await FB.signOut(FB.auth);
+                err.style.color = 'var(--warn, #ffaa00)';
+                err.textContent = 'Please verify your email before signing in. Check your inbox for the verification link.';
+                const resendBtn = document.getElementById('resend-verify-btn');
+                if (resendBtn) { resendBtn.style.display = 'inline-block'; resendBtn.dataset.email = email; resendBtn.dataset.pass = pass; }
+                btn.disabled = false; btn.textContent = 'Sign In';
+            }
         } catch(e) {
             err.textContent = friendlyError(e.code);
             btn.disabled = false; btn.textContent = 'Sign In';
@@ -1572,7 +1632,22 @@
         activeLibFilter = filter;
         document.querySelectorAll('.lib-filter-tab').forEach(btn => btn.classList.remove('active'));
         document.getElementById('filter-' + filter).classList.add('active');
-        filterTracks();
+        const browsePanel = document.getElementById('spotifyBrowsePanel');
+        const trackList   = document.querySelector('#view-library .track-list');
+        if (filter === 'spotify') {
+            browsePanel.style.display = 'flex';
+            browsePanel.style.flexDirection = 'column';
+            if (trackList) trackList.style.display = 'none';
+            // Show correct sub-panel based on Spotify connection
+            const connected = !!spAccessToken;
+            document.getElementById('spBrowseConnect').style.display = connected ? 'none' : 'block';
+            document.getElementById('spBrowseMain').style.display    = connected ? 'block' : 'none';
+            if (connected && !document.getElementById('spBrowseTracks').innerHTML) loadSpotifyTab('liked');
+        } else {
+            browsePanel.style.display = 'none';
+            if (trackList) trackList.style.display = '';
+            filterTracks();
+        }
     }
 
     function filterTracks() {
@@ -1979,8 +2054,14 @@
         document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
         document.getElementById('spotifyConnectBtn').classList.add('connected');
         document.getElementById('spotifyPanel').style.display = 'block';
+        // Show browse panel connected state if Spotify filter is active
+        document.getElementById('spBrowseConnect').style.display = 'none';
+        document.getElementById('spBrowseMain').style.display    = 'block';
         const me = await spAPI('/me');
-        if (me) document.getElementById('spotifyStatus').textContent = me.display_name || me.email || '';
+        if (me) {
+            document.getElementById('spotifyStatus').textContent  = me.display_name || me.email || '';
+            document.getElementById('spBrowseUser').textContent   = me.display_name || me.email || '';
+        }
         spOffset = 0;
         await loadSpotifyTab('liked');
     }
@@ -2037,13 +2118,19 @@
 
     async function loadSpotifyTab(tab) {
         spTab = tab; spOffset = 0; spPlaylistId = null;
+        // Highlight both sidebar tabs and browse panel tabs
         document.querySelectorAll('.sp-tab').forEach(b => {
-            const active = b.id === 'spTab-' + tab;
+            const active = b.id === 'spTab-' + tab || b.id === 'spBTab-' + tab;
             b.style.color      = active ? '#1ED760' : 'var(--sub)';
             b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
         });
-        document.getElementById('spotifyTracks').innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div>';
-        document.getElementById('spLoadMore').style.display = 'none';
+        const sideEl   = document.getElementById('spotifyTracks');
+        const browseEl = document.getElementById('spBrowseTracks');
+        const loading  = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div>';
+        if (sideEl)   sideEl.innerHTML   = loading;
+        if (browseEl) browseEl.innerHTML = loading;
+        document.getElementById('spLoadMore').style.display       = 'none';
+        document.getElementById('spBrowseLoadMore').style.display = 'none';
         await spFetchPage(false);
     }
 
@@ -2057,20 +2144,26 @@
             if (!data) return;
             renderSpotifyTracklist((data.items || []).map(i => spFromAPI(i.track)), append);
             spOffset += (data.items || []).length;
-            document.getElementById('spLoadMore').style.display = data.next ? 'block' : 'none';
+            const hasMore = !!data.next;
+            document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
+            document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
         } else if (spTab === 'playlists') {
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
                 if (!data) return;
                 renderSpotifyPlaylists(data.items || [], append);
                 spOffset += (data.items || []).length;
-                document.getElementById('spLoadMore').style.display = data.next ? 'block' : 'none';
+                const hasMore = !!data.next;
+                document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
+                document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
             } else {
                 data = await spAPI('/playlists/' + spPlaylistId + '/tracks?limit=' + lim + '&offset=' + spOffset);
                 if (!data) return;
                 renderSpotifyTracklist((data.items || []).filter(i => !!i.track).map(i => spFromAPI(i.track)), append);
                 spOffset += (data.items || []).length;
-                document.getElementById('spLoadMore').style.display = data.next ? 'block' : 'none';
+                const hasMore = !!data.next;
+                document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
+                document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
             }
         } else if (spTab === 'recent') {
             data = await spAPI('/me/player/recently-played?limit=' + lim);
@@ -2078,7 +2171,8 @@
             const seen = new Set();
             const tracks = (data.items || []).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             renderSpotifyTracklist(tracks, false);
-            document.getElementById('spLoadMore').style.display = 'none';
+            document.getElementById('spLoadMore').style.display       = 'none';
+            document.getElementById('spBrowseLoadMore').style.display = 'none';
         }
     }
 
@@ -2094,63 +2188,144 @@
         };
     }
 
-    // FIX 3: renderSpotifyTracklist now stores track data in a JS map and uses
-    // a numeric key in the onclick, avoiding all quote-escaping issues.
     const _spTrackMap = {};
     let   _spTrackKey = 0;
+    // Cache raw tracks for browse panel search filtering
+    let _spBrowseRawTracks = [];
 
     function renderSpotifyTracklist(tracks, append) {
-        const el = document.getElementById('spotifyTracks');
-        if (!tracks.length && !append) {
-            el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks found</div>';
-            return;
-        }
-        const html = tracks.filter(Boolean).map(t => {
+        if (!append) _spBrowseRawTracks = tracks.filter(Boolean);
+        else         _spBrowseRawTracks = _spBrowseRawTracks.concat(tracks.filter(Boolean));
+
+        const sideEl   = document.getElementById('spotifyTracks');
+        const browseEl = document.getElementById('spBrowseTracks');
+
+        const buildHtml = (t, browse) => {
             const key = _spTrackKey++;
             _spTrackMap[key] = t;
-            const artStyle = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
-            return '<div class="stream-track-item" onclick="spPlayFromKey(' + key + ')">'
-                + '<div class="stream-track-icon spotify" style="' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
-                + '<div class="stream-track-info">'
-                + '<div class="stream-track-name">' + esc(t.title) + '</div>'
-                + '<div class="stream-track-artist">' + esc(t.artist) + (t.album ? ' &middot; ' + esc(t.album) : '') + '</div>'
-                + '</div>'
-                + '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);flex-shrink:0;">' + (t.duration ? fmt(t.duration) : '') + '</span>'
-                + '</div>';
-        }).join('');
-        if (append) el.innerHTML += html;
-        else        el.innerHTML  = html;
+            const artStyle  = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
+            const inLibrary = library.some(l => l.spUri === t.spUri);
+            if (browse) {
+                // Full-width browse row with Add button
+                return '<div style="display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="spPlayFromKey(' + key + ')">'
+                    + '<div class="stream-track-icon spotify" style="width:36px;height:36px;flex-shrink:0;' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.title) + '</div>'
+                    + '<div style="font-family:Space Mono,monospace;font-size:0.58rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.artist) + (t.album ? ' · ' + esc(t.album) : '') + '</div>'
+                    + '</div>'
+                    + '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);flex-shrink:0;margin-right:0.4rem;">' + (t.duration ? fmt(t.duration) : '') + '</span>'
+                    + '<button onclick="event.stopPropagation();spAddToLibraryFromKey(' + key + ',this)" style="font-family:Space Mono,monospace;font-size:0.45rem;letter-spacing:1px;padding:0.3rem 0.6rem;background:' + (inLibrary ? 'rgba(30,215,96,0.15)' : 'none') + ';border:1px solid ' + (inLibrary ? '#1ED760' : 'var(--border)') + ';color:' + (inLibrary ? '#1ED760' : 'var(--sub)') + ';cursor:pointer;flex-shrink:0;" title="Add to library">' + (inLibrary ? '✓ Added' : '+ Add') + '</button>'
+                    + '</div>';
+            } else {
+                return '<div class="stream-track-item" onclick="spPlayFromKey(' + key + ')">'
+                    + '<div class="stream-track-icon spotify" style="' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
+                    + '<div class="stream-track-info"><div class="stream-track-name">' + esc(t.title) + '</div>'
+                    + '<div class="stream-track-artist">' + esc(t.artist) + (t.album ? ' &middot; ' + esc(t.album) : '') + '</div></div>'
+                    + '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);flex-shrink:0;">' + (t.duration ? fmt(t.duration) : '') + '</span>'
+                    + '</div>';
+            }
+        };
+
+        if (!tracks.length && !append) {
+            const empty = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks found</div>';
+            if (sideEl)   sideEl.innerHTML   = empty;
+            if (browseEl) browseEl.innerHTML = empty;
+            return;
+        }
+        const sideHtml   = tracks.filter(Boolean).map(t => buildHtml(t, false)).join('');
+        const browseHtml = tracks.filter(Boolean).map(t => buildHtml(t, true)).join('');
+        if (sideEl)   { if (append) sideEl.innerHTML   += sideHtml;   else sideEl.innerHTML   = sideHtml; }
+        if (browseEl) { if (append) browseEl.innerHTML += browseHtml; else browseEl.innerHTML = browseHtml; }
     }
 
-    // Safe dispatcher — no string interpolation of user data in onclick attributes
+    function filterSpotifyBrowse() {
+        const q = document.getElementById('spBrowseSearch').value.toLowerCase().trim();
+        const browseEl = document.getElementById('spBrowseTracks');
+        if (!browseEl) return;
+        if (!q) { renderSpotifyTracklist(_spBrowseRawTracks, false); return; }
+        const filtered = _spBrowseRawTracks.filter(t => t && (t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q)));
+        // Re-render just browse panel rows with filtered tracks
+        if (!filtered.length) { browseEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No matches</div>'; return; }
+        browseEl.innerHTML = filtered.map(t => {
+            const key = _spTrackKey++;
+            _spTrackMap[key] = t;
+            const artStyle  = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
+            const inLibrary = library.some(l => l.spUri === t.spUri);
+            return '<div style="display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="spPlayFromKey(' + key + ')">'
+                + '<div class="stream-track-icon spotify" style="width:36px;height:36px;flex-shrink:0;' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
+                + '<div style="flex:1;min-width:0;">'
+                + '<div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.title) + '</div>'
+                + '<div style="font-family:Space Mono,monospace;font-size:0.58rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.artist) + (t.album ? ' · ' + esc(t.album) : '') + '</div>'
+                + '</div>'
+                + '<button onclick="event.stopPropagation();spAddToLibraryFromKey(' + key + ',this)" style="font-family:Space Mono,monospace;font-size:0.45rem;letter-spacing:1px;padding:0.3rem 0.6rem;background:' + (inLibrary ? 'rgba(30,215,96,0.15)' : 'none') + ';border:1px solid ' + (inLibrary ? '#1ED760' : 'var(--border)') + ';color:' + (inLibrary ? '#1ED760' : 'var(--sub)') + ';cursor:pointer;flex-shrink:0;">' + (inLibrary ? '✓ Added' : '+ Add') + '</button>'
+                + '</div>';
+        }).join('');
+    }
+
     function spPlayFromKey(key) {
         const t = _spTrackMap[key]; if (!t) return;
         spPlayTrack(t.spUri, t.title, t.artist, t.album, t.artwork || '', t.duration || 0);
     }
 
+    function spAddToLibraryFromKey(key, btn) {
+        const t = _spTrackMap[key]; if (!t) return;
+        // Check not already added
+        if (library.some(l => l.spUri === t.spUri)) { showToast('Already in library'); return; }
+        const track = {
+            id: 'sp_lib_' + Date.now(),
+            spUri: t.spUri,
+            url: t.spUri,
+            title: t.title, artist: t.artist, album: t.album,
+            albumArt: t.artwork || null,
+            duration: t.duration || 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '🎵', source: 'spotify',
+            spotifyType: 'track', spotifyTrackId: t.spUri ? t.spUri.split(':')[2] : null
+        };
+        library.push(track);
+        spotifyTracks.push(track);
+        if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+        renderLibrary(); renderQueue();
+        if (btn) { btn.textContent = '✓ Added'; btn.style.color = '#1ED760'; btn.style.borderColor = '#1ED760'; btn.style.background = 'rgba(30,215,96,0.15)'; }
+        showToast('"' + t.title + '" added to library', true);
+    }
+
     function renderSpotifyPlaylists(playlists, append) {
-        const el = document.getElementById('spotifyTracks');
+        const sideEl   = document.getElementById('spotifyTracks');
+        const browseEl = document.getElementById('spBrowseTracks');
         if (!playlists.length && !append) {
-            el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No playlists</div>';
+            const empty = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No playlists</div>';
+            if (sideEl)   sideEl.innerHTML   = empty;
+            if (browseEl) browseEl.innerHTML = empty;
             return;
         }
-        // Store playlists in map too to avoid quote issues
-        const html = playlists.map(p => {
+        const buildRow = (p, browse) => {
             const key = _spTrackKey++;
-            _spTrackMap[key] = { _playlist: true, id: p.id, name: p.name };
+            _spTrackMap[key] = { _playlist: true, id: p.id, name: p.name, trackCount: (p.tracks && p.tracks.total) || 0 };
             const art      = p.images && p.images[0] ? p.images[0].url : '';
             const artStyle = art ? 'background-image:url(' + art + ');background-size:cover;background-position:center;font-size:0' : '';
-            return '<div class="stream-track-item" onclick="spOpenPlaylistFromKey(' + key + ')">'
-                + '<div class="stream-track-icon spotify" style="' + artStyle + '">' + (art ? '' : '&#x1F3BC;') + '</div>'
-                + '<div class="stream-track-info">'
-                + '<div class="stream-track-name">' + esc(p.name) + '</div>'
-                + '<div class="stream-track-artist">' + ((p.tracks && p.tracks.total) || 0) + ' tracks</div>'
-                + '</div>'
-                + '<span style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);">&rsaquo;</span>'
-                + '</div>';
-        }).join('');
-        if (append) el.innerHTML += html;
-        else        el.innerHTML  = html;
+            if (browse) {
+                return '<div style="display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="spOpenPlaylistFromKey(' + key + ')">'
+                    + '<div class="stream-track-icon spotify" style="width:36px;height:36px;flex-shrink:0;' + artStyle + '">' + (art ? '' : '&#x1F3BC;') + '</div>'
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(p.name) + '</div>'
+                    + '<div style="font-family:Space Mono,monospace;font-size:0.58rem;color:var(--sub);">' + ((p.tracks && p.tracks.total) || 0) + ' tracks</div>'
+                    + '</div>'
+                    + '<span style="font-family:Space Mono,monospace;font-size:0.9rem;color:var(--sub);">›</span>'
+                    + '</div>';
+            } else {
+                return '<div class="stream-track-item" onclick="spOpenPlaylistFromKey(' + key + ')">'
+                    + '<div class="stream-track-icon spotify" style="' + artStyle + '">' + (art ? '' : '&#x1F3BC;') + '</div>'
+                    + '<div class="stream-track-info"><div class="stream-track-name">' + esc(p.name) + '</div>'
+                    + '<div class="stream-track-artist">' + ((p.tracks && p.tracks.total) || 0) + ' tracks</div></div>'
+                    + '<span style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);">&rsaquo;</span>'
+                    + '</div>';
+            }
+        };
+        const sideHtml   = playlists.map(p => buildRow(p, false)).join('');
+        const browseHtml = playlists.map(p => buildRow(p, true)).join('');
+        if (sideEl)   { if (append) sideEl.innerHTML   += sideHtml;   else sideEl.innerHTML   = sideHtml; }
+        if (browseEl) { if (append) browseEl.innerHTML += browseHtml; else browseEl.innerHTML = browseHtml; }
     }
 
     function spOpenPlaylistFromKey(key) {
@@ -2160,7 +2335,11 @@
 
     async function spOpenPlaylist(id, name) {
         spPlaylistId = id; spOffset = 0;
-        document.getElementById('spotifyTracks').innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">' + esc(name) + '...</div>';
+        const loading = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">' + esc(name) + '...</div>';
+        const sideEl   = document.getElementById('spotifyTracks');
+        const browseEl = document.getElementById('spBrowseTracks');
+        if (sideEl)   sideEl.innerHTML   = loading;
+        if (browseEl) browseEl.innerHTML = loading;
         await spFetchPage(false);
     }
 
