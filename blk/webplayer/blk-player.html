@@ -2930,7 +2930,8 @@
     // ── SPOTIFY PROGRESS RAF LOOP (smooth, no DOM thrash) ──
     let spRafId = null, spCurrentDuration = 0, spCurrentPosition = 0, spRafLastTs = 0;
     function spStartProgressLoop() {
-        if (spRafId) return;
+        // Always cancel any existing loop so a track transition gets a clean baseline.
+        if (spRafId) { cancelAnimationFrame(spRafId); spRafId = null; }
         function tick(ts) {
             if (!isPlaying || !spCurrentDuration) { spRafId = null; return; }
             const elapsed = ts - spRafLastTs;
@@ -2955,9 +2956,15 @@
         const newUri = t.uri;
         if (newUri !== spOnStateChange._lastUri) {
             spOnStateChange._lastUri = newUri;
+            // Reset progress immediately so the bar starts from 0 for the new track
+            spCurrentPosition = (state.position || 0) / 1000;
+            spCurrentDuration = (state.duration || 0) / 1000;
             const artwork = t.album && t.album.images && t.album.images[0] ? t.album.images[0].url : null;
             updatePlayerUI({ title: t.name, artist: (t.artists || []).map(a => a.name).join(', '), album: t.album ? t.album.name : '', artwork, source: 'spotify', duration: Math.round((state.duration || 0) / 1000) });
             document.getElementById('timeDuration').textContent = fmt(Math.round((state.duration || 0) / 1000));
+            // Sync currentIdx so BLK's queue pointer matches the auto-transitioned track
+            const matchIdx = library.findIndex(l => l.spUri === newUri);
+            if (matchIdx >= 0) currentIdx = matchIdx;
         }
         spCurrentDuration = (state.duration || 0) / 1000;
         spCurrentPosition = (state.position || 0) / 1000;
