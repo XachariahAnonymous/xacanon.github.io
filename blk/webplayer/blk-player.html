@@ -10,7 +10,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, serverTimestamp, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey:            "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
@@ -31,7 +31,7 @@
         const db   = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
-        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs };
+        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, deleteDoc, increment, serverTimestamp, collection, getDocs, query, where };
         window.SPOTIFY_CLIENT_ID    = SPOTIFY_CLIENT_ID;
         window.SPOTIFY_REDIRECT_URI = SPOTIFY_REDIRECT_URI;
         window.SPOTIFY_SCOPES       = SPOTIFY_SCOPES;
@@ -629,6 +629,7 @@
             <button class="nav-tab active" onclick="switchView('library')">Library</button>
             <button class="nav-tab" onclick="switchView('store')">Store</button>
             <button class="nav-tab" onclick="switchView('playlists')">Playlists</button>
+            <button class="nav-tab" onclick="switchView('spotify')">Spotify</button>
             <button class="nav-tab" onclick="switchView('profile')">Profile</button>
         </div>
         <div class="nav-right">
@@ -663,30 +664,9 @@
             </div>
         </div>
 
-        <!-- SPOTIFY -->
-        <div class="stream-section">
-            <div class="sidebar-label">Spotify</div>
-            <button class="stream-connect-btn" id="spotifyConnectBtn" onclick="spotifyAuth()">
-                <span class="stream-icon">🎵</span>
-                <span id="spotifyBtnText">Connect Spotify</span>
-                <span class="stream-status" id="spotifyStatus"></span>
-            </button>
-            <div id="spotifyPanel" style="display:none;">
-                <div style="display:flex;border:1px solid var(--border);margin-bottom:0.8rem;">
-                    <button id="spTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                    <button id="spTab-playlists" onclick="loadSpotifyTab('playlists')" class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;border-right:1px solid var(--border);color:var(--sub);cursor:pointer;">Playlists</button>
-                    <button id="spTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
-                </div>
-                <div class="stream-tracks" id="spotifyTracks"></div>
-                <button id="spLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:0.5rem;">Load More</button>
-                <button onclick="spotifyLogout()" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;margin-top:0.8rem;">Disconnect Spotify</button>
-            </div>
-        </div>
-
-        <!-- SOUNDCLOUD -->
+        <!-- SOUNDCLOUD (kept in sidebar, compact) -->
         <div class="stream-section">
             <div class="sidebar-label">SoundCloud</div>
-            <!-- FIX 1: toggleSoundcloudPanel now calls the properly defined function -->
             <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
                 <span class="stream-icon">☁</span>
                 <span id="soundcloudBtnText">Add from SoundCloud</span>
@@ -707,6 +687,18 @@
                 <div class="stream-tracks" id="soundcloudTracks"></div>
             </div>
         </div>
+        <!-- Hidden elements needed by Spotify JS (sidebar refs) -->
+        <div style="display:none;">
+            <span id="spotifyConnectBtn"></span>
+            <span id="spotifyBtnText"></span>
+            <span id="spotifyStatus"></span>
+            <div id="spotifyPanel"></div>
+            <div id="spotifyTracks"></div>
+            <button id="spLoadMore"></button>
+            <span id="spTab-liked" class="sp-tab"></span>
+            <span id="spTab-playlists" class="sp-tab"></span>
+            <span id="spTab-recent" class="sp-tab"></span>
+        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -724,11 +716,11 @@
                 </div>
             </div>
             <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 2.5rem;overflow-x:auto;">
-                <button class="lib-filter-tab active" id="filter-all"        onclick="setLibFilter('all')">All</button>
+                <button class="lib-filter-tab active" id="filter-all"        onclick="setLibFilter('all')">All Songs</button>
                 <button class="lib-filter-tab"         id="filter-local"      onclick="setLibFilter('local')">Local</button>
                 <button class="lib-filter-tab"         id="filter-spotify"    onclick="setLibFilter('spotify')">Spotify</button>
                 <button class="lib-filter-tab"         id="filter-soundcloud" onclick="setLibFilter('soundcloud')">SoundCloud</button>
-                <button class="lib-filter-tab blk-filter" id="filter-store"  onclick="setLibFilter('store')">◈ BLK Songs</button>
+                <button class="lib-filter-tab blk-filter" id="filter-store"  onclick="setLibFilter('store')">BLK</button>
             </div>
             <div class="track-list">
                 <div class="track-list-header">
@@ -743,8 +735,8 @@
                 </div>
             </div>
 
-            <!-- SPOTIFY BROWSE PANEL (shown when Spotify filter active) -->
-            <div id="spotifyBrowsePanel" style="display:none;flex:1;overflow-y:auto;padding:1.5rem 2.5rem;">
+            <!-- SPOTIFY BROWSE PANEL (legacy — Spotify now has its own view) -->
+            <div id="spotifyBrowsePanel" style="display:none!important;flex:1;overflow-y:auto;padding:1.5rem 2.5rem;">
                 <!-- Not connected state -->
                 <div id="spBrowseConnect" style="text-align:center;padding:4rem 2rem;">
                     <div style="font-size:3rem;margin-bottom:1rem;">🎵</div>
@@ -805,6 +797,55 @@
                 <button onclick="openCreatePlaylist()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.4rem;background:var(--accent);border:none;color:#fff;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#7B27CC'" onmouseout="this.style.background='var(--accent)'">⊕ New Playlist</button>
             </div>
             <div id="playlistGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border);margin:1.5rem;border:1px solid var(--border);"></div>
+        </div>
+
+
+        <!-- SPOTIFY -->
+        <div id="view-spotify" style="display:none;">
+            <div class="view-header">
+                <div>
+                    <div class="view-sub">Streaming</div>
+                    <div class="view-title">Spotify</div>
+                </div>
+                <div id="spViewConnectWrap">
+                    <button id="spViewConnectBtn" onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.4rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Connect Spotify</button>
+                </div>
+            </div>
+            <!-- Not connected -->
+            <div id="spViewNotConnected" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1rem;text-align:center;">
+                <div style="font-size:3.5rem;margin-bottom:0.5rem;">🎵</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:0.3rem;">Connect Your Spotify</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;line-height:1.9;max-width:320px;">Browse your liked songs, playlists and recent plays. Add tracks directly to your BLK library.</div>
+                <button onclick="spotifyAuth()" style="margin-top:1rem;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;padding:0.9rem 2.2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;">Connect Spotify</button>
+            </div>
+            <!-- Connected -->
+            <div id="spViewConnected" style="display:none;padding:1.5rem 2.5rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.8rem;">
+                    <div style="display:flex;align-items:center;gap:0.8rem;">
+                        <span style="font-size:1.1rem;">🎵</span>
+                        <span id="spViewUser" style="font-family:'Space Mono',monospace;font-size:0.7rem;color:#1ED760;letter-spacing:1px;"></span>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;align-items:center;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface2);border:1px solid var(--border);padding:0.4rem 0.8rem;">
+                            <span style="color:var(--sub);font-size:0.7rem;">⌕</span>
+                            <input type="text" id="spViewSearch" placeholder="Search tracks..." oninput="filterSpotifyView()" style="background:none;border:none;outline:none;color:#fff;font-family:'Space Mono',monospace;font-size:0.65rem;width:180px;">
+                        </div>
+                        <button onclick="spotifyLogout()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.5rem 1rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;">Disconnect</button>
+                    </div>
+                </div>
+                <!-- Tab bar -->
+                <div style="display:flex;border:1px solid var(--border);margin-bottom:1.2rem;width:fit-content;">
+                    <button id="spVTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem 1.2rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
+                    <button id="spVTab-playlists" onclick="loadSpotifyTab('playlists')" class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem 1.2rem;background:none;border:none;border-right:1px solid var(--border);color:var(--sub);cursor:pointer;">Playlists</button>
+                    <button id="spVTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem 1.2rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
+                </div>
+                <!-- Track list -->
+                <div class="track-list-header" style="margin-bottom:0.4rem;">
+                    <span>#</span><span>Title</span><span>Album</span><span>Added</span><span style="text-align:right;">Time</span><span></span>
+                </div>
+                <div id="spViewTracks"></div>
+                <button id="spViewLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:2px;text-transform:uppercase;padding:0.65rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:1rem;">Load More</button>
+            </div>
         </div>
 
         <!-- PROFILE -->
@@ -1065,6 +1106,7 @@
                 currentUser = user;
                 await loadUserProfile(user);
                 showApp();
+                syncFromFirestoreIfNeeded().catch(()=>{});
             } else {
                 currentUser = null;
                 userProfile = null;
@@ -1422,18 +1464,108 @@
     }
 
     // ════════════════════════════════════════
+    // FIRESTORE LIBRARY SYNC
+    // Saves metadata (not files) so non-local tracks persist across devices
+    // ════════════════════════════════════════
+    async function syncTrackToFirestore(track) {
+        if (!currentUser || !FB || track.source === 'local') return; // local files can't be synced
+        try {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid, 'library', track.id);
+            await FB.setDoc(ref, {
+                id: track.id, title: track.title, artist: track.artist,
+                album: track.album || '', albumArt: track.albumArt || null,
+                duration: track.duration || 0, dateAdded: track.dateAdded || '',
+                emoji: track.emoji || '◈', source: track.source,
+                spotifyUrl: track.spotifyUrl || track.url || null,
+                spotifyType: track.spotifyType || null,
+                spotifyTrackId: track.spotifyTrackId || null,
+                soundcloudUrl: track.soundcloudUrl || null,
+                spUri: track.spUri || null,
+                savedAt: FB.serverTimestamp()
+            });
+        } catch(e) { console.warn('syncTrack failed', e); }
+    }
+
+    async function deleteTrackFromFirestore(trackId) {
+        if (!currentUser || !FB) return;
+        try {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid, 'library', trackId);
+            await FB.deleteDoc(ref);
+        } catch(e) {}
+    }
+
+    async function restoreLibraryFromFirestore() {
+        if (!currentUser || !FB) return 0;
+        try {
+            const col  = FB.collection(FB.db, 'users', currentUser.uid, 'library');
+            const snap = await FB.getDocs(col);
+            let added = 0;
+            snap.forEach(d => {
+                const r = d.data();
+                if (!r || !r.source || r.source === 'local') return;
+                if (library.some(t => t.id === r.id)) return; // already in IDB restore
+                const track = {
+                    id: r.id, url: r.spUri || r.spotifyUrl || r.soundcloudUrl || '',
+                    title: r.title, artist: r.artist, album: r.album,
+                    albumArt: r.albumArt || null, duration: r.duration || 0,
+                    dateAdded: r.dateAdded || '', emoji: r.emoji || '◈',
+                    source: r.source,
+                    spotifyUrl: r.spotifyUrl || null, spotifyType: r.spotifyType || null,
+                    spotifyTrackId: r.spotifyTrackId || null,
+                    soundcloudUrl: r.soundcloudUrl || null, spUri: r.spUri || null
+                };
+                library.push(track);
+                if (r.source === 'spotify') spotifyTracks.push(track);
+                else if (r.source === 'soundcloud') soundcloudTracks.push(track);
+                idbSaveStreaming(track);
+                added++;
+            });
+            return added;
+        } catch(e) { console.warn('restoreFromFirestore failed', e); return 0; }
+    }
+
+    function showNewDevicePopup(localCount) {
+        const existing = document.getElementById('newDevicePopup');
+        if (existing) existing.remove();
+        const pop = document.createElement('div');
+        pop.id = 'newDevicePopup';
+        pop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);z-index:8000;display:flex;align-items:center;justify-content:center;';
+        pop.innerHTML = `
+            <div style="background:var(--surface);border:1px solid var(--border);padding:3rem;max-width:440px;width:90%;position:relative;">
+                <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--warn),transparent);"></div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--warn);letter-spacing:3px;text-transform:uppercase;margin-bottom:1.5rem;">New Device Detected</div>
+                <div style="font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.8rem;">Local Music Cleared</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--sub);line-height:1.9;margin-bottom:1.8rem;">
+                    Local audio files are stored on your device and can't be transferred automatically.
+                    Your Spotify and SoundCloud tracks have been restored.<br><br>
+                    Re-upload your local files to restore them to your library.
+                </div>
+                <div style="display:flex;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:1.2rem;margin-bottom:1.2rem;font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);">
+                    <span style="color:var(--success);">✓ Spotify tracks restored</span>&nbsp;&nbsp;
+                    <span style="color:var(--success);">✓ SoundCloud tracks restored</span>
+                </div>
+                <div style="display:flex;gap:0.6rem;">
+                    <button onclick="document.getElementById('newDevicePopup').remove();document.getElementById('fileInput').click()" style="flex:1;font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.85rem;background:var(--accent);border:none;color:#fff;cursor:pointer;">Upload Local Files</button>
+                    <button onclick="document.getElementById('newDevicePopup').remove()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.85rem 1.2rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;">Continue</button>
+                </div>
+            </div>`;
+        document.body.appendChild(pop);
+    }
+
+    // ════════════════════════════════════════
     // VIEWS
     // ════════════════════════════════════════
     function switchView(v) {
-        ['library','store','playlists','profile'].forEach(id => {
+        ['library','store','playlists','spotify','profile'].forEach(id => {
             document.getElementById('view-' + id).style.display = id === v ? 'block' : 'none';
         });
         document.querySelectorAll('.nav-tab').forEach((t, i) => {
-            t.classList.toggle('active', ['library','store','playlists','profile'][i] === v);
+            t.classList.toggle('active', ['library','store','playlists','spotify','profile'][i] === v);
         });
         if (v === 'store') renderStore();
         if (v === 'profile') updateProfileView();
         if (v === 'playlists') renderPlaylists();
+        if (v === 'spotify') renderSpotifyView();
         toggleDropdown(true);
     }
 
@@ -1671,6 +1803,7 @@
             renderSoundcloudTracks();
         }
         idbDeleteTrack(t.id);
+        deleteTrackFromFirestore(t.id);
         if (currentIdx === libIdx) {
             audio.pause(); isPlaying = false; currentIdx = -1;
             document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
@@ -1686,25 +1819,16 @@
     let activeLibFilter = 'all';
 
     function setLibFilter(filter) {
+        if (filter === 'spotify') { switchView('spotify'); return; }
         activeLibFilter = filter;
         document.querySelectorAll('.lib-filter-tab').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('filter-' + filter).classList.add('active');
+        const filterEl = document.getElementById('filter-' + filter);
+        if (filterEl) filterEl.classList.add('active');
         const browsePanel = document.getElementById('spotifyBrowsePanel');
         const trackList   = document.querySelector('#view-library .track-list');
-        if (filter === 'spotify') {
-            browsePanel.style.display = 'flex';
-            browsePanel.style.flexDirection = 'column';
-            if (trackList) trackList.style.display = 'none';
-            // Show correct sub-panel based on Spotify connection
-            const connected = !!spAccessToken;
-            document.getElementById('spBrowseConnect').style.display = connected ? 'none' : 'block';
-            document.getElementById('spBrowseMain').style.display    = connected ? 'block' : 'none';
-            if (connected && !document.getElementById('spBrowseTracks').innerHTML) loadSpotifyTab('liked');
-        } else {
-            browsePanel.style.display = 'none';
-            if (trackList) trackList.style.display = '';
-            filterTracks();
-        }
+        if (browsePanel) browsePanel.style.display = 'none';
+        if (trackList) trackList.style.display = '';
+        filterTracks();
     }
 
     function filterTracks() {
@@ -2123,18 +2247,31 @@
         }
         window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
         if (window.Spotify && window.Spotify.Player) spInitPlayer();
-        document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
-        document.getElementById('spotifyConnectBtn').classList.add('connected');
-        document.getElementById('spotifyPanel').style.display = 'block';
-        // Show browse panel connected state if Spotify filter is active
-        document.getElementById('spBrowseConnect').style.display = 'none';
-        document.getElementById('spBrowseMain').style.display    = 'block';
+        const _btnText = document.getElementById('spotifyBtnText');   if (_btnText) _btnText.textContent = 'Spotify Connected';
+        const _connBtn = document.getElementById('spotifyConnectBtn'); if (_connBtn) _connBtn.classList.add('connected');
+        const _panel   = document.getElementById('spotifyPanel');      if (_panel)   _panel.style.display  = 'block';
+        // Browse panel (may still exist hidden in library view)
+        const _bc = document.getElementById('spBrowseConnect'); if (_bc) _bc.style.display = 'none';
+        const _bm = document.getElementById('spBrowseMain');    if (_bm) _bm.style.display = 'block';
         const me = await spAPI('/me');
         if (me) {
             spUserId = me.id || null;
-            document.getElementById('spotifyStatus').textContent  = me.display_name || me.email || '';
-            document.getElementById('spBrowseUser').textContent   = me.display_name || me.email || '';
+            const dname = me.display_name || me.email || '';
+            const statusEl = document.getElementById('spotifyStatus');
+            if (statusEl) statusEl.textContent = dname;
+            const browseUserEl = document.getElementById('spBrowseUser');
+            if (browseUserEl) browseUserEl.textContent = dname;
+            spViewUserName = dname;
+            const viewUserEl = document.getElementById('spViewUser');
+            if (viewUserEl) viewUserEl.textContent = dname;
         }
+        // Update view-spotify UI state
+        const notConn = document.getElementById('spViewNotConnected');
+        const connEl  = document.getElementById('spViewConnected');
+        const headerBtn = document.getElementById('spViewConnectWrap');
+        if (notConn)   notConn.style.display  = 'none';
+        if (connEl)    connEl.style.display    = 'block';
+        if (headerBtn) headerBtn.style.display = 'none';
         spOffset = 0;
         await loadSpotifyTab('liked');
     }
@@ -2219,19 +2356,25 @@
 
     async function loadSpotifyTab(tab) {
         spTab = tab; spOffset = 0; spPlaylistId = null;
-        // Highlight both sidebar tabs and browse panel tabs
+        // Highlight sidebar, browse, and view tabs
         document.querySelectorAll('.sp-tab').forEach(b => {
-            const active = b.id === 'spTab-' + tab || b.id === 'spBTab-' + tab;
+            const active = b.id === 'spTab-' + tab || b.id === 'spBTab-' + tab || b.id === 'spVTab-' + tab;
             b.style.color      = active ? '#1ED760' : 'var(--sub)';
             b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
         });
         const sideEl   = document.getElementById('spotifyTracks');
         const browseEl = document.getElementById('spBrowseTracks');
+        const viewEl   = document.getElementById('spViewTracks');
         const loading  = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div>';
         if (sideEl)   sideEl.innerHTML   = loading;
         if (browseEl) browseEl.innerHTML = loading;
-        document.getElementById('spLoadMore').style.display       = 'none';
-        document.getElementById('spBrowseLoadMore').style.display = 'none';
+        if (viewEl)   viewEl.innerHTML   = loading;
+        const spLM = document.getElementById('spLoadMore');
+        const spBLM = document.getElementById('spBrowseLoadMore');
+        const spVLM = document.getElementById('spViewLoadMore');
+        if (spLM)  spLM.style.display  = 'none';
+        if (spBLM) spBLM.style.display = 'none';
+        if (spVLM) spVLM.style.display = 'none';
         await spFetchPage(false);
     }
 
@@ -2240,28 +2383,33 @@
     async function spFetchPage(append) {
         const lim = 20;
         let data;
+        function setLoadMore(show) {
+            const ids = ['spLoadMore','spBrowseLoadMore','spViewLoadMore'];
+            ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = show ? 'block' : 'none'; });
+        }
         if (spTab === 'liked') {
             data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + spOffset);
             if (!data) return;
-            renderSpotifyTracklist((data.items || []).map(i => spFromAPI(i.track)), append);
+            const tracks = (data.items || []).map(i => spFromAPI(i.track));
+            renderSpotifyTracklist(tracks, append);
+            renderSpotifyTracklistInto(append ? _spBrowseRawTracks : tracks, false, 'spViewTracks');
             spOffset += (data.items || []).length;
-            const hasMore = !!data.next;
-            document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
-            document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
+            setLoadMore(!!data.next);
         } else if (spTab === 'playlists') {
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
-                // If /me/playlists returns 403 (app not in extended quota mode),
-                // fall back to the public endpoint using the stored user ID
                 if (!data && spUserId) {
                     data = await spAPI('/users/' + encodeURIComponent(spUserId) + '/playlists?limit=' + lim + '&offset=' + spOffset);
                 }
                 if (!data) { showToast('Could not load playlists'); return; }
-                renderSpotifyPlaylists((data.items || []).filter(Boolean), append);
-                spOffset += (data.items || []).length;
-                const hasMore = !!data.next;
-                document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
-                document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
+                const pls = (data.items || []).filter(Boolean);
+                renderSpotifyPlaylists(pls, append);
+                // Also render playlists into view-spotify as track rows
+                const plTracks = pls.map(p => ({ _playlist: true, id: p.id, name: p.name, trackCount: (p.tracks && p.tracks.total) || 0, artwork: (p.images && p.images[0]) ? p.images[0].url : null }));
+                if (!append) _spBrowseRawTracks = plTracks; else _spBrowseRawTracks = _spBrowseRawTracks.concat(plTracks);
+                renderSpotifyTracklistInto(plTracks, append, 'spViewTracks');
+                spOffset += pls.length;
+                setLoadMore(!!data.next);
             }
         } else if (spTab === 'recent') {
             data = await spAPI('/me/player/recently-played?limit=' + lim);
@@ -2269,8 +2417,8 @@
             const seen = new Set();
             const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             renderSpotifyTracklist(tracks, false);
-            document.getElementById('spLoadMore').style.display       = 'none';
-            document.getElementById('spBrowseLoadMore').style.display = 'none';
+            renderSpotifyTracklistInto(tracks, false, 'spViewTracks');
+            setLoadMore(false);
         }
     }
 
@@ -2290,6 +2438,46 @@
     let   _spTrackKey = 0;
     // Cache raw tracks for browse panel search filtering
     let _spBrowseRawTracks = [];
+
+    // Render into any container by id as full-width rows (used by view-spotify)
+    function renderSpotifyTracklistInto(tracks, append, containerId) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        if (!tracks.length && !append) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1rem 0;">No tracks found</div>'; return; }
+        const html = tracks.filter(Boolean).map((t, i) => {
+            const key = _spTrackKey++;
+            _spTrackMap[key] = t;
+            const artStyle  = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
+            const inLibrary = library.some(l => l.spUri === t.spUri);
+            const isPlaylist = t._playlist;
+            if (isPlaylist) {
+                const key2 = key;
+                return '<div class="track-row" onclick="spOpenPlaylistFromKey(' + key2 + ')">'
+                    + '<span class="track-idx">' + (i+1) + '</span>'
+                    + '<div class="track-info"><div class="track-thumb" style="' + artStyle + '"><span>🎵</span><div class="play-overlay">⊕</div></div>'
+                    + '<div><div class="track-name">' + esc(t.name || '') + '</div><div class="track-name-artist">' + (t.trackCount||0) + ' tracks</div></div></div>'
+                    + '<span class="track-album"></span><span class="track-meta"></span><span class="track-duration"></span>'
+                    + '<button class="track-remove-btn" onclick="event.stopPropagation();spImportPlaylistFromKey(' + key2 + ',this)" title="Import playlist" style="color:var(--accent);">⊕</button>'
+                    + '</div>';
+            }
+            return '<div class="track-row" onclick="spPlayFromKey(' + key + ')">'
+                + '<span class="track-idx">' + (i+1) + '</span>'
+                + '<div class="track-info"><div class="track-thumb" style="' + artStyle + '"><span>' + (t.artwork ? '' : '🎵') + '</span><div class="play-overlay">▶</div></div>'
+                + '<div><div class="track-name">' + esc(t.title || '') + '</div><div class="track-name-artist">' + esc(t.artist || '') + '</div></div></div>'
+                + '<span class="track-album">' + esc(t.album || '') + '</span>'
+                + '<span class="track-meta"></span>'
+                + '<span class="track-duration">' + (t.duration ? fmt(t.duration) : '') + '</span>'
+                + '<button class="track-remove-btn" onclick="event.stopPropagation();spAddToLibraryFromKey(' + key + ',this)" title="Add to library" style="color:' + (inLibrary ? 'var(--success)' : 'rgba(255,255,255,0.2)') + ';">' + (inLibrary ? '✓' : '+') + '</button>'
+                + '</div>';
+        }).join('');
+        if (append) el.innerHTML += html; else el.innerHTML = html;
+    }
+
+    function spImportPlaylistFromKey(key, btn) {
+        const p = _spTrackMap[key]; if (!p || !p._playlist) return;
+        if (btn) { btn.style.color = 'var(--warn)'; btn.textContent = '...'; }
+        spOpenPlaylist(p.id, p.name);
+    }
 
     function renderSpotifyTracklist(tracks, append, intoInner) {
         if (!append) _spBrowseRawTracks = tracks.filter(Boolean);
@@ -2338,11 +2526,12 @@
     }
 
     function filterSpotifyBrowse() {
-        const q = document.getElementById('spBrowseSearch').value.toLowerCase().trim();
+        const searchEl = document.getElementById('spBrowseSearch');
+        const q = searchEl ? searchEl.value.toLowerCase().trim() : '';
         const browseEl = document.getElementById('spBrowseTracks');
         if (!browseEl) return;
         if (!q) { renderSpotifyTracklist(_spBrowseRawTracks, false); return; }
-        const filtered = _spBrowseRawTracks.filter(t => t && (t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q)));
+        const filtered = _spBrowseRawTracks.filter(t => t && (t.title && t.title.toLowerCase().includes(q) || t.artist && t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q)));
         // Re-render just browse panel rows with filtered tracks
         if (!filtered.length) { browseEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No matches</div>'; return; }
         browseEl.innerHTML = filtered.map(t => {
@@ -2384,6 +2573,7 @@
         library.push(track);
         spotifyTracks.push(track);
         if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+        syncTrackToFirestore(track);
         renderLibrary(); renderQueue();
         if (btn) { btn.textContent = '✓ Added'; btn.style.color = '#1ED760'; btn.style.borderColor = '#1ED760'; btn.style.background = 'rgba(30,215,96,0.15)'; }
         showToast('"' + t.title + '" added to library', true);
@@ -2475,6 +2665,7 @@
             library.push(track);
             spotifyTracks.push(track);
             if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+            syncTrackToFirestore(track);
             added++;
         });
 
@@ -2544,12 +2735,19 @@
     function spotifyLogout() {
         if (spPlayer) { spPlayer.disconnect(); spPlayer = null; }
         spAccessToken = spRefreshToken = null; spDeviceId = null; spOffset = 0;
+        spViewUserName = '';
         try { localStorage.removeItem('sp_at'); localStorage.removeItem('sp_rt'); localStorage.removeItem('sp_exp'); } catch(e) {}
-        document.getElementById('spotifyBtnText').textContent = 'Connect Spotify';
-        document.getElementById('spotifyConnectBtn').classList.remove('connected');
-        document.getElementById('spotifyStatus').textContent  = '';
-        document.getElementById('spotifyPanel').style.display = 'none';
-        document.getElementById('spotifyTracks').innerHTML    = '';
+        // Safe updates (elements may be hidden stubs)
+        const btnText = document.getElementById('spotifyBtnText');   if (btnText) btnText.textContent = 'Connect Spotify';
+        const connBtn = document.getElementById('spotifyConnectBtn'); if (connBtn) connBtn.classList.remove('connected');
+        const status  = document.getElementById('spotifyStatus');     if (status)  status.textContent  = '';
+        const panel   = document.getElementById('spotifyPanel');      if (panel)   panel.style.display  = 'none';
+        const tracks  = document.getElementById('spotifyTracks');     if (tracks)  tracks.innerHTML     = '';
+        const viewTr  = document.getElementById('spViewTracks');      if (viewTr)  viewTr.innerHTML     = '';
+        // Update view-spotify to not-connected state
+        const notConn  = document.getElementById('spViewNotConnected'); if (notConn)  notConn.style.display  = 'flex';
+        const connEl   = document.getElementById('spViewConnected');    if (connEl)   connEl.style.display    = 'none';
+        const hdrBtn   = document.getElementById('spViewConnectWrap');  if (hdrBtn)   hdrBtn.style.display    = 'block';
         spotifyTracks = [];
         showToast('Spotify disconnected');
     }
@@ -2602,6 +2800,7 @@
         };
         soundcloudTracks.push(track); library.push(track);
         idbSaveStreaming(track);
+        syncTrackToFirestore(track);
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
         document.getElementById('soundcloudUrlInput').value = '';
         titleEl.value = ''; artistEl.value = ''; artEl.value = '';
@@ -2898,6 +3097,53 @@
     // Load playlists on boot
     plLoad();
 
+
+    // ════════════════════════════════════════
+    // SPOTIFY VIEW
+    // ════════════════════════════════════════
+    function renderSpotifyView() {
+        const connected = !!spAccessToken;
+        const notConn   = document.getElementById('spViewNotConnected');
+        const connEl    = document.getElementById('spViewConnected');
+        const headerBtn = document.getElementById('spViewConnectWrap');
+        if (notConn)   notConn.style.display   = connected ? 'none' : 'flex';
+        if (connEl)    connEl.style.display     = connected ? 'block' : 'none';
+        if (headerBtn) headerBtn.style.display  = connected ? 'none' : 'block';
+        if (connected) {
+            const userEl = document.getElementById('spViewUser');
+            if (userEl && spViewUserName) userEl.textContent = spViewUserName;
+            // Sync tab highlights for sp-vtab
+            document.querySelectorAll('.sp-vtab').forEach(b => {
+                const active = b.id === 'spVTab-' + spTab;
+                b.style.color      = active ? '#1ED760' : 'var(--sub)';
+                b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
+            });
+            // Load tracks into the view if not already populated
+            const viewEl = document.getElementById('spViewTracks');
+            if (viewEl && !viewEl.innerHTML.trim()) loadSpotifyTab(spTab || 'liked');
+        }
+    }
+
+    let spViewUserName = '';
+
+    function filterSpotifyView() {
+        const q = (document.getElementById('spViewSearch') || {}).value || '';
+        filterSpotifyBrowse_inner(q, 'spViewTracks');
+    }
+
+    function filterSpotifyBrowse_inner(q, containerId) {
+        q = q.toLowerCase().trim();
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        if (!q) { renderSpotifyTracklistInto(_spBrowseRawTracks, false, containerId); return; }
+        const filtered = _spBrowseRawTracks.filter(t => t && (
+            t.title.toLowerCase().includes(q) ||
+            t.artist.toLowerCase().includes(q) ||
+            (t.album || '').toLowerCase().includes(q)
+        ));
+        renderSpotifyTracklistInto(filtered, false, containerId);
+    }
+
     // ── BOOT ──
     // Handle Spotify OAuth callback before anything else
     (async () => {
@@ -2914,6 +3160,35 @@
         initAuth();
         spRestoreSession().catch(() => {});
     });
+
+    // Called after auth+IDB restore to sync from Firestore on new devices
+    async function syncFromFirestoreIfNeeded() {
+        if (!currentUser) return;
+        const localIDBCount = library.filter(t => t.source !== 'spotify' && t.source !== 'soundcloud').length;
+        const streamingCount = library.filter(t => t.source === 'spotify' || t.source === 'soundcloud').length;
+        // If user has Firestore library entries but IDB is empty for streaming tracks → new device
+        const added = await restoreLibraryFromFirestore();
+        if (added > 0) {
+            renderLibrary(); renderQueue();
+            renderSoundcloudTracks();
+            if (spotifyTracks.length) {
+                const statusEl = document.getElementById('spotifyStatus');
+                if (statusEl) statusEl.textContent = spotifyTracks.length + ' linked';
+                const btn = document.getElementById('spotifyConnectBtn');
+                if (btn) btn.classList.add('connected');
+            }
+            if (soundcloudTracks.length) {
+                const scStatus = document.getElementById('soundcloudStatus');
+                if (scStatus) scStatus.textContent = soundcloudTracks.length + ' linked';
+                const scBtn = document.getElementById('soundcloudConnectBtn');
+                if (scBtn) scBtn.classList.add('connected');
+            }
+            // Show new device popup only if this is a genuinely new device (IDB was empty before restore)
+            if (streamingCount === 0 && added > 0) {
+                showNewDevicePopup(added);
+            }
+        }
+    }
 </script>
 </body>
 </html>
