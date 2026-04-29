@@ -206,13 +206,16 @@
         /* ── NAV ── */
         nav {
             grid-area: nav;
-            display: flex; justify-content: space-between; align-items: center;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
             padding: 1.2rem 2rem;
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.95);
             backdrop-filter: blur(20px); z-index: 100;
         }
-        .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--text); text-decoration: none; }
+        .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--text); text-decoration: none; justify-self: start; }
+        .nav-center { display: flex; align-items: stretch; gap: 0; justify-content: center; }
         .nav-tabs { display: flex; gap: 0; border: 1px solid var(--border); }
         .nav-tab {
             font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
@@ -229,26 +232,27 @@
         }
         .streaming-hamburger-btn {
             display: flex; align-items: center; gap: 0.6rem;
-            font-family: 'Space Mono', monospace; font-size: 0.6rem;
+            font-family: 'Space Mono', monospace; font-size: 0.65rem;
             letter-spacing: 2px; text-transform: uppercase;
-            padding: 0.55rem 1rem;
-            background: none; border: 1px solid var(--border); color: var(--sub);
+            padding: 0.6rem 1.4rem; height: 100%;
+            background: none; border: none; border-left: 1px solid var(--border); color: var(--sub);
             cursor: pointer; transition: all 0.2s;
         }
-        .streaming-hamburger-btn:hover, .streaming-hamburger.open .streaming-hamburger-btn {
-            color: #fff; border-color: rgba(255,255,255,0.25); background: var(--accent-dim);
+        .streaming-hamburger-btn:hover,
+        .streaming-hamburger:hover .streaming-hamburger-btn {
+            color: #fff; background: var(--accent-dim);
         }
         .hamburger-lines { display: flex; flex-direction: column; gap: 3px; }
         .hamburger-lines span { display: block; width: 14px; height: 1.5px; background: currentColor; transition: all 0.2s; }
         .streaming-dropdown {
             display: none;
-            position: absolute; top: calc(100% + 6px); right: 0;
+            position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
             background: var(--surface); border: 1px solid var(--border);
             min-width: 320px; max-height: 70vh; overflow-y: auto;
             z-index: 300; box-shadow: 0 12px 40px rgba(0,0,0,0.8);
         }
         .streaming-dropdown::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
-        .streaming-hamburger.open .streaming-dropdown { display: block; }
+        .streaming-hamburger:hover .streaming-dropdown { display: block; }
         .stream-dd-section { padding: 1rem; }
         .stream-dd-label {
             font-family: 'Space Mono', monospace; font-size: 0.55rem;
@@ -752,20 +756,20 @@
     <!-- NAV -->
     <nav>
         <a href="#" class="nav-logo">BLK.</a>
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchView('library')">Library</button>
-            <button class="nav-tab" onclick="switchView('store')">Store</button>
-            <button class="nav-tab" onclick="switchView('playlists')">Playlists</button>
-            <button class="nav-tab" onclick="switchView('profile')">Profile</button>
-        </div>
-        <div class="nav-right">
-            <!-- STREAMING HAMBURGER -->
-            <div class="streaming-hamburger" id="streamingHamburger">
-                <button class="streaming-hamburger-btn" onclick="toggleStreamingDropdown(event)">
+        <div class="nav-center">
+            <div class="nav-tabs" style="border-right:none;">
+                <button class="nav-tab active" onclick="switchView('library')">Library</button>
+                <button class="nav-tab" onclick="switchView('store')">Store</button>
+                <button class="nav-tab" onclick="switchView('playlists')">Playlists</button>
+                <button class="nav-tab" onclick="switchView('profile')">Profile</button>
+            </div>
+            <!-- STREAMING HAMBURGER — inline with tabs -->
+            <div class="streaming-hamburger" id="streamingHamburger" style="border:1px solid var(--border);border-left:none;">
+                <button class="streaming-hamburger-btn">
                     <div class="hamburger-lines"><span></span><span></span><span></span></div>
                     Streaming Services
                 </button>
-                <div class="streaming-dropdown" id="streamingDropdown" onclick="event.stopPropagation()">
+                <div class="streaming-dropdown" id="streamingDropdown">
                     <div class="stream-dd-section">
                         <div class="stream-dd-label">
                             <span style="color:#1ED760;">🎵</span> Spotify
@@ -787,6 +791,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="nav-right" style="justify-self:end;">
             <div class="nav-coins" id="coinDisplay">0 BLK</div>
             <div class="nav-user" id="navUser" onclick="toggleDropdown()">
                 <div class="nav-avatar" id="navAvatar">?</div>
@@ -1582,21 +1588,15 @@
         const dd = document.getElementById('userDropdown');
         if (forceClose) { dd.classList.remove('open'); return; }
         dd.classList.toggle('open');
-        document.getElementById('streamingHamburger').classList.remove('open');
     }
     document.addEventListener('click', e => {
         if (!document.getElementById('navUser').contains(e.target)) {
             document.getElementById('userDropdown').classList.remove('open');
         }
-        if (!document.getElementById('streamingHamburger').contains(e.target)) {
-            document.getElementById('streamingHamburger').classList.remove('open');
-        }
     });
 
     function toggleStreamingDropdown(e) {
-        e.stopPropagation();
-        document.getElementById('userDropdown').classList.remove('open');
-        document.getElementById('streamingHamburger').classList.toggle('open');
+        // no-op: hover is handled by CSS
     }
 
     function openAdminPanel() {
@@ -1644,11 +1644,10 @@
         if (v === 'spotify') spViewInit();
         if (v === 'soundcloud') renderSoundcloudTracks();
         toggleDropdown(true);
-        document.getElementById('streamingHamburger').classList.remove('open');
+        // streaming dropdown closes automatically on hover-out (CSS)
     }
 
     function openStreamingView(service) {
-        document.getElementById('streamingHamburger').classList.remove('open');
         switchView(service);
     }
 
@@ -1767,7 +1766,7 @@
                 }
                 if (soundcloudTracks.length) {
                     document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
-                    document.getElementById('soundcloudConnectBtn').classList.add('connected');
+                    const _scBtn=document.getElementById('soundcloudConnectBtn');if(_scBtn)_scBtn.classList.add('connected');
                 }
                 res();
             };
@@ -1883,7 +1882,7 @@
             const si = soundcloudTracks.indexOf(t);
             if (si !== -1) soundcloudTracks.splice(si, 1);
             document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
-            if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
+            if (!soundcloudTracks.length) const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected');
             renderSoundcloudTracks();
         }
         idbDeleteTrack(t.id);
@@ -2250,8 +2249,8 @@
     async function spotifyAuth() {
         ensureSpotifyConfig();
         if (spAccessToken && Date.now() < spTokenExpiry - 30000) {
-            const panel = document.getElementById('spotifyPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            // Already connected — open the Spotify view
+            openStreamingView('spotify');
             return;
         }
         if (!SPOTIFY_CLIENT_ID) { showToast('Spotify Client ID not configured'); return; }
@@ -2438,19 +2437,19 @@
 
     async function loadSpotifyTab(tab) {
         spTab = tab; spOffset = 0; spPlaylistId = null;
-        // Highlight both sidebar tabs and browse panel tabs
+        // Highlight browse panel tabs
         document.querySelectorAll('.sp-tab').forEach(b => {
             const active = b.id === 'spTab-' + tab || b.id === 'spBTab-' + tab;
             b.style.color      = active ? '#1ED760' : 'var(--sub)';
             b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
         });
-        const sideEl   = document.getElementById('spotifyTracks');
         const browseEl = document.getElementById('spBrowseTracks');
         const loading  = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div>';
-        if (sideEl)   sideEl.innerHTML   = loading;
         if (browseEl) browseEl.innerHTML = loading;
-        document.getElementById('spLoadMore').style.display       = 'none';
-        document.getElementById('spBrowseLoadMore').style.display = 'none';
+        const spLoadMore = document.getElementById('spLoadMore');
+        const spBrowseLoadMore = document.getElementById('spBrowseLoadMore');
+        if (spLoadMore) spLoadMore.style.display = 'none';
+        if (spBrowseLoadMore) spBrowseLoadMore.style.display = 'none';
         await spFetchPage(false);
     }
 
@@ -2458,6 +2457,8 @@
 
     async function spFetchPage(append) {
         const lim = 20;
+        const spLoadMore = document.getElementById('spLoadMore');
+        const spBrowseLoadMore = document.getElementById('spBrowseLoadMore');
         let data;
         if (spTab === 'liked') {
             data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + spOffset);
@@ -2465,13 +2466,11 @@
             renderSpotifyTracklist((data.items || []).map(i => spFromAPI(i.track)), append);
             spOffset += (data.items || []).length;
             const hasMore = !!data.next;
-            document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
-            document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
+            if (spLoadMore) spLoadMore.style.display = hasMore ? 'block' : 'none';
+            if (spBrowseLoadMore) spBrowseLoadMore.style.display = hasMore ? 'block' : 'none';
         } else if (spTab === 'playlists') {
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
-                // If /me/playlists returns 403 (app not in extended quota mode),
-                // fall back to the public endpoint using the stored user ID
                 if (!data && spUserId) {
                     data = await spAPI('/users/' + encodeURIComponent(spUserId) + '/playlists?limit=' + lim + '&offset=' + spOffset);
                 }
@@ -2479,8 +2478,8 @@
                 renderSpotifyPlaylists((data.items || []).filter(Boolean), append);
                 spOffset += (data.items || []).length;
                 const hasMore = !!data.next;
-                document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
-                document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
+                if (spLoadMore) spLoadMore.style.display = hasMore ? 'block' : 'none';
+                if (spBrowseLoadMore) spBrowseLoadMore.style.display = hasMore ? 'block' : 'none';
             }
         } else if (spTab === 'recent') {
             data = await spAPI('/me/player/recently-played?limit=' + lim);
@@ -2488,8 +2487,8 @@
             const seen = new Set();
             const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             renderSpotifyTracklist(tracks, false);
-            document.getElementById('spLoadMore').style.display       = 'none';
-            document.getElementById('spBrowseLoadMore').style.display = 'none';
+            if (spLoadMore) spLoadMore.style.display = 'none';
+            if (spBrowseLoadMore) spBrowseLoadMore.style.display = 'none';
         }
     }
 
@@ -2698,8 +2697,10 @@
         });
 
         renderLibrary(); renderQueue();
-        document.getElementById('spotifyStatus').textContent = spotifyTracks.length + ' linked';
-        document.getElementById('spotifyConnectBtn').classList.add('connected');
+        const statusEl2 = document.getElementById('spotifyStatus');
+        const connectBtn2 = document.getElementById('spotifyConnectBtn');
+        if (statusEl2) statusEl2.textContent = spotifyTracks.length + ' linked';
+        if (connectBtn2) connectBtn2.classList.add('connected');
 
         // Auto-create a playlist from the imported tracks
         if (added > 0) {
@@ -2764,10 +2765,14 @@
         if (spPlayer) { spPlayer.disconnect(); spPlayer = null; }
         spAccessToken = spRefreshToken = null; spDeviceId = null; spOffset = 0;
         try { localStorage.removeItem('sp_at'); localStorage.removeItem('sp_rt'); localStorage.removeItem('sp_exp'); } catch(e) {}
-        document.getElementById('spotifyBtnText').textContent = 'Connect Spotify';
-        document.getElementById('spotifyConnectBtn').classList.remove('connected');
-        document.getElementById('spotifyStatus').textContent  = '';
-        document.getElementById('spotifyTracks').innerHTML    = '';
+        const btnText = document.getElementById('spotifyBtnText');
+        const connectBtn = document.getElementById('spotifyConnectBtn');
+        const statusEl = document.getElementById('spotifyStatus');
+        const tracksEl = document.getElementById('spotifyTracks');
+        if (btnText) btnText.textContent = 'Connect Spotify';
+        if (connectBtn) connectBtn.classList.remove('connected');
+        if (statusEl) statusEl.textContent = '';
+        if (tracksEl) tracksEl.innerHTML = '';
         spotifyTracks = [];
         // Update full-page view
         const spViewMain = document.getElementById('spViewMain');
@@ -2945,8 +2950,7 @@
 
     // FIX 1: toggleSoundcloudPanel properly defined (was missing, HTML called it)
     function toggleSoundcloudPanel() {
-        soundcloudPanelOpen = !soundcloudPanelOpen;
-        document.getElementById('soundcloudPanel').style.display = soundcloudPanelOpen ? 'block' : 'none';
+        openStreamingView('soundcloud');
     }
 
     function soundcloudUrlHint() {
@@ -2985,7 +2989,7 @@
         titleEl.value = ''; artistEl.value = ''; artEl.value = '';
         document.getElementById('soundcloudMetaFields').style.display = 'none';
         document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
-        document.getElementById('soundcloudConnectBtn').classList.add('connected');
+        const _scBtn=document.getElementById('soundcloudConnectBtn');if(_scBtn)_scBtn.classList.add('connected');
         showToast('SoundCloud track linked — click to open player', true);
     }
 
@@ -2998,7 +3002,7 @@
         soundcloudTracks.splice(idx, 1);
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
         document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
-        if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
+        if (!soundcloudTracks.length) const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected');
         showToast('SoundCloud track removed');
     }
 
