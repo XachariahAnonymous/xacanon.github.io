@@ -2060,25 +2060,42 @@
         updatePlayBtn();
     }
 
+    function restartCurrentTrack() {
+        if (currentIdx < 0) return;
+        const t = library[currentIdx];
+        if (!t) return;
+        if (t.source === 'spotify') {
+            const uri = t.spUri || t.url || null;
+            if (uri && uri.startsWith('spotify:')) {
+                spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
+            }
+        } else if (t.source === 'soundcloud') {
+            openEmbedPlayer(t);
+        } else {
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+        }
+    }
+
     function nextTrack() {
         if (!library.length) return;
+        if (repeat === 2) { restartCurrentTrack(); return; }
         if (shuffle) {
             if (!shuffleQueue.length) buildShuffleQueue();
             if (!shuffleQueue.length) return;
             playTrack(shuffleQueue.shift());
             return;
         }
-        if (repeat === 2) { playTrack(currentIdx); return; }
         playTrack((currentIdx + 1) % library.length);
     }
 
     function prevTrack() {
         if (!library.length) return;
         const t = library[currentIdx];
-        // For local audio, if >3s in, restart; for Spotify seek to 0
+        // If >3s in, restart current track instead of going back
         if (t && t.source === 'local' && audio.currentTime > 3) { audio.currentTime = 0; return; }
         if (t && t.source === 'spotify' && spPlayer && spCurrentPosition > 3) { spPlayer.seek(0); return; }
-        if (repeat === 2) { playTrack(currentIdx); return; }
+        if (repeat === 2) { restartCurrentTrack(); return; }
         playTrack(currentIdx <= 0 ? library.length - 1 : currentIdx - 1);
     }
 
@@ -2195,7 +2212,7 @@
         }
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
-    audio.addEventListener('ended', () => { if (repeat === 2) { audio.play(); return; } if (repeat === 1 && library.length === 1) { audio.play(); return; } nextTrack(); });
+    audio.addEventListener('ended', () => { if (repeat === 2) { restartCurrentTrack(); return; } nextTrack(); });
     audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
 
