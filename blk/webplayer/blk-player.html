@@ -1279,8 +1279,9 @@
         FB.onAuthStateChanged(FB.auth, async user => {
             if (user) {
                 currentUser = user;
-                try { await loadUserProfile(user); } catch(e) { console.warn('loadUserProfile failed:', e); }
+                // Show app immediately, then load profile in background
                 showApp();
+                try { await loadUserProfile(user); } catch(e) { console.warn('loadUserProfile failed:', e); }
             } else {
                 currentUser = null;
                 userProfile = null;
@@ -1345,8 +1346,10 @@
         const alreadyHasStreaming = library.some(t => t.source === 'spotify' || t.source === 'soundcloud');
         if (alreadyHasStreaming) return;
         try {
+            // Timeout after 5s so it never blocks login/showApp
+            const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
             const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
-            const snap = await FB.getDocs(colRef);
+            const snap = await Promise.race([FB.getDocs(colRef), timeoutPromise]);
             snap.forEach(docSnap => {
                 const r = docSnap.data();
                 if (r._deleted) return;
@@ -1388,6 +1391,11 @@
     function showAuth() {
         document.getElementById('auth-screen').classList.remove('hidden');
         document.getElementById('app-shell').classList.remove('visible');
+        // Always reset login button when auth screen is shown
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Sign In'; }
+        const regBtn = document.getElementById('reg-btn');
+        if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'Create Account'; }
     }
 
     function showApp() {
@@ -1426,23 +1434,28 @@
         const pass  = document.getElementById('login-pass').value;
         const btn   = document.getElementById('login-btn');
         const err   = document.getElementById('login-error');
+        err.textContent = '';
+        err.style.color = 'var(--error)';
         if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
         btn.disabled = true; btn.textContent = 'Signing in...';
-        // Safety: always re-enable button after 10s if nothing happens
-        const safetyTimer = setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 10000);
+        // Safety: always re-enable button after 8s if nothing happens
+        const safetyTimer = setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 8000);
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
+            clearTimeout(safetyTimer);
             if (!cred.user.emailVerified) {
-                clearTimeout(safetyTimer);
                 await FB.signOut(FB.auth);
                 err.style.color = 'var(--warn, #ffaa00)';
                 err.textContent = 'Please verify your email before signing in. Check your inbox for the verification link.';
                 const resendBtn = document.getElementById('resend-verify-btn');
                 if (resendBtn) { resendBtn.style.display = 'inline-block'; resendBtn.dataset.email = email; resendBtn.dataset.pass = pass; }
                 btn.disabled = false; btn.textContent = 'Sign In';
+            } else {
+                // Verified: onAuthStateChanged -> showApp() -> showAuth() resets button on any failure
+                // But also reset here after short delay in case showApp is slow
+                btn.textContent = 'Signed in ✓';
+                setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 4000);
             }
-            // If verified, onAuthStateChanged will call showApp() — clear safety timer then
-            clearTimeout(safetyTimer);
         } catch(e) {
             clearTimeout(safetyTimer);
             err.textContent = friendlyError(e.code);
