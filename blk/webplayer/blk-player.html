@@ -1445,18 +1445,35 @@
 
     async function fbLoadStreamingTracks(uid) {
         if (!FB) return;
-        // Skip Firestore read if IDB already has streaming tracks loaded (saves quota)
-        const alreadyHasStreaming = library.some(t => t.source === 'spotify' || t.source === 'soundcloud');
-        if (alreadyHasStreaming) return;
         try {
-            // Timeout after 5s so it never blocks login/showApp
+            // Always fetch from Firebase to detect tracks deleted remotely (e.g. manually removed from Firestore)
             const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
             const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
             const snap = await Promise.race([FB.getDocs(colRef), timeoutPromise]);
+
+            // Build set of track IDs that still exist in Firebase
+            const fbIds = new Set();
+            snap.forEach(docSnap => {
+                const r = docSnap.data();
+                if (!r._deleted) fbIds.add(r.id);
+            });
+
+            // Remove any streaming tracks that were deleted from Firebase but are still in IDB/library
+            const toRemove = library.filter(t => (t.source === 'spotify' || t.source === 'soundcloud') && !fbIds.has(t.id));
+            toRemove.forEach(t => {
+                const libIdx = library.indexOf(t);
+                if (libIdx !== -1) library.splice(libIdx, 1);
+                const spIdx = spotifyTracks.indexOf(t);
+                if (spIdx !== -1) spotifyTracks.splice(spIdx, 1);
+                const scIdx = soundcloudTracks.indexOf(t);
+                if (scIdx !== -1) soundcloudTracks.splice(scIdx, 1);
+                idbDeleteTrack(t.id); // Remove from IDB so it doesn't come back on next load
+            });
+
+            // Add any tracks from Firebase not yet in library
             snap.forEach(docSnap => {
                 const r = docSnap.data();
                 if (r._deleted) return;
-                // Don't duplicate if already in library (from IDB restore)
                 const alreadyIn = library.some(t => t.id === r.id);
                 if (alreadyIn) return;
                 const track = {
@@ -1474,19 +1491,27 @@
                 library.push(track);
                 if (r.source === 'spotify') spotifyTracks.push(track);
                 else if (r.source === 'soundcloud') soundcloudTracks.push(track);
-                // Also save to IDB for offline access
                 if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
             });
-            if (spotifyTracks.length || soundcloudTracks.length) {
+
+            // Re-render if anything changed
+            if (toRemove.length || spotifyTracks.length || soundcloudTracks.length) {
                 renderLibrary(); renderQueue();
                 if (spotifyTracks.length) {
                     document.getElementById('spotifyStatus').textContent = spotifyTracks.length + ' linked';
                     document.getElementById('spotifyConnectBtn').classList.add('connected');
+                } else {
+                    document.getElementById('spotifyStatus').textContent = '';
+                    const _spBtn = document.getElementById('spotifyConnectBtn'); if (_spBtn) _spBtn.classList.remove('connected');
                 }
                 if (soundcloudTracks.length) {
                     document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
                     const _scBtn = document.getElementById('soundcloudConnectBtn'); if (_scBtn) _scBtn.classList.add('connected');
+                } else {
+                    document.getElementById('soundcloudStatus').textContent = '';
+                    const _scBtnR = document.getElementById('soundcloudConnectBtn'); if (_scBtnR) _scBtnR.classList.remove('connected');
                 }
+                renderSoundcloudTracks();
             }
         } catch(e) { /* non-fatal: offline or no data yet */ }
     }
