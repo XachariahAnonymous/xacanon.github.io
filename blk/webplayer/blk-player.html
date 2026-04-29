@@ -1972,6 +1972,7 @@
     let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
     let spDeviceId     = null, spPlayer = null, spNoPremium = false;
     let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
+    let spUserId       = null;
 
     function spRandB64(n) {
         return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(n))))
@@ -2073,6 +2074,7 @@
         document.getElementById('spBrowseMain').style.display    = 'block';
         const me = await spAPI('/me');
         if (me) {
+            spUserId = me.id || null;
             document.getElementById('spotifyStatus').textContent  = me.display_name || me.email || '';
             document.getElementById('spBrowseUser').textContent   = me.display_name || me.email || '';
         }
@@ -2154,8 +2156,7 @@
         }));
         if (r.status === 204) return {};
         if (r.status === 401) { spotifyLogout(); return null; }
-        if (r.status === 403) { showToast('Spotify: permission denied — try reconnecting'); return null; }
-        if (!r.ok) { showToast('Spotify API error (' + r.status + ')'); return null; }
+        if (!r.ok) { if (r.status !== 403) showToast('Spotify API error (' + r.status + ')'); return null; }
         return r.json();
     }
 
@@ -2193,7 +2194,12 @@
         } else if (spTab === 'playlists') {
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
-                if (!data) return;
+                // If /me/playlists returns 403 (app not in extended quota mode),
+                // fall back to the public endpoint using the stored user ID
+                if (!data && spUserId) {
+                    data = await spAPI('/users/' + encodeURIComponent(spUserId) + '/playlists?limit=' + lim + '&offset=' + spOffset);
+                }
+                if (!data) { showToast('Could not load playlists'); return; }
                 renderSpotifyPlaylists((data.items || []).filter(Boolean), append);
                 spOffset += (data.items || []).length;
                 const hasMore = !!data.next;
@@ -2395,7 +2401,7 @@
         const lim  = 20;
         const data = await spAPI('/playlists/' + id + '/tracks?limit=' + lim + '&offset=0');
         if (!data) { 
-            const errHtml = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,0,0,0.5);letter-spacing:1px;padding:0.5rem 0;">Failed to load tracks</div>';
+            const errHtml = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,100,100,0.7);letter-spacing:1px;padding:0.5rem 0;">Cannot load private playlist — only public playlists are accessible.</div>';
             const s = document.getElementById('spPlaylistTrackListSide');
             const b = document.getElementById('spPlaylistTrackListBrowse');
             if (s) s.innerHTML = errHtml;
