@@ -12,7 +12,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-        // ── PASTE YOUR FIREBASE CONFIG HERE ──
         const firebaseConfig = {
             apiKey:            "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
             authDomain:        "blkcoin-72d5a.firebaseapp.com",
@@ -23,8 +22,6 @@
             measurementId:     "G-3ENRZMXQP6"
         };
 
-        // SPOTIFY CONFIG -- create your app at developer.spotify.com/dashboard
-        // Set Redirect URI to the exact URL you open this file from (e.g. http://localhost:3000)
         const SPOTIFY_CLIENT_ID    = '3aa3338a8af249e88ca5fa488cedd32f';
         const SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
         const SPOTIFY_SCOPES = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative';
@@ -34,8 +31,10 @@
         const db   = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // ── expose to window so non-module scripts can call ──
         window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs };
+        window.SPOTIFY_CLIENT_ID    = SPOTIFY_CLIENT_ID;
+        window.SPOTIFY_REDIRECT_URI = SPOTIFY_REDIRECT_URI;
+        window.SPOTIFY_SCOPES       = SPOTIFY_SCOPES;
     </script>
 
     <style>
@@ -51,6 +50,7 @@
             --border: rgba(255,255,255,0.08);
             --success: #00ff66;
             --error: #ff0033;
+            --warn: #ffaa00;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -249,7 +249,6 @@
             background: var(--accent); color: #fff; text-transform: uppercase;
         }
 
-        /* user dropdown */
         .user-dropdown {
             position: absolute; top: calc(100% + 0.8rem); right: 0;
             background: var(--surface); border: 1px solid var(--border);
@@ -320,7 +319,6 @@
         .search-bar input { background: none; border: none; outline: none; color: #fff; font-family: 'Space Mono', monospace; font-size: 0.7rem; width: 100%; letter-spacing: 1px; }
         .search-bar input::placeholder { color: var(--sub); }
 
-        /* track list */
         .track-list { padding: 1rem 0; }
         .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
         .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
@@ -343,7 +341,6 @@
         .track-duration { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); text-align: right; }
         .empty-library { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5rem 2rem; text-align: center; gap: 1rem; }
 
-        /* ── LIBRARY FILTER TABS ── */
         .lib-filter-tab {
             background: none; border: none; border-bottom: 2px solid transparent;
             color: var(--sub); font-family: 'Space Mono', monospace;
@@ -410,11 +407,8 @@
         .vol-bar:hover, .vol-bar.dragging { height: 5px; }
         .vol-fill { height: 100%; background: rgba(255,255,255,0.4); border-radius: 2px; position: relative; pointer-events: none; }
         .vol-dot { position: absolute; right: -5px; top: 50%; transform: translateY(-50%) scale(0); width: 10px; height: 10px; background: #fff; border-radius: 50%; transition: transform 0.15s; pointer-events: none; }
-        .vol-bar:hover .vol-dot, .vol-bar.dragging .vol-dot { transform: translateY(-50%) scale(1); }        .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
-        .volume-wrap { display: flex; align-items: center; gap: 0.6rem; }
-        .vol-icon { font-size: 0.85rem; color: var(--sub); cursor: pointer; }
-        .vol-bar { width: 80px; height: 2px; background: var(--border); cursor: pointer; position: relative; }
-        .vol-fill { height: 100%; background: rgba(255,255,255,0.4); }
+        .vol-bar:hover .vol-dot, .vol-bar.dragging .vol-dot { transform: translateY(-50%) scale(1); }
+        .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
         .coin-earn { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 0.3rem; opacity: 0; transition: opacity 0.5s; }
         .coin-earn.visible { opacity: 1; }
         .scanline { width: 100%; height: 100%; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px); pointer-events: none; }
@@ -446,9 +440,7 @@
         .toast.success { border-left-color: var(--success); }
 
         /* ── PROFILE PANEL ── */
-        .profile-panel {
-            padding: 2.5rem;
-        }
+        .profile-panel { padding: 2.5rem; }
         .profile-avatar-lg {
             width: 96px; height: 96px;
             background: var(--accent-dim); border: 1px solid var(--accent);
@@ -486,7 +478,7 @@
         .missing-banner { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1.5rem; background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2); border-left: 3px solid var(--warn); margin: 1rem 2.5rem 0; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--warn); letter-spacing: 1px; }
         .missing-banner-icon { font-size: 1rem; flex-shrink: 0; }
 
-        /* ── EMBED PLAYER (Spotify/SoundCloud iframes) ── */
+        /* ── EMBED PLAYER ── */
         .embed-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(16px); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .embed-overlay.open { opacity: 1; pointer-events: all; }
         .embed-box { width: min(520px, 94vw); background: var(--surface); border: 1px solid var(--border); position: relative; }
@@ -557,21 +549,17 @@
 </head>
 <body>
 
-<!-- ════════════════════════════════════════
-     AUTH SCREEN
-════════════════════════════════════════ -->
+<!-- AUTH SCREEN -->
 <div id="auth-screen">
     <div class="auth-bg-grid"></div>
     <div class="auth-glow"></div>
     <div class="auth-box">
         <div class="auth-logo">BLK.</div>
         <div class="auth-tagline">Music Platform // Sign In</div>
-
         <div class="auth-tabs">
             <button class="auth-tab active" onclick="setAuthTab('login')">Sign In</button>
             <button class="auth-tab" onclick="setAuthTab('register')">Create Account</button>
         </div>
-
         <!-- LOGIN -->
         <div id="auth-login">
             <div class="auth-field">
@@ -591,7 +579,6 @@
             </button>
             <div class="auth-error" id="login-error"></div>
         </div>
-
         <!-- REGISTER -->
         <div id="auth-register" style="display:none;">
             <div class="auth-field">
@@ -617,11 +604,8 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     MAIN APP SHELL
-════════════════════════════════════════ -->
+<!-- MAIN APP SHELL -->
 <div id="app-shell">
-
     <!-- NAV -->
     <nav>
         <a href="#" class="nav-logo">BLK.</a>
@@ -685,6 +669,7 @@
         <!-- SOUNDCLOUD -->
         <div class="stream-section">
             <div class="sidebar-label">SoundCloud</div>
+            <!-- FIX 1: toggleSoundcloudPanel now calls the properly defined function -->
             <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
                 <span class="stream-icon">☁</span>
                 <span id="soundcloudBtnText">Add from SoundCloud</span>
@@ -722,11 +707,11 @@
                 </div>
             </div>
             <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 2.5rem;overflow-x:auto;">
-                <button class="lib-filter-tab active" id="filter-all"       onclick="setLibFilter('all')">All</button>
-                <button class="lib-filter-tab"         id="filter-local"     onclick="setLibFilter('local')">Local</button>
-                <button class="lib-filter-tab"         id="filter-spotify"   onclick="setLibFilter('spotify')" style="display:none;">Spotify</button>
+                <button class="lib-filter-tab active" id="filter-all"        onclick="setLibFilter('all')">All</button>
+                <button class="lib-filter-tab"         id="filter-local"      onclick="setLibFilter('local')">Local</button>
+                <button class="lib-filter-tab"         id="filter-spotify"    onclick="setLibFilter('spotify')" style="display:none;">Spotify</button>
                 <button class="lib-filter-tab"         id="filter-soundcloud" onclick="setLibFilter('soundcloud')">SoundCloud</button>
-                <button class="lib-filter-tab blk-filter" id="filter-store" onclick="setLibFilter('store')">◈ BLK Songs</button>
+                <button class="lib-filter-tab blk-filter" id="filter-store"  onclick="setLibFilter('store')">◈ BLK Songs</button>
             </div>
             <div class="track-list">
                 <div class="track-list-header">
@@ -790,8 +775,6 @@
                 </div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Member Since</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.8rem;margin-bottom:2.5rem;" id="profileJoined">—</div>
-
-                <!-- SETTINGS SECTION -->
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;padding-top:1.5rem;border-top:1px solid var(--border);">Account Settings</div>
                 <div class="settings-btn-group">
                     <button class="settings-btn" id="verifyEmailBtn" onclick="sendVerificationEmail()">
@@ -865,7 +848,7 @@
     </div>
 </div>
 
-<!-- EMBED PLAYER OVERLAY (Spotify / SoundCloud) -->
+<!-- EMBED PLAYER OVERLAY -->
 <div class="embed-overlay" id="embedOverlay" onclick="if(event.target===this)closeEmbed()">
     <div class="embed-box">
         <div class="embed-header">
@@ -939,20 +922,33 @@
 <div class="toast" id="toast"></div>
 <audio id="audioEl"></audio>
 
-<!-- ════════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════════ -->
 <script>
-    // Wait for Firebase module to load
+    // ── FIREBASE INIT ──
+    // FIX 2: FB is initialised via waitForFB() before any auth call is made.
+    // All auth functions now await waitForFB() if FB is still null.
     let FB = null;
     let currentUser = null;
     let userProfile = null;
 
     const waitForFB = () => new Promise(res => {
+        if (window._blkFB) { res(window._blkFB); return; }
         const check = setInterval(() => {
             if (window._blkFB) { clearInterval(check); res(window._blkFB); }
         }, 50);
     });
+
+    // Expose Spotify config (set by module script above)
+    let SPOTIFY_CLIENT_ID    = '';
+    let SPOTIFY_REDIRECT_URI = '';
+    let SPOTIFY_SCOPES       = '';
+    // Pull from window after module sets them
+    function ensureSpotifyConfig() {
+        if (!SPOTIFY_CLIENT_ID) {
+            SPOTIFY_CLIENT_ID    = window.SPOTIFY_CLIENT_ID    || '';
+            SPOTIFY_REDIRECT_URI = window.SPOTIFY_REDIRECT_URI || '';
+            SPOTIFY_SCOPES       = window.SPOTIFY_SCOPES       || '';
+        }
+    }
 
     // ── PLAYER STATE ──
     let library = [], currentIdx = -1, isPlaying = false;
@@ -992,15 +988,10 @@
             coins = userProfile.coins || 0;
             listenCount = userProfile.listenCount || 0;
         } else {
-            // First sign-in — create profile
             userProfile = {
-                uid: user.uid,
-                email: user.email,
+                uid: user.uid, email: user.email,
                 displayName: user.displayName || user.email.split('@')[0],
-                role: 'user',
-                coins: 0,
-                listenCount: 0,
-                purchases: 0,
+                role: 'user', coins: 0, listenCount: 0, purchases: 0,
                 joinedAt: new Date().toISOString()
             };
             await FB.setDoc(ref, userProfile);
@@ -1020,17 +1011,19 @@
         document.getElementById('app-shell').classList.add('visible');
     }
 
-    // ── TAB TOGGLE ──
     function setAuthTab(tab) {
-        document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+        document.querySelectorAll('.auth-tab').forEach((t, i) =>
+            t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'))
+        );
         document.getElementById('auth-login').style.display    = tab === 'login'    ? 'block' : 'none';
         document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
         document.getElementById('login-error').textContent = '';
         document.getElementById('reg-error').textContent   = '';
     }
 
-    // ── LOGIN ──
+    // FIX 2 applied to doLogin, doRegister, doGoogle, doForgotPassword
     async function doLogin() {
+        if (!FB) FB = await waitForFB();
         const email = document.getElementById('login-email').value.trim();
         const pass  = document.getElementById('login-pass').value;
         const btn   = document.getElementById('login-btn');
@@ -1045,8 +1038,8 @@
         }
     }
 
-    // ── REGISTER ──
     async function doRegister() {
+        if (!FB) FB = await waitForFB();
         const name  = document.getElementById('reg-name').value.trim();
         const email = document.getElementById('reg-email').value.trim();
         const pass  = document.getElementById('reg-pass').value;
@@ -1057,15 +1050,13 @@
         btn.disabled = true; btn.textContent = 'Creating account...';
         try {
             const cred = await FB.createUserWithEmailAndPassword(FB.auth, email, pass);
-            // Override displayName with what they typed
-            userProfile = null; // force fresh create
+            userProfile = null;
             const ref = FB.doc(FB.db, 'users', cred.user.uid);
             await FB.setDoc(ref, {
                 uid: cred.user.uid, email, displayName: name,
                 role: 'user', coins: 0, listenCount: 0, purchases: 0,
                 joinedAt: new Date().toISOString()
             });
-            // Send email verification
             await FB.sendEmailVerification(cred.user);
             btn.textContent = 'Account Created';
             document.getElementById('reg-error').style.color = 'var(--success)';
@@ -1076,8 +1067,8 @@
         }
     }
 
-    // ── GOOGLE ──
     async function doGoogle() {
+        if (!FB) FB = await waitForFB();
         try {
             await FB.signInWithPopup(FB.auth, FB.googleProvider);
         } catch(e) {
@@ -1085,8 +1076,8 @@
         }
     }
 
-    // ── FORGOT PASSWORD ──
     async function doForgotPassword() {
+        if (!FB) FB = await waitForFB();
         const email = document.getElementById('login-email').value.trim();
         if (!email) { document.getElementById('login-error').textContent = 'Enter your email first.'; return; }
         try {
@@ -1099,7 +1090,7 @@
     }
 
     // ════════════════════════════════════════
-    // ACCOUNT SETTINGS (Verify / Change Email / Change Password)
+    // ACCOUNT SETTINGS
     // ════════════════════════════════════════
     async function sendVerificationEmail() {
         if (!currentUser) return;
@@ -1116,7 +1107,7 @@
         const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
         if (isGoogle) { showToast('Google accounts manage email through Google — change it there'); return; }
         document.getElementById('changeEmailPass').value = '';
-        document.getElementById('changeEmailNew').value = '';
+        document.getElementById('changeEmailNew').value  = '';
         document.getElementById('changeEmailError').textContent = '';
         document.getElementById('changeEmailError').style.color = 'var(--error)';
         document.getElementById('changeEmailBtn').textContent = 'Send Verification Link';
@@ -1139,12 +1130,9 @@
         if (newEmail === currentUser.email) { errEl.textContent = 'New email must be different from your current email.'; return; }
         btn.textContent = 'Sending...'; btn.disabled = true;
         try {
-            // Re-authenticate before sensitive operation
             const credential = FB.EmailAuthProvider.credential(currentUser.email, pass);
             await FB.reauthenticateWithCredential(currentUser, credential);
-            // Send verification to new address — change only takes effect when user clicks the link
             await FB.verifyBeforeUpdateEmail(currentUser, newEmail);
-            // Update Firestore
             if (FB) await FB.updateDoc(FB.doc(FB.db, 'users', currentUser.uid), { email: newEmail });
             errEl.style.color = 'var(--success)';
             errEl.textContent = 'Verification sent to ' + newEmail + '. Click the link to confirm your new email.';
@@ -1168,7 +1156,6 @@
         }
     }
 
-    // ── SIGN OUT ──
     async function doSignOut() {
         await FB.signOut(FB.auth);
         library = []; currentIdx = -1; isPlaying = false; coins = 0;
@@ -1203,20 +1190,18 @@
         } else {
             navAvatar.textContent = initials;
         }
-        document.getElementById('navUsername').textContent  = userProfile.displayName || userProfile.email;
+        document.getElementById('navUsername').textContent = userProfile.displayName || userProfile.email;
         const isAdmin = userProfile.role === 'admin';
-        document.getElementById('navAdminBadge').style.display   = isAdmin ? 'inline' : 'none';
-        document.getElementById('adminPanelLink').style.display  = isAdmin ? 'flex'   : 'none';
+        document.getElementById('navAdminBadge').style.display  = isAdmin ? 'inline' : 'none';
+        document.getElementById('adminPanelLink').style.display = isAdmin ? 'flex'   : 'none';
     }
 
     function updateProfileView() {
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
         const avatarEl = document.getElementById('profileAvatarLg');
-        // Keep the overlay, replace content before it
-        const overlay = avatarEl.querySelector('.avatar-upload-overlay');
+        const overlay  = avatarEl.querySelector('.avatar-upload-overlay');
         if (userProfile.avatarUrl) {
-            // Remove old initials text node if any
             [...avatarEl.childNodes].forEach(n => { if (n.nodeType === 3) n.remove(); });
             let img = avatarEl.querySelector('img');
             if (!img) { img = document.createElement('img'); avatarEl.insertBefore(img, overlay); }
@@ -1224,7 +1209,6 @@
         } else {
             let img = avatarEl.querySelector('img');
             if (img) img.remove();
-            // Set initials as text node before overlay
             [...avatarEl.childNodes].forEach(n => { if (n.nodeType === 3) n.remove(); });
             avatarEl.insertBefore(document.createTextNode(initials), overlay);
         }
@@ -1234,63 +1218,56 @@
         document.getElementById('statCoins').textContent       = (userProfile.coins || 0).toFixed(2);
         document.getElementById('statListens').textContent     = userProfile.listenCount || 0;
         document.getElementById('statPurchases').textContent   = userProfile.purchases || 0;
-        const joined = userProfile.joinedAt ? new Date(userProfile.joinedAt).toLocaleDateString('en-AU', { year:'numeric', month:'long', day:'numeric' }) : '—';
-        document.getElementById('profileJoined').textContent   = joined;
-        // Email verified badge
-        const badge = document.getElementById('emailVerifiedBadge');
+        const joined = userProfile.joinedAt
+            ? new Date(userProfile.joinedAt).toLocaleDateString('en-AU', { year:'numeric', month:'long', day:'numeric' })
+            : '—';
+        document.getElementById('profileJoined').textContent = joined;
+
+        const badge     = document.getElementById('emailVerifiedBadge');
         const verifyBtn = document.getElementById('verifyEmailBtn');
-        const isGoogle = currentUser?.providerData?.some(p => p.providerId === 'google.com');
+        const isGoogle  = currentUser?.providerData?.some(p => p.providerId === 'google.com');
         if (isGoogle || currentUser?.emailVerified) {
             badge.style.display = 'inline-block';
             badge.style.color = 'var(--success)'; badge.style.borderColor = 'var(--success)';
             badge.textContent = '✓ Verified';
-            if (verifyBtn) verifyBtn.style.opacity = '0.4';
-            if (verifyBtn) verifyBtn.style.pointerEvents = 'none';
+            if (verifyBtn) { verifyBtn.style.opacity = '0.4'; verifyBtn.style.pointerEvents = 'none'; }
         } else {
             badge.style.display = 'inline-block';
-            badge.style.color = 'var(--warn, #ffaa00)'; badge.style.borderColor = 'var(--warn, #ffaa00)';
+            badge.style.color = 'var(--warn)'; badge.style.borderColor = 'var(--warn)';
             badge.textContent = '⚠ Not Verified';
-            if (verifyBtn) verifyBtn.style.opacity = '1';
-            if (verifyBtn) verifyBtn.style.pointerEvents = 'auto';
+            if (verifyBtn) { verifyBtn.style.opacity = '1'; verifyBtn.style.pointerEvents = 'auto'; }
         }
     }
 
     async function handleAvatarUpload(e) {
         const file = e.target.files[0];
         if (!file || !file.type.startsWith('image/')) return;
-        // Resize + convert to base64
         const base64 = await new Promise((res, rej) => {
             const img = new Image();
             const url = URL.createObjectURL(file);
             img.onload = () => {
-                const size = 256;
-                const canvas = document.createElement('canvas');
+                const size = 256, canvas = document.createElement('canvas');
                 canvas.width = size; canvas.height = size;
                 const ctx = canvas.getContext('2d');
-                // Crop square from centre
                 const min = Math.min(img.width, img.height);
                 const sx = (img.width - min) / 2, sy = (img.height - min) / 2;
                 ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
                 URL.revokeObjectURL(url);
                 res(canvas.toDataURL('image/jpeg', 0.82));
             };
-            img.onerror = rej;
-            img.src = url;
+            img.onerror = rej; img.src = url;
         });
-        // Save to Firestore
         if (currentUser && FB) {
             try {
                 const ref = FB.doc(FB.db, 'users', currentUser.uid);
                 await FB.updateDoc(ref, { avatarUrl: base64 });
                 if (userProfile) userProfile.avatarUrl = base64;
-                updateNavUser();
-                updateProfileView();
+                updateNavUser(); updateProfileView();
                 showToast('Profile photo updated', true);
             } catch(err) {
                 showToast('Failed to save photo — try a smaller image');
             }
         }
-        // Reset input so same file can be re-selected
         e.target.value = '';
     }
 
@@ -1311,7 +1288,7 @@
     }
 
     // ════════════════════════════════════════
-    // COIN SYNC TO FIRESTORE
+    // COIN SYNC
     // ════════════════════════════════════════
     async function syncCoinsToFirestore(delta) {
         if (!currentUser || !FB) return;
@@ -1344,7 +1321,7 @@
     }
 
     // ════════════════════════════════════════
-    // INDEXEDDB — persist local audio files
+    // INDEXEDDB
     // ════════════════════════════════════════
     let idb = null;
     const IDB_NAME = 'blk-library', IDB_VER = 1, IDB_STORE = 'tracks';
@@ -1366,8 +1343,7 @@
                 id: track.id, file,
                 title: track.title, artist: track.artist, album: track.album,
                 duration: track.duration, dateAdded: track.dateAdded,
-                emoji: track.emoji, source: track.source,
-                fileName: file.name
+                emoji: track.emoji, source: track.source, fileName: file.name
             });
             tx.oncomplete = res; tx.onerror = rej;
         });
@@ -1394,20 +1370,16 @@
     }
 
     async function idbSaveStreaming(track) {
-        // Save spotify/soundcloud track metadata (no file)
         if (!idb) return;
         return new Promise((res, rej) => {
             const tx = idb.transaction(IDB_STORE, 'readwrite');
             tx.objectStore(IDB_STORE).put({
                 id: track.id, file: null,
                 title: track.title, artist: track.artist, album: track.album,
-                albumArt: track.albumArt || null,
-                duration: track.duration, dateAdded: track.dateAdded,
-                emoji: track.emoji, source: track.source,
-                spotifyUrl: track.spotifyUrl || null,
-                spotifyType: track.spotifyType || null,
-                soundcloudUrl: track.soundcloudUrl || null,
-                spotifyTrackId: track.spotifyTrackId || null,
+                albumArt: track.albumArt || null, duration: track.duration,
+                dateAdded: track.dateAdded, emoji: track.emoji, source: track.source,
+                spotifyUrl: track.spotifyUrl || null, spotifyType: track.spotifyType || null,
+                soundcloudUrl: track.soundcloudUrl || null, spotifyTrackId: track.spotifyTrackId || null,
                 fileName: null
             });
             tx.oncomplete = res; tx.onerror = rej;
@@ -1428,33 +1400,27 @@
                         track = {
                             id: r.id, url: r.spotifyUrl || r.soundcloudUrl || '',
                             title: r.title, artist: r.artist, album: r.album,
-                            albumArt: r.albumArt || null,
-                            duration: r.duration, dateAdded: r.dateAdded,
-                            emoji: r.emoji, source: r.source,
+                            albumArt: r.albumArt || null, duration: r.duration,
+                            dateAdded: r.dateAdded, emoji: r.emoji, source: r.source,
                             spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
-                            spotifyTrackId: r.spotifyTrackId,
-                            soundcloudUrl: r.soundcloudUrl
+                            spotifyTrackId: r.spotifyTrackId, soundcloudUrl: r.soundcloudUrl
                         };
                         library.push(track);
-                        if (r.source === 'spotify') { spotifyTracks.push(track); }
-                        else { soundcloudTracks.push(track); }
+                        if (r.source === 'spotify') spotifyTracks.push(track);
+                        else soundcloudTracks.push(track);
                     } else if (r.file) {
-                        // Local file still present in IDB
                         const url = URL.createObjectURL(r.file);
                         track = {
                             id: r.id, url, title: r.title, artist: r.artist,
-                            album: r.album, duration: r.duration,
-                            dateAdded: r.dateAdded, emoji: r.emoji, source: 'local',
-                            fileName: r.fileName, missing: false
+                            album: r.album, duration: r.duration, dateAdded: r.dateAdded,
+                            emoji: r.emoji, source: 'local', fileName: r.fileName, missing: false
                         };
                         library.push(track);
                     } else {
-                        // Metadata exists but no file (shouldn't happen for local, but handle gracefully)
                         track = {
                             id: r.id, url: '', title: r.title, artist: r.artist,
-                            album: r.album, duration: r.duration,
-                            dateAdded: r.dateAdded, emoji: r.emoji, source: 'local',
-                            fileName: r.fileName, missing: true
+                            album: r.album, duration: r.duration, dateAdded: r.dateAdded,
+                            emoji: r.emoji, source: 'local', fileName: r.fileName, missing: true
                         };
                         library.push(track);
                         missingCount++;
@@ -1462,13 +1428,13 @@
                 });
                 if (missingCount > 0) showMissingBanner(missingCount);
                 renderLibrary(); renderQueue();
-                renderSpotifyTracks(); renderSoundcloudTracks();
+                renderSpotifySidebar(); renderSoundcloudTracks();
                 if (spotifyTracks.length) {
-                    document.getElementById('spotifyStatus').textContent = `${spotifyTracks.length} linked`;
+                    document.getElementById('spotifyStatus').textContent = spotifyTracks.length + ' linked';
                     document.getElementById('spotifyConnectBtn').classList.add('connected');
                 }
                 if (soundcloudTracks.length) {
-                    document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
+                    document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
                     document.getElementById('soundcloudConnectBtn').classList.add('connected');
                 }
                 res();
@@ -1481,12 +1447,11 @@
         let banner = document.getElementById('missingBanner');
         if (!banner) {
             banner = document.createElement('div');
-            banner.id = 'missingBanner';
-            banner.className = 'missing-banner';
+            banner.id = 'missingBanner'; banner.className = 'missing-banner';
             const trackList = document.querySelector('.track-list');
             trackList.parentNode.insertBefore(banner, trackList);
         }
-        banner.innerHTML = `<span class="missing-banner-icon">⚠</span> ${count} track${count>1?'s':''} could not be restored — the file${count>1?'s have':' has'} moved or been deleted. Re-upload to fix.`;
+        banner.innerHTML = '<span class="missing-banner-icon">⚠</span> ' + count + ' track' + (count>1?'s':'') + ' could not be restored — the file' + (count>1?' have':' has') + ' moved or been deleted. Re-upload to fix.';
     }
 
     // ════════════════════════════════════════
@@ -1494,7 +1459,7 @@
     // ════════════════════════════════════════
     document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
     const uploadZone = document.getElementById('uploadZone');
-    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
     uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
     uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
 
@@ -1502,25 +1467,28 @@
         let added = 0;
         Array.from(files).forEach(file => {
             if (!file.type.startsWith('audio/')) return;
-            // If this filename matches a missing track, restore it
             const existing = library.find(t => t.missing && t.fileName === file.name);
             if (existing) {
-                existing.url = URL.createObjectURL(file);
-                existing.missing = false;
+                existing.url = URL.createObjectURL(file); existing.missing = false;
                 idbSaveTrack(existing, file);
                 const banner = document.getElementById('missingBanner');
                 const stillMissing = library.filter(t => t.missing).length;
                 if (banner && stillMissing === 0) banner.remove();
                 else if (banner) showMissingBanner(stillMissing);
                 renderLibrary(); renderQueue();
-                showToast(`"${existing.title}" restored ✓`, true);
+                showToast('"' + existing.title + '" restored ✓', true);
                 return;
             }
-            const url = URL.createObjectURL(file);
+            const url  = URL.createObjectURL(file);
             const name = file.name.replace(/\.[^.]+$/, '');
             let title = name, artist = 'Unknown Artist', album = 'Local Upload';
             if (name.includes(' - ')) { const p = name.split(' - '); artist = p[0].trim(); title = p.slice(1).join(' - ').trim(); }
-            const track = { id: 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2), url, title, artist, album, duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: randomEmoji(), source: 'local', fileName: file.name, missing: false };
+            const track = {
+                id: 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                url, title, artist, album, duration: 0,
+                dateAdded: new Date().toLocaleDateString(),
+                emoji: randomEmoji(), source: 'local', fileName: file.name, missing: false
+            };
             library.push(track);
             idbSaveTrack(track, file);
             const tmp = new Audio(url);
@@ -1531,7 +1499,7 @@
             });
             added++;
         });
-        if (added) { renderLibrary(); renderQueue(); showToast(`${added} track${added > 1 ? 's' : ''} added to library`); }
+        if (added) { renderLibrary(); renderQueue(); showToast(added + ' track' + (added > 1 ? 's' : '') + ' added to library'); }
     }
 
     function randomEmoji() { return ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'][Math.floor(Math.random()*8)]; }
@@ -1543,45 +1511,45 @@
         const tracks = filtered ?? library;
         const body = document.getElementById('trackListBody');
         if (!tracks.length) {
-            body.innerHTML = `<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>`;
+            body.innerHTML = '<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>';
             return;
         }
         body.innerHTML = tracks.map((t, i) => {
-            const libIdx = library.indexOf(t);
-            const isStream = t.source === 'spotify' || t.source === 'soundcloud';
-            const sourceTag = isStream ? `<span style="font-family:'Space Mono',monospace;font-size:0.5rem;color:${t.source==='spotify'?'#1ED760':'#ff5500'};letter-spacing:1px;margin-left:4px;">${t.source==='spotify'?'SPOTIFY':'SC'}</span>` : '';
+            const libIdx    = library.indexOf(t);
+            const isStream  = t.source === 'spotify' || t.source === 'soundcloud';
+            const sourceTag = isStream
+                ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify'?'SPOTIFY':'SC') + '</span>'
+                : '';
             const thumbInner = t.albumArt
-                ? `<img src="${esc(t.albumArt)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">`
-                : `<span>${t.emoji}</span>`;
-            return `
-            <div class="track-row ${currentIdx === libIdx ? 'playing' : ''} ${t.missing ? 'missing' : ''}" onclick="playTrack(${libIdx})">
-                <span class="track-idx">${currentIdx === libIdx ? '▶' : i+1}</span>
-                <div class="track-info">
-                    <div class="track-thumb">${thumbInner}<div class="play-overlay">${currentIdx === libIdx && isPlaying ? '⏸' : '▶'}</div></div>
-                    <div><div class="track-name">${esc(t.title)}${sourceTag}</div><div class="track-name-artist">${esc(t.artist)}</div></div>
-                </div>
-                <span class="track-album">${esc(t.album)}</span>
-                <span class="track-meta">${t.dateAdded}</span>
-                <span class="track-duration">${t.missing ? '⚠ missing' : fmt(t.duration)}</span>
-                <button class="track-remove-btn" onclick="removeTrack(event,${libIdx})" title="Remove track">✕</button>
-            </div>`;
+                ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display=\'none\'">'
+                : '<span>' + t.emoji + '</span>';
+            return '<div class="track-row ' + (currentIdx === libIdx ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
+                + '<span class="track-idx">' + (currentIdx === libIdx ? '▶' : i+1) + '</span>'
+                + '<div class="track-info">'
+                + '<div class="track-thumb">' + thumbInner + '<div class="play-overlay">' + (currentIdx === libIdx && isPlaying ? '⏸' : '▶') + '</div></div>'
+                + '<div><div class="track-name">' + esc(t.title) + sourceTag + '</div><div class="track-name-artist">' + esc(t.artist) + '</div></div>'
+                + '</div>'
+                + '<span class="track-album">' + esc(t.album) + '</span>'
+                + '<span class="track-meta">' + t.dateAdded + '</span>'
+                + '<span class="track-duration">' + (t.missing ? '⚠ missing' : fmt(t.duration)) + '</span>'
+                + '<button class="track-remove-btn" onclick="removeTrack(event,' + libIdx + ')" title="Remove track">✕</button>'
+                + '</div>';
         }).join('');
     }
 
     function removeTrack(e, libIdx) {
         e.stopPropagation();
-        const t = library[libIdx];
-        if (!t) return;
+        const t = library[libIdx]; if (!t) return;
         if (t.source === 'spotify') {
             const si = spotifyTracks.indexOf(t);
             if (si !== -1) spotifyTracks.splice(si, 1);
-            document.getElementById('spotifyStatus').textContent = spotifyTracks.length ? `${spotifyTracks.length} linked` : '';
+            document.getElementById('spotifyStatus').textContent = spotifyTracks.length ? spotifyTracks.length + ' linked' : '';
             if (!spotifyTracks.length) document.getElementById('spotifyConnectBtn').classList.remove('connected');
-            renderSpotifyTracks();
+            renderSpotifySidebar();
         } else if (t.source === 'soundcloud') {
             const si = soundcloudTracks.indexOf(t);
             if (si !== -1) soundcloudTracks.splice(si, 1);
-            document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? `${soundcloudTracks.length} linked` : '';
+            document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
             if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
             renderSoundcloudTracks();
         }
@@ -1594,9 +1562,8 @@
             closeEmbed();
         } else if (currentIdx > libIdx) { currentIdx--; }
         library.splice(libIdx, 1);
-        filterTracks();
-        renderQueue();
-        showToast(`"${t.title}" removed`);
+        filterTracks(); renderQueue();
+        showToast('"' + t.title + '" removed');
     }
 
     let activeLibFilter = 'all';
@@ -1619,15 +1586,18 @@
     function renderQueue() {
         document.getElementById('queueCount').textContent = library.length;
         const list = document.getElementById('queueList');
-        if (!library.length) { list.innerHTML = `<div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>`; return; }
-        list.innerHTML = library.map((t, i) => `
-            <div class="queue-item ${i === currentIdx ? 'active' : ''}" onclick="playTrack(${i})">
-                <span class="queue-num">${i === currentIdx ? '▶' : i+1}</span>
-                <div class="queue-art"><span>${t.emoji}</span></div>
-                <div class="queue-info"><div class="queue-title">${esc(t.title)}</div><div class="queue-artist">${esc(t.artist)}</div></div>
-                <span class="queue-duration">${t.missing ? '⚠' : fmt(t.duration)}</span>
-            </div>
-        `).join('');
+        if (!library.length) {
+            list.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>';
+            return;
+        }
+        list.innerHTML = library.map((t, i) =>
+            '<div class="queue-item ' + (i === currentIdx ? 'active' : '') + '" onclick="playTrack(' + i + ')">'
+            + '<span class="queue-num">' + (i === currentIdx ? '▶' : i+1) + '</span>'
+            + '<div class="queue-art"><span>' + t.emoji + '</span></div>'
+            + '<div class="queue-info"><div class="queue-title">' + esc(t.title) + '</div><div class="queue-artist">' + esc(t.artist) + '</div></div>'
+            + '<span class="queue-duration">' + (t.missing ? '⚠' : fmt(t.duration)) + '</span>'
+            + '</div>'
+        ).join('');
     }
 
     // ════════════════════════════════════════
@@ -1637,34 +1607,27 @@
         if (idx < 0 || idx >= library.length) return;
         const t = library[idx];
         if (t.missing) { showToast('⚠ File missing — re-upload to restore playback'); return; }
-
-        // Clicking the currently-playing track → toggle pause/resume
         if (idx === currentIdx) {
-            if (t.source === 'spotify' || t.source === 'soundcloud') { openEmbedPlayer(t); return; }
+            if (t.source === 'soundcloud') { openEmbedPlayer(t); return; }
+            if (t.source === 'spotify') { spTogglePlay(); return; }
             if (isPlaying) { audio.pause(); } else { audio.play(); }
             return;
         }
-
-        // Spotify / SoundCloud → open embed overlay
         if (t.source === 'spotify' || t.source === 'soundcloud') {
             currentIdx = idx;
-            openEmbedPlayer(t);
+            if (t.source === 'soundcloud') openEmbedPlayer(t);
             updatePlayerUI(t);
             renderLibrary(); renderQueue();
             return;
         }
-
-        // Close any open embed when switching to local track
         closeEmbed();
         currentIdx = idx;
         audio.src = t.url;
         audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
     }
+
     function togglePlay() {
-        // Route Spotify playback through the SDK
-        if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) {
-            spTogglePlay(); return;
-        }
+        if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) { spTogglePlay(); return; }
         if (currentIdx < 0) { if (library.length) playTrack(0); return; }
         const t = library[currentIdx];
         if (t && t.source === 'soundcloud') { openEmbedPlayer(t); return; }
@@ -1672,9 +1635,14 @@
         if (isPlaying) { audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
         updatePlayBtn();
     }
-    function prevTrack() { if (!library.length) return; if (audio.currentTime > 3 && library[currentIdx]?.source === 'local') { audio.currentTime = 0; return; } playTrack(currentIdx <= 0 ? library.length-1 : currentIdx-1); }
+
+    function prevTrack() {
+        if (!library.length) return;
+        if (audio.currentTime > 3 && library[currentIdx]?.source === 'local') { audio.currentTime = 0; return; }
+        playTrack(currentIdx <= 0 ? library.length-1 : currentIdx-1);
+    }
+
     function buildShuffleQueue() {
-        // Fisher-Yates shuffle — local/store tracks only, excluding current
         const indices = library.map((_, i) => i).filter(i => i !== currentIdx && library[i].source !== 'spotify' && library[i].source !== 'soundcloud');
         for (let i = indices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -1682,28 +1650,31 @@
         }
         shuffleQueue = indices;
     }
+
     function nextTrack() {
         if (!library.length) return;
         if (shuffle) {
-            if (!shuffleQueue.length) buildShuffleQueue(); // all played — rebuild for next cycle
-            if (!shuffleQueue.length) return; // only 1 track in library
+            if (!shuffleQueue.length) buildShuffleQueue();
+            if (!shuffleQueue.length) return;
             playTrack(shuffleQueue.shift());
             return;
         }
         playTrack((currentIdx + 1) % library.length);
     }
+
     function toggleShuffle() {
         shuffle = !shuffle;
         document.getElementById('btnShuffle').classList.toggle('active', shuffle);
         if (shuffle) buildShuffleQueue(); else shuffleQueue = [];
     }
+
     function toggleRepeat() { repeat = !repeat; document.getElementById('btnRepeat').classList.toggle('active', repeat); }
+
     // ── PROGRESS BAR DRAG ──
     let isDraggingProgress = false;
     (function() {
-        const bar = document.getElementById('progressBar');
+        const bar  = document.getElementById('progressBar');
         const fill = document.getElementById('progressFill');
-
         function getPct(e) {
             const rect = bar.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -1714,176 +1685,114 @@
             if (audio.duration) document.getElementById('timeElapsed').textContent = fmt(pct * audio.duration);
         }
         function commitPct(pct) {
-            isDraggingProgress = false;
-            bar.classList.remove('dragging');
+            isDraggingProgress = false; bar.classList.remove('dragging');
             if (audio.duration) audio.currentTime = pct * audio.duration;
         }
-
-        bar.addEventListener('mousedown', e => {
-            isDraggingProgress = true; bar.classList.add('dragging');
-            applyPct(getPct(e));
-            e.preventDefault();
-        });
-        bar.addEventListener('click', e => {
-            applyPct(getPct(e)); commitPct(getPct(e));
-        });
-        document.addEventListener('mousemove', e => {
-            if (!isDraggingProgress) return;
-            applyPct(getPct(e));
-        });
-        document.addEventListener('mouseup', e => {
-            if (!isDraggingProgress) return;
-            commitPct(getPct(e));
-        });
-        // Touch support
-        bar.addEventListener('touchstart', e => {
-            isDraggingProgress = true; bar.classList.add('dragging');
-            applyPct(getPct(e)); e.preventDefault();
-        }, { passive: false });
-        document.addEventListener('touchmove', e => {
-            if (!isDraggingProgress) return; applyPct(getPct(e));
-        }, { passive: true });
+        bar.addEventListener('mousedown', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
+        bar.addEventListener('click', e => { applyPct(getPct(e)); commitPct(getPct(e)); });
+        document.addEventListener('mousemove', e => { if (!isDraggingProgress) return; applyPct(getPct(e)); });
+        document.addEventListener('mouseup', e => { if (!isDraggingProgress) return; commitPct(getPct(e)); });
+        bar.addEventListener('touchstart', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); }, { passive: false });
+        document.addEventListener('touchmove', e => { if (!isDraggingProgress) return; applyPct(getPct(e)); }, { passive: true });
         document.addEventListener('touchend', e => {
             if (!isDraggingProgress) return;
             if (e.changedTouches) {
                 const rect = bar.getBoundingClientRect();
-                const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
-                commitPct(pct);
+                commitPct(Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width)));
             } else { isDraggingProgress = false; bar.classList.remove('dragging'); }
         });
     })();
 
     // ── VOLUME BAR DRAG ──
     (function() {
-        const bar = document.getElementById('volBar');
+        const bar  = document.getElementById('volBar');
         const fill = document.getElementById('volFill');
         let dragging = false;
-
         function getPct(e) {
             const rect = bar.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
-        function applyPct(pct) {
-            fill.style.width = (pct * 100) + '%';
-            volume = pct; audio.volume = pct; muted = false;
-        }
-
-        bar.addEventListener('mousedown', e => {
-            dragging = true; bar.classList.add('dragging');
-            applyPct(getPct(e)); e.preventDefault();
-        });
+        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = false; }
+        bar.addEventListener('mousedown', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); });
-        document.addEventListener('mousemove', e => {
-            if (!dragging) return; applyPct(getPct(e));
-        });
-        document.addEventListener('mouseup', e => {
-            if (!dragging) return;
-            dragging = false; bar.classList.remove('dragging');
-            applyPct(getPct(e));
-        });
-        bar.addEventListener('touchstart', e => {
-            dragging = true; bar.classList.add('dragging');
-            applyPct(getPct(e)); e.preventDefault();
-        }, { passive: false });
-        document.addEventListener('touchmove', e => {
-            if (!dragging) return; applyPct(getPct(e));
-        }, { passive: true });
+        document.addEventListener('mousemove', e => { if (!dragging) return; applyPct(getPct(e)); });
+        document.addEventListener('mouseup', e => { if (!dragging) return; dragging = false; bar.classList.remove('dragging'); applyPct(getPct(e)); });
+        bar.addEventListener('touchstart', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); }, { passive: false });
+        document.addEventListener('touchmove', e => { if (!dragging) return; applyPct(getPct(e)); }, { passive: true });
         document.addEventListener('touchend', e => {
-            if (!dragging) return;
-            dragging = false; bar.classList.remove('dragging');
+            if (!dragging) return; dragging = false; bar.classList.remove('dragging');
             if (e.changedTouches) {
                 const rect = bar.getBoundingClientRect();
-                const pct = Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width));
-                applyPct(pct);
+                applyPct(Math.max(0, Math.min(1, (e.changedTouches[0].clientX - rect.left) / rect.width)));
             }
         });
     })();
 
-    function seekTo(e) { /* legacy — handled by drag IIFE above */ }
-    function setVolume(e) { /* legacy — handled by drag IIFE above */ }
     function toggleMute() { muted = !muted; audio.muted = muted; }
 
     audio.addEventListener('timeupdate', () => {
         if (!audio.duration) return;
         if (!isDraggingProgress) {
-            document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100)+'%';
+            document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100) + '%';
             document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
         }
         const now = Math.floor(audio.currentTime/10);
         if (now > lastCoinTick) {
-            lastCoinTick = now;
-            listenCount++;
-            if (listenCount % 10 === 0) {
-                coins += 0.01;
-                updateCoins();
-                flashCoinEarn();
-                syncCoinsToFirestore(0.01);
-            }
+            lastCoinTick = now; listenCount++;
+            if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
         }
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
     audio.addEventListener('ended', () => { if (repeat) { audio.play(); return; } nextTrack(); });
-    audio.addEventListener('play', () => { isPlaying = true; updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
+    audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
 
     function updatePlayerUI(t) {
         const isStream = t.source === 'spotify' || t.source === 'soundcloud';
-        document.getElementById('playerName').innerHTML = esc(t.title) + (isStream ? `<span style="font-size:0.55rem;color:${t.source==='spotify'?'#1ED760':'#ff5500'};font-family:'Space Mono',monospace;margin-left:6px;">${t.source==='spotify'?'SPOTIFY':'SOUNDCLOUD'}</span>` : '');
-        document.getElementById('playerArtist').textContent = t.artist;
-        const artEl = document.getElementById('playerArt');
+        document.getElementById('playerName').innerHTML = esc(t.title)
+            + (isStream ? '<span style="font-size:0.55rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';font-family:\'Space Mono\',monospace;margin-left:6px;">' + (t.source==='spotify'?'SPOTIFY':'SOUNDCLOUD') + '</span>' : '');
+        document.getElementById('playerArtist').textContent = t.artist || '';
+        const artEl   = document.getElementById('playerArt');
         const emojiEl = document.getElementById('playerArtEmoji');
-        if (t.albumArt) {
-            artEl.style.backgroundImage = `url('${t.albumArt}')`;
-            artEl.style.backgroundSize = 'cover';
+        const art     = t.albumArt || t.artwork || null;
+        if (art) {
+            artEl.style.backgroundImage    = "url('" + art + "')";
+            artEl.style.backgroundSize     = 'cover';
             artEl.style.backgroundPosition = 'center';
             emojiEl.style.display = 'none';
         } else {
             artEl.style.backgroundImage = '';
             emojiEl.style.display = '';
-            emojiEl.textContent = t.emoji;
+            emojiEl.textContent = t.emoji || '◈';
         }
         updatePlayBtn();
     }
-    function updatePlayBtn() { document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶'; renderLibrary(); renderQueue(); }
+
+    function updatePlayBtn() {
+        document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶';
+        renderLibrary(); renderQueue();
+    }
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
-    function updateCoins() { document.getElementById('coinDisplay').textContent = coins.toFixed(2)+' BLK'; document.getElementById('statCoins').textContent = coins.toFixed(2); }
+    function updateCoins()   { document.getElementById('coinDisplay').textContent = coins.toFixed(2)+' BLK'; document.getElementById('statCoins').textContent = coins.toFixed(2); }
 
     // ════════════════════════════════════════
-    // EMBED PLAYER (SoundCloud only - Spotify uses Web Playback SDK)
+    // EMBED PLAYER (SoundCloud)
     // ════════════════════════════════════════
     function openEmbedPlayer(t) {
-        if (t.source === 'spotify') {
-            // Spotify uses Web Playback SDK now, not embed iframes
-            showToast('Use the Spotify sidebar to play tracks');
-            return;
-        }
-        let iframeSrc = '', note = '', title = '';
-        if (false) {
-            // (Spotify embed removed)
-        } else if (t.source === 'soundcloud') {
-            // SoundCloud widget embed
-            const scUrl = encodeURIComponent(t.soundcloudUrl || '');
-            iframeSrc = `https://w.soundcloud.com/player/?url=${scUrl}&color=%238A2BE2&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
-            note = '☁ Playing via SoundCloud Widget';
-            title = 'SoundCloud // ' + esc(t.title);
-        }
-        document.getElementById('embedTitle').innerHTML = title;
-        document.getElementById('embedNote').textContent = note;
-        document.getElementById('embedIframeWrap').innerHTML = `<iframe
-            src="${iframeSrc}"
-            height="${t.source === 'spotify' ? '152' : '166'}"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-        ></iframe>`;
+        if (t.source === 'spotify') { showToast('Use the Spotify sidebar to play tracks'); return; }
+        const scUrl = encodeURIComponent(t.soundcloudUrl || '');
+        const iframeSrc = 'https://w.soundcloud.com/player/?url=' + scUrl + '&color=%238A2BE2&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false';
+        document.getElementById('embedTitle').innerHTML = 'SoundCloud // ' + esc(t.title);
+        document.getElementById('embedNote').textContent = '☁ Playing via SoundCloud Widget';
+        document.getElementById('embedIframeWrap').innerHTML = '<iframe src="' + iframeSrc + '" height="166" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
         document.getElementById('embedOverlay').classList.add('open');
-        // Pause local audio when embed opens
         audio.pause(); isPlaying = false; updatePlayBtn();
     }
 
     function closeEmbed() {
         document.getElementById('embedOverlay').classList.remove('open');
-        document.getElementById('embedIframeWrap').innerHTML = ''; // stops iframe audio
+        document.getElementById('embedIframeWrap').innerHTML = '';
     }
 
     // ════════════════════════════════════════
@@ -1891,43 +1800,40 @@
     // ════════════════════════════════════════
     function renderStore(filtered) {
         const items = filtered ?? STORE;
-        const grid = document.getElementById('storeGrid');
+        const grid  = document.getElementById('storeGrid');
         if (!items.length) {
-            grid.innerHTML = `<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1rem;"><div style="font-size:2.5rem;opacity:0.15;">◈</div><div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;">No tracks available</div><div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(255,255,255,0.15);letter-spacing:1px;">Check back soon</div></div>`;
+            grid.innerHTML = '<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1rem;"><div style="font-size:2.5rem;opacity:0.15;">◈</div><div style="font-family:\'Space Mono\',monospace;font-size:0.7rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;">No tracks available</div><div style="font-family:\'Space Mono\',monospace;font-size:0.55rem;color:rgba(255,255,255,0.15);letter-spacing:1px;">Check back soon</div></div>';
             return;
         }
-        grid.innerHTML = items.map(s => `
-            <div class="store-card">
-                ${s.badge ? `<span class="store-badge">${s.badge}</span>` : ''}
-                <div class="store-art">
-                    <div class="store-art-gradient" style="background:radial-gradient(circle at 30% 70%, ${s.color} 0%, #000 70%);"></div>
-                    <span style="position:relative;z-index:1;font-size:2.5rem;">${s.emoji}</span>
-                    <div class="store-card-overlay"><div class="store-play-btn" onclick="previewStore('${s.id}')">▶</div></div>
-                </div>
-                <div class="store-info">
-                    <div class="store-title">${esc(s.title)}</div>
-                    <div class="store-artist">${esc(s.artist)} · ${esc(s.genre)}</div>
-                    <div class="store-footer">
-                        <span class="store-price">$${s.price.toFixed(2)}</span>
-                        <button class="store-buy-btn ${s.owned?'owned':''}" onclick="openModal('${s.id}')">${s.owned?'✓ Owned':'Buy'}</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        grid.innerHTML = items.map(s =>
+            '<div class="store-card">'
+            + (s.badge ? '<span class="store-badge">' + s.badge + '</span>' : '')
+            + '<div class="store-art"><div class="store-art-gradient" style="background:radial-gradient(circle at 30% 70%,' + s.color + ' 0%,#000 70%);"></div>'
+            + '<span style="position:relative;z-index:1;font-size:2.5rem;">' + s.emoji + '</span>'
+            + '<div class="store-card-overlay"><div class="store-play-btn" onclick="previewStore(\'' + s.id + '\')">▶</div></div></div>'
+            + '<div class="store-info"><div class="store-title">' + esc(s.title) + '</div>'
+            + '<div class="store-artist">' + esc(s.artist) + ' · ' + esc(s.genre) + '</div>'
+            + '<div class="store-footer"><span class="store-price">$' + s.price.toFixed(2) + '</span>'
+            + '<button class="store-buy-btn ' + (s.owned?'owned':'') + '" onclick="openModal(\'' + s.id + '\')">' + (s.owned?'✓ Owned':'Buy') + '</button>'
+            + '</div></div></div>'
+        ).join('');
     }
-    function filterStore() { const q = document.getElementById('storeSearch').value.toLowerCase(); if (!q){renderStore();return;} renderStore(STORE.filter(s=>s.title.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q)||s.genre.toLowerCase().includes(q))); }
+
+    function filterStore() {
+        const q = document.getElementById('storeSearch').value.toLowerCase();
+        if (!q) { renderStore(); return; }
+        renderStore(STORE.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.genre.toLowerCase().includes(q)));
+    }
+
     function previewStore() { showToast('Preview: 30s sample — purchase for full track'); }
 
-    // ── PURCHASE ──
     function openModal(id) {
         const s = STORE.find(x => x.id === id); if (!s || s.owned) return;
-        // ── INSUFFICIENT BLK CHECK ──
         if (coins < s.price) {
-            const shortfall = s.price - coins;
             document.getElementById('blkWarnBalance').textContent = coins.toFixed(2) + ' BLK';
             document.getElementById('blkWarnPrice').textContent   = '$' + s.price.toFixed(2);
-            document.getElementById('blkWarnNeed').textContent    = shortfall.toFixed(2) + ' BLK needed';
-            document.getElementById('blkWarnShortfall').textContent = '-' + shortfall.toFixed(2) + ' BLK';
+            document.getElementById('blkWarnNeed').textContent    = (s.price - coins).toFixed(2) + ' BLK needed';
+            document.getElementById('blkWarnShortfall').textContent = '-' + (s.price - coins).toFixed(2) + ' BLK';
             document.getElementById('blkWarnModal').classList.add('open');
             return;
         }
@@ -1938,19 +1844,16 @@
         const btn = document.getElementById('modalBtn'); btn.textContent = 'Confirm Purchase'; btn.className = 'modal-btn';
         document.getElementById('modalBg').classList.add('open');
     }
-    function closeBlkWarn() { document.getElementById('blkWarnModal').classList.remove('open'); }
-    function closeModal(e) { if (e.target === document.getElementById('modalBg')) closeModalDirect(); }
-    function closeModalDirect() { document.getElementById('modalBg').classList.remove('open'); pendingPurchase = null; }
+
+    function closeBlkWarn()    { document.getElementById('blkWarnModal').classList.remove('open'); }
+    function closeModal(e)     { if (e.target === document.getElementById('modalBg')) closeModalDirect(); }
+    function closeModalDirect(){ document.getElementById('modalBg').classList.remove('open'); pendingPurchase = null; }
 
     async function confirmPurchase() {
         if (!pendingPurchase) return;
-        const s = pendingPurchase;
-        const btn = document.getElementById('modalBtn');
+        const s = pendingPurchase, btn = document.getElementById('modalBtn');
         btn.textContent = 'Processing...'; btn.disabled = true;
-        // Deduct coins
-        coins = Math.max(0, coins - s.price);
-        updateCoins();
-        // Save purchase to Firestore
+        coins = Math.max(0, coins - s.price); updateCoins();
         if (currentUser && FB) {
             const ref = FB.doc(FB.db, 'users', currentUser.uid);
             await FB.updateDoc(ref, { purchases: FB.increment(1), coins: FB.increment(-s.price), lastActive: FB.serverTimestamp() });
@@ -1965,31 +1868,22 @@
             library.push({ id: s.id+'_lib', url: '', title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
             btn.textContent = '✓ Added to Library'; btn.className = 'modal-btn success'; btn.disabled = false;
             renderLibrary(); renderQueue(); renderStore(); updateProfileView();
-            showToast(`"${s.title}" added to your library`, true);
+            showToast('"' + s.title + '" added to your library', true);
             setTimeout(closeModalDirect, 1500);
         }, 800);
     }
 
     // ════════════════════════════════════════
-    // ================================================================
     // SPOTIFY OAuth2 PKCE + Web Playback SDK
-    // ================================================================
-    let spotifyTracks       = [];
-    let soundcloudTracks    = [];
+    // ════════════════════════════════════════
+    let spotifyTracks    = [];
+    let soundcloudTracks = [];
     let soundcloudPanelOpen = false;
 
-    // Spotify runtime state
-    let spAccessToken  = null;
-    let spRefreshToken = null;
-    let spTokenExpiry  = 0;
-    let spDeviceId     = null;
-    let spPlayer       = null;
-    let spTab          = 'liked';
-    let spOffset       = 0;
-    let spPlaylistId   = null;
-    let spListenTick   = 0;
+    let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
+    let spDeviceId     = null, spPlayer = null;
+    let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
 
-    // ── PKCE helpers ──────────────────────────────────────────
     function spRandB64(n) {
         return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(n))))
             .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -2000,42 +1894,34 @@
             .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     }
 
-    // ── OAuth entry point ─────────────────────────────────────
     async function spotifyAuth() {
-        // If already connected, just toggle the panel
+        ensureSpotifyConfig();
         if (spAccessToken && Date.now() < spTokenExpiry - 30000) {
             const panel = document.getElementById('spotifyPanel');
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
             return;
         }
-        if (SPOTIFY_CLIENT_ID === 'YOUR_SPOTIFY_CLIENT_ID') {
-            showToast('Paste your Spotify Client ID in the config at the top of this file');
-            return;
-        }
+        if (!SPOTIFY_CLIENT_ID) { showToast('Spotify Client ID not configured'); return; }
         const verifier  = spRandB64(32);
         const challenge = await spChallenge(verifier);
         const state     = spRandB64(16);
         sessionStorage.setItem('sp_cv', verifier);
         sessionStorage.setItem('sp_st', state);
         const params = new URLSearchParams({
-            response_type: 'code',
-            client_id: SPOTIFY_CLIENT_ID,
-            scope: SPOTIFY_SCOPES,
-            redirect_uri: SPOTIFY_REDIRECT_URI,
-            state,
-            code_challenge_method: 'S256',
-            code_challenge: challenge,
+            response_type: 'code', client_id: SPOTIFY_CLIENT_ID,
+            scope: SPOTIFY_SCOPES, redirect_uri: SPOTIFY_REDIRECT_URI,
+            state, code_challenge_method: 'S256', code_challenge: challenge,
         });
         window.location.href = 'https://accounts.spotify.com/authorize?' + params;
     }
 
-    // ── Handle callback from Spotify ──────────────────────────
     async function spHandleCallback() {
+        ensureSpotifyConfig();
         const url  = new URL(window.location.href);
         const code = url.searchParams.get('code');
         const st   = url.searchParams.get('state');
         const err  = url.searchParams.get('error');
-        if (!code) return; // no callback, normal load
+        if (!code) return;
         window.history.replaceState({}, '', window.location.pathname);
         if (err) { showToast('Spotify denied: ' + err); return; }
         if (st !== sessionStorage.getItem('sp_st')) { showToast('Spotify state mismatch'); return; }
@@ -2046,9 +1932,8 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
-                grant_type: 'authorization_code',
-                code, redirect_uri: SPOTIFY_REDIRECT_URI,
-                client_id: SPOTIFY_CLIENT_ID,
+                grant_type: 'authorization_code', code,
+                redirect_uri: SPOTIFY_REDIRECT_URI, client_id: SPOTIFY_CLIENT_ID,
                 code_verifier: verifier,
             })
         });
@@ -2057,80 +1942,62 @@
         await spOnConnected();
     }
 
-    // ── Token management ──────────────────────────────────────
     async function spRefreshIfNeeded() {
         if (!spRefreshToken || Date.now() < spTokenExpiry - 60000) return !!spAccessToken;
+        ensureSpotifyConfig();
         const resp = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
-                grant_type: 'refresh_token',
-                refresh_token: spRefreshToken,
-                client_id: SPOTIFY_CLIENT_ID,
+                grant_type: 'refresh_token', refresh_token: spRefreshToken, client_id: SPOTIFY_CLIENT_ID,
             })
         });
         if (!resp.ok) { spotifyLogout(); return false; }
-        spSaveTokens(await resp.json());
-        return true;
+        spSaveTokens(await resp.json()); return true;
     }
+
     function spSaveTokens(d) {
         spAccessToken  = d.access_token;
         if (d.refresh_token) spRefreshToken = d.refresh_token;
         spTokenExpiry  = Date.now() + (d.expires_in || 3600) * 1000;
-        try {
-            localStorage.setItem('sp_at',  spAccessToken);
-            localStorage.setItem('sp_rt',  spRefreshToken || '');
-            localStorage.setItem('sp_exp', String(spTokenExpiry));
-        } catch(e) {}
-    }
-    function spLoadTokens() {
-        try {
-            spAccessToken  = localStorage.getItem('sp_at')  || null;
-            spRefreshToken = localStorage.getItem('sp_rt')  || null;
-            spTokenExpiry  = parseInt(localStorage.getItem('sp_exp') || '0');
-        } catch(e) {}
+        try { localStorage.setItem('sp_at', spAccessToken); localStorage.setItem('sp_rt', spRefreshToken || ''); localStorage.setItem('sp_exp', String(spTokenExpiry)); } catch(e) {}
     }
 
-    // ── Post-connect setup ────────────────────────────────────
+    function spLoadTokens() {
+        try { spAccessToken = localStorage.getItem('sp_at') || null; spRefreshToken = localStorage.getItem('sp_rt') || null; spTokenExpiry = parseInt(localStorage.getItem('sp_exp') || '0'); } catch(e) {}
+    }
+
     async function spOnConnected() {
-        // Inject Spotify Web Playback SDK
         if (!window.Spotify) {
             await new Promise((res, rej) => {
-                const s = document.createElement('script');
-                s.src = 'https://sdk.scdn.co/spotify-player.js';
-                s.onload = res; s.onerror = rej;
-                document.head.appendChild(s);
+                const s = document.createElement('script'); s.src = 'https://sdk.scdn.co/spotify-player.js';
+                s.onload = res; s.onerror = rej; document.head.appendChild(s);
             });
         }
         window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
         if (window.Spotify && window.Spotify.Player) spInitPlayer();
-
-        // Update sidebar UI
         document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
         document.getElementById('spotifyConnectBtn').classList.add('connected');
         document.getElementById('spotifyPanel').style.display = 'block';
-
         const me = await spAPI('/me');
         if (me) document.getElementById('spotifyStatus').textContent = me.display_name || me.email || '';
-
         spOffset = 0;
         await loadSpotifyTab('liked');
     }
 
-    // ── Web Playback SDK setup ────────────────────────────────
     function spInitPlayer() {
         if (spPlayer) return;
         spPlayer = new Spotify.Player({
             name: 'BLK Player',
             getOAuthToken: async cb => { await spRefreshIfNeeded(); cb(spAccessToken); },
-            volume: typeof volume !== 'undefined' ? volume : 0.8
+            volume: volume
         });
         spPlayer.addListener('ready', ({ device_id }) => { spDeviceId = device_id; });
         spPlayer.addListener('not_ready', () => { spDeviceId = null; });
         spPlayer.addListener('player_state_changed', spOnStateChange);
         spPlayer.addListener('initialization_error', ({ message }) => showToast('Spotify: ' + message));
-        spPlayer.addListener('authentication_error',  () => showToast('Spotify auth error - try reconnecting'));
-        spPlayer.addListener('account_error',         () => showToast('Spotify Premium required for playback'));
+        spPlayer.addListener('authentication_error', () => showToast('Spotify auth error - try reconnecting'));
+        spPlayer.addListener('account_error', () => showToast('Spotify Premium required for playback'));
         spPlayer.connect();
     }
 
@@ -2138,37 +2005,17 @@
         if (!state) return;
         const t = state.track_window && state.track_window.current_track;
         if (!t) return;
-
-        // Sync BLK player UI with Spotify's current track
         const artwork = t.album && t.album.images && t.album.images[0] ? t.album.images[0].url : null;
-        updatePlayerUI({
-            title:    t.name,
-            artist:   (t.artists || []).map(function(a) { return a.name; }).join(', '),
-            album:    t.album ? t.album.name : '',
-            artwork:  artwork,
-            source:   'spotify',
-            duration: Math.round((state.duration || 0) / 1000),
-        });
-        isPlaying = !state.paused;
-        updatePlayBtn();
+        updatePlayerUI({ title: t.name, artist: (t.artists || []).map(a => a.name).join(', '), album: t.album ? t.album.name : '', artwork, source: 'spotify', duration: Math.round((state.duration || 0) / 1000) });
+        isPlaying = !state.paused; updatePlayBtn();
         document.getElementById('playerArt').classList.toggle('playing', !state.paused);
-
-        // Coin earning - same 10s tick system as local audio
         if (!state.paused) {
             const tick = Math.floor((state.position || 0) / 10000);
             if (tick !== spListenTick) {
-                spListenTick = tick;
-                listenCount++;
-                if (listenCount % 10 === 0) {
-                    coins += 0.01;
-                    updateCoins();
-                    flashCoinEarn();
-                    syncCoinsToFirestore(0.01);
-                }
+                spListenTick = tick; listenCount++;
+                if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
             }
         }
-
-        // Progress bar sync
         if (!isDraggingProgress && state.duration) {
             document.getElementById('progressFill').style.width = ((state.position / state.duration) * 100).toFixed(2) + '%';
             document.getElementById('timeElapsed').textContent  = fmt(Math.round(state.position / 1000));
@@ -2176,11 +2023,10 @@
         }
     }
 
-    // ── Spotify API wrapper ───────────────────────────────────
     async function spAPI(path, opts) {
         if (!await spRefreshIfNeeded()) return null;
         opts = opts || {};
-        var r = await fetch('https://api.spotify.com/v1' + path, Object.assign({}, opts, {
+        const r = await fetch('https://api.spotify.com/v1' + path, Object.assign({}, opts, {
             headers: Object.assign({ 'Authorization': 'Bearer ' + spAccessToken, 'Content-Type': 'application/json' }, opts.headers || {})
         }));
         if (r.status === 204) return {};
@@ -2189,16 +2035,14 @@
         return r.json();
     }
 
-    // ── Library loading ───────────────────────────────────────
     async function loadSpotifyTab(tab) {
         spTab = tab; spOffset = 0; spPlaylistId = null;
-        document.querySelectorAll('.sp-tab').forEach(function(b) {
-            var active = b.id === 'spTab-' + tab;
+        document.querySelectorAll('.sp-tab').forEach(b => {
+            const active = b.id === 'spTab-' + tab;
             b.style.color      = active ? '#1ED760' : 'var(--sub)';
             b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
         });
-        document.getElementById('spotifyTracks').innerHTML =
-            '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div>';
+        document.getElementById('spotifyTracks').innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div>';
         document.getElementById('spLoadMore').style.display = 'none';
         await spFetchPage(false);
     }
@@ -2206,14 +2050,14 @@
     async function loadMoreSpotify() { await spFetchPage(true); }
 
     async function spFetchPage(append) {
-        var lim = 20, data;
+        const lim = 20;
+        let data;
         if (spTab === 'liked') {
             data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + spOffset);
             if (!data) return;
-            renderSpotifyTracklist((data.items || []).map(function(i) { return spFromAPI(i.track); }), append);
+            renderSpotifyTracklist((data.items || []).map(i => spFromAPI(i.track)), append);
             spOffset += (data.items || []).length;
             document.getElementById('spLoadMore').style.display = data.next ? 'block' : 'none';
-
         } else if (spTab === 'playlists') {
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
@@ -2224,19 +2068,15 @@
             } else {
                 data = await spAPI('/playlists/' + spPlaylistId + '/tracks?limit=' + lim + '&offset=' + spOffset);
                 if (!data) return;
-                renderSpotifyTracklist((data.items || []).filter(function(i) { return !!i.track; }).map(function(i) { return spFromAPI(i.track); }), append);
+                renderSpotifyTracklist((data.items || []).filter(i => !!i.track).map(i => spFromAPI(i.track)), append);
                 spOffset += (data.items || []).length;
                 document.getElementById('spLoadMore').style.display = data.next ? 'block' : 'none';
             }
-
         } else if (spTab === 'recent') {
             data = await spAPI('/me/player/recently-played?limit=' + lim);
             if (!data) return;
-            var seen = new Set();
-            var tracks = (data.items || []).filter(function(i) {
-                if (seen.has(i.track.id)) return false;
-                seen.add(i.track.id); return true;
-            }).map(function(i) { return spFromAPI(i.track); });
+            const seen = new Set();
+            const tracks = (data.items || []).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             renderSpotifyTracklist(tracks, false);
             document.getElementById('spLoadMore').style.display = 'none';
         }
@@ -2244,34 +2084,36 @@
 
     function spFromAPI(t) {
         if (!t) return null;
-        var img = t.album && t.album.images;
+        const img = t.album && t.album.images;
         return {
-            spUri:    t.uri,
-            title:    t.name,
-            artist:   (t.artists || []).map(function(a) { return a.name; }).join(', '),
-            album:    (t.album && t.album.name) || '',
-            artwork:  img && img[1] ? img[1].url : img && img[0] ? img[0].url : null,
+            spUri: t.uri, title: t.name,
+            artist: (t.artists || []).map(a => a.name).join(', '),
+            album: (t.album && t.album.name) || '',
+            artwork: img && img[1] ? img[1].url : img && img[0] ? img[0].url : null,
             duration: Math.round((t.duration_ms || 0) / 1000),
         };
     }
 
+    // FIX 3: renderSpotifyTracklist now stores track data in a JS map and uses
+    // a numeric key in the onclick, avoiding all quote-escaping issues.
+    const _spTrackMap = {};
+    let   _spTrackKey = 0;
+
     function renderSpotifyTracklist(tracks, append) {
-        var el = document.getElementById('spotifyTracks');
+        const el = document.getElementById('spotifyTracks');
         if (!tracks.length && !append) {
             el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks found</div>';
             return;
         }
-        var html = tracks.filter(Boolean).map(function(t) {
-            var artStyle = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
-            var uri      = (t.spUri || '').replace(/'/g, "\'");
-            var ttl      = esc(t.title);
-            var art      = esc(t.artist);
-            var alb      = esc(t.album);
-            return '<div class="stream-track-item" onclick="spPlayTrack('' + uri + '','' + ttl + '','' + art + '','' + alb + '','' + (t.artwork || '') + '',' + (t.duration || 0) + ')">'
+        const html = tracks.filter(Boolean).map(t => {
+            const key = _spTrackKey++;
+            _spTrackMap[key] = t;
+            const artStyle = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
+            return '<div class="stream-track-item" onclick="spPlayFromKey(' + key + ')">'
                 + '<div class="stream-track-icon spotify" style="' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
                 + '<div class="stream-track-info">'
-                + '<div class="stream-track-name">' + ttl + '</div>'
-                + '<div class="stream-track-artist">' + art + (alb ? ' &middot; ' + alb : '') + '</div>'
+                + '<div class="stream-track-name">' + esc(t.title) + '</div>'
+                + '<div class="stream-track-artist">' + esc(t.artist) + (t.album ? ' &middot; ' + esc(t.album) : '') + '</div>'
                 + '</div>'
                 + '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);flex-shrink:0;">' + (t.duration ? fmt(t.duration) : '') + '</span>'
                 + '</div>';
@@ -2280,16 +2122,25 @@
         else        el.innerHTML  = html;
     }
 
+    // Safe dispatcher — no string interpolation of user data in onclick attributes
+    function spPlayFromKey(key) {
+        const t = _spTrackMap[key]; if (!t) return;
+        spPlayTrack(t.spUri, t.title, t.artist, t.album, t.artwork || '', t.duration || 0);
+    }
+
     function renderSpotifyPlaylists(playlists, append) {
-        var el = document.getElementById('spotifyTracks');
+        const el = document.getElementById('spotifyTracks');
         if (!playlists.length && !append) {
             el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No playlists</div>';
             return;
         }
-        var html = playlists.map(function(p) {
-            var art = p.images && p.images[0] ? p.images[0].url : '';
-            var artStyle = art ? 'background-image:url(' + art + ');background-size:cover;background-position:center;font-size:0' : '';
-            return '<div class="stream-track-item" onclick="spOpenPlaylist('' + p.id + '','' + esc(p.name) + '')">'
+        // Store playlists in map too to avoid quote issues
+        const html = playlists.map(p => {
+            const key = _spTrackKey++;
+            _spTrackMap[key] = { _playlist: true, id: p.id, name: p.name };
+            const art      = p.images && p.images[0] ? p.images[0].url : '';
+            const artStyle = art ? 'background-image:url(' + art + ');background-size:cover;background-position:center;font-size:0' : '';
+            return '<div class="stream-track-item" onclick="spOpenPlaylistFromKey(' + key + ')">'
                 + '<div class="stream-track-icon spotify" style="' + artStyle + '">' + (art ? '' : '&#x1F3BC;') + '</div>'
                 + '<div class="stream-track-info">'
                 + '<div class="stream-track-name">' + esc(p.name) + '</div>'
@@ -2302,35 +2153,32 @@
         else        el.innerHTML  = html;
     }
 
+    function spOpenPlaylistFromKey(key) {
+        const p = _spTrackMap[key]; if (!p) return;
+        spOpenPlaylist(p.id, p.name);
+    }
+
     async function spOpenPlaylist(id, name) {
         spPlaylistId = id; spOffset = 0;
-        document.getElementById('spotifyTracks').innerHTML =
-            '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">' + esc(name) + '...</div>';
+        document.getElementById('spotifyTracks').innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">' + esc(name) + '...</div>';
         await spFetchPage(false);
     }
 
-    // ── Playback ──────────────────────────────────────────────
     async function spPlayTrack(uri, title, artist, album, artwork, duration) {
         if (!spDeviceId) { showToast('Spotify player not ready - wait a moment'); return; }
         await spRefreshIfNeeded();
-        // Transfer playback to BLK then play the track
         await spAPI('/me/player', { method: 'PUT', body: JSON.stringify({ device_ids: [spDeviceId], play: false }) });
         await spAPI('/me/player/play?device_id=' + spDeviceId, { method: 'PUT', body: JSON.stringify({ uris: [uri] }) });
         spListenTick = 0;
-        // Immediate UI update (SDK state event confirms shortly after)
-        updatePlayerUI({ title: title, artist: artist, album: album, artwork: artwork || null, source: 'spotify', duration: duration });
+        updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
         isPlaying = true; updatePlayBtn();
         document.getElementById('playerArt').classList.add('playing');
     }
 
-    // BLK transport hooks for Spotify playback
     function spTogglePlay() { if (spPlayer) { spPlayer.togglePlay(); return true; } return false; }
     function spSkipNext()   { if (spPlayer) spPlayer.nextTrack(); }
     function spSkipPrev()   { if (spPlayer) spPlayer.previousTrack(); }
-    function spSeekTo(ms)   { if (spPlayer) spPlayer.seek(ms); }
-    function spSetVol(v)    { if (spPlayer) spPlayer.setVolume(v); }
 
-    // ── Disconnect ────────────────────────────────────────────
     function spotifyLogout() {
         if (spPlayer) { spPlayer.disconnect(); spPlayer = null; }
         spAccessToken = spRefreshToken = null; spDeviceId = null; spOffset = 0;
@@ -2344,17 +2192,23 @@
         showToast('Spotify disconnected');
     }
 
-    // ── Restore saved session on page load ────────────────────
     async function spRestoreSession() {
         spLoadTokens();
         if (!spAccessToken) return;
-        var ok = await spRefreshIfNeeded();
+        const ok = await spRefreshIfNeeded();
         if (ok) await spOnConnected();
     }
 
-    // Legacy stubs kept for any lingering references
-    function toggleSpotifyPanel() { spotifyAuth(); }
-    function renderSpotifyTracks() {}
+    // ════════════════════════════════════════
+    // SOUNDCLOUD
+    // ════════════════════════════════════════
+
+    // FIX 1: toggleSoundcloudPanel properly defined (was missing, HTML called it)
+    function toggleSoundcloudPanel() {
+        soundcloudPanelOpen = !soundcloudPanelOpen;
+        document.getElementById('soundcloudPanel').style.display = soundcloudPanelOpen ? 'block' : 'none';
+    }
+
     function soundcloudUrlHint() {
         const url = document.getElementById('soundcloudUrlInput').value.trim();
         const valid = url.includes('soundcloud.com/');
@@ -2372,38 +2226,27 @@
         const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
         if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
-
         const titleEl  = document.getElementById('soundcloudMetaTitle');
         const artistEl = document.getElementById('soundcloudMetaArtist');
         const artEl    = document.getElementById('soundcloudMetaArt');
-
-        // Use manual inputs; fall back to URL slug
-        const parts  = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const title  = titleEl.value.trim()  || (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const artist = artistEl.value.trim() || (parts[parts.length - 2] || 'Unknown Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        const albumArt = artEl.value.trim()  || null;
-
-        const track = {
-            id: 'sc_' + Date.now(),
-            url, title, artist, album: 'SoundCloud', albumArt,
-            duration: 0,
-            dateAdded: new Date().toLocaleDateString(),
-            emoji: '☁',
-            source: 'soundcloud',
-            soundcloudUrl: url
+        const parts    = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const title    = titleEl.value.trim()  || (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const artist   = artistEl.value.trim() || (parts[parts.length - 2] || 'Unknown Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const albumArt = artEl.value.trim()    || null;
+        const track    = {
+            id: 'sc_' + Date.now(), url, title, artist, album: 'SoundCloud', albumArt,
+            duration: 0, dateAdded: new Date().toLocaleDateString(),
+            emoji: '☁', source: 'soundcloud', soundcloudUrl: url
         };
-        soundcloudTracks.push(track);
-        library.push(track);
+        soundcloudTracks.push(track); library.push(track);
         idbSaveStreaming(track);
-        renderSoundcloudTracks();
-        renderLibrary(); renderQueue();
-        // Reset fields
+        renderSoundcloudTracks(); renderLibrary(); renderQueue();
         document.getElementById('soundcloudUrlInput').value = '';
         titleEl.value = ''; artistEl.value = ''; artEl.value = '';
         document.getElementById('soundcloudMetaFields').style.display = 'none';
-        document.getElementById('soundcloudStatus').textContent = `${soundcloudTracks.length} linked`;
+        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
         document.getElementById('soundcloudConnectBtn').classList.add('connected');
-        showToast(`SoundCloud track linked — click to open player`, true);
+        showToast('SoundCloud track linked — click to open player', true);
     }
 
     function removeSoundcloudTrack(trackId, e) {
@@ -2413,60 +2256,76 @@
         const libIdx = library.indexOf(soundcloudTracks[idx]);
         if (libIdx !== -1) library.splice(libIdx, 1);
         soundcloudTracks.splice(idx, 1);
-        renderSoundcloudTracks();
-        renderLibrary(); renderQueue();
-        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? `${soundcloudTracks.length} linked` : '';
+        renderSoundcloudTracks(); renderLibrary(); renderQueue();
+        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
         if (!soundcloudTracks.length) document.getElementById('soundcloudConnectBtn').classList.remove('connected');
         showToast('SoundCloud track removed');
     }
 
     function renderSoundcloudTracks() {
         const el = document.getElementById('soundcloudTracks');
-        if (!soundcloudTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>'; return; }
-        el.innerHTML = soundcloudTracks.map((t) => `
-            <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon soundcloud" style="${t.albumArt ? `background-image:url('${esc(t.albumArt)}');background-size:cover;background-position:center;` : ''}">
-                    ${t.albumArt ? '' : '☁'}
-                </div>
-                <div class="stream-track-info">
-                    <div class="stream-track-name">${esc(t.title)}</div>
-                    <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
-                    ${t.album && t.album !== 'SoundCloud' ? `<div class="stream-track-album">${esc(t.album)}</div>` : ''}
-                </div>
-                <button class="stream-track-remove" onclick="removeSoundcloudTrack('${t.id}',event)" title="Remove">✕</button>
-            </div>
-        `).join('');
+        if (!soundcloudTracks.length) {
+            el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>';
+            return;
+        }
+        el.innerHTML = soundcloudTracks.map(t =>
+            '<div class="stream-track-item" onclick="playTrack(' + library.indexOf(t) + ')">'
+            + '<div class="stream-track-icon soundcloud"' + (t.albumArt ? ' style="background-image:url(\'' + esc(t.albumArt) + '\');background-size:cover;background-position:center;"' : '') + '>'
+            + (t.albumArt ? '' : '☁') + '</div>'
+            + '<div class="stream-track-info">'
+            + '<div class="stream-track-name">' + esc(t.title) + '</div>'
+            + '<div class="stream-track-artist">' + esc(t.artist) + ' · SoundCloud</div>'
+            + (t.album && t.album !== 'SoundCloud' ? '<div class="stream-track-album">' + esc(t.album) + '</div>' : '')
+            + '</div>'
+            + '<button class="stream-track-remove" onclick="removeSoundcloudTrack(\'' + t.id + '\',event)" title="Remove">✕</button>'
+            + '</div>'
+        ).join('');
     }
+
+    // Stub for IDB restore compat
+    function renderSpotifySidebar() {}
 
     // ════════════════════════════════════════
     // UTILS
     // ════════════════════════════════════════
-    function fmt(s) { if (!s||isNaN(s)) return '0:00'; return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,'0')}`; }
-    function esc(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmt(s) {
+        if (!s || isNaN(s)) return '0:00';
+        return Math.floor(s/60) + ':' + Math.floor(s%60).toString().padStart(2,'0');
+    }
+    function esc(str) {
+        if (!str) return '';
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
     function showToast(msg, success=false) {
-        const t = document.getElementById('toast'); t.textContent = msg;
-        t.className = 'toast show'+(success?' success':'');
-        clearTimeout(t._timer); t._timer = setTimeout(()=>t.className='toast', 3500);
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show' + (success ? ' success' : '');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.className = 'toast', 3500);
     }
 
     document.addEventListener('keydown', e => {
         if (e.target.tagName === 'INPUT') return;
-        if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+        if (e.code === 'Space')      { e.preventDefault(); togglePlay(); }
         if (e.code === 'ArrowRight') nextTrack();
-        if (e.code === 'ArrowLeft') prevTrack();
-        if (e.code === 'Escape') closeEmbed();
+        if (e.code === 'ArrowLeft')  prevTrack();
+        if (e.code === 'Escape')     closeEmbed();
     });
 
-    // Boot — open IDB first, then restore library, then init auth
-    // Handle Spotify OAuth redirect callback before anything else
-    spHandleCallback().catch(() => {});
+    // ── BOOT ──
+    // Handle Spotify OAuth callback before anything else
+    (async () => {
+        // Wait for module to expose config before callback handler runs
+        await waitForFB();
+        ensureSpotifyConfig();
+        try { await spHandleCallback(); } catch(e) {}
+    })();
 
     openIDB().then(db => {
         idb = db;
         return restoreLibraryFromIDB();
     }).catch(() => {}).finally(() => {
         initAuth();
-        // Restore Spotify session if tokens are saved
         spRestoreSession().catch(() => {});
     });
 </script>
