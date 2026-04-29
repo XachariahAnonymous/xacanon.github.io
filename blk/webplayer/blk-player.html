@@ -789,8 +789,8 @@
 <body>
 
 <!-- SC WIDGET — must be in-viewport for modern browsers to allow autoplay -->
-<!-- Sized 1×1 and placed off-screen via clip-path so it's technically "visible" to the browser -->
-<div style="position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;z-index:-1;pointer-events:none;" aria-hidden="true">
+<!-- 1×1 at bottom:0, opacity:0 — technically visible to the browser (no overflow:hidden clipping) -->
+<div style="position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0;z-index:-1;pointer-events:none;" aria-hidden="true">
     <iframe id="scHiddenWidget" src="about:blank"
         style="width:1px;height:1px;border:none;display:block;"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
@@ -2763,11 +2763,15 @@
         // iframe "visible" and grants it the autoplay permission from the user's click.
         // After the widget fires READY we shrink it back to 1×1.
         const _scExpand = () => {
-            wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;z-index:-1;pointer-events:none;';
+            // Shrink back to 1×1 after READY — still in-viewport, opacity:0, no overflow:hidden
+            wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0;z-index:-1;pointer-events:none;';
             iframe.style.cssText  = 'width:1px;height:1px;border:none;display:block;';
         };
-        // Expand to a small but real size so the browser grants autoplay
-        wrapper.style.cssText = 'position:fixed;bottom:-200px;right:0;width:300px;height:168px;overflow:hidden;z-index:-1;pointer-events:none;';
+        // Expand to a real in-viewport size so the browser grants autoplay.
+        // opacity:0 hides it visually; bottom:0 keeps it inside the viewport so Chrome
+        // sees actual pixels and grants the autoplay activation budget.
+        // overflow:hidden is intentionally omitted — it would clip pixels to zero.
+        wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:300px;height:168px;opacity:0;z-index:-1;pointer-events:none;';
         iframe.style.cssText  = 'width:300px;height:168px;border:none;display:block;';
 
         if (scWidget) {
