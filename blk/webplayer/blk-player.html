@@ -788,10 +788,14 @@
 </head>
 <body>
 
-<!-- HIDDEN SC WIDGET — BLK controls this iframe via Widget API -->
-<iframe id="scHiddenWidget" src="about:blank"
-    style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;border:none;pointer-events:none;opacity:0;"
-    allow="autoplay"></iframe>
+<!-- SC WIDGET — must be in-viewport for modern browsers to allow autoplay -->
+<!-- Sized 1×1 and placed off-screen via clip-path so it's technically "visible" to the browser -->
+<div style="position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;z-index:-1;pointer-events:none;" aria-hidden="true">
+    <iframe id="scHiddenWidget" src="about:blank"
+        style="width:1px;height:1px;border:none;display:block;"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+</div>
 
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
@@ -1436,12 +1440,38 @@
         } catch(e) { /* non-fatal */ }
     }
 
+    // ── Tombstone helpers — track IDs deleted by the user, persisted in localStorage
+    // so that Firestore/IDB restores don't resurrect them on reload.
+    const _SC_DELETED_KEY = 'blk_deleted_streaming';
+    function _getTombstones() {
+        try { return new Set(JSON.parse(localStorage.getItem(_SC_DELETED_KEY) || '[]')); } catch(e) { return new Set(); }
+    }
+    function _addTombstone(id) {
+        try {
+            const s = _getTombstones(); s.add(id);
+            localStorage.setItem(_SC_DELETED_KEY, JSON.stringify([...s]));
+        } catch(e) {}
+    }
+    function _pruneTombstones() {
+        try {
+            const s = _getTombstones();
+            if (s.size > 500) {
+                const trimmed = [...s].slice(-500);
+                localStorage.setItem(_SC_DELETED_KEY, JSON.stringify(trimmed));
+            }
+        } catch(e) {}
+    }
+
     async function fbDeleteStreamingTrack(trackId) {
+        // Record tombstone locally so restores skip this track even if Firestore lags
+        _addTombstone(trackId);
         if (!currentUser || !FB) return;
         try {
             const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', trackId);
-            await FB.deleteDoc(ref);
+            // setDoc with _deleted flag instead of deleteDoc — cross-device syncs will also see it
+            await FB.setDoc(ref, { _deleted: true, deletedAt: Date.now() });
         } catch(e) { /* non-fatal */ }
+        _pruneTombstones();
     }
 
     async function fbLoadStreamingTracks(uid) {
@@ -2562,7 +2592,7 @@
     let scProgressTimer  = null;
     let scTransitioning  = false;  // true while a new track is being loaded into the widget
 
-    function scInitWidget() {
+    function scInitWidget(onReadyCb) {
         const iframe = document.getElementById('scHiddenWidget');
         if (!iframe || !window.SC || !window.SC.Widget) return;
         // Don't attach to a blank iframe — wait until a real URL is loaded
@@ -2572,6 +2602,8 @@
             scWidgetReady = true;
             scTransitioning = false;
             scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
+            // Shrink iframe back to 1×1 after autoplay budget is granted
+            if (typeof onReadyCb === 'function') onReadyCb();
         });
         scWidget.bind(SC.Widget.Events.PLAY, () => {
             isPlaying = true;
@@ -2595,6 +2627,7 @@
                 scTransitioning = true;
                 scWidgetReady = false;
                 scWidgetUrl = null;
+                scWidget = null; // force fresh iframe load so autoplay triggers cleanly
                 const t = library[currentIdx];
                 if (t) scLoadAndPlay(t.soundcloudUrl || t.url);
                 return;
@@ -2602,6 +2635,7 @@
             // Reset widget state so any subsequent scLoadAndPlay does a fresh load
             scWidgetReady = false;
             scWidgetUrl = null;
+            scWidget = null; // force fresh iframe load on next play
             nextTrack();
         });
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
@@ -2655,14 +2689,15 @@
 
     function _scBuildEmbedUrl(trackUrl) {
         // Use the most permissive widget params to minimise geo-restriction triggers.
-        // - show_playback=true  : required in some regions to enable the play button
-        // - buying/liking/sharing/download=false : strips commerce flags that can trip
-        //   content-restriction checks on certain tracks
+        // auto_play=true is required here — the Widget API itself triggers play via postMessage
+        // which is treated as a user-gesture relay in modern browsers ONLY when the iframe
+        // was loaded with auto_play=true (the browser trusts the initial navigation intent).
         return 'https://w.soundcloud.com/player/?url='
             + encodeURIComponent(trackUrl)
             + '&color=%238A2BE2&auto_play=true&hide_related=true'
             + '&show_comments=false&show_user=false&show_reposts=false&show_teaser=false'
-            + '&show_playback=true&buying=false&liking=false&sharing=false&download=false';
+            + '&show_playback=true&buying=false&liking=false&sharing=false&download=false'
+            + '&visual=false';
     }
 
     // Resolve a SC track URL to a direct stream URL via the public API.
@@ -2698,6 +2733,7 @@
     }
 
     function _scLoadAndPlay(trackUrl) {
+        const wrapper  = document.getElementById('scHiddenWidget').parentElement;
         const iframe   = document.getElementById('scHiddenWidget');
         const embedUrl = _scBuildEmbedUrl(trackUrl);
 
@@ -2716,16 +2752,36 @@
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
 
+        // Modern browsers (Chrome 66+, Firefox 74+) block autoplay on iframes that are
+        // not visible or have no user-gesture activation budget.
+        // Fix: temporarily give the wrapper a real size so the browser considers the
+        // iframe "visible" and grants it the autoplay permission from the user's click.
+        // After the widget fires READY we shrink it back to 1×1.
+        const _scExpand = () => {
+            wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;overflow:hidden;z-index:-1;pointer-events:none;';
+            iframe.style.cssText  = 'width:1px;height:1px;border:none;display:block;';
+        };
+        // Expand to a small but real size so the browser grants autoplay
+        wrapper.style.cssText = 'position:fixed;bottom:-200px;right:0;width:300px;height:168px;overflow:hidden;z-index:-1;pointer-events:none;';
+        iframe.style.cssText  = 'width:300px;height:168px;border:none;display:block;';
+
         if (scWidget) {
-            // Widget already exists — use load() API to swap track without destroying the widget
-            scTransitioning = true;
-            scWidget.load(embedUrl, { auto_play: true });
+            // Widget already exists — use load() API to swap track without destroying the widget.
+            // Destroy and recreate instead of load() to avoid autoplay-policy issues with
+            // widget.load() in modern browsers (load() doesn't carry user-gesture budget).
+            scWidget = null;
+            scWidgetReady = false;
+            iframe.src = embedUrl;
+            iframe.onload = () => {
+                iframe.onload = null;
+                scInitWidget(_scExpand);
+            };
         } else {
             // First-time load: set src, wait for iframe to load, then bind widget
             iframe.src = embedUrl;
             iframe.onload = () => {
                 iframe.onload = null;
-                scInitWidget();
+                scInitWidget(_scExpand);
             };
         }
     }
