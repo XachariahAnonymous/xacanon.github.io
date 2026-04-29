@@ -1317,6 +1317,7 @@
             tx.objectStore(IDB_STORE).put({
                 id: track.id, file: null,
                 title: track.title, artist: track.artist, album: track.album,
+                albumArt: track.albumArt || null,
                 duration: track.duration, dateAdded: track.dateAdded,
                 emoji: track.emoji, source: track.source,
                 spotifyUrl: track.spotifyUrl || null,
@@ -1343,6 +1344,7 @@
                         track = {
                             id: r.id, url: r.spotifyUrl || r.soundcloudUrl || '',
                             title: r.title, artist: r.artist, album: r.album,
+                            albumArt: r.albumArt || null,
                             duration: r.duration, dateAdded: r.dateAdded,
                             emoji: r.emoji, source: r.source,
                             spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
@@ -1737,7 +1739,18 @@
         const isStream = t.source === 'spotify' || t.source === 'soundcloud';
         document.getElementById('playerName').innerHTML = esc(t.title) + (isStream ? `<span style="font-size:0.55rem;color:${t.source==='spotify'?'#1ED760':'#ff5500'};font-family:'Space Mono',monospace;margin-left:6px;">${t.source==='spotify'?'SPOTIFY':'SOUNDCLOUD'}</span>` : '');
         document.getElementById('playerArtist').textContent = t.artist;
-        document.getElementById('playerArtEmoji').textContent = t.emoji;
+        const artEl = document.getElementById('playerArt');
+        const emojiEl = document.getElementById('playerArtEmoji');
+        if (t.albumArt) {
+            artEl.style.backgroundImage = `url('${t.albumArt}')`;
+            artEl.style.backgroundSize = 'cover';
+            artEl.style.backgroundPosition = 'center';
+            emojiEl.style.display = 'none';
+        } else {
+            artEl.style.backgroundImage = '';
+            emojiEl.style.display = '';
+            emojiEl.textContent = t.emoji;
+        }
         updatePlayBtn();
     }
     function updatePlayBtn() { document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶'; renderLibrary(); renderQueue(); }
@@ -1910,21 +1923,24 @@
         let title  = parsed.type === 'playlist' ? 'Spotify Playlist' : parsed.type === 'album' ? 'Spotify Album' : 'Spotify Track';
         let artist = 'Spotify';
         let album  = parsed.type === 'album' ? '' : 'Spotify';
+        let albumArt = null;
 
-        // Try fetching metadata via oEmbed
+        // Try fetching metadata via oEmbed (CORS proxy required for browser)
         try {
-            const oembed = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(cleanUrl)}`).then(r => r.json());
+            const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(cleanUrl)}`;
+            const oembed = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(oembedUrl)}`).then(r => r.json());
             if (oembed && oembed.title) {
                 title  = oembed.title;
-                artist = oembed.author_name || 'Unknown Artist';
+                artist = oembed.author_name || artist;
                 album  = parsed.type === 'album' ? oembed.title : (parsed.type === 'playlist' ? oembed.title : 'Spotify');
+                if (oembed.thumbnail_url) albumArt = oembed.thumbnail_url;
             }
         } catch(e) { /* oEmbed failed — keep defaults */ }
 
         const track = {
             id: 'sp_' + Date.now(),
             url: cleanUrl,
-            title, artist, album,
+            title, artist, album, albumArt,
             duration: 0,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '🎵',
@@ -1963,7 +1979,9 @@
         if (!spotifyTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No Spotify tracks linked yet</div>'; return; }
         el.innerHTML = spotifyTracks.map((t) => `
             <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon spotify">🎵</div>
+                <div class="stream-track-icon spotify" style="${t.albumArt ? `background-image:url('${esc(t.albumArt)}');background-size:cover;background-position:center;` : ''}">
+                    ${t.albumArt ? '' : '🎵'}
+                </div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
                     <div class="stream-track-artist">${esc(t.artist)}${t.artist && t.artist !== 'Spotify' ? ' · Spotify' : 'Spotify'}</div>
@@ -1984,20 +2002,16 @@
         let artist = (parts[parts.length - 2] || 'SoundCloud Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         let title  = (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         let album  = 'SoundCloud';
+        let albumArt = null;
 
-        // Try oEmbed for real metadata
+        // Try oEmbed for real metadata (CORS proxy required)
         try {
-            const oembed = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`).then(r => r.json());
+            const oembedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+            const oembed = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(oembedUrl)}`).then(r => r.json());
             if (oembed && oembed.title) {
-                // oEmbed title is usually "Song - Artist" or just "Song"
-                const sep = oembed.title.indexOf(' - ');
-                if (sep !== -1) {
-                    title  = oembed.title.slice(0, sep).trim();
-                    artist = oembed.title.slice(sep + 3).trim();
-                } else {
-                    title  = oembed.title;
-                }
+                title  = oembed.title;
                 if (oembed.author_name) artist = oembed.author_name;
+                if (oembed.thumbnail_url) albumArt = oembed.thumbnail_url;
                 album = 'SoundCloud';
             }
         } catch(e) { /* keep URL-derived defaults */ }
@@ -2005,7 +2019,7 @@
         const track = {
             id: 'sc_' + Date.now(),
             url: url,
-            title, artist, album,
+            title, artist, album, albumArt,
             duration: 0,
             dateAdded: new Date().toLocaleDateString(),
             emoji: '☁',
@@ -2042,7 +2056,9 @@
         if (!soundcloudTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>'; return; }
         el.innerHTML = soundcloudTracks.map((t) => `
             <div class="stream-track-item" onclick="playTrack(${library.indexOf(t)})">
-                <div class="stream-track-icon soundcloud">☁</div>
+                <div class="stream-track-icon soundcloud" style="${t.albumArt ? `background-image:url('${esc(t.albumArt)}');background-size:cover;background-position:center;` : ''}">
+                    ${t.albumArt ? '' : '☁'}
+                </div>
                 <div class="stream-track-info">
                     <div class="stream-track-name">${esc(t.title)}</div>
                     <div class="stream-track-artist">${esc(t.artist)} · SoundCloud</div>
