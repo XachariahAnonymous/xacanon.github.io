@@ -1468,8 +1468,7 @@
         if (!currentUser || !FB) return;
         try {
             const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', trackId);
-            // setDoc with _deleted flag instead of deleteDoc — cross-device syncs will also see it
-            await FB.setDoc(ref, { _deleted: true, deletedAt: Date.now() });
+            await FB.deleteDoc(ref);
         } catch(e) { /* non-fatal */ }
         _pruneTombstones();
     }
