@@ -1274,21 +1274,10 @@
     // ════════════════════════════════════════
     // AUTH
     // ════════════════════════════════════════
-    let _authHandling = false;
     async function initAuth() {
         FB = await waitForFB();
         FB.onAuthStateChanged(FB.auth, async user => {
-            if (_authHandling) return;
             if (user) {
-                const isGoogle = user.providerData && user.providerData.some(p => p.providerId === 'google.com');
-                if (!isGoogle && !user.emailVerified) {
-                    _authHandling = true;
-                    currentUser = null; userProfile = null;
-                    await FB.signOut(FB.auth);
-                    _authHandling = false;
-                    showAuth();
-                    return;
-                }
                 currentUser = user;
                 await loadUserProfile(user);
                 showApp();
@@ -1441,18 +1430,12 @@
         btn.disabled = true; btn.textContent = 'Signing in...';
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
-            // Reload to get fresh emailVerified status from server
-            try { await cred.user.reload(); } catch(e) {}
-            const freshUser = FB.auth.currentUser;
-            if (freshUser && !freshUser.emailVerified) {
+            if (!cred.user.emailVerified) {
                 await FB.signOut(FB.auth);
                 err.style.color = 'var(--warn, #ffaa00)';
                 err.textContent = 'Please verify your email before signing in. Check your inbox for the verification link.';
                 const resendBtn = document.getElementById('resend-verify-btn');
                 if (resendBtn) { resendBtn.style.display = 'inline-block'; resendBtn.dataset.email = email; resendBtn.dataset.pass = pass; }
-                btn.disabled = false; btn.textContent = 'Sign In';
-            } else {
-                // Verified — onAuthStateChanged handles showApp(); reset button
                 btn.disabled = false; btn.textContent = 'Sign In';
             }
         } catch(e) {
