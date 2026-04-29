@@ -2381,9 +2381,26 @@
             + '</div>';
         const sideEl   = document.getElementById('spotifyTracks');
         const browseEl = document.getElementById('spBrowseTracks');
-        if (sideEl)   sideEl.innerHTML   = backHtml + '<div id="spPlaylistTrackListSide"></div>';
-        if (browseEl) browseEl.innerHTML = backHtml + '<div id="spPlaylistTrackListBrowse"></div>';
-        await spFetchPage(false);
+        if (sideEl)   sideEl.innerHTML   = backHtml + '<div id="spPlaylistTrackListSide"><div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div></div>';
+        if (browseEl) browseEl.innerHTML = backHtml + '<div id="spPlaylistTrackListBrowse"><div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">Loading...</div></div>';
+
+        // Fetch directly — don't go through spFetchPage which depends on spTab
+        const lim  = 20;
+        const data = await spAPI('/playlists/' + id + '/tracks?limit=' + lim + '&offset=0');
+        if (!data) { 
+            const errHtml = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,0,0,0.5);letter-spacing:1px;padding:0.5rem 0;">Failed to load tracks</div>';
+            const s = document.getElementById('spPlaylistTrackListSide');
+            const b = document.getElementById('spPlaylistTrackListBrowse');
+            if (s) s.innerHTML = errHtml;
+            if (b) b.innerHTML = errHtml;
+            return;
+        }
+        const tracks = (data.items || []).filter(i => i && i.track && i.track.id).map(i => spFromAPI(i.track));
+        spOffset = tracks.length;
+        const hasMore = !!data.next;
+        document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
+        document.getElementById('spBrowseLoadMore').style.display = hasMore ? 'block' : 'none';
+        renderSpotifyTracklist(tracks, false, true);
     }
 
     function spBackToPlaylists() {
