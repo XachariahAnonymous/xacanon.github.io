@@ -637,8 +637,12 @@
             color: var(--sub); cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
         .pl-back-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
-        .pl-pick-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.8rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; }
-        .pl-pick-row:hover { background: rgba(255,255,255,0.03); }
+        .pl-pick-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.8rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; color: #fff; }
+        .pl-pick-row:hover { background: rgba(255,255,255,0.05); }
+        .pl-pick-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
+        .pl-pick-row .pl-pick-title { font-size: 0.78rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pl-pick-row .pl-pick-artist { font-size: 0.65rem; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+        .pl-pick-row .pl-pick-dur { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: rgba(255,255,255,0.35); flex-shrink: 0; }
         @media (max-width: 900px) {
             #app-shell { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "nav" "sidebar" "main" "player"; height: auto; min-height: 100vh; overflow: auto; }
             aside { max-height: 360px; border-right: none; border-bottom: 1px solid var(--border); }
@@ -1102,7 +1106,7 @@
         <!-- Track picker -->
         <div style="margin-top:1.2rem;">
             <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.6rem;">Tracks <span id="plTrackCount" style="color:var(--accent);">0</span></div>
-            <div style="background:var(--bg);border:1px solid var(--border);max-height:260px;overflow-y:auto;" id="plTrackPicker"></div>
+            <div style="background:var(--surface2);border:1px solid var(--border);max-height:260px;overflow-y:auto;" id="plTrackPicker"></div>
         </div>
 
         <div style="display:flex;gap:0.5rem;margin-top:1.5rem;">
@@ -2885,13 +2889,13 @@
             var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : '';
             var srcTag = srcLabel ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + srcColor + ';margin-left:4px;">' + srcLabel + '</span>' : '';
             return '<label class="pl-pick-row">'
-                + '<input type="checkbox" data-tid="' + esc(t.id) + '" ' + (checked ? 'checked' : '') + ' onchange="updatePlTrackCount()" style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;">'
+                + '<input type="checkbox" data-tid="' + esc(t.id) + '" ' + (checked ? 'checked' : '') + ' onchange="updatePlTrackCount()">'
                 + '<div style="width:32px;height:32px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;">' + artHtml + '</div>'
                 + '<div style="flex:1;min-width:0;">'
-                + '<div style="font-size:0.75rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.title) + srcTag + '</div>'
-                + '<div style="font-size:0.65rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.artist) + '</div>'
+                + '<div class="pl-pick-title">' + esc(t.title) + srcTag + '</div>'
+                + '<div class="pl-pick-artist">' + esc(t.artist) + '</div>'
                 + '</div>'
-                + '<span style="font-family:Space Mono,monospace;font-size:0.55rem;color:var(--sub);flex-shrink:0;">' + fmt(t.duration) + '</span>'
+                + '<span class="pl-pick-dur">' + fmt(t.duration) + '</span>'
                 + '</label>';
         }).join('');
         updatePlTrackCount();
