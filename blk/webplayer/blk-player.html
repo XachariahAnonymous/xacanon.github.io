@@ -2268,11 +2268,11 @@
         if (idx === currentIdx) {
             if (t.source === 'soundcloud') { scTogglePlay(); return; }
             if (t.source === 'spotify')    { spTogglePlay(); return; }
-            if (isPlaying) { audio.pause(); } else { audio.play(); }
+            if (isPlaying) { audio.pause(); } else { audio.play().catch(()=>{}); }
             return;
         }
         // Stop whatever is currently playing
-        if (audio.src) { audio.pause(); }
+        audio.pause();
         spStopProgressLoop();
         // Pause SC widget if active
         if (scWidget && scWidgetUrl && t.source !== 'soundcloud') {
@@ -2283,7 +2283,6 @@
         updatePlayerUI(t);
         renderLibrary(); renderQueue();
         if (t.source === 'soundcloud') {
-            audio.pause();
             isPlaying = false;
             scLoadAndPlay(t.soundcloudUrl || t.url);
             return;
@@ -2297,9 +2296,12 @@
             }
             return;
         }
-        // Local file
+        // Local file — reset state before loading new src
+        audio.src = '';
+        audio.currentTime = 0;
         audio.src = t.url;
-        audio.play().then(() => { isPlaying = true; renderLibrary(); renderQueue(); }).catch(()=>{});
+        audio.load();
+        audio.play().catch(()=>{});
     }
 
     function togglePlay() {
@@ -2308,8 +2310,7 @@
         if (t && t.source === 'soundcloud') { scTogglePlay(); return; }
         if (t && t.source === 'spotify')    { spTogglePlay(); return; }
         if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) { spTogglePlay(); return; }
-        if (isPlaying) { audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
-        updatePlayBtn();
+        if (audio.paused) { audio.play().catch(()=>{}); } else { audio.pause(); }
     }
 
     function restartCurrentTrack() {
@@ -2327,14 +2328,19 @@
             scWidgetUrl = null;
             scLoadAndPlay(t.soundcloudUrl || t.url);
         } else {
-            audio.currentTime = 0;
+            // Reload src to avoid stale ended-event re-trigger
+            const src = audio.src;
+            audio.pause();
+            audio.src = '';
+            audio.src = src;
+            audio.load();
             audio.play().catch(() => {});
         }
     }
 
     function nextTrack() {
         if (!library.length) return;
-        if (repeat === 2) { restartCurrentTrack(); return; }
+        if (repeat === 2) { restartCurrentTrack(); return; } // repeat-one
         if (shuffle) {
             if (!shuffleQueue.length) {
                 if (repeat === 1) buildShuffleQueue(); // rebuild for repeat-all
@@ -2346,9 +2352,11 @@
         }
         const nextIdx = currentIdx + 1;
         if (nextIdx >= library.length) {
-            // End of library
             if (repeat === 1) { playTrack(0); return; } // repeat-all: wrap to start
-            return; // repeat off: stop
+            // repeat off: stop — reset progress and button state
+            isPlaying = false;
+            updatePlayBtn();
+            return;
         }
         playTrack(nextIdx);
     }
@@ -2480,7 +2488,14 @@
         }
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
-    audio.addEventListener('ended', () => { if (repeat === 2) { restartCurrentTrack(); return; } nextTrack(); });
+    let _endedHandling = false;
+    audio.addEventListener('ended', () => {
+        if (_endedHandling) return;
+        _endedHandling = true;
+        setTimeout(() => { _endedHandling = false; }, 500);
+        if (repeat === 2) { restartCurrentTrack(); return; }
+        nextTrack();
+    });
     audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
 
@@ -2507,7 +2522,10 @@
 
     function updatePlayBtn() {
         document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶';
-        renderLibrary(); renderQueue();
+        // Only update row play-state indicators, not full re-render
+        document.querySelectorAll('.track-row').forEach((row, i) => {
+            row.classList.toggle('playing', i === currentIdx && isPlaying);
+        });
     }
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
     function updateCoins()   { document.getElementById('coinDisplay').textContent = coins.toFixed(2)+' BLK'; document.getElementById('statCoins').textContent = coins.toFixed(2); }
@@ -2553,10 +2571,18 @@
             isPlaying = false;
             scStopProgressLoop();
             document.getElementById('progressFill').style.width = '100%';
+            if (repeat === 2) {
+                // Mark transitioning before reload to block any spurious FINISH
+                scTransitioning = true;
+                scWidgetReady = false;
+                scWidgetUrl = null;
+                const t = library[currentIdx];
+                if (t) scLoadAndPlay(t.soundcloudUrl || t.url);
+                return;
+            }
             // Reset widget state so any subsequent scLoadAndPlay does a fresh load
             scWidgetReady = false;
             scWidgetUrl = null;
-            if (repeat === 2) { restartCurrentTrack(); return; }
             nextTrack();
         });
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
