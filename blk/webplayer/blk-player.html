@@ -223,21 +223,32 @@
         .nav-tab.active { color: #fff; background: var(--accent-dim); }
         .nav-tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.04); }
 
-        /* ── STREAMING DROPDOWN TAB ── */
-        .streaming-tab {
+        /* ── STREAMING HAMBURGER MENU ── */
+        .streaming-hamburger {
             position: relative; cursor: pointer; user-select: none;
-            color: var(--sub); border-right: none !important;
         }
-        .streaming-tab.open { color: #fff; background: var(--accent-dim); }
+        .streaming-hamburger-btn {
+            display: flex; align-items: center; gap: 0.6rem;
+            font-family: 'Space Mono', monospace; font-size: 0.6rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.55rem 1rem;
+            background: none; border: 1px solid var(--border); color: var(--sub);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .streaming-hamburger-btn:hover, .streaming-hamburger.open .streaming-hamburger-btn {
+            color: #fff; border-color: rgba(255,255,255,0.25); background: var(--accent-dim);
+        }
+        .hamburger-lines { display: flex; flex-direction: column; gap: 3px; }
+        .hamburger-lines span { display: block; width: 14px; height: 1.5px; background: currentColor; transition: all 0.2s; }
         .streaming-dropdown {
             display: none;
-            position: absolute; top: calc(100% + 1px); left: 0;
+            position: absolute; top: calc(100% + 6px); right: 0;
             background: var(--surface); border: 1px solid var(--border);
-            min-width: 300px; max-height: 70vh; overflow-y: auto;
+            min-width: 320px; max-height: 70vh; overflow-y: auto;
             z-index: 300; box-shadow: 0 12px 40px rgba(0,0,0,0.8);
         }
         .streaming-dropdown::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
-        .streaming-tab.open .streaming-dropdown { display: block; }
+        .streaming-hamburger.open .streaming-dropdown { display: block; }
         .stream-dd-section { padding: 1rem; }
         .stream-dd-label {
             font-family: 'Space Mono', monospace; font-size: 0.55rem;
@@ -245,6 +256,27 @@
             margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.5rem;
         }
         .stream-dd-status { margin-left: auto; color: var(--success); font-size: 0.5rem; }
+
+        /* ── STREAMING FULL-PAGE VIEWS ── */
+        #view-spotify, #view-soundcloud {
+            display: none; flex-direction: column; height: 100%;
+        }
+        .streaming-view-header {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1.5rem 2.5rem 1rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .streaming-return-btn {
+            font-family: 'Space Mono', monospace; font-size: 0.55rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            padding: 0.55rem 1.1rem;
+            background: none; border: 1px solid var(--border); color: var(--sub);
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .streaming-return-btn:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+        .streaming-view-body { flex: 1; overflow-y: auto; padding: 1.5rem 2.5rem; }
 
         .nav-right { display: flex; align-items: center; gap: 1rem; }
         .nav-coins {
@@ -725,10 +757,15 @@
             <button class="nav-tab" onclick="switchView('store')">Store</button>
             <button class="nav-tab" onclick="switchView('playlists')">Playlists</button>
             <button class="nav-tab" onclick="switchView('profile')">Profile</button>
-            <div class="nav-tab streaming-tab" id="streamingTab" onclick="toggleStreamingDropdown(event)">
-                Streaming ▾
+        </div>
+        <div class="nav-right">
+            <!-- STREAMING HAMBURGER -->
+            <div class="streaming-hamburger" id="streamingHamburger">
+                <button class="streaming-hamburger-btn" onclick="toggleStreamingDropdown(event)">
+                    <div class="hamburger-lines"><span></span><span></span><span></span></div>
+                    Streaming Services
+                </button>
                 <div class="streaming-dropdown" id="streamingDropdown" onclick="event.stopPropagation()">
-                    <!-- SPOTIFY -->
                     <div class="stream-dd-section">
                         <div class="stream-dd-label">
                             <span style="color:#1ED760;">🎵</span> Spotify
@@ -739,46 +776,17 @@
                             <span id="spotifyBtnText">Connect Spotify</span>
                             <span class="stream-status" id="spotifyStatus"></span>
                         </button>
-                        <div id="spotifyPanel" style="display:none;">
-                            <div style="display:flex;border:1px solid var(--border);margin-bottom:0.8rem;">
-                                <button id="spTab-liked"  onclick="loadSpotifyTab('liked')"  class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                                <button id="spTab-recent" onclick="loadSpotifyTab('recent')" class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
-                            </div>
-                            <div class="stream-tracks" id="spotifyTracks"></div>
-                            <button id="spLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:0.5rem;">Load More</button>
-                            <button onclick="spotifyLogout()" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;margin-top:0.8rem;">Disconnect Spotify</button>
-                        </div>
+                        <button onclick="openStreamingView('spotify')" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:1px solid rgba(30,215,96,0.2);color:#1ED760;cursor:pointer;margin-bottom:0.3rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(30,215,96,0.18)'" onmouseout="this.style.background='rgba(30,215,96,0.08)'">Open Spotify View →</button>
                     </div>
-                    <!-- SOUNDCLOUD -->
                     <div class="stream-dd-section" style="border-top:1px solid var(--border);padding-top:1rem;">
                         <div class="stream-dd-label">
                             <span style="color:#ff5500;">☁</span> SoundCloud
                             <span class="stream-dd-status" id="scDDStatus"></span>
                         </div>
-                        <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
-                            <span class="stream-icon">☁</span>
-                            <span id="soundcloudBtnText">Add from SoundCloud</span>
-                            <span class="stream-status" id="soundcloudStatus"></span>
-                        </button>
-                        <div id="soundcloudPanel" style="display:none;margin-top:0.5rem;">
-                            <div class="stream-add-row">
-                                <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL..." oninput="soundcloudUrlHint()">
-                            </div>
-                            <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;">
-                                <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
-                                <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
-                                <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
-                            </div>
-                            <div class="stream-add-row" style="margin-top:0.4rem;">
-                                <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
-                            </div>
-                            <div class="stream-tracks" id="soundcloudTracks"></div>
-                        </div>
+                        <button onclick="openStreamingView('soundcloud')" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:rgba(255,85,0,0.08);border:1px solid rgba(255,85,0,0.2);color:#ff5500;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,85,0,0.18)'" onmouseout="this.style.background='rgba(255,85,0,0.08)'">Open SoundCloud View →</button>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="nav-right">
             <div class="nav-coins" id="coinDisplay">0 BLK</div>
             <div class="nav-user" id="navUser" onclick="toggleDropdown()">
                 <div class="nav-avatar" id="navAvatar">?</div>
@@ -911,6 +919,85 @@
             </div>
             <!-- PLAYLIST DETAIL (overlays within playlists panel) -->
             <div id="playlistDetailOverlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:50;overflow-y:auto;padding-bottom:100px;"></div>
+        </div>
+
+        <!-- SPOTIFY FULL PAGE VIEW -->
+        <div id="view-spotify" style="display:none;flex-direction:column;height:100%;">
+            <div class="streaming-view-header">
+                <button class="streaming-return-btn" onclick="switchView('library')">‹ Back to Library</button>
+                <div style="display:flex;align-items:center;gap:0.8rem;flex:1;">
+                    <span style="font-size:1.4rem;">🎵</span>
+                    <div>
+                        <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:0.2rem;">Streaming</div>
+                        <div style="font-size:1.4rem;font-weight:700;letter-spacing:-0.02em;">Spotify</div>
+                    </div>
+                    <span id="spViewUser" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:#1ED760;margin-left:0.5rem;"></span>
+                </div>
+                <button class="stream-connect-btn" id="spotifyConnectBtn2" onclick="spotifyAuth()" style="flex-shrink:0;display:none;">
+                    <span class="stream-icon">🎵</span>
+                    <span id="spotifyBtnText2">Connect Spotify</span>
+                </button>
+                <button onclick="spotifyLogout()" id="spViewDisconnectBtn" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.2);cursor:pointer;flex-shrink:0;">Disconnect</button>
+            </div>
+            <!-- Not connected -->
+            <div id="spViewConnect" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:4rem;text-align:center;">
+                <div style="font-size:3.5rem;">🎵</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;">Connect Spotify</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);line-height:1.8;max-width:360px;">Browse your Spotify library, search for any song, and add tracks to your BLK library</div>
+                <button onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.8rem 2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;margin-top:0.5rem;">Connect Spotify</button>
+            </div>
+            <!-- Connected -->
+            <div id="spViewMain" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+                <div style="padding:1rem 2.5rem;border-bottom:1px solid var(--border);display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface2);border:1px solid var(--border);padding:0.5rem 1rem;flex:1;min-width:200px;">
+                        <span style="color:var(--sub);">⌕</span>
+                        <input type="text" id="spViewSearch" placeholder="Search Spotify for any song..." oninput="spViewOnSearchInput()" style="background:none;border:none;outline:none;color:#fff;font-family:'Space Mono',monospace;font-size:0.65rem;width:100%;" onkeydown="if(event.key==='Enter')spViewDoSearch()">
+                        <button id="spViewSearchClear" onclick="spViewClearSearch()" style="display:none;background:none;border:none;color:var(--sub);cursor:pointer;font-size:0.7rem;padding:0;">✕</button>
+                    </div>
+                    <button onclick="spViewDoSearch()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;padding:0.5rem 1rem;background:rgba(30,215,96,0.1);border:1px solid rgba(30,215,96,0.3);color:#1ED760;cursor:pointer;">Search</button>
+                    <div style="display:flex;border:1px solid var(--border);">
+                        <button id="spVTab-liked"  onclick="spViewSetTab('liked')"  class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
+                        <button id="spVTab-recent" onclick="spViewSetTab('recent')" class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;border-right:1px solid var(--border);">Recent</button>
+                        <button id="spVTab-results" onclick="spViewSetTab('results')" class="sp-tab sp-vtab" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;">Results</button>
+                    </div>
+                </div>
+                <div id="spViewTracks" style="flex:1;overflow-y:auto;padding:0.5rem 2.5rem 2rem;"></div>
+                <div style="padding:0 2.5rem 1rem;"><button id="spViewLoadMore" onclick="spViewLoadMoreTracks()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.6rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;">Load More</button></div>
+            </div>
+        </div>
+
+        <!-- SOUNDCLOUD FULL PAGE VIEW -->
+        <div id="view-soundcloud" style="display:none;flex-direction:column;height:100%;">
+            <div class="streaming-view-header">
+                <button class="streaming-return-btn" onclick="switchView('library')">‹ Back to Library</button>
+                <div style="display:flex;align-items:center;gap:0.8rem;">
+                    <span style="font-size:1.4rem;">☁</span>
+                    <div>
+                        <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:0.2rem;">Streaming</div>
+                        <div style="font-size:1.4rem;font-weight:700;letter-spacing:-0.02em;">SoundCloud</div>
+                    </div>
+                </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:2rem 2.5rem;">
+                <div style="max-width:600px;">
+                    <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;">Add Track from SoundCloud</div>
+                    <div style="margin-bottom:0.8rem;">
+                        <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL..." oninput="soundcloudUrlHint()" style="width:100%;">
+                    </div>
+                    <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;">
+                        <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
+                        <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
+                        <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
+                    </div>
+                    <div style="margin-top:0.8rem;">
+                        <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
+                    </div>
+                    <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem;">
+                        <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">SoundCloud Tracks in Library</div>
+                        <div class="stream-tracks" id="soundcloudTracks"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- PROFILE -->
@@ -1495,22 +1582,21 @@
         const dd = document.getElementById('userDropdown');
         if (forceClose) { dd.classList.remove('open'); return; }
         dd.classList.toggle('open');
-        // close streaming if user dropdown opens
-        document.getElementById('streamingTab').classList.remove('open');
+        document.getElementById('streamingHamburger').classList.remove('open');
     }
     document.addEventListener('click', e => {
         if (!document.getElementById('navUser').contains(e.target)) {
             document.getElementById('userDropdown').classList.remove('open');
         }
-        if (!document.getElementById('streamingTab').contains(e.target)) {
-            document.getElementById('streamingTab').classList.remove('open');
+        if (!document.getElementById('streamingHamburger').contains(e.target)) {
+            document.getElementById('streamingHamburger').classList.remove('open');
         }
     });
 
     function toggleStreamingDropdown(e) {
         e.stopPropagation();
         document.getElementById('userDropdown').classList.remove('open');
-        document.getElementById('streamingTab').classList.toggle('open');
+        document.getElementById('streamingHamburger').classList.toggle('open');
     }
 
     function openAdminPanel() {
@@ -1540,8 +1626,14 @@
     // VIEWS
     // ════════════════════════════════════════
     function switchView(v) {
-        ['library','store','playlists','profile'].forEach(id => {
-            document.getElementById('view-' + id).style.display = id === v ? 'block' : 'none';
+        ['library','store','playlists','profile','spotify','soundcloud'].forEach(id => {
+            const el = document.getElementById('view-' + id);
+            if (!el) return;
+            if (id === 'spotify' || id === 'soundcloud') {
+                el.style.display = id === v ? 'flex' : 'none';
+            } else {
+                el.style.display = id === v ? 'block' : 'none';
+            }
         });
         document.querySelectorAll('.nav-tab').forEach((t, i) => {
             t.classList.toggle('active', ['library','store','playlists','profile'][i] === v);
@@ -1549,8 +1641,15 @@
         if (v === 'store') renderStore();
         if (v === 'profile') updateProfileView();
         if (v === 'playlists') renderPlaylists();
+        if (v === 'spotify') spViewInit();
+        if (v === 'soundcloud') renderSoundcloudTracks();
         toggleDropdown(true);
-        document.getElementById('streamingTab').classList.remove('open');
+        document.getElementById('streamingHamburger').classList.remove('open');
+    }
+
+    function openStreamingView(service) {
+        document.getElementById('streamingHamburger').classList.remove('open');
+        switchView(service);
     }
 
     // ════════════════════════════════════════
@@ -2232,7 +2331,6 @@
         if (window.Spotify && window.Spotify.Player) spInitPlayer();
         document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
         document.getElementById('spotifyConnectBtn').classList.add('connected');
-        document.getElementById('spotifyPanel').style.display = 'block';
         // Show browse panel connected state if Spotify filter is active
         document.getElementById('spBrowseConnect').style.display = 'none';
         document.getElementById('spBrowseMain').style.display    = 'block';
@@ -2241,9 +2339,23 @@
             spUserId = me.id || null;
             document.getElementById('spotifyStatus').textContent  = me.display_name || me.email || '';
             document.getElementById('spBrowseUser').textContent   = me.display_name || me.email || '';
+            const spViewUserEl = document.getElementById('spViewUser');
+            if (spViewUserEl) spViewUserEl.textContent = me.display_name || me.email || '';
         }
+        // Update full-page view if visible
+        const spViewConnect = document.getElementById('spViewConnect');
+        const spViewMain = document.getElementById('spViewMain');
+        const spViewDisconnect = document.getElementById('spViewDisconnectBtn');
+        if (spViewConnect) spViewConnect.style.display = 'none';
+        if (spViewMain) { spViewMain.style.display = 'flex'; }
+        if (spViewDisconnect) spViewDisconnect.style.display = 'inline-block';
         spOffset = 0;
         await loadSpotifyTab('liked');
+        // Also load view page if spotify view is active
+        if (document.getElementById('view-spotify') && document.getElementById('view-spotify').style.display !== 'none') {
+            _spViewOffset = 0; _spViewRawTracks = [];
+            spViewLoadPage(false);
+        }
     }
 
     function spInitPlayer() {
@@ -2655,10 +2767,169 @@
         document.getElementById('spotifyBtnText').textContent = 'Connect Spotify';
         document.getElementById('spotifyConnectBtn').classList.remove('connected');
         document.getElementById('spotifyStatus').textContent  = '';
-        document.getElementById('spotifyPanel').style.display = 'none';
         document.getElementById('spotifyTracks').innerHTML    = '';
         spotifyTracks = [];
+        // Update full-page view
+        const spViewMain = document.getElementById('spViewMain');
+        const spViewConnect = document.getElementById('spViewConnect');
+        if (spViewMain) { spViewMain.style.display = 'none'; }
+        if (spViewConnect) { spViewConnect.style.display = 'flex'; }
+        const spViewDisconnect = document.getElementById('spViewDisconnectBtn');
+        if (spViewDisconnect) spViewDisconnect.style.display = 'none';
         showToast('Spotify disconnected');
+    }
+
+    // ── SPOTIFY FULL PAGE VIEW ──
+    let _spViewTab = 'liked', _spViewOffset = 0, _spViewSearchQuery = '', _spViewRawTracks = [];
+
+    function spViewInit() {
+        const connected = !!spAccessToken;
+        const spViewConnect = document.getElementById('spViewConnect');
+        const spViewMain = document.getElementById('spViewMain');
+        if (spViewConnect) spViewConnect.style.display = connected ? 'none' : 'flex';
+        if (spViewMain) {
+            spViewMain.style.display = connected ? 'flex' : 'none';
+        }
+        const disconnectBtn = document.getElementById('spViewDisconnectBtn');
+        if (disconnectBtn) disconnectBtn.style.display = connected ? 'inline-block' : 'none';
+        const userEl = document.getElementById('spViewUser');
+        if (userEl && spUserId) userEl.textContent = spUserId;
+        if (connected && spViewMain) {
+            // load liked songs if view is freshly opened
+            spViewSetTab(_spViewTab);
+        }
+    }
+
+    function spViewSetTab(tab) {
+        _spViewTab = tab; _spViewOffset = 0; _spViewRawTracks = [];
+        document.querySelectorAll('.sp-vtab').forEach(b => {
+            const active = b.id === 'spVTab-' + tab;
+            b.style.color = active ? '#1ED760' : 'var(--sub)';
+            b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
+        });
+        if (tab === 'results') return; // results rendered by search
+        spViewLoadPage(false);
+    }
+
+    async function spViewLoadPage(append) {
+        const tracksEl = document.getElementById('spViewTracks');
+        const loadMoreBtn = document.getElementById('spViewLoadMore');
+        if (!tracksEl) return;
+        if (!append) tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:1.5rem 0;">Loading...</div>';
+        const lim = 20;
+        let data;
+        if (_spViewTab === 'liked') {
+            data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + _spViewOffset);
+            if (!data) return;
+            const tracks = (data.items || []).map(i => spFromAPI(i.track)).filter(Boolean);
+            _spViewRawTracks = append ? _spViewRawTracks.concat(tracks) : tracks;
+            _spViewOffset += tracks.length;
+            spViewRenderTracks(tracks, append);
+            if (loadMoreBtn) loadMoreBtn.style.display = data.next ? 'block' : 'none';
+        } else if (_spViewTab === 'recent') {
+            data = await spAPI('/me/player/recently-played?limit=' + lim);
+            if (!data) return;
+            const seen = new Set();
+            const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
+            _spViewRawTracks = tracks;
+            spViewRenderTracks(tracks, false);
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+        }
+    }
+
+    async function spViewDoSearch() {
+        const query = document.getElementById('spViewSearch').value.trim();
+        if (!query) return;
+        _spViewSearchQuery = query;
+        const tracksEl = document.getElementById('spViewTracks');
+        const loadMoreBtn = document.getElementById('spViewLoadMore');
+        if (!tracksEl) return;
+        tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:1.5rem 0;">Searching...</div>';
+        // switch to results tab
+        const resultsTab = document.getElementById('spVTab-results');
+        if (resultsTab) { resultsTab.style.display = 'inline-block'; }
+        document.querySelectorAll('.sp-vtab').forEach(b => {
+            const active = b.id === 'spVTab-results';
+            b.style.color = active ? '#1ED760' : 'var(--sub)';
+            b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
+        });
+        _spViewTab = 'results';
+        const data = await spAPI('/search?q=' + encodeURIComponent(query) + '&type=track&limit=20');
+        if (!data || !data.tracks) { tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);padding:1.5rem 0;">No results found</div>'; return; }
+        const tracks = (data.tracks.items || []).map(t => spFromAPI(t)).filter(Boolean);
+        _spViewRawTracks = tracks;
+        spViewRenderTracks(tracks, false);
+        if (loadMoreBtn) loadMoreBtn.style.display = data.tracks.next ? 'block' : 'none';
+        document.getElementById('spViewSearchClear').style.display = 'inline';
+    }
+
+    function spViewOnSearchInput() {
+        // show/hide clear button
+        const val = document.getElementById('spViewSearch').value;
+        document.getElementById('spViewSearchClear').style.display = val ? 'inline' : 'none';
+    }
+
+    function spViewClearSearch() {
+        document.getElementById('spViewSearch').value = '';
+        document.getElementById('spViewSearchClear').style.display = 'none';
+        const resultsTab = document.getElementById('spVTab-results');
+        if (resultsTab) resultsTab.style.display = 'none';
+        spViewSetTab('liked');
+    }
+
+    async function spViewLoadMoreTracks() {
+        if (_spViewTab === 'results') {
+            // search with offset
+            const data = await spAPI('/search?q=' + encodeURIComponent(_spViewSearchQuery) + '&type=track&limit=20&offset=' + _spViewRawTracks.length);
+            if (!data || !data.tracks) return;
+            const tracks = (data.tracks.items || []).map(t => spFromAPI(t)).filter(Boolean);
+            _spViewRawTracks = _spViewRawTracks.concat(tracks);
+            spViewRenderTracks(tracks, true);
+            document.getElementById('spViewLoadMore').style.display = data.tracks.next ? 'block' : 'none';
+        } else {
+            await spViewLoadPage(true);
+        }
+    }
+
+    function spViewRenderTracks(tracks, append) {
+        const tracksEl = document.getElementById('spViewTracks');
+        if (!tracksEl) return;
+        if (!tracks.length && !append) {
+            tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">No tracks found</div>';
+            return;
+        }
+        const html = tracks.map(t => {
+            if (!t) return '';
+            const key = _spTrackKey++;
+            _spTrackMap[key] = t;
+            const artStyle = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
+            const inLibrary = library.some(l => l.spUri === t.spUri);
+            return '<div style="display:flex;align-items:center;gap:0.8rem;padding:0.7rem 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="spPlayFromKey(' + key + ')">'
+                + '<div class="stream-track-icon spotify" style="width:40px;height:40px;flex-shrink:0;' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
+                + '<div style="flex:1;min-width:0;">'
+                + '<div style="font-size:0.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.title) + '</div>'
+                + '<div style="font-family:Space Mono,monospace;font-size:0.58rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(t.artist) + (t.album ? ' · ' + esc(t.album) : '') + '</div>'
+                + '</div>'
+                + '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);flex-shrink:0;margin-right:0.5rem;">' + (t.duration ? fmt(t.duration) : '') + '</span>'
+                + '<button onclick="event.stopPropagation();spAddToLibraryFromKey(' + key + ',this)" style="font-family:Space Mono,monospace;font-size:0.45rem;letter-spacing:1px;padding:0.35rem 0.75rem;background:' + (inLibrary ? 'rgba(30,215,96,0.15)' : 'none') + ';border:1px solid ' + (inLibrary ? '#1ED760' : 'var(--border)') + ';color:' + (inLibrary ? '#1ED760' : 'var(--sub)') + ';cursor:pointer;flex-shrink:0;transition:all 0.15s;">' + (inLibrary ? '✓ In Library' : '+ Add to Library') + '</button>'
+                + '</div>';
+        }).join('');
+        if (append) tracksEl.innerHTML += html; else tracksEl.innerHTML = html;
+    }
+
+    function renderSoundcloudTracks() {
+        const el = document.getElementById('soundcloudTracks');
+        if (!el) return;
+        const scTracks = library.filter(t => t.source === 'soundcloud');
+        if (!scTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks in library</div>'; return; }
+        el.innerHTML = scTracks.map(t => {
+            const idx = library.indexOf(t);
+            return '<div class="stream-track-item" onclick="playTrack(' + idx + ')" style="cursor:pointer;">'
+                + '<div class="stream-track-icon sc"></div>'
+                + '<div class="stream-track-info"><div class="stream-track-name">' + esc(t.title) + '</div>'
+                + '<div class="stream-track-artist">' + esc(t.artist) + '</div></div>'
+                + '</div>';
+        }).join('');
     }
 
     async function spRestoreSession() {
@@ -2859,7 +3130,7 @@
         var pl = playlists.find(function(p) { return p.id === id; });
         if (!pl) return;
         _editingPlaylistId = id;
-        document.getElementById('playlistModalTag').textContent   = 'Playlists // Edit';
+        document.getElementById('playlistModalTag').textContent   = 'Playlists';
         document.getElementById('playlistModalTitle').textContent = 'Edit Playlist';
         document.getElementById('plNameInput').value = pl.name;
         document.getElementById('plNameInput').style.borderColor = 'var(--border)';
