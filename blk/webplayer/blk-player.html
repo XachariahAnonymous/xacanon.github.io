@@ -471,6 +471,99 @@
         .vol-dot { position: absolute; right: -5px; top: 50%; transform: translateY(-50%) scale(0); width: 10px; height: 10px; background: #fff; border-radius: 50%; transition: transform 0.15s; pointer-events: none; }
         .vol-bar:hover .vol-dot, .vol-bar.dragging .vol-dot { transform: translateY(-50%) scale(1); }
         .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+
+        /* ── QUEUE TOGGLE BUTTON ── */
+        .queue-toggle-btn {
+            background: none; border: 1px solid var(--border); color: var(--sub);
+            cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.45rem 0.7rem; transition: all 0.2s; flex-shrink: 0;
+        }
+        .queue-toggle-btn:hover, .queue-toggle-btn.active { color: #fff; border-color: var(--accent); background: var(--accent-dim); }
+
+        /* ── QUEUE PANEL ── */
+        .queue-panel {
+            position: fixed;
+            bottom: 96px; right: 1.5rem;
+            width: 340px; max-height: 520px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            z-index: 200;
+            display: flex; flex-direction: column;
+            box-shadow: 0 -8px 40px rgba(0,0,0,0.7);
+            opacity: 0; pointer-events: none;
+            transform: translateY(12px);
+            transition: opacity 0.22s, transform 0.22s;
+        }
+        .queue-panel::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
+        .queue-panel.open { opacity:1; pointer-events:all; transform:translateY(0); }
+        .queue-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.9rem 1rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .queue-panel-title { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 3px; text-transform: uppercase; color: #fff; }
+        .queue-panel-close { background: none; border: none; color: var(--sub); cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0; transition: color 0.2s; }
+        .queue-panel-close:hover { color: #fff; }
+        .queue-panel-body { flex: 1; overflow-y: auto; }
+        .queue-panel-body::-webkit-scrollbar { width: 2px; }
+        .queue-panel-body::-webkit-scrollbar-thumb { background: var(--accent-dim); }
+
+        .qp-section-label {
+            font-family: 'Space Mono', monospace; font-size: 0.48rem;
+            letter-spacing: 2.5px; text-transform: uppercase; color: var(--sub);
+            padding: 0.8rem 1rem 0.4rem;
+        }
+        .qp-empty { font-family:'Space Mono',monospace; font-size:0.6rem; color:rgba(255,255,255,0.15); letter-spacing:1px; text-align:center; padding:2.5rem 1rem; }
+
+        /* Now Playing card */
+        .qp-now-card {
+            display: flex; align-items: center; gap: 0.8rem;
+            padding: 0.7rem 1rem; background: var(--accent-dim);
+            border-left: 2px solid var(--accent);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .qp-now-card:hover { background: rgba(138,43,226,0.22); }
+        .qp-art {
+            width: 40px; height: 40px; flex-shrink: 0;
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; overflow: hidden; position: relative;
+        }
+        .qp-art img { width:100%; height:100%; object-fit:cover; display:block; }
+        .qp-art-playing::after {
+            content: "▶";
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: #fff;
+        }
+        .qp-info { flex: 1; min-width: 0; }
+        .qp-title { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+        .qp-artist { font-size: 0.63rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qp-dur { font-family:'Space Mono',monospace; font-size:0.55rem; color:var(--sub); flex-shrink:0; }
+
+        /* Next / Prev rows */
+        .qp-row {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.55rem 1rem; cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .qp-row:hover { background: rgba(255,255,255,0.05); }
+        .qp-row-art {
+            width: 32px; height: 32px; flex-shrink: 0;
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; overflow: hidden;
+        }
+        .qp-row-art img { width:100%; height:100%; object-fit:cover; display:block; }
+        .qp-row-info { flex: 1; min-width: 0; }
+        .qp-row-title { font-size: 0.72rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+        .qp-row-artist { font-size: 0.6rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qp-row-num { font-family:'Space Mono',monospace; font-size:0.5rem; color:rgba(255,255,255,0.2); width:18px; text-align:right; flex-shrink:0; }
+        .qp-row-dur { font-family:'Space Mono',monospace; font-size:0.52rem; color:rgba(255,255,255,0.25); flex-shrink:0; }
         .coin-earn { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--accent); letter-spacing: 1px; display: flex; align-items: center; gap: 0.3rem; opacity: 0; transition: opacity 0.5s; }
         .coin-earn.visible { opacity: 1; }
         .scanline { width: 100%; height: 100%; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px); pointer-events: none; }
@@ -817,7 +910,7 @@
 
     <!-- SIDEBAR -->
     <aside>
-        <div class="sidebar-section">
+        <div class="sidebar-section" style="flex:1;border-bottom:none;">
             <div class="sidebar-label">Upload Music</div>
             <div class="upload-zone" id="uploadZone">
                 <input type="file" id="fileInput" multiple accept="audio/*">
@@ -825,13 +918,6 @@
                 <p>Drop audio files here<br>or click to browse<br><br>MP3 · WAV · FLAC · AAC</p>
             </div>
         </div>
-        <div class="sidebar-section" style="flex:1;">
-            <div class="sidebar-label">Queue <span id="queueCount" style="color:var(--accent);">0</span></div>
-            <div class="queue-list" id="queueList">
-                <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>
-            </div>
-        </div>
-
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -1128,7 +1214,25 @@
                     </div>
                 </div>
             </div>
+            <button class="queue-toggle-btn" id="queueToggleBtn" onclick="toggleQueuePanel()" title="Queue">
+                <svg width="15" height="13" viewBox="0 0 15 13" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="9" height="1.4" rx="0.7" fill="currentColor"/><rect x="0" y="3.8" width="9" height="1.4" rx="0.7" fill="currentColor"/><rect x="0" y="7.6" width="9" height="1.4" rx="0.7" fill="currentColor"/><rect x="11" y="1.8" width="4" height="9" rx="0.7" fill="currentColor" opacity="0.4"/><rect x="11" y="1.8" width="4" height="4" rx="0.7" fill="currentColor"/></svg>
+                <span id="queueCount" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--accent);">0</span>
+            </button>
         </div>
+    </div>
+</div>
+
+<!-- QUEUE PANEL -->
+<div id="queuePanel" class="queue-panel">
+    <div class="queue-panel-header">
+        <span class="queue-panel-title">Queue</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span id="queueShuffleTag" style="display:none;font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent-dim);padding:0.15rem 0.5rem;">SHUFFLE</span>
+            <button class="queue-panel-close" onclick="toggleQueuePanel()">✕</button>
+        </div>
+    </div>
+    <div class="queue-panel-body" id="queuePanelBody">
+        <div class="qp-empty">No tracks loaded</div>
     </div>
 </div>
 
@@ -2038,21 +2142,121 @@
         renderLibrary(tracks.length === library.length && !q ? undefined : tracks);
     }
 
+    // ── QUEUE PANEL ──
+    let queuePanelOpen = false;
+
+    function toggleQueuePanel() {
+        queuePanelOpen = !queuePanelOpen;
+        document.getElementById('queuePanel').classList.toggle('open', queuePanelOpen);
+        document.getElementById('queueToggleBtn').classList.toggle('active', queuePanelOpen);
+        if (queuePanelOpen) renderQueue();
+    }
+
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!queuePanelOpen) return;
+        const panel = document.getElementById('queuePanel');
+        const btn   = document.getElementById('queueToggleBtn');
+        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+            queuePanelOpen = false;
+            panel.classList.remove('open');
+            btn.classList.remove('active');
+        }
+    });
+
     function renderQueue() {
+        // Always update count badge
         document.getElementById('queueCount').textContent = library.length;
-        const list = document.getElementById('queueList');
+
+        if (!queuePanelOpen) return;
+
+        const body = document.getElementById('queuePanelBody');
+        const shuffleTag = document.getElementById('queueShuffleTag');
+        if (shuffleTag) shuffleTag.style.display = shuffle ? 'inline' : 'none';
+
         if (!library.length) {
-            list.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;padding:1.5rem 0;">No tracks loaded</div>';
+            body.innerHTML = '<div class="qp-empty">No tracks loaded</div>';
             return;
         }
-        list.innerHTML = library.map((t, i) =>
-            '<div class="queue-item ' + (i === currentIdx ? 'active' : '') + '" onclick="playTrack(' + i + ')">'
-            + '<span class="queue-num">' + (i === currentIdx ? '▶' : i+1) + '</span>'
-            + '<div class="queue-art"><span>' + t.emoji + '</span></div>'
-            + '<div class="queue-info"><div class="queue-title">' + esc(t.title) + '</div><div class="queue-artist">' + esc(t.artist) + '</div></div>'
-            + '<span class="queue-duration">' + (t.missing ? '⚠' : fmt(t.duration)) + '</span>'
-            + '</div>'
-        ).join('');
+
+        const esc2 = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+        function artHtml(t, cls) {
+            if (t.albumArt || t.artwork) {
+                return '<div class="' + cls + '"><img src="' + esc2(t.albumArt||t.artwork) + '" onerror="this.parentNode.innerHTML=\'<span>\'+(this.closest(\'[data-emoji]\')&&this.closest(\'[data-emoji]\').dataset.emoji||\'◈\')+\'</span>\'"></div>';
+            }
+            return '<div class="' + cls + '"><span>' + esc2(t.emoji||'◈') + '</span></div>';
+        }
+
+        let html = '';
+
+        // ── Now Playing ──
+        if (currentIdx >= 0 && library[currentIdx]) {
+            const t = library[currentIdx];
+            html += '<div class="qp-section-label">Now Playing</div>';
+            const artInner = (t.albumArt||t.artwork)
+                ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="this.style.display=\'none\'">'
+                : '<span>' + esc2(t.emoji||'◈') + '</span>';
+            html += '<div class="qp-now-card" onclick="playTrack(' + currentIdx + ')">'
+                + '<div class="qp-art qp-art-playing">' + artInner + '</div>'
+                + '<div class="qp-info"><div class="qp-title">' + esc2(t.title) + '</div><div class="qp-artist">' + esc2(t.artist) + '</div></div>'
+                + '<span class="qp-dur">' + fmt(t.duration) + '</span>'
+                + '</div>';
+        }
+
+        // ── Build next-up list ──
+        let nextList = [];
+        if (shuffle && shuffleQueue.length) {
+            nextList = shuffleQueue.slice(0, 20).map(i => ({ idx: i, t: library[i] })).filter(x => x.t);
+        } else {
+            // Linear: tracks after currentIdx, then wrap
+            const start = currentIdx + 1;
+            for (let i = 0; i < library.length && nextList.length < 20; i++) {
+                const idx = (start + i) % library.length;
+                if (idx === currentIdx) break;
+                nextList.push({ idx, t: library[idx] });
+            }
+        }
+
+        if (nextList.length) {
+            html += '<div class="qp-section-label">Next Up</div>';
+            nextList.forEach(function({ idx, t }, pos) {
+                const artInner = (t.albumArt||t.artwork)
+                    ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="this.style.display=\'none\'">'
+                    : '<span>' + esc2(t.emoji||'◈') + '</span>';
+                html += '<div class="qp-row" onclick="playTrack(' + idx + ')">'
+                    + '<span class="qp-row-num">' + (pos+1) + '</span>'
+                    + '<div class="qp-row-art">' + artInner + '</div>'
+                    + '<div class="qp-row-info"><div class="qp-row-title">' + esc2(t.title) + '</div><div class="qp-row-artist">' + esc2(t.artist) + '</div></div>'
+                    + '<span class="qp-row-dur">' + fmt(t.duration) + '</span>'
+                    + '</div>';
+            });
+        }
+
+        // ── Previous ──
+        const prevList = [];
+        if (!shuffle && currentIdx > 0) {
+            const from = Math.max(0, currentIdx - 5);
+            for (let i = currentIdx - 1; i >= from; i--) {
+                prevList.push({ idx: i, t: library[i] });
+            }
+        }
+        if (prevList.length) {
+            html += '<div class="qp-section-label">Previous</div>';
+            prevList.forEach(function({ idx, t }) {
+                const artInner = (t.albumArt||t.artwork)
+                    ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="this.style.display=\'none\'">'
+                    : '<span>' + esc2(t.emoji||'◈') + '</span>';
+                html += '<div class="qp-row" style="opacity:0.55;" onclick="playTrack(' + idx + ')">'
+                    + '<div class="qp-row-art">' + artInner + '</div>'
+                    + '<div class="qp-row-info"><div class="qp-row-title">' + esc2(t.title) + '</div><div class="qp-row-artist">' + esc2(t.artist) + '</div></div>'
+                    + '<span class="qp-row-dur">' + fmt(t.duration) + '</span>'
+                    + '</div>';
+            });
+        }
+
+        if (!html) html = '<div class="qp-empty">No tracks loaded</div>';
+        body.innerHTML = html;
     }
 
     // ════════════════════════════════════════
@@ -2167,6 +2371,7 @@
         shuffle = !shuffle;
         document.getElementById('btnShuffle').classList.toggle('active', shuffle);
         if (shuffle) buildShuffleQueue(); else shuffleQueue = [];
+        renderQueue();
     }
 
     // repeat: 0 = off, 1 = repeat-all, 2 = repeat-one
