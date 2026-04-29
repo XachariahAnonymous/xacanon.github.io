@@ -1698,7 +1698,7 @@
         closeEmbed();
         currentIdx = idx;
         audio.src = t.url;
-        audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
+        audio.play().then(() => { spStopProgressLoop(); isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
     }
 
     function togglePlay() {
@@ -2082,27 +2082,55 @@
         spPlayer.connect();
     }
 
+    // ── SPOTIFY PROGRESS RAF LOOP (smooth, no DOM thrash) ──
+    let spRafId = null, spCurrentDuration = 0, spCurrentPosition = 0, spRafLastTs = 0;
+    function spStartProgressLoop() {
+        if (spRafId) return;
+        function tick(ts) {
+            if (!isPlaying || !spCurrentDuration) { spRafId = null; return; }
+            const elapsed = ts - spRafLastTs;
+            spRafLastTs = ts;
+            spCurrentPosition = Math.min(spCurrentDuration, spCurrentPosition + elapsed / 1000);
+            if (!isDraggingProgress) {
+                document.getElementById('progressFill').style.width = (spCurrentPosition / spCurrentDuration * 100).toFixed(2) + '%';
+                document.getElementById('timeElapsed').textContent  = fmt(Math.round(spCurrentPosition));
+            }
+            spRafId = requestAnimationFrame(tick);
+        }
+        spRafLastTs = performance.now();
+        spRafId = requestAnimationFrame(tick);
+    }
+    function spStopProgressLoop() { if (spRafId) { cancelAnimationFrame(spRafId); spRafId = null; } }
+
     function spOnStateChange(state) {
         if (!state) return;
         const t = state.track_window && state.track_window.current_track;
         if (!t) return;
-        const artwork = t.album && t.album.images && t.album.images[0] ? t.album.images[0].url : null;
-        updatePlayerUI({ title: t.name, artist: (t.artists || []).map(a => a.name).join(', '), album: t.album ? t.album.name : '', artwork, source: 'spotify', duration: Math.round((state.duration || 0) / 1000) });
-        isPlaying = !state.paused; updatePlayBtn();
+        // Only update UI metadata when track changes, not every position tick
+        const newUri = t.uri;
+        if (newUri !== spOnStateChange._lastUri) {
+            spOnStateChange._lastUri = newUri;
+            const artwork = t.album && t.album.images && t.album.images[0] ? t.album.images[0].url : null;
+            updatePlayerUI({ title: t.name, artist: (t.artists || []).map(a => a.name).join(', '), album: t.album ? t.album.name : '', artwork, source: 'spotify', duration: Math.round((state.duration || 0) / 1000) });
+            document.getElementById('timeDuration').textContent = fmt(Math.round((state.duration || 0) / 1000));
+        }
+        spCurrentDuration = (state.duration || 0) / 1000;
+        spCurrentPosition = (state.position || 0) / 1000;
+        isPlaying = !state.paused;
+        updatePlayBtn();
         document.getElementById('playerArt').classList.toggle('playing', !state.paused);
         if (!state.paused) {
+            spStartProgressLoop();
             const tick = Math.floor((state.position || 0) / 10000);
             if (tick !== spListenTick) {
                 spListenTick = tick; listenCount++;
                 if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
             }
-        }
-        if (!isDraggingProgress && state.duration) {
-            document.getElementById('progressFill').style.width = ((state.position / state.duration) * 100).toFixed(2) + '%';
-            document.getElementById('timeElapsed').textContent  = fmt(Math.round(state.position / 1000));
-            document.getElementById('timeDuration').textContent = fmt(Math.round(state.duration / 1000));
+        } else {
+            spStopProgressLoop();
         }
     }
+    spOnStateChange._lastUri = null;
 
     async function spAPI(path, opts) {
         if (!await spRefreshIfNeeded()) return null;
@@ -2159,7 +2187,9 @@
             } else {
                 data = await spAPI('/playlists/' + spPlaylistId + '/tracks?limit=' + lim + '&offset=' + spOffset);
                 if (!data) return;
-                renderSpotifyTracklist((data.items || []).filter(i => !!i.track).map(i => spFromAPI(i.track)), append);
+                const tracks = (data.items || []).filter(i => !!i.track).map(i => spFromAPI(i.track));
+                // Render into the inner #spPlaylistTrackList divs to preserve back button
+                renderSpotifyTracklist(tracks, append, true);
                 spOffset += (data.items || []).length;
                 const hasMore = !!data.next;
                 document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
@@ -2193,12 +2223,18 @@
     // Cache raw tracks for browse panel search filtering
     let _spBrowseRawTracks = [];
 
-    function renderSpotifyTracklist(tracks, append) {
+    function renderSpotifyTracklist(tracks, append, intoInner) {
         if (!append) _spBrowseRawTracks = tracks.filter(Boolean);
         else         _spBrowseRawTracks = _spBrowseRawTracks.concat(tracks.filter(Boolean));
 
-        const sideEl   = document.getElementById('spotifyTracks');
-        const browseEl = document.getElementById('spBrowseTracks');
+        // When inside a playlist, render into the inner #spPlaylistTrackList elements
+        // so the back button row is preserved
+        const sideEls   = intoInner
+            ? document.querySelectorAll('#spotifyTracks #spPlaylistTrackList')
+            : [document.getElementById('spotifyTracks')];
+        const browseEls = intoInner
+            ? document.querySelectorAll('#spBrowseTracks #spPlaylistTrackList')
+            : [document.getElementById('spBrowseTracks')];
 
         const buildHtml = (t, browse) => {
             const key = _spTrackKey++;
@@ -2228,14 +2264,14 @@
 
         if (!tracks.length && !append) {
             const empty = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks found</div>';
-            if (sideEl)   sideEl.innerHTML   = empty;
-            if (browseEl) browseEl.innerHTML = empty;
+            sideEls.forEach(el => { if (el) el.innerHTML = empty; });
+            browseEls.forEach(el => { if (el) el.innerHTML = empty; });
             return;
         }
         const sideHtml   = tracks.filter(Boolean).map(t => buildHtml(t, false)).join('');
         const browseHtml = tracks.filter(Boolean).map(t => buildHtml(t, true)).join('');
-        if (sideEl)   { if (append) sideEl.innerHTML   += sideHtml;   else sideEl.innerHTML   = sideHtml; }
-        if (browseEl) { if (append) browseEl.innerHTML += browseHtml; else browseEl.innerHTML = browseHtml; }
+        sideEls.forEach(el => { if (el) { if (append) el.innerHTML += sideHtml; else el.innerHTML = sideHtml; } });
+        browseEls.forEach(el => { if (el) { if (append) el.innerHTML += browseHtml; else el.innerHTML = browseHtml; } });
     }
 
     function filterSpotifyBrowse() {
@@ -2335,38 +2371,47 @@
 
     async function spOpenPlaylist(id, name) {
         spPlaylistId = id; spOffset = 0;
-        const loading = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:0.8rem 0;">' + esc(name) + '...</div>';
+        const backRow = '<div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;color:var(--sub);" onclick="spBackToPlaylists()">'
+            + '<span style="font-size:1rem;">‹</span>'
+            + '<span style="font-family:Space Mono,monospace;font-size:0.6rem;letter-spacing:1px;">BACK TO PLAYLISTS</span>'
+            + '<span style="font-size:0.75rem;font-weight:600;color:#fff;margin-left:0.4rem;">· ' + esc(name) + '</span>'
+            + '</div>'
+            + '<div id="spPlaylistTrackList"></div>';
         const sideEl   = document.getElementById('spotifyTracks');
         const browseEl = document.getElementById('spBrowseTracks');
-        if (sideEl)   sideEl.innerHTML   = loading;
-        if (browseEl) browseEl.innerHTML = loading;
+        if (sideEl)   sideEl.innerHTML   = backRow;
+        if (browseEl) browseEl.innerHTML = backRow;
+        // Fetch into the inner divs
         await spFetchPage(false);
     }
 
-    async function spPlayTrack(uri, title, artist, album, artwork, duration) {
-        // Extract track ID from URI (spotify:track:XXXX) for embed fallback
-        const trackId = uri && uri.startsWith('spotify:track:') ? uri.split(':')[2] : null;
+    function spBackToPlaylists() {
+        spPlaylistId = null; spOffset = 0;
+        loadSpotifyTab('playlists');
+    }
 
-        // Fall back to iframe embed if: no Premium, no device ready, or no SDK
+    async function spPlayTrack(uri, title, artist, album, artwork, duration) {
+        const trackId = uri && uri.startsWith('spotify:track:') ? uri.split(':')[2] : null;
         if (spNoPremium || !spDeviceId || !spPlayer) {
-            if (trackId) {
-                openSpotifyEmbed(trackId, title, artist);
-            } else {
-                showToast('Cannot play — link your Spotify account first');
-            }
+            if (trackId) openSpotifyEmbed(trackId, title, artist);
+            else showToast('Cannot play — link your Spotify account first');
             updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
             return;
         }
         await spRefreshIfNeeded();
         try {
-            await spAPI('/me/player', { method: 'PUT', body: JSON.stringify({ device_ids: [spDeviceId], play: false }) });
-            await spAPI('/me/player/play?device_id=' + spDeviceId, { method: 'PUT', body: JSON.stringify({ uris: [uri] }) });
+            // Single call — transfer + play in one shot to avoid race
+            await spAPI('/me/player/play?device_id=' + spDeviceId, {
+                method: 'PUT',
+                body: JSON.stringify({ uris: [uri], position_ms: 0 })
+            });
         } catch(e) {
-            // SDK call failed — fall back to embed
             if (trackId) openSpotifyEmbed(trackId, title, artist);
             return;
         }
+        spCurrentPosition = 0;
         spListenTick = 0;
+        spOnStateChange._lastUri = null; // force UI refresh on next state event
         updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
         isPlaying = true; updatePlayBtn();
         document.getElementById('playerArt').classList.add('playing');
