@@ -2335,13 +2335,20 @@
         if (!library.length) return;
         if (repeat === 2) { restartCurrentTrack(); return; }
         if (shuffle) {
-            if (!shuffleQueue.length) buildShuffleQueue();
+            if (!shuffleQueue.length) {
+                if (repeat === 1) buildShuffleQueue(); // rebuild for repeat-all
+                else return; // repeat off, shuffle exhausted — stop
+            }
             if (!shuffleQueue.length) return;
             playTrack(shuffleQueue.shift());
             return;
         }
-        const nextIdx = (currentIdx + 1) % library.length;
-        if (nextIdx === currentIdx) { restartCurrentTrack(); return; }
+        const nextIdx = currentIdx + 1;
+        if (nextIdx >= library.length) {
+            // End of library
+            if (repeat === 1) { playTrack(0); return; } // repeat-all: wrap to start
+            return; // repeat off: stop
+        }
         playTrack(nextIdx);
     }
 
@@ -2873,7 +2880,11 @@
         spPlayer = new Spotify.Player({
             name: 'BLK Player',
             getOAuthToken: async cb => { await spRefreshIfNeeded(); cb(spAccessToken); },
-            volume: volume
+            volume: volume,
+            robustness: {
+                audio: 'SW_SECURE_CRYPTO',
+                video: 'SW_SECURE_CRYPTO'
+            }
         });
         spPlayer.addListener('ready', ({ device_id }) => { spDeviceId = device_id; });
         spPlayer.addListener('not_ready', () => { spDeviceId = null; });
@@ -2930,13 +2941,15 @@
             }
         } else {
             spStopProgressLoop();
-            // Handle repeat-one: if track ended (paused at ~end), replay it
-            if (repeat === 2 && spCurrentDuration > 0 && spCurrentPosition >= spCurrentDuration - 1) {
-                spPlayer.seek(0).then(() => spPlayer.resume());
-            }
-            // Handle repeat-all / next for Spotify: if track ended and not user-paused
-            else if (repeat !== 2 && spCurrentDuration > 0 && spCurrentPosition >= spCurrentDuration - 1) {
-                if (currentIdx >= 0) nextTrack();
+            // Spotify signals natural track end by resetting position to 0 while paused.
+            // A user-initiated pause keeps position > 0, so this distinguishes end vs pause.
+            const trackEndedNaturally = spCurrentDuration > 0 && (state.position || 0) === 0;
+            if (trackEndedNaturally) {
+                if (repeat === 2) {
+                    spPlayer.seek(0).then(() => spPlayer.resume());
+                } else if (currentIdx >= 0) {
+                    nextTrack();
+                }
             }
         }
     }
