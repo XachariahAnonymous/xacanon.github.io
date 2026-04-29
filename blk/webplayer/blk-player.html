@@ -1881,7 +1881,7 @@
     let soundcloudPanelOpen = false;
 
     let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
-    let spDeviceId     = null, spPlayer = null;
+    let spDeviceId     = null, spPlayer = null, spNoPremium = false;
     let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
 
     function spRandB64(n) {
@@ -1997,7 +1997,7 @@
         spPlayer.addListener('player_state_changed', spOnStateChange);
         spPlayer.addListener('initialization_error', ({ message }) => showToast('Spotify: ' + message));
         spPlayer.addListener('authentication_error', () => showToast('Spotify auth error - try reconnecting'));
-        spPlayer.addListener('account_error', () => showToast('Spotify Premium required for playback'));
+        spPlayer.addListener('account_error', () => { spNoPremium = true; showToast('Spotify Free detected — using embed player instead'); });
         spPlayer.connect();
     }
 
@@ -2165,14 +2165,42 @@
     }
 
     async function spPlayTrack(uri, title, artist, album, artwork, duration) {
-        if (!spDeviceId) { showToast('Spotify player not ready - wait a moment'); return; }
+        // Extract track ID from URI (spotify:track:XXXX) for embed fallback
+        const trackId = uri && uri.startsWith('spotify:track:') ? uri.split(':')[2] : null;
+
+        // Fall back to iframe embed if: no Premium, no device ready, or no SDK
+        if (spNoPremium || !spDeviceId || !spPlayer) {
+            if (trackId) {
+                openSpotifyEmbed(trackId, title, artist);
+            } else {
+                showToast('Cannot play — link your Spotify account first');
+            }
+            updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
+            return;
+        }
         await spRefreshIfNeeded();
-        await spAPI('/me/player', { method: 'PUT', body: JSON.stringify({ device_ids: [spDeviceId], play: false }) });
-        await spAPI('/me/player/play?device_id=' + spDeviceId, { method: 'PUT', body: JSON.stringify({ uris: [uri] }) });
+        try {
+            await spAPI('/me/player', { method: 'PUT', body: JSON.stringify({ device_ids: [spDeviceId], play: false }) });
+            await spAPI('/me/player/play?device_id=' + spDeviceId, { method: 'PUT', body: JSON.stringify({ uris: [uri] }) });
+        } catch(e) {
+            // SDK call failed — fall back to embed
+            if (trackId) openSpotifyEmbed(trackId, title, artist);
+            return;
+        }
         spListenTick = 0;
         updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
         isPlaying = true; updatePlayBtn();
         document.getElementById('playerArt').classList.add('playing');
+    }
+
+    function openSpotifyEmbed(trackId, title, artist) {
+        const embedSrc = 'https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0';
+        document.getElementById('embedTitle').textContent = (title || 'Spotify Track') + (artist ? ' — ' + artist : '');
+        document.getElementById('embedNote').textContent  = '🎵 Spotify Embed · 30s preview for free accounts · Full track with Premium';
+        document.getElementById('embedIframeWrap').innerHTML =
+            '<iframe src="' + embedSrc + '" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        document.getElementById('embedOverlay').classList.add('open');
+        audio.pause(); isPlaying = false; updatePlayBtn();
     }
 
     function spTogglePlay() { if (spPlayer) { spPlayer.togglePlay(); return true; } return false; }
