@@ -24,7 +24,7 @@
 
         const SPOTIFY_CLIENT_ID    = '3aa3338a8af249e88ca5fa488cedd32f';
         const SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
-        const SPOTIFY_SCOPES = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative';
+        const SPOTIFY_SCOPES = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative user-read-recently-played';
 
         const app  = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -1796,7 +1796,7 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
-        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = false; }
+        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = false; if (spPlayer) spPlayer.setVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = '🔊'; }
         bar.addEventListener('mousedown', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); });
         document.addEventListener('mousemove', e => { if (!dragging) return; applyPct(getPct(e)); });
@@ -1812,7 +1812,13 @@
         });
     })();
 
-    function toggleMute() { muted = !muted; audio.muted = muted; }
+    function toggleMute() {
+        muted = !muted;
+        audio.muted = muted;
+        if (spPlayer) spPlayer.setVolume(muted ? 0 : volume);
+        const icon = document.querySelector('.vol-icon');
+        if (icon) icon.textContent = muted ? '🔇' : '🔊';
+    }
 
     audio.addEventListener('timeupdate', () => {
         if (!audio.duration) return;
@@ -2148,7 +2154,8 @@
         }));
         if (r.status === 204) return {};
         if (r.status === 401) { spotifyLogout(); return null; }
-        if (!r.ok) return null;
+        if (r.status === 403) { showToast('Spotify: permission denied — try reconnecting'); return null; }
+        if (!r.ok) { showToast('Spotify API error (' + r.status + ')'); return null; }
         return r.json();
     }
 
@@ -2187,7 +2194,7 @@
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
                 if (!data) return;
-                renderSpotifyPlaylists(data.items || [], append);
+                renderSpotifyPlaylists((data.items || []).filter(Boolean), append);
                 spOffset += (data.items || []).length;
                 const hasMore = !!data.next;
                 document.getElementById('spLoadMore').style.display       = hasMore ? 'block' : 'none';
@@ -2207,7 +2214,7 @@
             data = await spAPI('/me/player/recently-played?limit=' + lim);
             if (!data) return;
             const seen = new Set();
-            const tracks = (data.items || []).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
+            const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             renderSpotifyTracklist(tracks, false);
             document.getElementById('spLoadMore').style.display       = 'none';
             document.getElementById('spBrowseLoadMore').style.display = 'none';
