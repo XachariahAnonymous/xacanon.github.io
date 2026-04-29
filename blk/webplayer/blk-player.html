@@ -2098,7 +2098,7 @@
             if (!spotifyTracks.length) document.getElementById('spotifyConnectBtn').classList.remove('connected');
             renderSpotifySidebar();
         } else if (t.source === 'soundcloud') {
-            const si = soundcloudTracks.indexOf(t);
+            const si = soundcloudTracks.findIndex(s => s.id === t.id);
             if (si !== -1) soundcloudTracks.splice(si, 1);
             document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
             if (!soundcloudTracks.length) { const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected'); }
@@ -2107,6 +2107,7 @@
         idbDeleteTrack(t.id);
         fbDeleteStreamingTrack(t.id);
         if (currentIdx === libIdx) {
+            if (scWidget) { try { scWidget.pause(); } catch(_) {} }
             audio.pause(); isPlaying = false; currentIdx = -1;
             document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
             document.getElementById('playerArtist').textContent = '';
@@ -2522,6 +2523,7 @@
     let scCurrentDur     = 0;     // ms
     let scCurrentPos     = 0;     // ms
     let scProgressTimer  = null;
+    let scTransitioning  = false;  // true while a new track is being loaded into the widget
 
     function scInitWidget() {
         const iframe = document.getElementById('scHiddenWidget');
@@ -2531,6 +2533,7 @@
         scWidget = window.SC.Widget(iframe);
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
+            scTransitioning = false;
             scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
         });
         scWidget.bind(SC.Widget.Events.PLAY, () => {
@@ -2546,6 +2549,7 @@
             scStopProgressLoop();
         });
         scWidget.bind(SC.Widget.Events.FINISH, () => {
+            if (scTransitioning) return; // guard: ignore stale FINISH during track swap
             isPlaying = false;
             scStopProgressLoop();
             document.getElementById('progressFill').style.width = '100%';
@@ -2624,6 +2628,7 @@
 
         if (scWidget) {
             // Widget already exists — use load() API to swap track without destroying the widget
+            scTransitioning = true;
             scWidget.load(embedUrl, { auto_play: true });
         } else {
             // First-time load: set src, wait for iframe to load, then bind widget
@@ -2658,8 +2663,8 @@
     }
 
     function closeEmbed() {
-        // Stop SC widget if playing
-        if (scWidget && isPlaying) { scWidget.pause(); isPlaying = false; updatePlayBtn(); }
+        // Stop SC widget unconditionally (not just when isPlaying, to avoid stale-event issues)
+        if (scWidget) { try { scWidget.pause(); } catch(_) {} isPlaying = false; updatePlayBtn(); }
         document.getElementById('embedOverlay').classList.remove('open');
         document.getElementById('embedIframeWrap').innerHTML = '';
     }
@@ -2751,6 +2756,7 @@
 
     let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
     let spDeviceId     = null, spPlayer = null, spNoPremium = false;
+    let spTransitioning = false;  // true while a new Spotify track is being loaded
     let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
     let spUserId       = null;
 
@@ -2933,6 +2939,7 @@
         updatePlayBtn();
         document.getElementById('playerArt').classList.toggle('playing', !state.paused);
         if (!state.paused) {
+            spTransitioning = false;  // new track is confirmed playing
             spStartProgressLoop();
             const tick = Math.floor((state.position || 0) / 10000);
             if (tick !== spListenTick) {
@@ -2943,7 +2950,7 @@
             spStopProgressLoop();
             // Spotify signals natural track end by resetting position to 0 while paused.
             // A user-initiated pause keeps position > 0, so this distinguishes end vs pause.
-            const trackEndedNaturally = spCurrentDuration > 0 && (state.position || 0) === 0;
+            const trackEndedNaturally = !spTransitioning && spCurrentDuration > 0 && (state.position || 0) === 0;
             if (trackEndedNaturally) {
                 if (repeat === 2) {
                     spPlayer.seek(0).then(() => spPlayer.resume());
@@ -3275,6 +3282,7 @@
         }
         spCurrentPosition = 0;
         spListenTick = 0;
+        spTransitioning = true;
         spOnStateChange._lastUri = null; // force UI refresh on next state event
         updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
         isPlaying = true; updatePlayBtn();
