@@ -320,10 +320,12 @@
         .search-bar input::placeholder { color: var(--sub); }
 
         .track-list { padding: 1rem 0; }
-        .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
-        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
         .track-remove-btn { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.7rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
         .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
+        .track-addpl-btn { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 0.9rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
+        .track-addpl-btn:hover { color: var(--accent); background: var(--accent-dim); }
         .track-row:hover { background: rgba(255,255,255,0.03); }
         .track-row.playing { background: var(--accent-dim); }
         .track-row.playing::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); }
@@ -526,7 +528,34 @@
         .stream-meta-input:focus { border-color: var(--accent); }
         .stream-meta-input::placeholder { color: rgba(255,255,255,0.2); }
 
-        /* ── INSUFFICIENT BLK WARNING ── */
+        /* ── ADD TO PLAYLIST DROPDOWN ── */
+        .addpl-menu {
+            position: fixed; z-index: 600;
+            background: var(--surface); border: 1px solid var(--border);
+            min-width: 200px; max-height: 260px; overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+        }
+        .addpl-menu::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--accent); }
+        .addpl-menu-header { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); }
+        .addpl-menu-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 1px; transition: all 0.15s; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .addpl-menu-item:last-child { border-bottom: none; }
+        .addpl-menu-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+        .addpl-menu-item.new { color: var(--accent); }
+        .addpl-menu-item.new:hover { background: var(--accent-dim); }
+        .addpl-menu-empty { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: rgba(255,255,255,0.2); padding: 0.8rem; text-align: center; }
+
+        /* ── PLAYLIST DETAIL OVERLAY (inside main, not fixed) ── */
+        #playlistDetailOverlay { display: none; position: absolute; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; padding-bottom: 100px; }
+        #view-playlists { position: relative; height: 100%; }
+
+        /* ── PLAYLIST CARD READABILITY FIXES ── */
+        .pl-card { background: var(--surface2); border: 1px solid rgba(255,255,255,0.12); }
+        .pl-card-name { color: #fff; font-size: 0.88rem; }
+        .pl-card-count { color: rgba(255,255,255,0.5); }
+        .pl-card-overlay { background: rgba(0,0,0,0.65); }
+        .pl-card-btn { font-size: 0.52rem; padding: 0.5rem 1rem; }
+
+
         .toast.warn { border-left-color: var(--warn) !important; }
         .blk-warn-modal { max-width: 380px !important; }
         .blk-warn-modal::before { background: linear-gradient(90deg, var(--warn), transparent) !important; }
@@ -594,7 +623,7 @@
             .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
             .player-track { justify-content: center; }
             .player-right { justify-content: center; }
-            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px; }
+            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px 28px; }
             .track-album, .track-meta { display: none; }
             .auth-box { width: 95%; padding: 2rem; }
         }
@@ -713,7 +742,6 @@
             <div id="spotifyPanel" style="display:none;">
                 <div style="display:flex;border:1px solid var(--border);margin-bottom:0.8rem;">
                     <button id="spTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                    <button id="spTab-playlists" onclick="loadSpotifyTab('playlists')" class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;border-right:1px solid var(--border);color:var(--sub);cursor:pointer;">Playlists</button>
                     <button id="spTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
                 </div>
                 <div class="stream-tracks" id="spotifyTracks"></div>
@@ -808,7 +836,6 @@
                         </div>
                         <div style="display:flex;border:1px solid var(--border);">
                             <button id="spBTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                            <button id="spBTab-playlists" onclick="loadSpotifyTab('playlists')" class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:none;border:none;border-right:1px solid var(--border);color:var(--sub);cursor:pointer;">Playlists</button>
                             <button id="spBTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
                         </div>
                     </div>
@@ -835,7 +862,8 @@
         </div>
 
         <!-- PLAYLISTS -->
-        <div id="view-playlists" style="display:none;">
+        <div id="view-playlists" style="display:none;position:relative;height:100%;overflow:hidden;">
+            <div style="overflow-y:auto;height:100%;">
             <div class="view-header">
                 <div>
                     <div class="view-sub">Your Collection</div>
@@ -844,6 +872,9 @@
                 <button onclick="openCreatePlaylist()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.4rem;background:var(--accent);border:none;color:#fff;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#7B27CC'" onmouseout="this.style.background='var(--accent)'">⊕ New Playlist</button>
             </div>
             <div id="playlistGrid" class="pl-grid"></div>
+            </div>
+            <!-- PLAYLIST DETAIL (overlays within playlists panel) -->
+            <div id="playlistDetailOverlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:50;overflow-y:auto;padding-bottom:100px;"></div>
         </div>
 
         <!-- PROFILE -->
@@ -1049,8 +1080,6 @@
     </div>
 </div>
 
-<!-- PLAYLIST DETAIL VIEW (shown inside main when viewing a playlist) -->
-<div id="playlistDetailOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto;padding-bottom:100px;"></div>
 
 <div class="toast" id="toast"></div>
 <audio id="audioEl"></audio>
@@ -1688,6 +1717,7 @@
                 + '<span class="track-album">' + esc(t.album) + '</span>'
                 + '<span class="track-meta">' + t.dateAdded + '</span>'
                 + '<span class="track-duration">' + (t.missing ? '⚠ missing' : fmt(t.duration)) + '</span>'
+                + '<button class="track-addpl-btn" onclick="event.stopPropagation();openAddToPlaylistMenu(event,' + libIdx + ')" title="Add to playlist">⊕</button>'
                 + '<button class="track-remove-btn" onclick="removeTrack(event,' + libIdx + ')" title="Remove track">✕</button>'
                 + '</div>';
         }).join('');
@@ -1730,20 +1760,10 @@
         document.getElementById('filter-' + filter).classList.add('active');
         const browsePanel = document.getElementById('spotifyBrowsePanel');
         const trackList   = document.querySelector('#view-library .track-list');
-        if (filter === 'spotify') {
-            browsePanel.style.display = 'flex';
-            browsePanel.style.flexDirection = 'column';
-            if (trackList) trackList.style.display = 'none';
-            // Show correct sub-panel based on Spotify connection
-            const connected = !!spAccessToken;
-            document.getElementById('spBrowseConnect').style.display = connected ? 'none' : 'block';
-            document.getElementById('spBrowseMain').style.display    = connected ? 'block' : 'none';
-            if (connected && !document.getElementById('spBrowseTracks').innerHTML) loadSpotifyTab('liked');
-        } else {
-            browsePanel.style.display = 'none';
-            if (trackList) trackList.style.display = '';
-            filterTracks();
-        }
+        // Spotify filter always shows library tracks (already-added ones only)
+        browsePanel.style.display = 'none';
+        if (trackList) trackList.style.display = '';
+        filterTracks();
     }
 
     function filterTracks() {
@@ -2852,6 +2872,74 @@
         }
         plSave(); closePlaylistModal(); renderPlaylists();
         showToast((_editingPlaylistId ? 'Playlist updated' : '"' + name + '" created'), true);
+    }
+
+    // ── Add to Playlist quick-menu ──
+    let _addPlMenuTrackIdx = -1;
+    function openAddToPlaylistMenu(e, libIdx) {
+        e.stopPropagation();
+        closeAddToPlaylistMenu();
+        _addPlMenuTrackIdx = libIdx;
+        plLoad();
+        var menu = document.createElement('div');
+        menu.id = 'addPlMenu';
+        menu.className = 'addpl-menu';
+        var html = '<div class="addpl-menu-header">Add to Playlist</div>';
+        if (!playlists.length) {
+            html += '<div class="addpl-menu-empty">No playlists yet</div>';
+        } else {
+            playlists.forEach(function(pl) {
+                var alreadyIn = pl.trackIds.indexOf(library[libIdx] && library[libIdx].id) >= 0;
+                html += '<div class="addpl-menu-item' + (alreadyIn ? ' already' : '') + '" onclick="addTrackToPlaylist(\'' + pl.id + '\')">'
+                    + '<span style="color:var(--accent);font-size:0.75rem;">◈</span>'
+                    + '<span style="flex:1;">' + esc(pl.name) + '</span>'
+                    + (alreadyIn ? '<span style="color:var(--success);font-size:0.6rem;">✓</span>' : '')
+                    + '</div>';
+            });
+        }
+        html += '<div class="addpl-menu-item new" onclick="closeAddToPlaylistMenu();openCreatePlaylistWithTrack(' + libIdx + ')"><span>⊕</span> New Playlist</div>';
+        menu.innerHTML = html;
+        document.body.appendChild(menu);
+        // Position near button
+        var rect = e.currentTarget.getBoundingClientRect();
+        var top = rect.bottom + 4;
+        var left = rect.left - menu.offsetWidth + rect.width;
+        if (left < 4) left = 4;
+        if (top + 260 > window.innerHeight) top = rect.top - Math.min(260, top + 260 - window.innerHeight) - 4;
+        menu.style.top  = top + 'px';
+        menu.style.left = left + 'px';
+        setTimeout(function() { document.addEventListener('click', closeAddToPlaylistMenu, { once: true }); }, 0);
+    }
+
+    function closeAddToPlaylistMenu() {
+        var m = document.getElementById('addPlMenu');
+        if (m) m.remove();
+    }
+
+    function addTrackToPlaylist(plId) {
+        closeAddToPlaylistMenu();
+        plLoad();
+        var t = library[_addPlMenuTrackIdx];
+        if (!t) return;
+        var pl = playlists.find(function(p) { return p.id === plId; });
+        if (!pl) return;
+        if (pl.trackIds.indexOf(t.id) >= 0) { showToast('Already in "' + pl.name + '"'); return; }
+        pl.trackIds.push(t.id);
+        plSave();
+        showToast('"' + t.title + '" added to "' + pl.name + '"', true);
+    }
+
+    function openCreatePlaylistWithTrack(libIdx) {
+        var t = library[libIdx];
+        _editingPlaylistId = null;
+        document.getElementById('playlistModalTag').textContent   = 'Playlists // Create';
+        document.getElementById('playlistModalTitle').textContent = 'New Playlist';
+        document.getElementById('plNameInput').value = '';
+        document.getElementById('plNameInput').style.borderColor = 'var(--border)';
+        document.getElementById('playlistDeleteBtn').style.display = 'none';
+        document.getElementById('playlistSaveBtn').textContent = 'Create Playlist';
+        buildTrackPicker(t ? [t.id] : []);
+        document.getElementById('playlistModal').classList.add('open');
     }
 
     // ── Delete ──
