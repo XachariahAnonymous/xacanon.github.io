@@ -698,8 +698,8 @@
 
 <!-- HIDDEN SC WIDGET — BLK controls this iframe via Widget API -->
 <iframe id="scHiddenWidget" src="about:blank"
-    style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;border:none;pointer-events:none;visibility:hidden;"
-    allow="autoplay" loading="lazy"></iframe>
+    style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;border:none;pointer-events:none;opacity:0;"
+    allow="autoplay"></iframe>
 
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
@@ -2287,6 +2287,8 @@
     function scInitWidget() {
         const iframe = document.getElementById('scHiddenWidget');
         if (!iframe || !window.SC || !window.SC.Widget) return;
+        // Don't attach to a blank iframe — wait until a real URL is loaded
+        if (!iframe.src || iframe.src === 'about:blank' || iframe.src === window.location.href) return;
         scWidget = window.SC.Widget(iframe);
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
@@ -2334,7 +2336,6 @@
 
     function scLoadAndPlay(trackUrl) {
         if (!window.SC || !window.SC.Widget) { showToast('SC Widget API not loaded'); return; }
-        if (!scWidget) scInitWidget();
 
         const iframe   = document.getElementById('scHiddenWidget');
         const embedUrl = 'https://w.soundcloud.com/player/?url='
@@ -2357,14 +2358,17 @@
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
 
-        // Load new URL into hidden widget — Widget API will fire READY then PLAY
-        iframe.src = embedUrl;
-
-        // Re-bind after src change (Widget instance persists via postMessage)
-        setTimeout(() => {
-            scWidget = window.SC.Widget(iframe);
-            scInitWidget();
-        }, 200);
+        if (scWidget) {
+            // Widget already exists — use load() API to swap track without destroying the widget
+            scWidget.load(embedUrl, { auto_play: true });
+        } else {
+            // First-time load: set src, wait for iframe to load, then bind widget
+            iframe.src = embedUrl;
+            iframe.onload = () => {
+                iframe.onload = null;
+                scInitWidget();
+            };
+        }
     }
 
     function scTogglePlay() {
@@ -3607,12 +3611,6 @@
     }).catch(() => {}).finally(() => {
         initAuth();
         spRestoreSession().catch(() => {});
-        // Init SC Widget API after DOM ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', scInitWidget);
-        } else {
-            setTimeout(scInitWidget, 0);
-        }
     });
 </script>
 </body>
