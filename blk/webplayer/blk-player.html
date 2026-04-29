@@ -223,6 +223,29 @@
         .nav-tab.active { color: #fff; background: var(--accent-dim); }
         .nav-tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.04); }
 
+        /* ── STREAMING DROPDOWN TAB ── */
+        .streaming-tab {
+            position: relative; cursor: pointer; user-select: none;
+            color: var(--sub); border-right: none !important;
+        }
+        .streaming-tab.open { color: #fff; background: var(--accent-dim); }
+        .streaming-dropdown {
+            display: none;
+            position: absolute; top: calc(100% + 1px); left: 0;
+            background: var(--surface); border: 1px solid var(--border);
+            min-width: 300px; max-height: 70vh; overflow-y: auto;
+            z-index: 300; box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+        }
+        .streaming-dropdown::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
+        .streaming-tab.open .streaming-dropdown { display: block; }
+        .stream-dd-section { padding: 1rem; }
+        .stream-dd-label {
+            font-family: 'Space Mono', monospace; font-size: 0.55rem;
+            letter-spacing: 2px; text-transform: uppercase; color: var(--sub);
+            margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.5rem;
+        }
+        .stream-dd-status { margin-left: auto; color: var(--success); font-size: 0.5rem; }
+
         .nav-right { display: flex; align-items: center; gap: 1rem; }
         .nav-coins {
             display: flex; align-items: center; gap: 0.6rem;
@@ -698,6 +721,58 @@
             <button class="nav-tab" onclick="switchView('store')">Store</button>
             <button class="nav-tab" onclick="switchView('playlists')">Playlists</button>
             <button class="nav-tab" onclick="switchView('profile')">Profile</button>
+            <div class="nav-tab streaming-tab" id="streamingTab" onclick="toggleStreamingDropdown(event)">
+                Streaming ▾
+                <div class="streaming-dropdown" id="streamingDropdown" onclick="event.stopPropagation()">
+                    <!-- SPOTIFY -->
+                    <div class="stream-dd-section">
+                        <div class="stream-dd-label">
+                            <span style="color:#1ED760;">🎵</span> Spotify
+                            <span class="stream-dd-status" id="spDDStatus"></span>
+                        </div>
+                        <button class="stream-connect-btn" id="spotifyConnectBtn" onclick="spotifyAuth()" style="margin-bottom:0.5rem;">
+                            <span class="stream-icon">🎵</span>
+                            <span id="spotifyBtnText">Connect Spotify</span>
+                            <span class="stream-status" id="spotifyStatus"></span>
+                        </button>
+                        <div id="spotifyPanel" style="display:none;">
+                            <div style="display:flex;border:1px solid var(--border);margin-bottom:0.8rem;">
+                                <button id="spTab-liked"  onclick="loadSpotifyTab('liked')"  class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
+                                <button id="spTab-recent" onclick="loadSpotifyTab('recent')" class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
+                            </div>
+                            <div class="stream-tracks" id="spotifyTracks"></div>
+                            <button id="spLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:0.5rem;">Load More</button>
+                            <button onclick="spotifyLogout()" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;margin-top:0.8rem;">Disconnect Spotify</button>
+                        </div>
+                    </div>
+                    <!-- SOUNDCLOUD -->
+                    <div class="stream-dd-section" style="border-top:1px solid var(--border);padding-top:1rem;">
+                        <div class="stream-dd-label">
+                            <span style="color:#ff5500;">☁</span> SoundCloud
+                            <span class="stream-dd-status" id="scDDStatus"></span>
+                        </div>
+                        <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
+                            <span class="stream-icon">☁</span>
+                            <span id="soundcloudBtnText">Add from SoundCloud</span>
+                            <span class="stream-status" id="soundcloudStatus"></span>
+                        </button>
+                        <div id="soundcloudPanel" style="display:none;margin-top:0.5rem;">
+                            <div class="stream-add-row">
+                                <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL..." oninput="soundcloudUrlHint()">
+                            </div>
+                            <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;">
+                                <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
+                                <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
+                                <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
+                            </div>
+                            <div class="stream-add-row" style="margin-top:0.4rem;">
+                                <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
+                            </div>
+                            <div class="stream-tracks" id="soundcloudTracks"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="nav-right">
             <div class="nav-coins" id="coinDisplay">0 BLK</div>
@@ -731,49 +806,6 @@
             </div>
         </div>
 
-        <!-- SPOTIFY -->
-        <div class="stream-section">
-            <div class="sidebar-label">Spotify</div>
-            <button class="stream-connect-btn" id="spotifyConnectBtn" onclick="spotifyAuth()">
-                <span class="stream-icon">🎵</span>
-                <span id="spotifyBtnText">Connect Spotify</span>
-                <span class="stream-status" id="spotifyStatus"></span>
-            </button>
-            <div id="spotifyPanel" style="display:none;">
-                <div style="display:flex;border:1px solid var(--border);margin-bottom:0.8rem;">
-                    <button id="spTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                    <button id="spTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
-                </div>
-                <div class="stream-tracks" id="spotifyTracks"></div>
-                <button id="spLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:0.5rem;">Load More</button>
-                <button onclick="spotifyLogout()" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;margin-top:0.8rem;">Disconnect Spotify</button>
-            </div>
-        </div>
-
-        <!-- SOUNDCLOUD -->
-        <div class="stream-section">
-            <div class="sidebar-label">SoundCloud</div>
-            <!-- FIX 1: toggleSoundcloudPanel now calls the properly defined function -->
-            <button class="stream-connect-btn" id="soundcloudConnectBtn" onclick="toggleSoundcloudPanel()">
-                <span class="stream-icon">☁</span>
-                <span id="soundcloudBtnText">Add from SoundCloud</span>
-                <span class="stream-status" id="soundcloudStatus"></span>
-            </button>
-            <div id="soundcloudPanel" style="display:none;">
-                <div class="stream-add-row">
-                    <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL..." oninput="soundcloudUrlHint()">
-                </div>
-                <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;">
-                    <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
-                    <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
-                    <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
-                </div>
-                <div class="stream-add-row" style="margin-top:0.4rem;">
-                    <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
-                </div>
-                <div class="stream-tracks" id="soundcloudTracks"></div>
-            </div>
-        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -1459,12 +1491,23 @@
         const dd = document.getElementById('userDropdown');
         if (forceClose) { dd.classList.remove('open'); return; }
         dd.classList.toggle('open');
+        // close streaming if user dropdown opens
+        document.getElementById('streamingTab').classList.remove('open');
     }
     document.addEventListener('click', e => {
         if (!document.getElementById('navUser').contains(e.target)) {
             document.getElementById('userDropdown').classList.remove('open');
         }
+        if (!document.getElementById('streamingTab').contains(e.target)) {
+            document.getElementById('streamingTab').classList.remove('open');
+        }
     });
+
+    function toggleStreamingDropdown(e) {
+        e.stopPropagation();
+        document.getElementById('userDropdown').classList.remove('open');
+        document.getElementById('streamingTab').classList.toggle('open');
+    }
 
     function openAdminPanel() {
         window.open('blk-admin.html', '_blank');
@@ -1503,6 +1546,7 @@
         if (v === 'profile') updateProfileView();
         if (v === 'playlists') renderPlaylists();
         toggleDropdown(true);
+        document.getElementById('streamingTab').classList.remove('open');
     }
 
     // ════════════════════════════════════════
