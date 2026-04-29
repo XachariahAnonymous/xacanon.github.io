@@ -1882,7 +1882,7 @@
             const si = soundcloudTracks.indexOf(t);
             if (si !== -1) soundcloudTracks.splice(si, 1);
             document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
-            if (!soundcloudTracks.length) const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected');
+            if (!soundcloudTracks.length) { const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected'); }
             renderSoundcloudTracks();
         }
         idbDeleteTrack(t.id);
@@ -3002,7 +3002,7 @@
         soundcloudTracks.splice(idx, 1);
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
         document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
-        if (!soundcloudTracks.length) const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected');
+        if (!soundcloudTracks.length) { const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected'); }
         showToast('SoundCloud track removed');
     }
 
