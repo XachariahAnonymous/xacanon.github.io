@@ -62,7 +62,7 @@
             z-index: 9000;
             transition: opacity 0.4s;
         }
-        #auth-screen.hidden { opacity: 0; pointer-events: none; display: none; }
+        #auth-screen.hidden { opacity: 0; pointer-events: none; }
 
         .auth-bg-grid {
             position: absolute; inset: 0;
@@ -691,15 +691,8 @@
             .auth-box { width: 95%; padding: 2rem; }
         }
     </style>
-    <!-- SoundCloud Widget API -->
-    <script src="https://w.soundcloud.com/player/api.js"></script>
 </head>
 <body>
-
-<!-- HIDDEN SC WIDGET — BLK controls this iframe via Widget API -->
-<iframe id="scHiddenWidget" src="about:blank"
-    style="position:fixed;bottom:-9999px;left:-9999px;width:1px;height:1px;border:none;pointer-events:none;opacity:0;"
-    allow="autoplay"></iframe>
 
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
@@ -983,7 +976,7 @@
         <div id="view-soundcloud" style="display:none;flex-direction:column;height:100%;">
             <div class="streaming-view-header">
                 <button class="streaming-return-btn" onclick="switchView('library')">‹ Back to Library</button>
-                <div style="display:flex;align-items:center;gap:0.8rem;flex:1;">
+                <div style="display:flex;align-items:center;gap:0.8rem;">
                     <span style="font-size:1.4rem;">☁</span>
                     <div>
                         <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:0.2rem;">Streaming</div>
@@ -992,33 +985,21 @@
                 </div>
             </div>
             <div style="flex:1;overflow-y:auto;padding:2rem 2.5rem;">
-                <div style="max-width:600px;margin:0 auto;">
-
-                    <!-- Add by URL -->
-                    <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;">Add SoundCloud Track</div>
-                    <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem;">
-                        <input class="stream-input-url" id="soundcloudUrlInput" type="text"
-                            placeholder="Paste a SoundCloud track URL..."
-                            oninput="soundcloudUrlHint()"
-                            onkeydown="if(event.key==='Enter')addSoundcloudTrack()"
-                            style="flex:1;">
-                        <button class="stream-add-btn sc" onclick="addSoundcloudTrack()" style="white-space:nowrap;flex-shrink:0;">Add to Library</button>
+                <div style="max-width:600px;">
+                    <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;">Add Track from SoundCloud</div>
+                    <div style="margin-bottom:0.8rem;">
+                        <input class="stream-input-url" id="soundcloudUrlInput" type="text" placeholder="Paste SoundCloud track URL..." oninput="soundcloudUrlHint()" style="width:100%;">
                     </div>
-                    <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;margin-bottom:0.8rem;">
+                    <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;">
                         <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
                         <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
                         <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
                     </div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.18);letter-spacing:1px;line-height:1.9;margin-bottom:2.5rem;">
-                        Copy any public SoundCloud track URL and paste it above.<br>
-                        Tracks play directly in BLK — no login required.
+                    <div style="margin-top:0.8rem;">
+                        <button class="stream-add-btn sc" onclick="addSoundcloudTrack()">Add Track</button>
                     </div>
-
-                    <!-- Library list -->
-                    <div style="border-top:1px solid var(--border);padding-top:1.5rem;">
-                        <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">
-                            SoundCloud Library <span id="scLibCount" style="color:var(--accent);"></span>
-                        </div>
+                    <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:1.5rem;">
+                        <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">SoundCloud Tracks in Library</div>
                         <div class="stream-tracks" id="soundcloudTracks"></div>
                     </div>
                 </div>
@@ -1279,9 +1260,8 @@
         FB.onAuthStateChanged(FB.auth, async user => {
             if (user) {
                 currentUser = user;
-                // Show app immediately, then load profile in background
+                await loadUserProfile(user);
                 showApp();
-                try { await loadUserProfile(user); } catch(e) { console.warn('loadUserProfile failed:', e); }
             } else {
                 currentUser = null;
                 userProfile = null;
@@ -1342,14 +1322,9 @@
 
     async function fbLoadStreamingTracks(uid) {
         if (!FB) return;
-        // Skip Firestore read if IDB already has streaming tracks loaded (saves quota)
-        const alreadyHasStreaming = library.some(t => t.source === 'spotify' || t.source === 'soundcloud');
-        if (alreadyHasStreaming) return;
         try {
-            // Timeout after 5s so it never blocks login/showApp
-            const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
             const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
-            const snap = await Promise.race([FB.getDocs(colRef), timeoutPromise]);
+            const snap = await FB.getDocs(colRef);
             snap.forEach(docSnap => {
                 const r = docSnap.data();
                 if (r._deleted) return;
@@ -1391,11 +1366,6 @@
     function showAuth() {
         document.getElementById('auth-screen').classList.remove('hidden');
         document.getElementById('app-shell').classList.remove('visible');
-        // Always reset login button when auth screen is shown
-        const loginBtn = document.getElementById('login-btn');
-        if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Sign In'; }
-        const regBtn = document.getElementById('reg-btn');
-        if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'Create Account'; }
     }
 
     function showApp() {
@@ -1434,20 +1404,19 @@
         const pass  = document.getElementById('login-pass').value;
         const btn   = document.getElementById('login-btn');
         const err   = document.getElementById('login-error');
-        err.textContent = '';
-        err.style.color = 'var(--error)';
         if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
         btn.disabled = true; btn.textContent = 'Signing in...';
-        // Safety: always re-enable button after 8s if nothing happens
-        const safetyTimer = setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 8000);
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
-            clearTimeout(safetyTimer);
-            // onAuthStateChanged -> showApp()
-            btn.textContent = 'Signed in ✓';
-            setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 4000);
+            if (!cred.user.emailVerified) {
+                await FB.signOut(FB.auth);
+                err.style.color = 'var(--warn, #ffaa00)';
+                err.textContent = 'Please verify your email before signing in. Check your inbox for the verification link.';
+                const resendBtn = document.getElementById('resend-verify-btn');
+                if (resendBtn) { resendBtn.style.display = 'inline-block'; resendBtn.dataset.email = email; resendBtn.dataset.pass = pass; }
+                btn.disabled = false; btn.textContent = 'Sign In';
+            }
         } catch(e) {
-            clearTimeout(safetyTimer);
             err.textContent = friendlyError(e.code);
             btn.disabled = false; btn.textContent = 'Sign In';
         }
@@ -1574,9 +1543,7 @@
     async function doSignOut() {
         await FB.signOut(FB.auth);
         library = []; currentIdx = -1; isPlaying = false; coins = 0;
-        spotifyTracks = []; soundcloudTracks = [];
         audio.pause(); audio.src = '';
-        if (scWidget) { try { scWidget.pause(); } catch(_) {} scWidgetUrl = null; scWidgetReady = false; }
         renderLibrary(); renderQueue(); updateCoins();
         toggleDropdown(true);
     }
@@ -2052,48 +2019,43 @@
         const t = library[idx];
         if (t.missing) { showToast('⚠ File missing — re-upload to restore playback'); return; }
         if (idx === currentIdx) {
-            if (t.source === 'soundcloud') { scTogglePlay(); return; }
-            if (t.source === 'spotify')    { spTogglePlay(); return; }
+            if (t.source === 'soundcloud') { openEmbedPlayer(t); return; }
+            if (t.source === 'spotify') { spTogglePlay(); return; }
             if (isPlaying) { audio.pause(); } else { audio.play(); }
             return;
         }
-        // Stop whatever is currently playing
+        // Stop current audio if switching tracks
         if (audio.src) { audio.pause(); }
         spStopProgressLoop();
-        // Pause SC widget if active
-        if (scWidget && scWidgetUrl && t.source !== 'soundcloud') {
-            try { scWidget.pause(); } catch(e) {}
-            scWidgetUrl = null;
-        }
         currentIdx = idx;
-        updatePlayerUI(t);
-        renderLibrary(); renderQueue();
         if (t.source === 'soundcloud') {
-            audio.pause();
-            isPlaying = false;
-            scLoadAndPlay(t.soundcloudUrl || t.url);
+            updatePlayerUI(t);
+            renderLibrary(); renderQueue();
+            openEmbedPlayer(t);
             return;
         }
         if (t.source === 'spotify') {
+            updatePlayerUI(t);
+            renderLibrary(); renderQueue();
             const uri = t.spUri || t.url || null;
             if (uri && uri.startsWith('spotify:')) {
                 spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
             } else {
-                showToast('Cannot play — Spotify URI missing. Re-add from Spotify.');
+                showToast('Cannot play — Spotify URI missing. Re-add track from Spotify.');
             }
             return;
         }
-        // Local file
+        closeEmbed();
         audio.src = t.url;
-        audio.play().then(() => { isPlaying = true; renderLibrary(); renderQueue(); }).catch(()=>{});
+        audio.play().then(() => { isPlaying = true; updatePlayerUI(t); renderLibrary(); renderQueue(); }).catch(()=>{});
     }
 
     function togglePlay() {
+        if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) { spTogglePlay(); return; }
         if (currentIdx < 0) { if (library.length) playTrack(0); return; }
         const t = library[currentIdx];
-        if (t && t.source === 'soundcloud') { scTogglePlay(); return; }
-        if (t && t.source === 'spotify')    { spTogglePlay(); return; }
-        if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) { spTogglePlay(); return; }
+        if (t && t.source === 'soundcloud') { openEmbedPlayer(t); return; }
+        if (t && t.source === 'spotify') { spTogglePlay(); return; }
         if (isPlaying) { audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
         updatePlayBtn();
     }
@@ -2108,8 +2070,7 @@
                 spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
             }
         } else if (t.source === 'soundcloud') {
-            if (scWidget && scWidgetReady) { scWidget.seekTo(0); scWidget.play(); }
-            else scLoadAndPlay(t.soundcloudUrl || t.url);
+            openEmbedPlayer(t);
         } else {
             audio.currentTime = 0;
             audio.play().catch(() => {});
@@ -2175,15 +2136,13 @@
         }
         function applyPct(pct) {
             fill.style.width = (pct * 100) + '%';
-            const dur = audio.duration || spCurrentDuration || (scCurrentDur / 1000) || 0;
+            const dur = audio.duration || spCurrentDuration || 0;
             if (dur) document.getElementById('timeElapsed').textContent = fmt(pct * dur);
         }
         function commitPct(pct) {
             isDraggingProgress = false; bar.classList.remove('dragging');
-            const t = currentIdx >= 0 ? library[currentIdx] : null;
-            if (t && t.source === 'soundcloud' && scCurrentDur) {
-                scSeekTo(pct);
-            } else if (spCurrentDuration && spPlayer && (spDeviceId || spNoPremium === false)) {
+            if (spCurrentDuration && spPlayer && (spDeviceId || spNoPremium === false)) {
+                // Spotify seek
                 const ms = Math.round(pct * spCurrentDuration * 1000);
                 spCurrentPosition = pct * spCurrentDuration;
                 spPlayer.seek(ms);
@@ -2216,7 +2175,7 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
-        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = false; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = '🔊'; }
+        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = false; if (spPlayer) spPlayer.setVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = '🔊'; }
         bar.addEventListener('mousedown', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); });
         document.addEventListener('mousemove', e => { if (!dragging) return; applyPct(getPct(e)); });
@@ -2236,7 +2195,6 @@
         muted = !muted;
         audio.muted = muted;
         if (spPlayer) spPlayer.setVolume(muted ? 0 : volume);
-        scSetVolume(muted ? 0 : volume);
         const icon = document.querySelector('.vol-icon');
         if (icon) icon.textContent = muted ? '🔇' : '🔊';
     }
@@ -2289,149 +2247,18 @@
     // ════════════════════════════════════════
     // EMBED PLAYER (SoundCloud)
     // ════════════════════════════════════════
-    // SC WIDGET PLAYER  (hidden iframe, full control)
-    // ════════════════════════════════════════
-    let scWidget         = null;   // SC.Widget instance
-    let scWidgetReady    = false;
-    let scWidgetUrl      = null;   // URL currently loaded in widget
-    let scCurrentDur     = 0;     // ms
-    let scCurrentPos     = 0;     // ms
-    let scProgressTimer  = null;
-
-    function scInitWidget() {
-        const iframe = document.getElementById('scHiddenWidget');
-        if (!iframe || !window.SC || !window.SC.Widget) return;
-        // Don't attach to a blank iframe — wait until a real URL is loaded
-        if (!iframe.src || iframe.src === 'about:blank' || iframe.src === window.location.href) return;
-        scWidget = window.SC.Widget(iframe);
-        scWidget.bind(SC.Widget.Events.READY, () => {
-            scWidgetReady = true;
-            scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
-        });
-        scWidget.bind(SC.Widget.Events.PLAY, () => {
-            isPlaying = true;
-            updatePlayBtn();
-            document.getElementById('playerArt').classList.add('playing');
-            scStartProgressLoop();
-        });
-        scWidget.bind(SC.Widget.Events.PAUSE, () => {
-            isPlaying = false;
-            updatePlayBtn();
-            document.getElementById('playerArt').classList.remove('playing');
-            scStopProgressLoop();
-        });
-        scWidget.bind(SC.Widget.Events.FINISH, () => {
-            isPlaying = false;
-            scStopProgressLoop();
-            document.getElementById('progressFill').style.width = '100%';
-            if (repeat === 2) { restartCurrentTrack(); return; }
-            nextTrack();
-        });
-        scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
-            scCurrentPos = obj.currentPosition || 0;
-            scCurrentDur = scCurrentDur || 1;
-            if (!isDraggingProgress) {
-                const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100 : 0;
-                document.getElementById('progressFill').style.width = pct + '%';
-                document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
-            }
-            // BLK coin earn
-            const tick = Math.floor(scCurrentPos / 10000);
-            if (tick > lastCoinTick) {
-                lastCoinTick = tick; listenCount++;
-                if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
-            }
-        });
-        scWidget.bind(SC.Widget.Events.ERROR, () => { showToast('☁ SoundCloud: track unavailable or geo-blocked'); });
-    }
-
-    function scStartProgressLoop() { scStopProgressLoop(); }
-    function scStopProgressLoop()  { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
-
-    function scEnsureAPI(cb) {
-        if (window.SC && window.SC.Widget) { cb(); return; }
-        // SC API script not ready yet — inject it dynamically and retry
-        const existing = document.querySelector('script[src*="soundcloud.com/player/api"]');
-        if (!existing) {
-            const s = document.createElement('script');
-            s.src = 'https://w.soundcloud.com/player/api.js';
-            s.onload = cb;
-            s.onerror = () => showToast('☁ Could not load SoundCloud player API');
-            document.head.appendChild(s);
-        } else {
-            // Script tag exists but SC object not ready — poll briefly
-            let tries = 0;
-            const poll = setInterval(() => {
-                if (window.SC && window.SC.Widget) { clearInterval(poll); cb(); }
-                else if (++tries > 40) { clearInterval(poll); showToast('☁ SoundCloud API failed to initialise'); }
-            }, 100);
-        }
-    }
-
-    function scLoadAndPlay(trackUrl) {
-        scEnsureAPI(() => _scLoadAndPlay(trackUrl));
-    }
-
-    function _scLoadAndPlay(trackUrl) {
-        const iframe   = document.getElementById('scHiddenWidget');
-        const embedUrl = 'https://w.soundcloud.com/player/?url='
-            + encodeURIComponent(trackUrl)
-            + '&color=%238A2BE2&auto_play=true&hide_related=true'
-            + '&show_comments=false&show_user=false&show_reposts=false&show_teaser=false';
-
-        if (scWidgetUrl === trackUrl && scWidgetReady) {
-            // Same track — just restart
-            scWidget.seekTo(0);
-            scWidget.play();
-            return;
-        }
-
-        scWidgetReady = false;
-        scWidgetUrl   = trackUrl;
-        scCurrentDur  = 0;
-        scCurrentPos  = 0;
-        document.getElementById('progressFill').style.width = '0%';
-        document.getElementById('timeElapsed').textContent  = '0:00';
-        document.getElementById('timeDuration').textContent = '0:00';
-
-        if (scWidget) {
-            // Widget already exists — use load() API to swap track without destroying the widget
-            scWidget.load(embedUrl, { auto_play: true });
-        } else {
-            // First-time load: set src, wait for iframe to load, then bind widget
-            iframe.src = embedUrl;
-            iframe.onload = () => {
-                iframe.onload = null;
-                scInitWidget();
-            };
-        }
-    }
-
-    function scTogglePlay() {
-        if (!scWidget) return;
-        scWidget.isPaused(paused => { if (paused) { scWidget.play(); } else { scWidget.pause(); } });
-    }
-
-    function scSeekTo(pct) {
-        if (!scWidget || !scCurrentDur) return;
-        scWidget.seekTo(Math.round(pct * scCurrentDur));
-    }
-
-    function scSetVolume(v) {
-        if (!scWidget) return;
-        scWidget.setVolume(Math.round(v * 100));
-    }
-
-    // Keep embed overlay for non-SC use (kept for backwards compat)
     function openEmbedPlayer(t) {
-        // Route to widget player instead of popup
-        if (t.source === 'soundcloud') { scLoadAndPlay(t.soundcloudUrl || t.url); return; }
-        if (t.source === 'spotify') { showToast('Use Spotify controls to play tracks'); return; }
+        if (t.source === 'spotify') { showToast('Use the Spotify sidebar to play tracks'); return; }
+        const scUrl = encodeURIComponent(t.soundcloudUrl || '');
+        const iframeSrc = 'https://w.soundcloud.com/player/?url=' + scUrl + '&color=%238A2BE2&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false';
+        document.getElementById('embedTitle').innerHTML = 'SoundCloud // ' + esc(t.title);
+        document.getElementById('embedNote').textContent = '☁ Playing via SoundCloud Widget';
+        document.getElementById('embedIframeWrap').innerHTML = '<iframe src="' + iframeSrc + '" height="166" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        document.getElementById('embedOverlay').classList.add('open');
+        audio.pause(); isPlaying = false; updatePlayBtn();
     }
 
     function closeEmbed() {
-        // Stop SC widget if playing
-        if (scWidget && isPlaying) { scWidget.pause(); isPlaying = false; updatePlayBtn(); }
         document.getElementById('embedOverlay').classList.remove('open');
         document.getElementById('embedIframeWrap').innerHTML = '';
     }
@@ -2611,15 +2438,12 @@
 
     async function spOnConnected() {
         if (!window.Spotify) {
-            // Set the callback BEFORE loading the script so the SDK can fire it immediately on load
-            window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
             await new Promise((res, rej) => {
                 const s = document.createElement('script'); s.src = 'https://sdk.scdn.co/spotify-player.js';
                 s.onload = res; s.onerror = rej; document.head.appendChild(s);
             });
-        } else {
-            window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
         }
+        window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
         if (window.Spotify && window.Spotify.Player) spInitPlayer();
         document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
         document.getElementById('spotifyConnectBtn').classList.add('connected');
@@ -3225,6 +3049,21 @@
         if (append) tracksEl.innerHTML += html; else tracksEl.innerHTML = html;
     }
 
+    function renderSoundcloudTracks() {
+        const el = document.getElementById('soundcloudTracks');
+        if (!el) return;
+        const scTracks = library.filter(t => t.source === 'soundcloud');
+        if (!scTracks.length) { el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks in library</div>'; return; }
+        el.innerHTML = scTracks.map(t => {
+            const idx = library.indexOf(t);
+            return '<div class="stream-track-item" onclick="playTrack(' + idx + ')" style="cursor:pointer;">'
+                + '<div class="stream-track-icon sc"></div>'
+                + '<div class="stream-track-info"><div class="stream-track-name">' + esc(t.title) + '</div>'
+                + '<div class="stream-track-artist">' + esc(t.artist) + '</div></div>'
+                + '</div>';
+        }).join('');
+    }
+
     async function spRestoreSession() {
         spLoadTokens();
         if (!spAccessToken) return;
@@ -3233,100 +3072,86 @@
     }
 
     // ════════════════════════════════════════
-    // SOUNDCLOUD  —  URL paste + Widget player
+    // SOUNDCLOUD
     // ════════════════════════════════════════
 
-    function toggleSoundcloudPanel() { openStreamingView('soundcloud'); }
-
-    function soundcloudUrlHint() {
-        const url   = document.getElementById('soundcloudUrlInput').value.trim();
-        const valid = url.includes('soundcloud.com/');
-        const el    = document.getElementById('soundcloudMetaFields');
-        el.style.display = valid ? 'flex' : 'none';
-        if (!valid) return;
-        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const tEl = document.getElementById('soundcloudMetaTitle');
-        const aEl = document.getElementById('soundcloudMetaArtist');
-        if (!tEl.value) tEl.value = (parts[parts.length-1]||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        if (!aEl.value) aEl.value = (parts[parts.length-2]||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    // FIX 1: toggleSoundcloudPanel properly defined (was missing, HTML called it)
+    function toggleSoundcloudPanel() {
+        openStreamingView('soundcloud');
     }
 
-    function addSoundcloudTrack() {
-        const url    = document.getElementById('soundcloudUrlInput').value.trim();
+    function soundcloudUrlHint() {
+        const url = document.getElementById('soundcloudUrlInput').value.trim();
+        const valid = url.includes('soundcloud.com/');
+        const fieldsEl = document.getElementById('soundcloudMetaFields');
+        if (!valid) { fieldsEl.style.display = 'none'; return; }
+        fieldsEl.style.display = 'flex';
+        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const titleEl  = document.getElementById('soundcloudMetaTitle');
+        const artistEl = document.getElementById('soundcloudMetaArtist');
+        if (!titleEl.value)  titleEl.value  = (parts[parts.length - 1] || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (!artistEl.value) artistEl.value = (parts[parts.length - 2] || '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    async function addSoundcloudTrack() {
+        const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
-        if (!url.includes('soundcloud.com/')) { showToast('Not a valid SoundCloud URL'); return; }
-        const parts  = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const tEl    = document.getElementById('soundcloudMetaTitle');
-        const aEl    = document.getElementById('soundcloudMetaArtist');
-        const artEl  = document.getElementById('soundcloudMetaArt');
-        const title  = tEl.value.trim()  || (parts[parts.length-1]||'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        const artist = aEl.value.trim()  || (parts[parts.length-2]||'Unknown Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        const albumArt = artEl ? artEl.value.trim() || null : null;
-        if (library.some(l => l.soundcloudUrl === url)) { showToast('Already in library'); return; }
-        const track = {
-            id: 'sc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-            url, title, artist, album: 'SoundCloud', albumArt,
+        if (!url.includes('soundcloud.com/')) { showToast('Invalid SoundCloud URL'); return; }
+        const titleEl  = document.getElementById('soundcloudMetaTitle');
+        const artistEl = document.getElementById('soundcloudMetaArtist');
+        const artEl    = document.getElementById('soundcloudMetaArt');
+        const parts    = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const title    = titleEl.value.trim()  || (parts[parts.length - 1] || 'SoundCloud Track').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const artist   = artistEl.value.trim() || (parts[parts.length - 2] || 'Unknown Artist').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const albumArt = artEl.value.trim()    || null;
+        const track    = {
+            id: 'sc_' + Date.now(), url, title, artist, album: 'SoundCloud', albumArt,
             duration: 0, dateAdded: new Date().toLocaleDateString(),
             emoji: '☁', source: 'soundcloud', soundcloudUrl: url
         };
         soundcloudTracks.push(track); library.push(track);
-        idbSaveStreaming(track); fbSaveStreamingTrack(track);
+        idbSaveStreaming(track);
+        fbSaveStreamingTrack(track);
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
         document.getElementById('soundcloudUrlInput').value = '';
-        tEl.value = ''; aEl.value = ''; if (artEl) artEl.value = '';
+        titleEl.value = ''; artistEl.value = ''; artEl.value = '';
         document.getElementById('soundcloudMetaFields').style.display = 'none';
-        showToast('"' + title + '" added to library', true);
+        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
+        const _scBtn=document.getElementById('soundcloudConnectBtn');if(_scBtn)_scBtn.classList.add('connected');
+        showToast('SoundCloud track linked — click to open player', true);
     }
 
     function removeSoundcloudTrack(trackId, e) {
         e.stopPropagation();
         const idx = soundcloudTracks.findIndex(t => t.id === trackId);
         if (idx === -1) return;
-        const t = soundcloudTracks[idx];
-        const libIdx = library.indexOf(t);
-        // Stop playback if this track is currently playing
-        if (currentIdx === libIdx) {
-            if (scWidget) { try { scWidget.pause(); } catch(_) {} }
-            audio.pause(); isPlaying = false; currentIdx = -1;
-            document.getElementById('playerName').innerHTML = '<span class="player-track-none">No track selected</span>';
-            document.getElementById('playerArtist').textContent = '';
-            document.getElementById('playerArtEmoji').textContent = '◈';
-        } else if (currentIdx > libIdx && libIdx !== -1) {
-            currentIdx--;
-        }
+        const libIdx = library.indexOf(soundcloudTracks[idx]);
         if (libIdx !== -1) library.splice(libIdx, 1);
         soundcloudTracks.splice(idx, 1);
-        // Persist deletion so track doesn't reappear on reload
-        idbDeleteTrack(t.id);
-        fbDeleteStreamingTrack(t.id);
-        // Update status badge
-        const statusEl = document.getElementById('soundcloudStatus');
-        if (statusEl) statusEl.textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
-        if (!soundcloudTracks.length) { const _scBtnR = document.getElementById('soundcloudConnectBtn'); if (_scBtnR) _scBtnR.classList.remove('connected'); }
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
-        showToast('Track removed');
+        document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
+        if (!soundcloudTracks.length) { const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected'); }
+        showToast('SoundCloud track removed');
     }
 
     function renderSoundcloudTracks() {
         const el = document.getElementById('soundcloudTracks');
-        if (!el) return;
-        const cnt = document.getElementById('scLibCount');
-        if (cnt) cnt.textContent = soundcloudTracks.length ? soundcloudTracks.length : '';
         if (!soundcloudTracks.length) {
-            el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1rem 0;">No tracks yet — paste a URL above to get started</div>';
+            el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No SoundCloud tracks linked yet</div>';
             return;
         }
-        el.innerHTML = soundcloudTracks.map(t => {
-            const art = t.albumArt ? ' style="background-image:url(' + t.albumArt + ');background-size:cover;background-position:center;"' : '';
-            return '<div class="stream-track-item" onclick="playTrack(' + library.indexOf(t) + ')" style="cursor:pointer;">'
-                + '<div class="stream-track-icon soundcloud"' + art + '>' + (t.albumArt ? '' : '☁') + '</div>'
-                + '<div class="stream-track-info">'
-                + '<div class="stream-track-name">' + esc(t.title) + '</div>'
-                + '<div class="stream-track-artist">' + esc(t.artist) + ' · SoundCloud</div>'
-                + '</div>'
-                + '<button class="stream-track-remove" onclick="removeSoundcloudTrack(\'' + t.id + '\',event)" title="Remove">✕</button>'
-                + '</div>';
-        }).join('');
+        el.innerHTML = soundcloudTracks.map(t =>
+            '<div class="stream-track-item" onclick="playTrack(' + library.indexOf(t) + ')">'
+            + '<div class="stream-track-icon soundcloud"' + (t.albumArt ? ' style="background-image:url(\'' + esc(t.albumArt) + '\');background-size:cover;background-position:center;"' : '') + '>'
+            + (t.albumArt ? '' : '☁') + '</div>'
+            + '<div class="stream-track-info">'
+            + '<div class="stream-track-name">' + esc(t.title) + '</div>'
+            + '<div class="stream-track-artist">' + esc(t.artist) + ' · SoundCloud</div>'
+            + (t.album && t.album !== 'SoundCloud' ? '<div class="stream-track-album">' + esc(t.album) + '</div>' : '')
+            + '</div>'
+            + '<button class="stream-track-remove" onclick="removeSoundcloudTrack(\'' + t.id + '\',event)" title="Remove">✕</button>'
+            + '</div>'
+        ).join('');
     }
 
     // Stub for IDB restore compat
