@@ -2782,7 +2782,6 @@
 
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
             if (scGeneration !== myGen) return;
-            console.log('[SC] PLAY_PROGRESS', obj);
             scCurrentPos = obj.currentPosition || 0;
             if (!scCurrentDur && obj.currentPosition && obj.relativePosition) {
                 scCurrentDur = Math.round(obj.currentPosition / obj.relativePosition);
@@ -2792,6 +2791,16 @@
                 const pct = (scCurrentPos / scCurrentDur) * 100;
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
+            } else if (!isDraggingProgress && !scCurrentDur && scWidget) {
+                // Duration still unknown — fetch it now
+                scWidget.getDuration(d => {
+                    if (scGeneration !== myGen || !d || d <= 0) return;
+                    scCurrentDur = d;
+                    document.getElementById('timeDuration').textContent = fmt(d / 1000);
+                    const pct = (scCurrentPos / scCurrentDur) * 100;
+                    document.getElementById('progressFill').style.width = pct + '%';
+                    document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
+                });
             }
         });
 
@@ -2806,13 +2815,30 @@
         scStopProgressLoop();
         scProgressTimer = setInterval(() => {
             if (scGeneration !== gen || !scWidget || !isPlaying) return;
-            scWidget.getPosition(pos => {
+            // If duration isn't known yet, fetch it now so the bar can move
+            const updateBar = () => {
                 if (scGeneration !== gen) return;
-                scCurrentPos = pos || 0;
                 if (!isDraggingProgress && scCurrentDur) {
                     const pct = (scCurrentPos / scCurrentDur) * 100;
                     document.getElementById('progressFill').style.width = pct + '%';
                     document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
+                }
+            };
+            scWidget.getPosition(pos => {
+                if (scGeneration !== gen) return;
+                scCurrentPos = pos || 0;
+                if (scCurrentDur) {
+                    updateBar();
+                } else {
+                    // Duration not yet cached — fetch it then update
+                    scWidget.getDuration(d => {
+                        if (scGeneration !== gen) return;
+                        if (d && d > 0) {
+                            scCurrentDur = d;
+                            document.getElementById('timeDuration').textContent = fmt(d / 1000);
+                        }
+                        updateBar();
+                    });
                 }
             });
         }, 500);
