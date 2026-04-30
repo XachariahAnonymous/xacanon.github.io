@@ -1374,7 +1374,57 @@
     let library = [], currentIdx = -1, isPlaying = false;
     let shuffle = false, repeat = 0, muted = false, volume = 0.8;
     let shuffleQueue = [];
-    let coins = 0, listenCount = 0, lastCoinTick = 0, pendingPurchase = null;
+    let coins = 0, listenCount = 0, pendingPurchase = null;
+
+    // ── BLK COIN EARN: play-based model ──────────────────────────────────────
+    // 1000 plays = 1.00 BLK  →  1 play = 0.001 BLK
+    // A "play" is credited once per continuous listen when the user has heard
+    // at least MIN_LISTEN_SECS seconds of real audio on the current track.
+    // - Skipping / selecting a new track resets the counter entirely.
+    // - Seeking forward can't farm time (increments capped at 2s per tick).
+    // - After a track ends naturally, the counter resets so replaying it
+    //   can earn again — no artificial cooldown on same-track replays.
+    const COIN_PER_PLAY   = 0.001;  // 1000 plays = 1.00 BLK
+    const MIN_LISTEN_SECS = 30;     // must hear ≥30s continuously to count
+
+    let _earnTrackId   = null;   // id of track currently being timed
+    let _earnAccumSecs = 0;      // real seconds listened this play
+    let _earnLastTs    = 0;      // wall-clock ms of last tick event
+    let _earnCredited  = false;  // coin granted — wait for track end before resetting
+
+    function _earnTick(trackId, realSecs) {
+        if (trackId !== _earnTrackId) {
+            _earnTrackId   = trackId;
+            _earnAccumSecs = 0;
+            _earnCredited  = false;
+        }
+        if (_earnCredited) return;
+        _earnAccumSecs += Math.min(realSecs, 2); // cap: seek jumps don't donate free time
+        if (_earnAccumSecs >= MIN_LISTEN_SECS) {
+            _earnCredited = true;
+            listenCount++;
+            coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
+            updateCoins();
+            flashCoinEarn();
+            syncCoinsToFirestore(COIN_PER_PLAY);
+        }
+    }
+
+    // User skipped / selected a different track — full reset
+    function _earnReset() {
+        _earnTrackId   = null;
+        _earnAccumSecs = 0;
+        _earnCredited  = false;
+        _earnLastTs    = 0;
+    }
+
+    // Track ended naturally — reset so the next replay can earn again
+    function _earnOnTrackEnd() {
+        _earnAccumSecs = 0;
+        _earnCredited  = false;
+        _earnLastTs    = 0;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const audio = document.getElementById('audioEl');
     audio.volume = volume;
@@ -1391,14 +1441,20 @@
                 const purchSnap = await FB.getDocs(FB.collection(FB.db, 'purchases'));
                 purchSnap.forEach(d => { const p = d.data(); if (p.uid === currentUser.uid) ownedIds.add(p.trackId); });
             }
+            // Sync purchasedStoreIds with server data
+            ownedIds.forEach(id => purchasedStoreIds.add(id));
+            savePurchasedIds();
+
             STORE.length = 0;
             snap.forEach(d => {
                 const t = d.data();
-                const owned = ownedIds.has(d.id);
-                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned });
-                // Restore purchased tracks into library so they survive page refresh
-                if (owned && !library.some(l => l.id === d.id+'_lib')) {
+                const purchased = ownedIds.has(d.id);
+                const inLibrary = library.some(l => l.id === d.id+'_lib');
+                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary });
+                // Auto-restore purchased tracks into library on page load
+                if (purchased && !inLibrary) {
                     library.push({ id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store' });
+                    STORE[STORE.length - 1].owned = true;
                 }
             });
             storeLoaded = true;
@@ -2157,6 +2213,12 @@
     function removeTrack(e, libIdx) {
         e.stopPropagation();
         const t = library[libIdx]; if (!t) return;
+        if (t.source === 'store') {
+            // Mark the store item as not-in-library (purchased remains true via purchasedStoreIds)
+            const storeId = t.id.replace(/_lib$/, '');
+            const storeItem = STORE.find(x => x.id === storeId);
+            if (storeItem) storeItem.owned = false;
+        }
         if (t.source === 'spotify') {
             const si = spotifyTracks.indexOf(t);
             if (si !== -1) spotifyTracks.splice(si, 1);
@@ -2182,6 +2244,7 @@
         } else if (currentIdx > libIdx) { currentIdx--; }
         library.splice(libIdx, 1);
         filterTracks(); renderQueue();
+        if (t.source === 'store') renderStore();
         showToast('"' + t.title + '" removed');
     }
 
@@ -2344,6 +2407,7 @@
         }
         // Stop whatever is currently playing
         audio.pause();
+        _earnReset(); // new track — reset listen accumulator
         if (spPlayer) { try { spPlayer.pause(); } catch(e) {} }  // pause Spotify SDK player
         spStopProgressLoop();
         // Pause SC widget if active
@@ -2566,11 +2630,14 @@
             document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100) + '%';
             document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
         }
-        const now = Math.floor(audio.currentTime/10);
-        if (now > lastCoinTick) {
-            lastCoinTick = now; listenCount++;
-            if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
+        // New play-based earn system
+        const now = Date.now();
+        if (_earnLastTs > 0 && isPlaying) {
+            const realSecs = (now - _earnLastTs) / 1000;
+            const t = currentIdx >= 0 ? library[currentIdx] : null;
+            if (t) _earnTick(t.id, realSecs);
         }
+        _earnLastTs = now;
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
     let _endedHandling = false;
@@ -2578,11 +2645,12 @@
         if (_endedHandling) return;
         _endedHandling = true;
         setTimeout(() => { _endedHandling = false; }, 500);
+        _earnOnTrackEnd(); // track finished — allow replay to earn again
         if (repeat === 2) { restartCurrentTrack(); return; }
         nextTrack();
     });
-    audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); });
-    audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); });
+    audio.addEventListener('play',  () => { isPlaying = true;  updatePlayBtn(); document.getElementById('playerArt').classList.add('playing'); _earnLastTs = Date.now(); });
+    audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); _earnLastTs = 0; });
 
     function updatePlayerUI(t) {
         const isStream = t.source === 'spotify' || t.source === 'soundcloud';
@@ -2645,17 +2713,20 @@
             isPlaying = true;
             updatePlayBtn();
             document.getElementById('playerArt').classList.add('playing');
+            _earnLastTs = Date.now();
             scStartProgressLoop();
         });
         scWidget.bind(SC.Widget.Events.PAUSE, () => {
             isPlaying = false;
             updatePlayBtn();
             document.getElementById('playerArt').classList.remove('playing');
+            _earnLastTs = 0;
             scStopProgressLoop();
         });
         scWidget.bind(SC.Widget.Events.FINISH, () => {
             if (scTransitioning) return; // guard: ignore stale FINISH during track swap
             isPlaying = false;
+            _earnOnTrackEnd(); // track finished — allow replay to earn again
             scStopProgressLoop();
             document.getElementById('progressFill').style.width = '100%';
             if (repeat === 2) {
@@ -2682,12 +2753,14 @@
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
-            // BLK coin earn
-            const tick = Math.floor(scCurrentPos / 10000);
-            if (tick > lastCoinTick) {
-                lastCoinTick = tick; listenCount++;
-                if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
+            // BLK coin earn — play-based
+            const now = Date.now();
+            if (_earnLastTs > 0 && isPlaying) {
+                const realSecs = (now - _earnLastTs) / 1000;
+                const t = currentIdx >= 0 ? library[currentIdx] : null;
+                if (t) _earnTick(t.id, realSecs);
             }
+            _earnLastTs = now;
         });
         scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
@@ -2784,6 +2857,7 @@
         scWidgetUrl   = trackUrl;
         scCurrentDur  = 0;
         scCurrentPos  = 0;
+        _earnReset(); // new SC track loading — reset listen accumulator
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
@@ -2858,6 +2932,24 @@
     // ════════════════════════════════════════
     // STORE
     // ════════════════════════════════════════
+
+    // Tracks which store IDs have been purchased (persists across library deletions)
+    const purchasedStoreIds = new Set(JSON.parse(localStorage.getItem('blk_purchased_ids') || '[]'));
+
+    function savePurchasedIds() {
+        try { localStorage.setItem('blk_purchased_ids', JSON.stringify([...purchasedStoreIds])); } catch(e) {}
+    }
+
+    function reAddToLibrary(storeId) {
+        const s = STORE.find(x => x.id === storeId);
+        if (!s) return;
+        if (library.some(t => t.id === storeId + '_lib')) { showToast('Already in library'); return; }
+        library.push({ id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
+        s.owned = true;
+        renderLibrary(); renderQueue(); renderStore();
+        showToast('"' + s.title + '" added back to library', true);
+    }
+
     function renderStore(filtered) {
         const items = filtered ?? STORE;
         const grid  = document.getElementById('storeGrid');
@@ -2874,7 +2966,12 @@
             + '<div class="store-info"><div class="store-title">' + esc(s.title) + '</div>'
             + '<div class="store-artist">' + esc(s.artist) + ' · ' + esc(s.genre) + '</div>'
             + '<div class="store-footer"><span class="store-price">$' + s.price.toFixed(2) + '</span>'
-            + '<button class="store-buy-btn ' + (s.owned?'owned':'') + '" onclick="openModal(\'' + s.id + '\')">' + (s.owned?'✓ Owned':'Buy') + '</button>'
+            + (s.owned
+                ? '<button class="store-buy-btn owned">✓ Owned</button>'
+                : purchasedStoreIds.has(s.id)
+                    ? '<button class="store-buy-btn" style="background:rgba(138,43,226,0.2);border-color:var(--accent);color:#fff;" onclick="reAddToLibrary(\'' + s.id + '\')">+ Add to Library</button>'
+                    : '<button class="store-buy-btn" onclick="openModal(\'' + s.id + '\')">Buy</button>'
+              )
             + '</div></div></div>'
         ).join('');
     }
@@ -2925,6 +3022,8 @@
         }
         setTimeout(() => {
             s.owned = true;
+            purchasedStoreIds.add(s.id);
+            savePurchasedIds();
             library.push({ id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
             btn.textContent = '✓ Added to Library'; btn.className = 'modal-btn success'; btn.disabled = false;
             renderLibrary(); renderQueue(); renderStore(); updateProfileView();
@@ -3101,6 +3200,9 @@
                 document.getElementById('progressFill').style.width = (spCurrentPosition / spCurrentDuration * 100).toFixed(2) + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(Math.round(spCurrentPosition));
             }
+            // BLK coin earn — use wall-clock delta, capped inside _earnTick
+            const t = currentIdx >= 0 ? library[currentIdx] : null;
+            if (t) _earnTick(t.id, elapsed / 1000);
             spRafId = requestAnimationFrame(tick);
         }
         spRafLastTs = performance.now();
@@ -3138,13 +3240,11 @@
         if (!state.paused) {
             spTransitioning = false;  // new track is confirmed playing
             spStartProgressLoop();
-            const tick = Math.floor((state.position || 0) / 10000);
-            if (tick !== spListenTick) {
-                spListenTick = tick; listenCount++;
-                if (listenCount % 10 === 0) { coins += 0.01; updateCoins(); flashCoinEarn(); syncCoinsToFirestore(0.01); }
-            }
+            // BLK coin earn — play-based (SP RAF drives the timing)
+            if (_earnLastTs === 0) _earnLastTs = Date.now();
         } else {
             spStopProgressLoop();
+            _earnLastTs = 0; // paused — stop wall-clock earn accumulation
             // Spotify signals natural track end by resetting position to 0 while paused.
             // Use prevUri (captured before any _lastUri update) so the comparison is against
             // the track that was actually playing, not the one that may have just been swapped in.
@@ -3156,6 +3256,7 @@
                 && (state.position || 0) === 0
                 && (justFinished || spCurrentPosition >= spCurrentDuration - 1);
             if (trackEndedNaturally) {
+                _earnOnTrackEnd(); // track finished — allow replay to earn again
                 if (repeat === 2) {
                     // Repeat One: re-issue a full play command via the Web API rather than
                     // seek(0)+resume(), which is unreliable after a track ends because
