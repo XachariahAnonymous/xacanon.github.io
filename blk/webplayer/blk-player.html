@@ -2298,7 +2298,7 @@
 
     function renderQueue() {
         // Always update count badge
-        document.getElementById('queueCount').textContent = library.length;
+        document.getElementById('queueCount').textContent = getPlayPool().length;
 
         if (!queuePanelOpen) return;
 
@@ -2339,6 +2339,8 @@
         }
 
         // ── Build next-up list ──
+        const pool = getPlayPool();
+        const poolPos = pool.indexOf(currentIdx);
         let nextList = [];
         if (repeat === 2 && currentIdx >= 0 && library[currentIdx]) {
             // Repeat One: next up is always the same track, looping
@@ -2346,10 +2348,9 @@
         } else if (shuffle && shuffleQueue.length) {
             nextList = shuffleQueue.slice(0, 20).map(i => ({ idx: i, t: library[i] })).filter(x => x.t);
         } else {
-            // Linear: tracks after currentIdx, then wrap
-            const start = currentIdx + 1;
-            for (let i = 0; i < library.length && nextList.length < 20; i++) {
-                const idx = (start + i) % library.length;
+            // Linear: tracks after currentIdx within pool, then wrap
+            for (let i = 1; i < pool.length && nextList.length < 20; i++) {
+                const idx = pool[(poolPos + i) % pool.length];
                 if (idx === currentIdx) break;
                 nextList.push({ idx, t: library[idx] });
             }
@@ -2361,7 +2362,7 @@
                 const artInner = (t.albumArt||t.artwork)
                     ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
                     : '<span>' + esc2(t.emoji||'◈') + '</span>';
-                html += '<div class="qp-row" onclick="playTrack(' + idx + ')">'
+                html += '<div class="qp-row" onclick="activePlaylistId=activePlaylistId;playTrack(' + idx + ',true)">'
                     + '<span class="qp-row-num">' + (pos+1) + '</span>'
                     + '<div class="qp-row-art">' + artInner + '</div>'
                     + '<div class="qp-row-info"><div class="qp-row-title">' + esc2(t.title) + '</div><div class="qp-row-artist">' + esc2(t.artist) + '</div></div>'
@@ -2372,10 +2373,10 @@
 
         // ── Previous ──
         const prevList = [];
-        if (!shuffle && currentIdx > 0) {
-            const from = Math.max(0, currentIdx - 5);
-            for (let i = currentIdx - 1; i >= from; i--) {
-                prevList.push({ idx: i, t: library[i] });
+        if (!shuffle && poolPos > 0) {
+            const from = Math.max(0, poolPos - 5);
+            for (let i = poolPos - 1; i >= from; i--) {
+                prevList.push({ idx: pool[i], t: library[pool[i]] });
             }
         }
         if (prevList.length) {
@@ -2384,7 +2385,7 @@
                 const artInner = (t.albumArt||t.artwork)
                     ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
                     : '<span>' + esc2(t.emoji||'◈') + '</span>';
-                html += '<div class="qp-row" style="opacity:0.55;" onclick="playTrack(' + idx + ')">'
+                html += '<div class="qp-row" style="opacity:0.55;" onclick="playTrack(' + idx + ',true)">'
                     + '<div class="qp-row-art">' + artInner + '</div>'
                     + '<div class="qp-row-info"><div class="qp-row-title">' + esc2(t.title) + '</div><div class="qp-row-artist">' + esc2(t.artist) + '</div></div>'
                     + '<span class="qp-row-dur">' + fmt(t.duration) + '</span>'
