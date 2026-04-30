@@ -1440,10 +1440,10 @@
                 const t = d.data();
                 const purchased = ownedIds.has(d.id);
                 const inLibrary = library.some(l => l.id === d.id+'_lib');
-                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary });
+                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary, coverUrl: t.coverUrl||null });
                 // Auto-restore purchased tracks into library on page load
                 if (purchased && !inLibrary) {
-                    const _storeTrack = { id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store' };
+                    const _storeTrack = { id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store', albumArt: t.coverUrl||null };
                     library.push(_storeTrack);
                     probeStoreDuration(_storeTrack);
                     STORE[STORE.length - 1].owned = true;
@@ -3232,7 +3232,9 @@
             '<div class="store-card">'
             + (s.badge ? '<span class="store-badge">' + s.badge + '</span>' : '')
             + '<div class="store-art"><div class="store-art-gradient" style="background:radial-gradient(circle at 30% 70%,' + s.color + ' 0%,#000 70%);"></div>'
-            + '<span style="position:relative;z-index:1;font-size:2.5rem;">' + s.emoji + '</span>'
+            + (s.coverUrl
+                ? '<img src="' + esc(s.coverUrl) + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" onerror="this.style.display=\'none\'">'
+                : '<span style="position:relative;z-index:1;font-size:2.5rem;">' + s.emoji + '</span>')
             + '<div class="store-card-overlay"><div class="store-play-btn" onclick="previewStore(\'' + s.id + '\')">▶</div></div></div>'
             + '<div class="store-info"><div class="store-title">' + esc(s.title) + '</div>'
             + '<div class="store-artist">' + esc(s.artist) + ' · ' + esc(s.genre) + '</div>'
