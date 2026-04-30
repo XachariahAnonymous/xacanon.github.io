@@ -2743,7 +2743,7 @@
                 scTransitioning = true;
                 scWidgetReady = false;
                 scWidgetUrl = null;
-                scWidget = null; // force fresh iframe load so autoplay triggers cleanly
+                // Don't null scWidget here — _scLoadAndPlay unbinds it before replacing
                 const t = library[currentIdx];
                 if (t) scLoadAndPlay(t.soundcloudUrl || t.url);
                 return;
@@ -2751,7 +2751,7 @@
             // Reset widget state so any subsequent scLoadAndPlay does a fresh load
             scWidgetReady = false;
             scWidgetUrl = null;
-            scWidget = null; // force fresh iframe load on next play
+            // Don't null scWidget here — _scLoadAndPlay unbinds it before replacing
             nextTrack();
         });
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
@@ -2905,25 +2905,25 @@
         wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:300px;height:168px;opacity:0;z-index:-1;pointer-events:none;';
         iframe.style.cssText  = 'width:300px;height:168px;border:none;display:block;';
 
+        // Unbind stale listeners NOW, before nulling scWidget — scInitWidget's unbind block
+        // needs the live reference; nulling it first means listeners are never cleaned up.
         if (scWidget) {
-            // Widget already exists — use load() API to swap track without destroying the widget.
-            // Destroy and recreate instead of load() to avoid autoplay-policy issues with
-            // widget.load() in modern browsers (load() doesn't carry user-gesture budget).
+            try {
+                scWidget.unbind(SC.Widget.Events.READY);
+                scWidget.unbind(SC.Widget.Events.PLAY);
+                scWidget.unbind(SC.Widget.Events.PAUSE);
+                scWidget.unbind(SC.Widget.Events.FINISH);
+                scWidget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+                scWidget.unbind(SC.Widget.Events.ERROR);
+            } catch(_) {}
             scWidget = null;
-            scWidgetReady = false;
-            iframe.src = embedUrl;
-            iframe.onload = () => {
-                iframe.onload = null;
-                scInitWidget(_scExpand);
-            };
-        } else {
-            // First-time load: set src, wait for iframe to load, then bind widget
-            iframe.src = embedUrl;
-            iframe.onload = () => {
-                iframe.onload = null;
-                scInitWidget(_scExpand);
-            };
         }
+        scWidgetReady = false;
+        iframe.src = embedUrl;
+        iframe.onload = () => {
+            iframe.onload = null;
+            scInitWidget(_scExpand);
+        };
     }
 
     function scTogglePlay() {
