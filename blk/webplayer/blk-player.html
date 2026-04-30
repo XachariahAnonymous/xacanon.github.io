@@ -2444,8 +2444,7 @@
             }
         } else if (t.source === 'soundcloud') {
             // Always force a fresh load — seekTo(0)+play() on a finished widget triggers ERROR
-            scWidgetReady = false;
-            scWidgetUrl = null;
+            scDestroyWidget();
             scLoadAndPlay(t.soundcloudUrl || t.url);
         } else {
             // Reload src to avoid stale ended-event re-trigger
@@ -2706,9 +2705,11 @@
         scWidgetUrl   = null;
         scCurrentDur  = 0;
         scCurrentPos  = 0;
-        // Reset iframe to blank so the next song gets a truly fresh player
+        // Clear any pending onload so a stale about:blank navigation doesn't
+        // accidentally trigger scInitWidget for the wrong track.
         const iframe = document.getElementById('scHiddenWidget');
-        if (iframe) { iframe.onload = null; iframe.src = 'about:blank'; }
+        if (iframe) iframe.onload = null;
+        // NOTE: we do NOT set iframe.src here — _scLoadAndPlay owns the src.
     }
 
     function scInitWidget() {
@@ -2901,26 +2902,22 @@
             return;
         }
 
-        // Stop old widget cleanly and reset iframe to blank
-        scDestroyWidget();
-        scWidgetUrl   = trackUrl;
+        // scDestroyWidget() has already been called by the caller (playTrack / FINISH handler).
+        // Just record the new URL, reset UI, then load the iframe.
+        scWidgetUrl  = trackUrl;
         _earnReset();
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
 
-        // Capture generation now so the timeout discards itself if another
-        // track swap happens before the 2s settle delay expires.
+        // Capture generation so the onload callback discards itself if superseded.
         const loadGen = scGeneration;
-        setTimeout(() => {
-            if (scGeneration !== loadGen) return;   // superseded — abort
-            iframe.onload = () => {
-                iframe.onload = null;
-                if (scGeneration !== loadGen) return; // superseded during load
-                scInitWidget();
-            };
-            iframe.src = embedUrl;
-        }, 2000);
+        iframe.onload = () => {
+            iframe.onload = null;
+            if (scGeneration !== loadGen) return;
+            scInitWidget();
+        };
+        iframe.src = embedUrl;
     }
     function scTogglePlay() {
         if (!scWidget) return;
