@@ -3047,29 +3047,36 @@
         if (!trackUrl) return null;
         const upgradeArt = s => {
             if (!s) return null;
-            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.?]|$)/g, '-t500x500');
-            if (u === s && s.includes('-')) u = s.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
+            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=\.|$)/g, '-t500x500');
+            if (u === s) u = s.replace(/(\.[a-z]{3,4})(\?.*)?$/, '-t500x500$1$2');
             return u;
+        };
+        const tryFetch = async (fetchUrl) => {
+            try {
+                const r = await fetch(fetchUrl, { signal: AbortSignal.timeout(8000) });
+                if (!r.ok) return null;
+                return await r.json();
+            } catch(_) { return null; }
         };
         const proxyJSON = async (targetUrl) => {
             try {
                 const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
-                    { signal: AbortSignal.timeout(7000) });
+                    { signal: AbortSignal.timeout(8000) });
                 if (r.ok) { const w = await r.json(); if (w && w.contents) return JSON.parse(w.contents); }
             } catch(_) {}
             try {
                 const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl),
-                    { signal: AbortSignal.timeout(7000) });
+                    { signal: AbortSignal.timeout(8000) });
                 if (r.ok) return await r.json();
             } catch(_) {}
             return null;
         };
-        try {
-            const d = await proxyJSON('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(trackUrl));
-            if (d && d.thumbnail_url) return upgradeArt(d.thumbnail_url);
-            const d2 = await proxyJSON('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(trackUrl) + '&client_id=' + SC_CLIENT_ID);
-            if (d2) return upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
-        } catch(_) {}
+        const oembedUrl = 'https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(trackUrl);
+        let d = await tryFetch(oembedUrl) || await proxyJSON(oembedUrl);
+        if (d && d.thumbnail_url) return upgradeArt(d.thumbnail_url);
+        const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(trackUrl) + '&client_id=' + SC_CLIENT_ID;
+        let d2 = await tryFetch(resolveUrl) || await proxyJSON(resolveUrl);
+        if (d2) return upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
         return null;
     }
     // ────────────────────────────────────────────────────────────────────────
@@ -3928,37 +3935,64 @@
         _scFetchTimer = setTimeout(() => _scFetchMeta(url), 700);
     }
 
-    async function _scFetchMeta(url) {
+    // JSONP fetch — injects a <script> tag so CORS doesn't apply.
+    // SC oEmbed supports ?callback= natively.
+    function _scOembedJSONP(trackUrl) {
+        return new Promise((resolve) => {
+            const cbName = '_scJSONP_' + Date.now();
+            const script = document.createElement('script');
+            let settled = false;
+            const finish = (data) => {
+                if (settled) return;
+                settled = true;
+                try { delete window[cbName]; } catch(_) {}
+                try { script.remove(); } catch(_) {}
+                resolve(data || null);
+            };
+            window[cbName] = (data) => finish(data);
+            setTimeout(() => finish(null), 8000); // timeout
+            script.src = 'https://soundcloud.com/oembed?format=js&callback=' + cbName + '&url=' + encodeURIComponent(trackUrl);
+            script.onerror = () => finish(null);
+            document.head.appendChild(script);
+        });
+    }
+
+        async function _scFetchMeta(url) {
         const status = document.getElementById('scFetchStatus');
         const preview= document.getElementById('soundcloudPreview');
         const addBtn = document.getElementById('scAddBtn');
 
         const upgradeArt = s => {
             if (!s) return null;
-            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.?]|$)/g, '-t500x500');
-            if (u === s && s.includes('-')) u = s.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
+            // Replace any known SC size token with t500x500
+            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=\.|$)/g, '-t500x500');
+            // If nothing matched, inject before file extension as last resort
+            if (u === s) u = s.replace(/(\.[a-z]{3,4})(\?.*)?$/, '-t500x500$1$2');
             return u;
         };
 
-        // Fetch JSON from a URL that blocks CORS by routing through a public proxy.
-        // Tries three different proxies in sequence so a single outage doesn't break the feature.
+        // Try a fetch, return parsed JSON or null — never throws.
+        const tryFetch = async (fetchUrl, opts = {}) => {
+            try {
+                const r = await fetch(fetchUrl, { signal: AbortSignal.timeout(8000), ...opts });
+                if (!r.ok) return null;
+                return await r.json();
+            } catch(_) { return null; }
+        };
+
+        // Try to get JSON from a CORS-blocked URL via public proxies.
+        // Falls back silently if all proxies fail or return non-JSON.
         const proxyJSON = async (targetUrl) => {
-            // 1. allorigins — wraps response in { contents: "<json string>" }
+            // allorigins wraps in { contents: "..." }
             try {
                 const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
-                    { signal: AbortSignal.timeout(7000) });
+                    { signal: AbortSignal.timeout(8000) });
                 if (r.ok) { const w = await r.json(); if (w && w.contents) return JSON.parse(w.contents); }
             } catch(_) {}
-            // 2. corsproxy.io — passes through directly
+            // corsproxy.io passes through directly
             try {
                 const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl),
-                    { signal: AbortSignal.timeout(7000) });
-                if (r.ok) return await r.json();
-            } catch(_) {}
-            // 3. thingproxy
-            try {
-                const r = await fetch('https://thingproxy.freeboard.io/fetch/' + targetUrl,
-                    { signal: AbortSignal.timeout(7000) });
+                    { signal: AbortSignal.timeout(8000) });
                 if (r.ok) return await r.json();
             } catch(_) {}
             return null;
@@ -3967,29 +4001,49 @@
         try {
             let title = '', artist = '', art = null;
 
-            // 1. oEmbed via CORS proxy — always has thumbnail_url (falls back to user avatar if no track art)
-            try {
-                const d = await proxyJSON('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
-                if (d) {
-                    title  = d.title || '';
-                    artist = d.author_name || '';
-                    // oEmbed title is often "Track by Artist" — strip the artist suffix
-                    const byIdx = title.lastIndexOf(' by ');
-                    if (byIdx !== -1) title = title.slice(0, byIdx).trim();
-                    art = upgradeArt(d.thumbnail_url);
-                }
-            } catch(_) {}
+            // ── 1. Direct oEmbed fetch (SC sends Access-Control-Allow-Origin: * so this
+            //       works from a browser — no proxy needed in normal conditions) ──────
+            const oembedUrl = 'https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url);
+            console.log('[SC] Trying direct oEmbed:', oembedUrl);
+            let d = await tryFetch(oembedUrl);
+            console.log('[SC] Direct oEmbed result:', d);
 
-            // 2. SC resolve API via CORS proxy — richer metadata, direct artwork_url
+            // ── 2. If direct fetch failed, try via CORS proxies ───────────────────────
+            if (!d) { console.log('[SC] Direct failed, trying proxies'); d = await proxyJSON(oembedUrl); }
+            console.log('[SC] After proxy attempt:', d);
+
+            if (d) {
+                title  = d.title || '';
+                artist = d.author_name || '';
+                // oEmbed title is formatted as "Track Name by Artist" — strip the suffix
+                const byIdx = title.lastIndexOf(' by ');
+                if (byIdx > 0) title = title.slice(0, byIdx).trim();
+                art = upgradeArt(d.thumbnail_url);
+            }
+
+            // ── 3. JSONP oEmbed — bypasses CORS via <script> tag injection ────────────
+            if (!d && (!art || !title)) {
+                console.log('[SC] Trying JSONP oEmbed');
+                d = await _scOembedJSONP(url);
+                console.log('[SC] JSONP result:', d);
+                if (d) {
+                    if (!title)  { title = d.title || ''; const bi = title.lastIndexOf(' by '); if (bi > 0) title = title.slice(0, bi).trim(); }
+                    if (!artist) artist = d.author_name || '';
+                    if (!art)    art    = upgradeArt(d.thumbnail_url);
+                }
+            }
+
+            // ── 4. SC resolve API — richer data, direct artwork_url ───────────────────
+            //       (also try direct first, proxy as fallback)
             if (!art || !title) {
-                try {
-                    const d = await proxyJSON('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID);
-                    if (d) {
-                        if (!title)  title  = d.title || '';
-                        if (!artist) artist = (d.user && d.user.username) || '';
-                        if (!art)    art    = upgradeArt(d.artwork_url || (d.user && d.user.avatar_url));
-                    }
-                } catch(_) {}
+                const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID;
+                let d2 = await tryFetch(resolveUrl);
+                if (!d2) d2 = await proxyJSON(resolveUrl);
+                if (d2) {
+                    if (!title)  title  = d2.title || '';
+                    if (!artist) artist = (d2.user && d2.user.username) || '';
+                    if (!art)    art    = upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
+                }
             }
 
             _scPendingMeta = { url, title, artist, art };
@@ -4008,7 +4062,7 @@
         } catch(err) {
             console.error('[SC] _scFetchMeta failed:', err);
             _scPendingMeta = {};
-            if (status) { status.style.color = 'rgba(255,100,0,0.7)'; status.textContent = 'Could not fetch info — will use URL as fallback'; }
+            if (status) { status.style.color = 'rgba(255,100,0,0.7)'; status.textContent = 'Could not fetch info \u2014 will use URL as fallback'; }
             if (preview) preview.style.display = 'none';
             if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
         }
