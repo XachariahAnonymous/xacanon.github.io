@@ -548,6 +548,7 @@
                 document.getElementById('admin-nav').style.display    = '';
                 document.getElementById('admin-layout').style.display = '';
                 document.getElementById('adminEmail').textContent      = user.email;
+                setupUploadListeners();
                 await loadAllData();
             } catch(e) { showAccessDenied(); }
         });
@@ -696,14 +697,17 @@
     }
 
     // ── AUDIO FILE HANDLING ─────────────────────────────────────────────────
-    const adminUploadZone = document.getElementById('adminUploadZone');
-    document.getElementById('adminAudioFile').addEventListener('change', e => handleAdminAudioFile(e.target.files[0]));
-    adminUploadZone.addEventListener('dragover',  e => { e.preventDefault(); adminUploadZone.classList.add('drag-over'); });
-    adminUploadZone.addEventListener('dragleave', ()  => adminUploadZone.classList.remove('drag-over'));
-    adminUploadZone.addEventListener('drop',      e  => {
-        e.preventDefault(); adminUploadZone.classList.remove('drag-over');
-        if (e.dataTransfer.files[0]) handleAdminAudioFile(e.dataTransfer.files[0]);
-    });
+    function setupUploadListeners() {
+        const adminUploadZone = document.getElementById('adminUploadZone');
+        if (!adminUploadZone) return;
+        document.getElementById('adminAudioFile').addEventListener('change', e => handleAdminAudioFile(e.target.files[0]));
+        adminUploadZone.addEventListener('dragover',  e => { e.preventDefault(); adminUploadZone.classList.add('drag-over'); });
+        adminUploadZone.addEventListener('dragleave', ()  => adminUploadZone.classList.remove('drag-over'));
+        adminUploadZone.addEventListener('drop',      e  => {
+            e.preventDefault(); adminUploadZone.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) handleAdminAudioFile(e.dataTransfer.files[0]);
+        });
+    }
 
     function handleAdminAudioFile(file) {
         if (!file || !file.type.startsWith('audio/')) { showToast('Please select an audio file', false, true); return; }
