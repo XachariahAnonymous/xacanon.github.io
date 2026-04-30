@@ -1457,9 +1457,11 @@
                 try {
                     await loadUserProfile(user);
                     showApp();
+                    spPreRestoreUI(); // paint Spotify connected state from cache immediately
                 } catch(e) {
                     console.warn('loadUserProfile failed:', e);
                     showApp(); // still show on error so user isn't locked out
+                    spPreRestoreUI();
                 }
             } else {
                 currentUser = null;
@@ -3285,7 +3287,7 @@
     async function spotifyAuth() {
         ensureSpotifyConfig();
         if (spAccessToken && Date.now() < spTokenExpiry - 30000) {
-            // Already connected — open the Spotify view
+            // Already connected — open the Spotify view (switching accounts requires Disconnect first)
             openStreamingView('spotify');
             return;
         }
@@ -3299,6 +3301,7 @@
             response_type: 'code', client_id: SPOTIFY_CLIENT_ID,
             scope: SPOTIFY_SCOPES, redirect_uri: SPOTIFY_REDIRECT_URI,
             state, code_challenge_method: 'S256', code_challenge: challenge,
+            show_dialog: 'true',   // always show Spotify account picker on fresh connect
         });
         window.location.href = 'https://accounts.spotify.com/authorize?' + params;
     }
@@ -3330,6 +3333,9 @@
             })
         });
         if (!resp.ok) { showToast('Spotify token exchange failed'); return; }
+        // Cleanly tear down any existing player before switching to the new account's tokens
+        if (spPlayer) { try { spPlayer.disconnect(); } catch(_) {} spPlayer = null; }
+        spDeviceId = null; spNoPremium = false;
         spSaveTokens(await resp.json());
         await spOnConnected();
     }
@@ -3350,7 +3356,7 @@
 
     function _spKeys() {
         const uid = (currentUser && currentUser.uid) ? currentUser.uid : 'anon';
-        return { at: 'sp_at_' + uid, rt: 'sp_rt_' + uid, exp: 'sp_exp_' + uid };
+        return { at: 'sp_at_' + uid, rt: 'sp_rt_' + uid, exp: 'sp_exp_' + uid, name: 'sp_name_' + uid };
     }
 
     function spSaveTokens(d) {
@@ -3360,8 +3366,39 @@
         try { const k = _spKeys(); localStorage.setItem(k.at, spAccessToken); localStorage.setItem(k.rt, spRefreshToken || ''); localStorage.setItem(k.exp, String(spTokenExpiry)); } catch(e) {}
     }
 
+    function spSaveName(name) {
+        try { const k = _spKeys(); if (name) localStorage.setItem(k.name, name); } catch(e) {}
+    }
+
     function spLoadTokens() {
         try { const k = _spKeys(); spAccessToken = localStorage.getItem(k.at) || null; spRefreshToken = localStorage.getItem(k.rt) || null; spTokenExpiry = parseInt(localStorage.getItem(k.exp) || '0'); } catch(e) {}
+    }
+
+    // Immediately paint the Spotify "connected" UI from cached data so there's
+    // no flash of the disconnected state while spRestoreSession runs async.
+    function spPreRestoreUI() {
+        try {
+            const k = _spKeys();
+            const at = localStorage.getItem(k.at);
+            const exp = parseInt(localStorage.getItem(k.exp) || '0');
+            const name = localStorage.getItem(k.name) || '';
+            if (!at || Date.now() >= exp) return; // no valid cached session
+            // Paint connected state immediately
+            const btnText = document.getElementById('spotifyBtnText');
+            const connectBtn = document.getElementById('spotifyConnectBtn');
+            if (btnText) btnText.textContent = 'Spotify Connected';
+            if (connectBtn) connectBtn.classList.add('connected');
+            if (name) {
+                const statusEl = document.getElementById('spotifyStatus');
+                const browseUserEl = document.getElementById('spBrowseUser');
+                const spViewUserEl = document.getElementById('spViewUser');
+                if (statusEl) statusEl.textContent = name;
+                if (browseUserEl) browseUserEl.textContent = name;
+                if (spViewUserEl) spViewUserEl.textContent = name;
+            }
+            document.getElementById('spBrowseConnect').style.display = 'none';
+            document.getElementById('spBrowseMain').style.display    = 'block';
+        } catch(e) {}
     }
 
     async function spOnConnected() {
@@ -3382,10 +3419,12 @@
         if (me) {
             spUserId = me.id || null;
             spIsPremium = (me.product === 'premium');
-            document.getElementById('spotifyStatus').textContent  = me.display_name || me.email || '';
-            document.getElementById('spBrowseUser').textContent   = me.display_name || me.email || '';
+            const displayName = me.display_name || me.email || '';
+            spSaveName(displayName);
+            document.getElementById('spotifyStatus').textContent  = displayName;
+            document.getElementById('spBrowseUser').textContent   = displayName;
             const spViewUserEl = document.getElementById('spViewUser');
-            if (spViewUserEl) spViewUserEl.textContent = me.display_name || me.email || '';
+            if (spViewUserEl) spViewUserEl.textContent = displayName;
         }
         // Update full-page view if visible
         const spViewConnect = document.getElementById('spViewConnect');
@@ -3861,7 +3900,7 @@
     function spotifyLogout() {
         if (spPlayer) { spPlayer.disconnect(); spPlayer = null; }
         spAccessToken = spRefreshToken = null; spDeviceId = null; spOffset = 0;
-        try { const k = _spKeys(); localStorage.removeItem(k.at); localStorage.removeItem(k.rt); localStorage.removeItem(k.exp); } catch(e) {}
+        try { const k = _spKeys(); localStorage.removeItem(k.at); localStorage.removeItem(k.rt); localStorage.removeItem(k.exp); localStorage.removeItem(k.name); } catch(e) {}
         const btnText = document.getElementById('spotifyBtnText');
         const connectBtn = document.getElementById('spotifyConnectBtn');
         const statusEl = document.getElementById('spotifyStatus');
