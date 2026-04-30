@@ -3982,8 +3982,13 @@
         const userEl = document.getElementById('spViewUser');
         if (userEl && spUserId) userEl.textContent = spUserId;
         if (connected && spViewMain) {
-            // load liked songs if view is freshly opened
-            spViewSetTab(_spViewTab);
+            const tracksEl = document.getElementById('spViewTracks');
+            const alreadyLoaded = tracksEl && tracksEl.children.length > 0
+                && !tracksEl.innerHTML.includes('Loading...');
+            if (!alreadyLoaded) {
+                // Only fire a load if the panel is empty / not yet populated
+                spViewSetTab(_spViewTab);
+            }
         }
     }
 
@@ -4006,7 +4011,11 @@
         let data;
         if (_spViewTab === 'liked') {
             data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + _spViewOffset);
-            if (!data) return;
+            if (!data) {
+                if (!append) tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">Could not load tracks — check your connection and try again.</div>';
+                if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+                return;
+            }
             const tracks = (data.items || []).map(i => spFromAPI(i.track)).filter(Boolean);
             _spViewRawTracks = append ? _spViewRawTracks.concat(tracks) : tracks;
             _spViewOffset += tracks.length;
@@ -4014,7 +4023,11 @@
             if (loadMoreBtn) loadMoreBtn.style.display = data.next ? 'block' : 'none';
         } else if (_spViewTab === 'recent') {
             data = await spAPI('/me/player/recently-played?limit=' + lim);
-            if (!data) return;
+            if (!data) {
+                if (!append) tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">Could not load tracks — check your connection and try again.</div>';
+                if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+                return;
+            }
             const seen = new Set();
             const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             _spViewRawTracks = tracks;
