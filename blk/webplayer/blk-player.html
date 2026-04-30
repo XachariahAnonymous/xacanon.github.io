@@ -2744,9 +2744,8 @@
                 if (!t || t.source !== 'soundcloud') return;
 
                 // artwork_url is 100×100 by default — upgrade to 500×500
-                let art = sound.artwork_url || sound.user && sound.user.avatar_url || null;
-                if (art) art = art.replace('-large.', '-t500x500.').replace('-large', '-t500x500')
-                                   .replace('-small.', '-t500x500.').replace('-small', '-t500x500');
+                let art = sound.artwork_url || (sound.user && sound.user.avatar_url) || null;
+                if (art) art = art.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(\.|$)/, '-t500x500$2');
 
                 if (art && !t.albumArt) {
                     t.albumArt = art;
@@ -3874,20 +3873,37 @@
         const status = document.getElementById('scFetchStatus');
         const preview= document.getElementById('soundcloudPreview');
         const addBtn = document.getElementById('scAddBtn');
+
+        // Helper to upgrade any SC image URL to 500×500
+        const upgradeArt = s => s ? s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(\.|$)/, '-t500x500$2') : null;
+
         try {
-            const resp = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            const data = await resp.json();
+            let title = '', artist = '', art = null;
 
-            // title from oEmbed is often "Track Name by Artist" — split it
-            let title  = data.title || '';
-            let artist = data.author_name || '';
-            const byIdx = title.lastIndexOf(' by ');
-            if (byIdx !== -1) title = title.slice(0, byIdx).trim();
+            // Primary: SC resolve API — returns full track object including artwork_url
+            let resolved = false;
+            try {
+                const r = await fetch('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID);
+                if (r.ok) {
+                    const d = await r.json();
+                    title  = d.title || '';
+                    artist = (d.user && d.user.username) || '';
+                    art    = upgradeArt(d.artwork_url || (d.user && d.user.avatar_url));
+                    resolved = true;
+                }
+            } catch(_) {}
 
-            // Upgrade thumbnail from 100px to 500px
-            let art = data.thumbnail_url || null;
-            if (art) art = art.replace('-large.', '-t500x500.').replace('-large', '-t500x500');
+            // Fallback: oEmbed (CORS not always available, but try)
+            if (!resolved) {
+                const resp = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+                title  = data.title || '';
+                artist = data.author_name || '';
+                const byIdx = title.lastIndexOf(' by ');
+                if (byIdx !== -1) title = title.slice(0, byIdx).trim();
+                art = upgradeArt(data.thumbnail_url);
+            }
 
             _scPendingMeta = { url, title, artist, art };
 
@@ -3903,6 +3919,7 @@
             if (status) { status.style.color = 'rgba(30,215,96,0.7)'; status.textContent = '✓ Track found'; }
             if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
         } catch(err) {
+            console.error('[SC] _scFetchMeta failed:', err);
             _scPendingMeta = {};
             if (status) { status.style.color = 'rgba(255,100,0,0.7)'; status.textContent = 'Could not fetch info — will use URL as fallback'; }
             if (preview) preview.style.display = 'none';
