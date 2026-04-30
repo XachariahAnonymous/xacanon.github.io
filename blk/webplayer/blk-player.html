@@ -3274,6 +3274,12 @@
     let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
     let spUserId       = null;
 
+    // ── LIKED SONGS AUTO-SYNC ──
+    let _spLikedSyncInterval = null;
+    const SP_LIKED_SYNC_MS   = 30000; // poll every 30 seconds
+    // Tracks all Spotify URIs we've already seen (liked list) so we only act on truly new ones
+    let _spKnownLikedUris    = new Set();
+
     function spRandB64(n) {
         return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(n))))
             .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -3435,11 +3441,50 @@
         if (spViewDisconnect) spViewDisconnect.style.display = 'inline-block';
         spOffset = 0;
         await loadSpotifyTab('liked');
+        spStartLikedSync();
         // Also load view page if spotify view is active
         if (document.getElementById('view-spotify') && document.getElementById('view-spotify').style.display !== 'none') {
             _spViewOffset = 0; _spViewRawTracks = [];
             spViewLoadPage(false);
         }
+    }
+
+    // ── LIKED SONGS AUTO-SYNC LOGIC ──
+    // Polls Spotify every 30s and refreshes the Liked tab in the browse/hamburger panel
+    // when new liked songs appear. Does NOT touch the library.
+    async function spSyncLikedSongs() {
+        if (!spAccessToken) return;
+        try {
+            const data = await spAPI('/me/tracks?limit=50&offset=0');
+            if (!data || !data.items) return;
+            const newUris = (data.items || [])
+                .filter(function(i) { return i && i.track && i.track.uri; })
+                .map(function(i) { return i.track.uri; });
+            const hasNew = newUris.some(function(uri) { return !_spKnownLikedUris.has(uri); });
+            if (!hasNew) return;
+            newUris.forEach(function(uri) { _spKnownLikedUris.add(uri); });
+            // Refresh the browse panel Liked tab if it is currently showing
+            if (spTab === 'liked') { spOffset = 0; spFetchPage(false); }
+            // Refresh the full Spotify view Liked tab if it is open
+            if (_spViewTab === 'liked') { _spViewOffset = 0; _spViewRawTracks = []; spViewLoadPage(false); }
+        } catch(e) {}
+    }
+
+    function spStartLikedSync() {
+        spStopLikedSync();
+        // Seed the known-set from Spotify on connect, then start polling
+        spAPI('/me/tracks?limit=50&offset=0').then(function(data) {
+            if (data && data.items) {
+                data.items.forEach(function(i) { if (i && i.track && i.track.uri) _spKnownLikedUris.add(i.track.uri); });
+            }
+        }).catch(function() {}).finally(function() {
+            _spLikedSyncInterval = setInterval(spSyncLikedSongs, SP_LIKED_SYNC_MS);
+        });
+    }
+
+    function spStopLikedSync() {
+        if (_spLikedSyncInterval) { clearInterval(_spLikedSyncInterval); _spLikedSyncInterval = null; }
+        _spKnownLikedUris.clear();
     }
 
     function spInitPlayer() {
@@ -3898,6 +3943,7 @@
     function spSkipPrev()   { if (spPlayer) spPlayer.previousTrack(); }
 
     function spotifyLogout() {
+        spStopLikedSync();
         if (spPlayer) { spPlayer.disconnect(); spPlayer = null; }
         spAccessToken = spRefreshToken = null; spDeviceId = null; spOffset = 0;
         try { const k = _spKeys(); localStorage.removeItem(k.at); localStorage.removeItem(k.rt); localStorage.removeItem(k.exp); localStorage.removeItem(k.name); } catch(e) {}
