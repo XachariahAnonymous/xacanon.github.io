@@ -3038,99 +3038,42 @@
         scWidget.setVolume(Math.round(v * 100));
     }
 
-    // ── Silent art prefetch ──────────────────────────────────────────────────
-    // Loads a SC track in a throwaway hidden iframe (auto_play=false) just long
-    // enough to call getCurrentSound() and grab artwork_url, then tears it down.
-    // This is the only CORS-free way to get cover art from the SoundCloud Widget API.
-    let _artPrefetchQueue = [];   // [{track, resolve}]
-    let _artPrefetchBusy  = false;
-
-    function _scPrefetchArt(track) {
-        return new Promise(res => {
-            _artPrefetchQueue.push({ track, resolve: res });
-            if (!_artPrefetchBusy) _scDrainArtQueue();
-        });
-    }
-
-    function _scDrainArtQueue() {
-        if (!_artPrefetchQueue.length) { _artPrefetchBusy = false; return; }
-        _artPrefetchBusy = true;
-        const { track, resolve } = _artPrefetchQueue.shift();
-
-        _scEnsureArtAPI(() => {
-            const container = document.getElementById('scArtPrefetchContainer');
-            const old = document.getElementById('scArtPrefetchIframe');
-            if (old) old.remove();
-
-            const iframe = document.createElement('iframe');
-            iframe.id = 'scArtPrefetchIframe';
-            iframe.style.cssText = 'width:1px;height:1px;border:none;display:block;';
-            iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-            // auto_play=false so nothing audible happens
-            iframe.src = 'https://w.soundcloud.com/player/?url='
-                + encodeURIComponent(track.soundcloudUrl || track.url)
-                + '&auto_play=false&hide_related=true&show_comments=false&show_user=false'
-                + '&show_reposts=false&show_teaser=false&buying=false&liking=false&sharing=false&download=false';
-            container.appendChild(iframe);
-
-            let done = false;
-            const finish = (art) => {
-                if (done) return;
-                done = true;
-                try { iframe.remove(); } catch(_) {}
-                if (art) {
-                    // Upgrade to 500×500
-                    art = art.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
-                    if (!art.includes('t500x500') && art.includes('-')) {
-                        // Fallback: append size if no known suffix matched
-                        art = art.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
-                    }
-                }
-                resolve(art || null);
-                // Continue queue
-                setTimeout(_scDrainArtQueue, 200);
-            };
-
-            // Timeout safety — don't hang forever
-            const timeout = setTimeout(() => finish(null), 12000);
-
+    // ── Art backfill via CORS proxy ──────────────────────────────────────────
+    // Fetches artwork for SC tracks that were saved without it.
+    // Uses the same proxyJSON approach as _scFetchMeta (Widget API iframe approach
+    // doesn't work due to cross-origin postMessage sandboxing).
+    async function _scPrefetchArt(track) {
+        const trackUrl = track.soundcloudUrl || track.url;
+        if (!trackUrl) return null;
+        const upgradeArt = s => {
+            if (!s) return null;
+            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.?]|$)/g, '-t500x500');
+            if (u === s && s.includes('-')) u = s.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
+            return u;
+        };
+        const proxyJSON = async (targetUrl) => {
             try {
-                const w = window.SC.Widget(iframe);
-                w.bind(window.SC.Widget.Events.READY, () => {
-                    clearTimeout(timeout);
-                    w.getCurrentSound(sound => {
-                        let art = (sound && (sound.artwork_url || (sound.user && sound.user.avatar_url))) || null;
-                        finish(art);
-                    });
-                });
-                // If widget errors out, give up gracefully
-                w.bind(window.SC.Widget.Events.ERROR, () => { clearTimeout(timeout); finish(null); });
-            } catch(e) {
-                clearTimeout(timeout);
-                finish(null);
-            }
-        });
-    }
-
-    // Ensure SC API is loaded before prefetching art (reuses existing scEnsureAPI logic)
-    function _scEnsureArtAPI(cb) {
-        if (window.SC && window.SC.Widget) { cb(); return; }
-        const existing = document.querySelector('script[src*="soundcloud.com/player/api"]');
-        if (!existing) {
-            const s = document.createElement('script');
-            s.src = 'https://w.soundcloud.com/player/api.js';
-            s.onload = cb;
-            s.onerror = cb; // fail silently
-            document.head.appendChild(s);
-        } else {
-            let tries = 0;
-            const poll = setInterval(() => {
-                if (window.SC && window.SC.Widget) { clearInterval(poll); cb(); }
-                else if (++tries > 40) { clearInterval(poll); cb(); }
-            }, 100);
-        }
+                const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
+                    { signal: AbortSignal.timeout(7000) });
+                if (r.ok) { const w = await r.json(); if (w && w.contents) return JSON.parse(w.contents); }
+            } catch(_) {}
+            try {
+                const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl),
+                    { signal: AbortSignal.timeout(7000) });
+                if (r.ok) return await r.json();
+            } catch(_) {}
+            return null;
+        };
+        try {
+            const d = await proxyJSON('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(trackUrl));
+            if (d && d.thumbnail_url) return upgradeArt(d.thumbnail_url);
+            const d2 = await proxyJSON('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(trackUrl) + '&client_id=' + SC_CLIENT_ID);
+            if (d2) return upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
+        } catch(_) {}
+        return null;
     }
     // ────────────────────────────────────────────────────────────────────────
+
 
     // Keep embed overlay for non-SC use (kept for backwards compat)
     function openEmbedPlayer(t) {
@@ -3992,20 +3935,42 @@
 
         const upgradeArt = s => {
             if (!s) return null;
-            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
-            // If no known suffix matched, try injecting size before the file extension
+            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.?]|$)/g, '-t500x500');
             if (u === s && s.includes('-')) u = s.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
             return u;
+        };
+
+        // Fetch JSON from a URL that blocks CORS by routing through a public proxy.
+        // Tries three different proxies in sequence so a single outage doesn't break the feature.
+        const proxyJSON = async (targetUrl) => {
+            // 1. allorigins — wraps response in { contents: "<json string>" }
+            try {
+                const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
+                    { signal: AbortSignal.timeout(7000) });
+                if (r.ok) { const w = await r.json(); if (w && w.contents) return JSON.parse(w.contents); }
+            } catch(_) {}
+            // 2. corsproxy.io — passes through directly
+            try {
+                const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl),
+                    { signal: AbortSignal.timeout(7000) });
+                if (r.ok) return await r.json();
+            } catch(_) {}
+            // 3. thingproxy
+            try {
+                const r = await fetch('https://thingproxy.freeboard.io/fetch/' + targetUrl,
+                    { signal: AbortSignal.timeout(7000) });
+                if (r.ok) return await r.json();
+            } catch(_) {}
+            return null;
         };
 
         try {
             let title = '', artist = '', art = null;
 
-            // 1. Try oEmbed — no auth required, always has thumbnail_url (falls back to user avatar)
+            // 1. oEmbed via CORS proxy — always has thumbnail_url (falls back to user avatar if no track art)
             try {
-                const r = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
-                if (r.ok) {
-                    const d = await r.json();
+                const d = await proxyJSON('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
+                if (d) {
                     title  = d.title || '';
                     artist = d.author_name || '';
                     // oEmbed title is often "Track by Artist" — strip the artist suffix
@@ -4015,28 +3980,14 @@
                 }
             } catch(_) {}
 
-            // 2. Try SC resolve API for richer data / art if oEmbed missed it
-            if (!art) {
+            // 2. SC resolve API via CORS proxy — richer metadata, direct artwork_url
+            if (!art || !title) {
                 try {
-                    const r = await fetch('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID);
-                    if (r.ok) {
-                        const d = await r.json();
+                    const d = await proxyJSON('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID);
+                    if (d) {
                         if (!title)  title  = d.title || '';
                         if (!artist) artist = (d.user && d.user.username) || '';
-                        art = upgradeArt(d.artwork_url || (d.user && d.user.avatar_url));
-                    }
-                } catch(_) {}
-            }
-
-            // 3. Last resort: scrape artwork from the SC embed iframe src HTML
-            if (!art) {
-                try {
-                    const embedUrl = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&format=json';
-                    const r = await fetch(embedUrl);
-                    if (r.ok) {
-                        const text = await r.text();
-                        const m = text.match(/"artwork_url"\s*:\s*"([^"]+)"/);
-                        if (m) art = upgradeArt(m[1]);
+                        if (!art)    art    = upgradeArt(d.artwork_url || (d.user && d.user.avatar_url));
                     }
                 } catch(_) {}
             }
@@ -4052,7 +4003,7 @@
                 if (titleEl)  titleEl.textContent  = title  || 'Unknown Title';
                 if (artistEl) artistEl.textContent = artist || 'Unknown Artist';
             }
-            if (status) { status.style.color = 'rgba(30,215,96,0.7)'; status.textContent = '✓ Track found' + (art ? '' : ' (art loads on play)'); }
+            if (status) { status.style.color = 'rgba(30,215,96,0.7)'; status.textContent = '\u2713 Track found' + (art ? '' : ' (art loads on play)'); }
             if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
         } catch(err) {
             console.error('[SC] _scFetchMeta failed:', err);
