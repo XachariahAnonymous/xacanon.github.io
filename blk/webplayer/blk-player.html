@@ -1050,16 +1050,9 @@
             <!-- Connected -->
             <div id="spViewMain" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
                 <div style="padding:1rem 2.5rem;border-bottom:1px solid var(--border);display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;flex-shrink:0;">
-                    <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface2);border:1px solid var(--border);padding:0.5rem 1rem;flex:1;min-width:200px;">
-                        <span style="color:var(--sub);">⌕</span>
-                        <input type="text" id="spViewSearch" placeholder="Search Spotify for any song..." oninput="spViewOnSearchInput()" style="background:none;border:none;outline:none;color:#fff;font-family:'Space Mono',monospace;font-size:0.65rem;width:100%;" onkeydown="if(event.key==='Enter')spViewDoSearch()">
-                        <button id="spViewSearchClear" onclick="spViewClearSearch()" style="display:none;background:none;border:none;color:var(--sub);cursor:pointer;font-size:0.7rem;padding:0;">✕</button>
-                    </div>
-                    <button onclick="spViewDoSearch()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;padding:0.5rem 1rem;background:rgba(30,215,96,0.1);border:1px solid rgba(30,215,96,0.3);color:#1ED760;cursor:pointer;">Search</button>
                     <div style="display:flex;border:1px solid var(--border);">
                         <button id="spVTab-liked"  onclick="spViewSetTab('liked')"  class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                        <button id="spVTab-recent" onclick="spViewSetTab('recent')" class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;border-right:1px solid var(--border);">Recent</button>
-                        <button id="spVTab-results" onclick="spViewSetTab('results')" class="sp-tab sp-vtab" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;">Results</button>
+                        <button id="spVTab-recent" onclick="spViewSetTab('recent')" class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
                     </div>
                 </div>
                 <div id="spViewTracks" style="flex:1;overflow-y:auto;padding:0.5rem 2.5rem 2rem;"></div>
@@ -1459,6 +1452,7 @@
             });
             storeLoaded = true;
             renderStore();
+            renderLibrary(); renderQueue();
         } catch(e) { console.warn('loadStoreTracks failed:', e); }
     }
 
@@ -3661,7 +3655,7 @@
     }
 
     // ── SPOTIFY FULL PAGE VIEW ──
-    let _spViewTab = 'liked', _spViewOffset = 0, _spViewSearchQuery = '', _spViewRawTracks = [];
+    let _spViewTab = 'liked', _spViewOffset = 0, _spViewRawTracks = [];
 
     function spViewInit() {
         const connected = !!spAccessToken;
@@ -3688,7 +3682,6 @@
             b.style.color = active ? '#1ED760' : 'var(--sub)';
             b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
         });
-        if (tab === 'results') return; // results rendered by search
         spViewLoadPage(false);
     }
 
@@ -3718,58 +3711,8 @@
         }
     }
 
-    async function spViewDoSearch() {
-        const query = document.getElementById('spViewSearch').value.trim();
-        if (!query) return;
-        _spViewSearchQuery = query;
-        const tracksEl = document.getElementById('spViewTracks');
-        const loadMoreBtn = document.getElementById('spViewLoadMore');
-        if (!tracksEl) return;
-        tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:1.5rem 0;">Searching...</div>';
-        // switch to results tab
-        const resultsTab = document.getElementById('spVTab-results');
-        if (resultsTab) { resultsTab.style.display = 'inline-block'; }
-        document.querySelectorAll('.sp-vtab').forEach(b => {
-            const active = b.id === 'spVTab-results';
-            b.style.color = active ? '#1ED760' : 'var(--sub)';
-            b.style.background = active ? 'rgba(30,215,96,0.08)' : 'none';
-        });
-        _spViewTab = 'results';
-        const data = await spAPI('/search?q=' + encodeURIComponent(query) + '&type=track&limit=20');
-        if (!data || !data.tracks) { tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);padding:1.5rem 0;">No results found</div>'; return; }
-        const tracks = (data.tracks.items || []).map(t => spFromAPI(t)).filter(Boolean);
-        _spViewRawTracks = tracks;
-        spViewRenderTracks(tracks, false);
-        if (loadMoreBtn) loadMoreBtn.style.display = data.tracks.next ? 'block' : 'none';
-        document.getElementById('spViewSearchClear').style.display = 'inline';
-    }
-
-    function spViewOnSearchInput() {
-        // show/hide clear button
-        const val = document.getElementById('spViewSearch').value;
-        document.getElementById('spViewSearchClear').style.display = val ? 'inline' : 'none';
-    }
-
-    function spViewClearSearch() {
-        document.getElementById('spViewSearch').value = '';
-        document.getElementById('spViewSearchClear').style.display = 'none';
-        const resultsTab = document.getElementById('spVTab-results');
-        if (resultsTab) resultsTab.style.display = 'none';
-        spViewSetTab('liked');
-    }
-
     async function spViewLoadMoreTracks() {
-        if (_spViewTab === 'results') {
-            // search with offset
-            const data = await spAPI('/search?q=' + encodeURIComponent(_spViewSearchQuery) + '&type=track&limit=20&offset=' + _spViewRawTracks.length);
-            if (!data || !data.tracks) return;
-            const tracks = (data.tracks.items || []).map(t => spFromAPI(t)).filter(Boolean);
-            _spViewRawTracks = _spViewRawTracks.concat(tracks);
-            spViewRenderTracks(tracks, true);
-            document.getElementById('spViewLoadMore').style.display = data.tracks.next ? 'block' : 'none';
-        } else {
-            await spViewLoadPage(true);
-        }
+        await spViewLoadPage(true);
     }
 
     function spViewRenderTracks(tracks, append) {
