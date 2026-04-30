@@ -2748,9 +2748,13 @@
 
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
             scCurrentPos = obj.currentPosition || 0;
-            if (!isDraggingProgress) {
-                const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100
-                                         : (obj.relativePosition || 0) * 100;
+            // Also grab duration from the event if we don't have it yet
+            if (!scCurrentDur && obj.currentPosition && obj.relativePosition) {
+                scCurrentDur = Math.round(obj.currentPosition / obj.relativePosition);
+                document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+            }
+            if (!isDraggingProgress && scCurrentDur) {
+                const pct = (scCurrentPos / scCurrentDur) * 100;
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
@@ -2762,7 +2766,7 @@
     function scStartProgressLoop() {
         scStopProgressLoop();
         scProgressTimer = setInterval(() => {
-            if (!scWidget || !scWidgetReady || !isPlaying) return;
+            if (!scWidget || !isPlaying) return;
             scWidget.getPosition(pos => {
                 scCurrentPos = pos || 0;
                 if (!isDraggingProgress && scCurrentDur) {
