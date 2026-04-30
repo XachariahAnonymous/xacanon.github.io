@@ -1342,8 +1342,12 @@
     // FIX 2: FB is initialised via waitForFB() before any auth call is made.
     // All auth functions now await waitForFB() if FB is still null.
     let FB = null;
+    let _loginAttempts = 0;
+    let _loginLockedUntil = 0;
     let currentUser = null;
     let userProfile = null;
+    let _pendingVerifyEmail = null; // closure — never stored in DOM
+    let _pendingVerifyPass  = null;
 
     const waitForFB = () => new Promise(res => {
         if (window._blkFB) { res(window._blkFB); return; }
@@ -1445,12 +1449,18 @@
         FB.onAuthStateChanged(FB.auth, async user => {
             if (user) {
                 currentUser = user;
-                // Show app immediately, then load profile in background
-                showApp();
-                try { await loadUserProfile(user); } catch(e) { console.warn('loadUserProfile failed:', e); }
+                // Load profile first, then reveal app — never show UI before role is confirmed
+                try {
+                    await loadUserProfile(user);
+                    showApp();
+                } catch(e) {
+                    console.warn('loadUserProfile failed:', e);
+                    showApp(); // still show on error so user isn't locked out
+                }
             } else {
                 currentUser = null;
                 userProfile = null;
+                _pendingVerifyEmail = null; _pendingVerifyPass = null;
                 showAuth();
             }
         });
@@ -1608,8 +1618,7 @@
 
     // FIX 2 applied to doLogin, doRegister, doGoogle, doForgotPassword
     async function resendVerification() {
-        const btn = document.getElementById('resend-verify-btn');
-        const email = btn.dataset.email, pass = btn.dataset.pass;
+        const email = _pendingVerifyEmail, pass = _pendingVerifyPass;
         if (!email || !pass) { showToast('Sign in first to resend'); return; }
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
@@ -1630,18 +1639,27 @@
         err.textContent = '';
         err.style.color = 'var(--error)';
         if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+        // Rate limiting: max 5 attempts, then 60s lockout
+        const now = Date.now();
+        if (_loginLockedUntil > now) {
+            const secs = Math.ceil((_loginLockedUntil - now) / 1000);
+            err.textContent = 'Too many attempts. Try again in ' + secs + 's.';
+            return;
+        }
         btn.disabled = true; btn.textContent = 'Signing in...';
         // Safety: always re-enable button after 8s if nothing happens
         const safetyTimer = setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 8000);
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
             clearTimeout(safetyTimer);
+            _loginAttempts = 0;
             if (!cred.user.emailVerified) {
                 await FB.signOut(FB.auth);
                 err.style.color = 'var(--warn, #ffaa00)';
                 err.textContent = 'Please verify your email before signing in. Check your inbox for the verification link.';
                 const resendBtn = document.getElementById('resend-verify-btn');
-                if (resendBtn) { resendBtn.style.display = 'inline-block'; resendBtn.dataset.email = email; resendBtn.dataset.pass = pass; }
+                _pendingVerifyEmail = email; _pendingVerifyPass = pass;
+                if (resendBtn) { resendBtn.style.display = 'inline-block'; }
                 btn.disabled = false; btn.textContent = 'Sign In';
             } else {
                 // Verified: onAuthStateChanged -> showApp() -> showAuth() resets button on any failure
@@ -1651,7 +1669,14 @@
             }
         } catch(e) {
             clearTimeout(safetyTimer);
-            err.textContent = friendlyError(e.code);
+            _loginAttempts++;
+            if (_loginAttempts >= 5) {
+                _loginLockedUntil = Date.now() + 60000;
+                _loginAttempts = 0;
+                err.textContent = 'Too many failed attempts. Locked for 60 seconds.';
+            } else {
+                err.textContent = friendlyError(e.code) + ' (' + (5 - _loginAttempts) + ' attempts left)';
+            }
             btn.disabled = false; btn.textContent = 'Sign In';
         }
     }
