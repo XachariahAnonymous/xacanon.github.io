@@ -795,6 +795,8 @@
         style="width:1px;height:1px;border:none;display:block;"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 </div>
+<!-- Art prefetch container — throwaway iframes loaded here to silently fetch cover art via Widget API -->
+<div id="scArtPrefetchContainer" style="position:fixed;bottom:0;left:0;width:1px;height:1px;opacity:0;z-index:-1;pointer-events:none;" aria-hidden="true"></div>
 
 <!-- AUTH SCREEN -->
 <div id="auth-screen">
@@ -2091,6 +2093,21 @@
                 if (soundcloudTracks.length) {
                     const _scStatus=document.getElementById('soundcloudStatus');if(_scStatus)_scStatus.textContent=soundcloudTracks.length+' linked';
                     const _scBtn=document.getElementById('soundcloudConnectBtn');if(_scBtn)_scBtn.classList.add('connected');
+                    // Silently backfill art for any SC tracks saved without it
+                    const artless = soundcloudTracks.filter(t => !t.albumArt && (t.soundcloudUrl || t.url));
+                    if (artless.length) {
+                        // Stagger prefetch so we don't hammer the SC API on load
+                        artless.forEach(t => {
+                            _scPrefetchArt(t).then(art => {
+                                if (!art || t.albumArt) return;
+                                t.albumArt = art;
+                                idbSaveStreaming(t);
+                                fbSaveStreamingTrack(t);
+                                renderSoundcloudTracks();
+                                renderLibrary();
+                            });
+                        });
+                    }
                 }
                 res();
             };
@@ -2745,7 +2762,12 @@
 
                 // artwork_url is 100×100 by default — upgrade to 500×500
                 let art = sound.artwork_url || (sound.user && sound.user.avatar_url) || null;
-                if (art) art = art.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(\.|$)/, '-t500x500$2');
+                if (art) {
+                    art = art.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
+                    if (art && !art.includes('t500x500') && art.includes('-')) {
+                        art = art.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
+                    }
+                }
 
                 if (art && !t.albumArt) {
                     t.albumArt = art;
@@ -3015,6 +3037,100 @@
         if (!scWidget) return;
         scWidget.setVolume(Math.round(v * 100));
     }
+
+    // ── Silent art prefetch ──────────────────────────────────────────────────
+    // Loads a SC track in a throwaway hidden iframe (auto_play=false) just long
+    // enough to call getCurrentSound() and grab artwork_url, then tears it down.
+    // This is the only CORS-free way to get cover art from the SoundCloud Widget API.
+    let _artPrefetchQueue = [];   // [{track, resolve}]
+    let _artPrefetchBusy  = false;
+
+    function _scPrefetchArt(track) {
+        return new Promise(res => {
+            _artPrefetchQueue.push({ track, resolve: res });
+            if (!_artPrefetchBusy) _scDrainArtQueue();
+        });
+    }
+
+    function _scDrainArtQueue() {
+        if (!_artPrefetchQueue.length) { _artPrefetchBusy = false; return; }
+        _artPrefetchBusy = true;
+        const { track, resolve } = _artPrefetchQueue.shift();
+
+        _scEnsureArtAPI(() => {
+            const container = document.getElementById('scArtPrefetchContainer');
+            const old = document.getElementById('scArtPrefetchIframe');
+            if (old) old.remove();
+
+            const iframe = document.createElement('iframe');
+            iframe.id = 'scArtPrefetchIframe';
+            iframe.style.cssText = 'width:1px;height:1px;border:none;display:block;';
+            iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+            // auto_play=false so nothing audible happens
+            iframe.src = 'https://w.soundcloud.com/player/?url='
+                + encodeURIComponent(track.soundcloudUrl || track.url)
+                + '&auto_play=false&hide_related=true&show_comments=false&show_user=false'
+                + '&show_reposts=false&show_teaser=false&buying=false&liking=false&sharing=false&download=false';
+            container.appendChild(iframe);
+
+            let done = false;
+            const finish = (art) => {
+                if (done) return;
+                done = true;
+                try { iframe.remove(); } catch(_) {}
+                if (art) {
+                    // Upgrade to 500×500
+                    art = art.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
+                    if (!art.includes('t500x500') && art.includes('-')) {
+                        // Fallback: append size if no known suffix matched
+                        art = art.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
+                    }
+                }
+                resolve(art || null);
+                // Continue queue
+                setTimeout(_scDrainArtQueue, 200);
+            };
+
+            // Timeout safety — don't hang forever
+            const timeout = setTimeout(() => finish(null), 12000);
+
+            try {
+                const w = window.SC.Widget(iframe);
+                w.bind(window.SC.Widget.Events.READY, () => {
+                    clearTimeout(timeout);
+                    w.getCurrentSound(sound => {
+                        let art = (sound && (sound.artwork_url || (sound.user && sound.user.avatar_url))) || null;
+                        finish(art);
+                    });
+                });
+                // If widget errors out, give up gracefully
+                w.bind(window.SC.Widget.Events.ERROR, () => { clearTimeout(timeout); finish(null); });
+            } catch(e) {
+                clearTimeout(timeout);
+                finish(null);
+            }
+        });
+    }
+
+    // Ensure SC API is loaded before prefetching art (reuses existing scEnsureAPI logic)
+    function _scEnsureArtAPI(cb) {
+        if (window.SC && window.SC.Widget) { cb(); return; }
+        const existing = document.querySelector('script[src*="soundcloud.com/player/api"]');
+        if (!existing) {
+            const s = document.createElement('script');
+            s.src = 'https://w.soundcloud.com/player/api.js';
+            s.onload = cb;
+            s.onerror = cb; // fail silently
+            document.head.appendChild(s);
+        } else {
+            let tries = 0;
+            const poll = setInterval(() => {
+                if (window.SC && window.SC.Widget) { clearInterval(poll); cb(); }
+                else if (++tries > 40) { clearInterval(poll); cb(); }
+            }, 100);
+        }
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     // Keep embed overlay for non-SC use (kept for backwards compat)
     function openEmbedPlayer(t) {
@@ -3874,7 +3990,13 @@
         const preview= document.getElementById('soundcloudPreview');
         const addBtn = document.getElementById('scAddBtn');
 
-        const upgradeArt = s => s ? s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(\.|$)/, '-t500x500$2') : null;
+        const upgradeArt = s => {
+            if (!s) return null;
+            let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
+            // If no known suffix matched, try injecting size before the file extension
+            if (u === s && s.includes('-')) u = s.replace(/(\.[a-z]+)(\?|$)/, (m, ext, q) => '-t500x500' + ext + q);
+            return u;
+        };
 
         try {
             let title = '', artist = '', art = null;
@@ -3972,6 +4094,19 @@
         if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
         _scPendingMeta = {};
         showToast('"'+ title +'" added to library', true);
+
+        // If we didn't get art from metadata, silently prefetch it via the Widget API.
+        // This is the only CORS-free way to retrieve artwork from SoundCloud.
+        if (!track.albumArt) {
+            _scPrefetchArt(track).then(art => {
+                if (!art || track.albumArt) return; // nothing found or already backfilled
+                track.albumArt = art;
+                idbSaveStreaming(track);
+                fbSaveStreamingTrack(track);
+                renderSoundcloudTracks();
+                renderLibrary();
+            });
+        }
     }
 
     function removeSoundcloudTrack(trackId, e) {
