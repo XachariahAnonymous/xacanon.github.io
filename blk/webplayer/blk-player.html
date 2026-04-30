@@ -2685,39 +2685,27 @@
     let scProgressTimer  = null;
     let scTransitioning  = false;  // true while a new track is being loaded into the widget
 
-    function scInitWidget(onReadyCb) {
+    function scInitWidget() {
         const iframe = document.getElementById('scHiddenWidget');
         if (!iframe || !window.SC || !window.SC.Widget) return;
-        // Don't attach to a blank iframe — wait until a real URL is loaded
-        if (!iframe.src || iframe.src === 'about:blank' || iframe.src === window.location.href) return;
-        // Unbind stale listeners from any previous widget instance before creating a new one
-        if (scWidget) {
-            try {
-                scWidget.unbind(SC.Widget.Events.READY);
-                scWidget.unbind(SC.Widget.Events.PLAY);
-                scWidget.unbind(SC.Widget.Events.PAUSE);
-                scWidget.unbind(SC.Widget.Events.FINISH);
-                scWidget.unbind(SC.Widget.Events.PLAY_PROGRESS);
-                scWidget.unbind(SC.Widget.Events.ERROR);
-            } catch(_) {}
-        }
+
         scWidget = window.SC.Widget(iframe);
+
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
             scTransitioning = false;
-            scCurrentDur = 0; // clear stale duration from prior track before getDuration returns
-            scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
-            // Shrink iframe back to 1×1 after autoplay budget is granted
-            if (typeof onReadyCb === 'function') onReadyCb();
+            scWidget.getDuration(d => {
+                scCurrentDur = d || 0;
+                document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+            });
         });
+
         scWidget.bind(SC.Widget.Events.PLAY, () => {
             isPlaying = true;
             updatePlayBtn();
             document.getElementById('playerArt').classList.add('playing');
             _earnLastTs = Date.now();
-            // Re-fetch duration if PLAY fired before READY's getDuration callback returned
-            // Only do this when the widget is confirmed ready — guards against stale PLAY from old widget
-            if (!scCurrentDur && scWidgetReady) {
+            if (!scCurrentDur) {
                 scWidget.getDuration(d => {
                     scCurrentDur = d || 0;
                     if (scCurrentDur) document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
@@ -2725,6 +2713,7 @@
             }
             scStartProgressLoop();
         });
+
         scWidget.bind(SC.Widget.Events.PAUSE, () => {
             isPlaying = false;
             updatePlayBtn();
@@ -2732,39 +2721,36 @@
             _earnLastTs = 0;
             scStopProgressLoop();
         });
+
         scWidget.bind(SC.Widget.Events.FINISH, () => {
-            if (scTransitioning) return; // guard: ignore stale FINISH during track swap
+            if (scTransitioning) return;
             isPlaying = false;
-            _earnOnTrackEnd(); // track finished — allow replay to earn again
+            _earnOnTrackEnd();
             scStopProgressLoop();
             document.getElementById('progressFill').style.width = '100%';
             if (repeat === 2) {
-                // Mark transitioning before reload to block any spurious FINISH
                 scTransitioning = true;
                 scWidgetReady = false;
                 scWidgetUrl = null;
-                // Don't null scWidget here — _scLoadAndPlay unbinds it before replacing
                 const t = library[currentIdx];
                 if (t) scLoadAndPlay(t.soundcloudUrl || t.url);
                 return;
             }
-            // Reset widget state so any subsequent scLoadAndPlay does a fresh load
             scWidgetReady = false;
             scWidgetUrl = null;
-            // Don't null scWidget here — _scLoadAndPlay unbinds it before replacing
             nextTrack();
         });
+
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
             scCurrentPos = obj.currentPosition || 0;
-            // Use relativePosition (0-1) from the event if our duration cache isn't ready yet
             if (!isDraggingProgress) {
                 const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100
                                          : (obj.relativePosition || 0) * 100;
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
-
         });
+
         scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
 
@@ -2772,9 +2758,7 @@
         scStopProgressLoop();
         scProgressTimer = setInterval(() => {
             if (!scWidget || !scWidgetReady || !isPlaying) return;
-            // Re-fetch duration if it still hasn't arrived (race between READY and PLAY)
-            // Only when widget is confirmed ready so we don't pull stale data from old widget
-            if (!scCurrentDur && scWidgetReady) {
+            if (!scCurrentDur) {
                 scWidget.getDuration(d => {
                     scCurrentDur = d || 0;
                     if (scCurrentDur) document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
@@ -2782,12 +2766,10 @@
             }
             scWidget.getPosition(pos => {
                 scCurrentPos = pos || 0;
-                if (!isDraggingProgress) {
-                    const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100 : 0;
-                    if (scCurrentDur) {
-                        document.getElementById('progressFill').style.width = pct + '%';
-                        document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
-                    }
+                if (!isDraggingProgress && scCurrentDur) {
+                    const pct = (scCurrentPos / scCurrentDur) * 100;
+                    document.getElementById('progressFill').style.width = pct + '%';
+                    document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
                 }
             });
         }, 500);
@@ -2868,45 +2850,16 @@
     }
 
     function _scLoadAndPlay(trackUrl) {
-        const wrapper  = document.getElementById('scHiddenWidget').parentElement;
         const iframe   = document.getElementById('scHiddenWidget');
         const embedUrl = _scBuildEmbedUrl(trackUrl);
 
         if (scWidgetUrl === trackUrl && scWidgetReady) {
-            // Same track — just restart
             scWidget.seekTo(0);
             scWidget.play();
             return;
         }
 
-        scWidgetReady = false;
-        scWidgetUrl   = trackUrl;
-        scCurrentDur  = 0;
-        scCurrentPos  = 0;
-        _earnReset(); // new SC track loading — reset listen accumulator
-        document.getElementById('progressFill').style.width = '0%';
-        document.getElementById('timeElapsed').textContent  = '0:00';
-        document.getElementById('timeDuration').textContent = '0:00';
-
-        // Modern browsers (Chrome 66+, Firefox 74+) block autoplay on iframes that are
-        // not visible or have no user-gesture activation budget.
-        // Fix: temporarily give the wrapper a real size so the browser considers the
-        // iframe "visible" and grants it the autoplay permission from the user's click.
-        // After the widget fires READY we shrink it back to 1×1.
-        const _scExpand = () => {
-            // Shrink back to 1×1 after READY — still in-viewport, opacity:0, no overflow:hidden
-            wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0;z-index:-1;pointer-events:none;';
-            iframe.style.cssText  = 'width:1px;height:1px;border:none;display:block;';
-        };
-        // Expand to a real in-viewport size so the browser grants autoplay.
-        // opacity:0 hides it visually; bottom:0 keeps it inside the viewport so Chrome
-        // sees actual pixels and grants the autoplay activation budget.
-        // overflow:hidden is intentionally omitted — it would clip pixels to zero.
-        wrapper.style.cssText = 'position:fixed;bottom:0;right:0;width:300px;height:168px;opacity:0;z-index:-1;pointer-events:none;';
-        iframe.style.cssText  = 'width:300px;height:168px;border:none;display:block;';
-
-        // Unbind stale listeners NOW, before nulling scWidget — scInitWidget's unbind block
-        // needs the live reference; nulling it first means listeners are never cleaned up.
+        // Stop old widget cleanly
         if (scWidget) {
             try {
                 scWidget.unbind(SC.Widget.Events.READY);
@@ -2915,18 +2868,31 @@
                 scWidget.unbind(SC.Widget.Events.FINISH);
                 scWidget.unbind(SC.Widget.Events.PLAY_PROGRESS);
                 scWidget.unbind(SC.Widget.Events.ERROR);
+                scWidget.pause();
             } catch(_) {}
             scWidget = null;
         }
-        scWidgetReady = false;
-        iframe.src = embedUrl;
-        // Call scInitWidget immediately after setting src — do NOT wait for iframe onload.
-        // SC.Widget() communicates via postMessage and handles its own readiness internally;
-        // binding inside onload is too late on some browsers and causes events to be missed.
-        // The READY event from the SC widget itself is the correct signal, not iframe onload.
-        scInitWidget(_scExpand);
-    }
 
+        scWidgetReady = false;
+        scWidgetUrl   = trackUrl;
+        scCurrentDur  = 0;
+        scCurrentPos  = 0;
+        scStopProgressLoop();
+        _earnReset();
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('timeElapsed').textContent  = '0:00';
+        document.getElementById('timeDuration').textContent = '0:00';
+
+        // Wait 2s then load new iframe src — gives old widget time to settle,
+        // then wait for iframe onload before binding the new SC.Widget instance.
+        setTimeout(() => {
+            iframe.onload = () => {
+                iframe.onload = null;
+                scInitWidget();
+            };
+            iframe.src = embedUrl;
+        }, 2000);
+    }
     function scTogglePlay() {
         if (!scWidget) return;
         scWidget.isPaused(paused => { if (paused) { scWidget.play(); } else { scWidget.pause(); } });
