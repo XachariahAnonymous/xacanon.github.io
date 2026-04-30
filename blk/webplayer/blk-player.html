@@ -1202,7 +1202,7 @@
             </div>
         </div>
         <div class="player-right">
-            <div class="coin-earn" id="coinEarn">◈ +0.01 BLK</div>
+            <div class="coin-earn" id="coinEarn">◈ +0.001 BLK</div>
             <div class="volume-wrap">
                 <span class="vol-icon" onclick="toggleMute()">🔊</span>
                 <div class="vol-bar" id="volBar">
@@ -1369,54 +1369,26 @@
     let shuffleQueue = [];
     let coins = 0, listenCount = 0, pendingPurchase = null;
 
-    // ── BLK COIN EARN: play-based model ──────────────────────────────────────
-    // 1000 plays = 1.00 BLK  →  1 play = 0.001 BLK
-    // A "play" is credited once per continuous listen when the user has heard
-    // at least MIN_LISTEN_SECS seconds of real audio on the current track.
-    // - Skipping / selecting a new track resets the counter entirely.
-    // - Seeking forward can't farm time (increments capped at 2s per tick).
-    // - After a track ends naturally, the counter resets so replaying it
-    //   can earn again — no artificial cooldown on same-track replays.
-    const COIN_PER_PLAY   = 0.001;  // 1000 plays = 1.00 BLK
-    const MIN_LISTEN_SECS = 30;     // must hear ≥30s continuously to count
+    // ── BLK COIN EARN: finish-based model ────────────────────────────────────
+    // 1 coin is awarded each time a track finishes naturally (reaches its end).
+    // Skipping never earns. Works in background tabs because it fires from
+    // ended/FINISH events, not from timeupdate/RAF/postMessage polling.
+    const COIN_PER_PLAY = 0.001;  // 1000 completions = 1.00 BLK
 
-    let _earnTrackId   = null;   // id of track currently being timed
-    let _earnAccumSecs = 0;      // real seconds listened this play
-    let _earnLastTs    = 0;      // wall-clock ms of last tick event
-    let _earnCredited  = false;  // coin granted — wait for track end before resetting
+    let _earnLastTs = 0; // kept for API compatibility (play/pause handlers touch this)
 
-    function _earnTick(trackId, realSecs) {
-        if (trackId !== _earnTrackId) {
-            _earnTrackId   = trackId;
-            _earnAccumSecs = 0;
-            _earnCredited  = false;
-        }
-        if (_earnCredited) return;
-        _earnAccumSecs += Math.min(realSecs, 2); // cap: seek jumps don't donate free time
-        if (_earnAccumSecs >= MIN_LISTEN_SECS) {
-            _earnCredited = true;
-            listenCount++;
-            coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
-            updateCoins();
-            flashCoinEarn();
-            syncCoinsToFirestore(COIN_PER_PLAY);
-        }
-    }
-
-    // User skipped / selected a different track — full reset
-    function _earnReset() {
-        _earnTrackId   = null;
-        _earnAccumSecs = 0;
-        _earnCredited  = false;
-        _earnLastTs    = 0;
-    }
-
-    // Track ended naturally — reset so the next replay can earn again
+    // Called when a track ends naturally — award the coin
     function _earnOnTrackEnd() {
-        _earnAccumSecs = 0;
-        _earnCredited  = false;
-        _earnLastTs    = 0;
+        listenCount++;
+        coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
+        updateCoins();
+        flashCoinEarn();
+        syncCoinsToFirestore(COIN_PER_PLAY);
     }
+
+    // No-ops kept so callers (play/pause handlers etc.) don't throw errors
+    function _earnTick() {}
+    function _earnReset() { _earnLastTs = 0; }
     // ─────────────────────────────────────────────────────────────────────────
 
     const audio = document.getElementById('audioEl');
@@ -2624,14 +2596,7 @@
             document.getElementById('progressFill').style.width = (audio.currentTime/audio.duration*100) + '%';
             document.getElementById('timeElapsed').textContent = fmt(audio.currentTime);
         }
-        // New play-based earn system
-        const now = Date.now();
-        if (_earnLastTs > 0 && isPlaying) {
-            const realSecs = (now - _earnLastTs) / 1000;
-            const t = currentIdx >= 0 ? library[currentIdx] : null;
-            if (t) _earnTick(t.id, realSecs);
-        }
-        _earnLastTs = now;
+
     });
     audio.addEventListener('loadedmetadata', () => { document.getElementById('timeDuration').textContent = fmt(audio.duration); });
     let _endedHandling = false;
@@ -2747,14 +2712,7 @@
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
-            // BLK coin earn — play-based
-            const now = Date.now();
-            if (_earnLastTs > 0 && isPlaying) {
-                const realSecs = (now - _earnLastTs) / 1000;
-                const t = currentIdx >= 0 ? library[currentIdx] : null;
-                if (t) _earnTick(t.id, realSecs);
-            }
-            _earnLastTs = now;
+
         });
         scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
@@ -3194,9 +3152,7 @@
                 document.getElementById('progressFill').style.width = (spCurrentPosition / spCurrentDuration * 100).toFixed(2) + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(Math.round(spCurrentPosition));
             }
-            // BLK coin earn — use wall-clock delta, capped inside _earnTick
-            const t = currentIdx >= 0 ? library[currentIdx] : null;
-            if (t) _earnTick(t.id, elapsed / 1000);
+
             spRafId = requestAnimationFrame(tick);
         }
         spRafLastTs = performance.now();
@@ -3234,8 +3190,6 @@
         if (!state.paused) {
             spTransitioning = false;  // new track is confirmed playing
             spStartProgressLoop();
-            // BLK coin earn — play-based (SP RAF drives the timing)
-            if (_earnLastTs === 0) _earnLastTs = Date.now();
         } else {
             spStopProgressLoop();
             _earnLastTs = 0; // paused — stop wall-clock earn accumulation
