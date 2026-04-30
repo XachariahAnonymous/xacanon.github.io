@@ -2694,10 +2694,21 @@
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
             scTransitioning = false;
-            scWidget.getDuration(d => {
-                scCurrentDur = d || 0;
-                document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
-            });
+            // getDuration can return 0 right at READY before metadata is loaded —
+            // poll until we get a real value (gives up after 10s)
+            let _durTries = 0;
+            const _pollDur = setInterval(() => {
+                if (!scWidget) { clearInterval(_pollDur); return; }
+                scWidget.getDuration(d => {
+                    if (d && d > 0) {
+                        clearInterval(_pollDur);
+                        scCurrentDur = d;
+                        document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                    } else if (++_durTries > 20) {
+                        clearInterval(_pollDur);
+                    }
+                });
+            }, 500);
         });
 
         scWidget.bind(SC.Widget.Events.PLAY, () => {
@@ -2705,12 +2716,6 @@
             updatePlayBtn();
             document.getElementById('playerArt').classList.add('playing');
             _earnLastTs = Date.now();
-            if (!scCurrentDur) {
-                scWidget.getDuration(d => {
-                    scCurrentDur = d || 0;
-                    if (scCurrentDur) document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
-                });
-            }
             scStartProgressLoop();
         });
 
@@ -2758,12 +2763,6 @@
         scStopProgressLoop();
         scProgressTimer = setInterval(() => {
             if (!scWidget || !scWidgetReady || !isPlaying) return;
-            if (!scCurrentDur) {
-                scWidget.getDuration(d => {
-                    scCurrentDur = d || 0;
-                    if (scCurrentDur) document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
-                });
-            }
             scWidget.getPosition(pos => {
                 scCurrentPos = pos || 0;
                 if (!isDraggingProgress && scCurrentDur) {
