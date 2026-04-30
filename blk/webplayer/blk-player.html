@@ -2692,14 +2692,14 @@
         scWidget = window.SC.Widget(iframe);
 
         scWidget.bind(SC.Widget.Events.READY, () => {
+            console.log('[SC] READY fired');
             scWidgetReady = true;
             scTransitioning = false;
-            // getDuration can return 0 right at READY before metadata is loaded —
-            // poll until we get a real value (gives up after 10s)
             let _durTries = 0;
             const _pollDur = setInterval(() => {
                 if (!scWidget) { clearInterval(_pollDur); return; }
                 scWidget.getDuration(d => {
+                    console.log('[SC] getDuration:', d);
                     if (d && d > 0) {
                         clearInterval(_pollDur);
                         scCurrentDur = d;
@@ -2712,6 +2712,7 @@
         });
 
         scWidget.bind(SC.Widget.Events.PLAY, () => {
+            console.log('[SC] PLAY fired, scWidgetReady:', scWidgetReady, 'scCurrentDur:', scCurrentDur);
             isPlaying = true;
             updatePlayBtn();
             document.getElementById('playerArt').classList.add('playing');
@@ -2720,6 +2721,7 @@
         });
 
         scWidget.bind(SC.Widget.Events.PAUSE, () => {
+            console.log('[SC] PAUSE fired');
             isPlaying = false;
             updatePlayBtn();
             document.getElementById('playerArt').classList.remove('playing');
@@ -2728,6 +2730,7 @@
         });
 
         scWidget.bind(SC.Widget.Events.FINISH, () => {
+            console.log('[SC] FINISH fired');
             if (scTransitioning) return;
             isPlaying = false;
             _earnOnTrackEnd();
@@ -2747,8 +2750,8 @@
         });
 
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
+            console.log('[SC] PLAY_PROGRESS', obj);
             scCurrentPos = obj.currentPosition || 0;
-            // Also grab duration from the event if we don't have it yet
             if (!scCurrentDur && obj.currentPosition && obj.relativePosition) {
                 scCurrentDur = Math.round(obj.currentPosition / obj.relativePosition);
                 document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
@@ -2760,7 +2763,10 @@
             }
         });
 
-        scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
+        scWidget.bind(SC.Widget.Events.ERROR, () => {
+            console.log('[SC] ERROR fired');
+            _scHandleError();
+        });
     }
 
     function scStartProgressLoop() {
