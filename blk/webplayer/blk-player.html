@@ -1381,6 +1381,7 @@
     function _earnOnTrackEnd() {
         listenCount++;
         coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
+        console.log('[BLK] _earnOnTrackEnd fired — coins now:', coins);
         updateCoins();
         flashCoinEarn();
         syncCoinsToFirestore(COIN_PER_PLAY);
@@ -1826,7 +1827,7 @@
         document.getElementById('profileName').textContent     = userProfile.displayName || '—';
         document.getElementById('profileEmail').textContent    = userProfile.email || '—';
         document.getElementById('profileRole').textContent     = (userProfile.role || 'user').toUpperCase();
-        document.getElementById('statCoins').textContent       = (userProfile.coins || 0).toFixed(2);
+        document.getElementById('statCoins').textContent       = (userProfile.coins || 0).toFixed(3);
         document.getElementById('statListens').textContent     = userProfile.listenCount || 0;
         document.getElementById('statPurchases').textContent   = userProfile.purchases || 0;
         const joined = userProfile.joinedAt
@@ -2640,7 +2641,13 @@
         });
     }
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
-    function updateCoins()   { document.getElementById('coinDisplay').textContent = coins.toFixed(2)+' BLK'; document.getElementById('statCoins').textContent = coins.toFixed(2); }
+    function updateCoins() {
+        const el = document.getElementById('coinDisplay');
+        console.log('[BLK] updateCoins — el:', el, '— coins:', coins);
+        if (el) el.textContent = coins.toFixed(3)+' BLK';
+        const statEl = document.getElementById('statCoins');
+        if (statEl) statEl.textContent = coins.toFixed(3);
+    }
 
     // ════════════════════════════════════════
     // EMBED PLAYER (SoundCloud)
