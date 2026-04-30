@@ -2767,8 +2767,8 @@
                             playerArt.appendChild(img);
                         }
                     }
-                    // Also patch the track thumb in the library row if visible
                     renderLibrary();
+                    renderSoundcloudTracks();
                 }
 
                 // Backfill duration if not yet known
@@ -3874,35 +3874,49 @@
         const preview= document.getElementById('soundcloudPreview');
         const addBtn = document.getElementById('scAddBtn');
 
-        // Helper to upgrade any SC image URL to 500×500
         const upgradeArt = s => s ? s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(\.|$)/, '-t500x500$2') : null;
 
         try {
             let title = '', artist = '', art = null;
 
-            // Primary: SC resolve API — returns full track object including artwork_url
-            let resolved = false;
+            // 1. Try oEmbed — no auth required, always has thumbnail_url (falls back to user avatar)
             try {
-                const r = await fetch('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID);
+                const r = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
                 if (r.ok) {
                     const d = await r.json();
                     title  = d.title || '';
-                    artist = (d.user && d.user.username) || '';
-                    art    = upgradeArt(d.artwork_url || (d.user && d.user.avatar_url));
-                    resolved = true;
+                    artist = d.author_name || '';
+                    // oEmbed title is often "Track by Artist" — strip the artist suffix
+                    const byIdx = title.lastIndexOf(' by ');
+                    if (byIdx !== -1) title = title.slice(0, byIdx).trim();
+                    art = upgradeArt(d.thumbnail_url);
                 }
             } catch(_) {}
 
-            // Fallback: oEmbed (CORS not always available, but try)
-            if (!resolved) {
-                const resp = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                const data = await resp.json();
-                title  = data.title || '';
-                artist = data.author_name || '';
-                const byIdx = title.lastIndexOf(' by ');
-                if (byIdx !== -1) title = title.slice(0, byIdx).trim();
-                art = upgradeArt(data.thumbnail_url);
+            // 2. Try SC resolve API for richer data / art if oEmbed missed it
+            if (!art) {
+                try {
+                    const r = await fetch('https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID);
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (!title)  title  = d.title || '';
+                        if (!artist) artist = (d.user && d.user.username) || '';
+                        art = upgradeArt(d.artwork_url || (d.user && d.user.avatar_url));
+                    }
+                } catch(_) {}
+            }
+
+            // 3. Last resort: scrape artwork from the SC embed iframe src HTML
+            if (!art) {
+                try {
+                    const embedUrl = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) + '&format=json';
+                    const r = await fetch(embedUrl);
+                    if (r.ok) {
+                        const text = await r.text();
+                        const m = text.match(/"artwork_url"\s*:\s*"([^"]+)"/);
+                        if (m) art = upgradeArt(m[1]);
+                    }
+                } catch(_) {}
             }
 
             _scPendingMeta = { url, title, artist, art };
@@ -3916,7 +3930,7 @@
                 if (titleEl)  titleEl.textContent  = title  || 'Unknown Title';
                 if (artistEl) artistEl.textContent = artist || 'Unknown Artist';
             }
-            if (status) { status.style.color = 'rgba(30,215,96,0.7)'; status.textContent = '✓ Track found'; }
+            if (status) { status.style.color = 'rgba(30,215,96,0.7)'; status.textContent = '✓ Track found' + (art ? '' : ' (art loads on play)'); }
             if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
         } catch(err) {
             console.error('[SC] _scFetchMeta failed:', err);
