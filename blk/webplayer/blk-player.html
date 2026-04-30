@@ -1419,7 +1419,9 @@
                 STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary });
                 // Auto-restore purchased tracks into library on page load
                 if (purchased && !inLibrary) {
-                    library.push({ id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store' });
+                    const _storeTrack = { id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store' };
+                    library.push(_storeTrack);
+                    probeStoreDuration(_storeTrack);
                     STORE[STORE.length - 1].owned = true;
                 }
             });
@@ -1988,6 +1990,20 @@
             req.onsuccess = () => { if (req.result) { req.result.duration = duration; store.put(req.result); } };
             tx.oncomplete = res; tx.onerror = rej;
         });
+    }
+
+    // Probe a store track's audio URL and back-fill duration in library + re-render
+    function probeStoreDuration(track) {
+        if (!track.url || track.duration > 0) return;
+        const tmp = new Audio();
+        tmp.preload = 'metadata';
+        tmp.addEventListener('loadedmetadata', () => {
+            if (tmp.duration && isFinite(tmp.duration)) {
+                track.duration = tmp.duration;
+                renderLibrary(); renderQueue();
+            }
+        }, { once: true });
+        tmp.src = track.url;
     }
 
     async function idbDeleteTrack(id) {
@@ -2674,10 +2690,22 @@
         if (!iframe || !window.SC || !window.SC.Widget) return;
         // Don't attach to a blank iframe — wait until a real URL is loaded
         if (!iframe.src || iframe.src === 'about:blank' || iframe.src === window.location.href) return;
+        // Unbind stale listeners from any previous widget instance before creating a new one
+        if (scWidget) {
+            try {
+                scWidget.unbind(SC.Widget.Events.READY);
+                scWidget.unbind(SC.Widget.Events.PLAY);
+                scWidget.unbind(SC.Widget.Events.PAUSE);
+                scWidget.unbind(SC.Widget.Events.FINISH);
+                scWidget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+                scWidget.unbind(SC.Widget.Events.ERROR);
+            } catch(_) {}
+        }
         scWidget = window.SC.Widget(iframe);
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
             scTransitioning = false;
+            scCurrentDur = 0; // clear stale duration from prior track before getDuration returns
             scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
             // Shrink iframe back to 1×1 after autoplay budget is granted
             if (typeof onReadyCb === 'function') onReadyCb();
@@ -2720,9 +2748,10 @@
         });
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
             scCurrentPos = obj.currentPosition || 0;
-            scCurrentDur = scCurrentDur || 1;
+            // Use relativePosition (0-1) from the event if our duration cache isn't ready yet
             if (!isDraggingProgress) {
-                const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100 : 0;
+                const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100
+                                         : (obj.relativePosition || 0) * 100;
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
@@ -2934,7 +2963,9 @@
         const s = STORE.find(x => x.id === storeId);
         if (!s) return;
         if (library.some(t => t.id === storeId + '_lib')) { showToast('Already in library'); return; }
-        library.push({ id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
+        const _reAddTrack = { id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' };
+        library.push(_reAddTrack);
+        probeStoreDuration(_reAddTrack);
         s.owned = true;
         renderLibrary(); renderQueue(); renderStore();
         showToast('"' + s.title + '" added back to library', true);
@@ -3014,7 +3045,9 @@
             s.owned = true;
             purchasedStoreIds.add(s.id);
             savePurchasedIds();
-            library.push({ id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
+            const _purchaseTrack = { id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' };
+            library.push(_purchaseTrack);
+            probeStoreDuration(_purchaseTrack);
             btn.textContent = '✓ Added to Library'; btn.className = 'modal-btn success'; btn.disabled = false;
             renderLibrary(); renderQueue(); renderStore(); updateProfileView();
             showToast('"' + s.title + '" added to your library', true);
