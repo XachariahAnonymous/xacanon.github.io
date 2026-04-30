@@ -10,7 +10,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
         import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-        import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+        // Firebase Storage removed — uploads now go via Cloudflare R2 Worker
 
         // ── PASTE YOUR SAME FIREBASE CONFIG HERE ──
         const firebaseConfig = {
@@ -27,8 +27,7 @@
         const auth = getAuth(app);
         const db   = getFirestore(app);
 
-        const storage = getStorage(app);
-        window._adminFB = { auth, db, storage, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp, storageRef, uploadBytesResumable, getDownloadURL };
+        window._adminFB = { auth, db, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp };
     </script>
 
     <style>
@@ -465,6 +464,13 @@
 <div class="toast" id="toast"></div>
 
 <script>
+    // ── R2 CONFIG — fill these in before deploying ──────────────────────────
+    // Deploy blk-r2-worker.js to Cloudflare Workers, then paste the URL below.
+    const R2_WORKER_URL    = 'https://pub-e0b9c346024546048eaf7cc9e148c225.r2.dev';
+    // Must match the UPLOAD_SECRET Worker secret (wrangler secret put UPLOAD_SECRET)
+    const R2_UPLOAD_SECRET = 'Ajax2026!';
+    // ────────────────────────────────────────────────────────────────────────
+
     let FB = null;
     let allUsers = [];
     let allPurchases = [];
@@ -699,46 +705,65 @@
 
     async function uploadStoreTrack() {
         if (!uploadedAudioFile) { showToast('No file selected', false, true); return; }
-        const title = document.getElementById('metaTitle').value.trim();
+        const title  = document.getElementById('metaTitle').value.trim();
         const artist = document.getElementById('metaArtist').value.trim();
-        const genre = document.getElementById('metaGenre').value;
-        const price = parseFloat(document.getElementById('metaPrice').value) || 0.99;
-        const badge = document.getElementById('metaBadge').value.trim() || null;
+        const genre  = document.getElementById('metaGenre').value;
+        const price  = parseFloat(document.getElementById('metaPrice').value) || 0.99;
+        const badge  = document.getElementById('metaBadge').value.trim() || null;
         if (!title || !artist) { showToast('Title and artist are required', false, true); return; }
 
-        const statusEl = document.getElementById('uploadStatus');
+        const statusEl    = document.getElementById('uploadStatus');
         const progressBar = document.getElementById('uploadProgressBar');
-        const progressFill = document.getElementById('uploadProgressFill');
-        statusEl.textContent = 'Uploading...';
+        const progressFill= document.getElementById('uploadProgressFill');
+        statusEl.textContent = 'Uploading…';
         progressBar.style.display = 'block';
+        progressFill.style.width  = '0%';
 
         try {
-            // Upload to Firebase Storage
-            const fileRef = FB.storageRef(FB.storage, `store-tracks/${Date.now()}_${uploadedAudioFile.name}`);
-            const uploadTask = FB.uploadBytesResumable(fileRef, uploadedAudioFile);
-            uploadTask.on('state_changed',
-                snap => { const pct = (snap.bytesTransferred/snap.totalBytes*100).toFixed(0); progressFill.style.width = pct+'%'; statusEl.textContent = `Uploading... ${pct}%`; },
-                err => { showToast('Upload failed: ' + err.message, false, true); statusEl.textContent = ''; progressBar.style.display = 'none'; },
-                async () => {
-                    const url = await FB.getDownloadURL(uploadTask.snapshot.ref);
-                    const emojis = ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'];
-                    await FB.addDoc(FB.collection(FB.db, 'storeTracks'), {
-                        title, artist, genre, price, badge,
-                        url, emoji: emojis[Math.floor(Math.random()*emojis.length)],
-                        color: '#0d001a',
-                        createdAt: FB.serverTimestamp(),
-                        addedBy: currentAdminUid
-                    });
-                    showToast(`"${title}" uploaded to store`, true);
-                    statusEl.textContent = '✓ Uploaded successfully';
-                    progressBar.style.display = 'none';
-                    uploadedAudioFile = null;
-                    document.getElementById('metadataForm').style.display = 'none';
-                    document.getElementById('uploadFileName').style.display = 'none';
-                    document.getElementById('adminAudioFile').value = '';
-                    loadStoreTracks();
-                }
-            );
+            // ── Stream file to R2 Worker with XHR so we get upload progress ──
+            const url = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', R2_WORKER_URL + '/upload');
+                xhr.setRequestHeader('x-upload-secret', R2_UPLOAD_SECRET);
+                xhr.setRequestHeader('x-file-name', encodeURIComponent(uploadedAudioFile.name));
+                xhr.setRequestHeader('Content-Type', uploadedAudioFile.type || 'audio/mpeg');
+                xhr.upload.onprogress = e => {
+                    if (e.lengthComputable) {
+                        const pct = Math.round(e.loaded / e.total * 100);
+                        progressFill.style.width  = pct + '%';
+                        statusEl.textContent = `Uploading… ${pct}%`;
+                    }
+                };
+                xhr.onload = () => {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        if (res.ok) resolve(res.url);
+                        else reject(new Error(res.error || 'Upload failed'));
+                    } catch { reject(new Error('Bad response from upload worker')); }
+                };
+                xhr.onerror = () => reject(new Error('Network error during upload'));
+                xhr.send(uploadedAudioFile);
+            });
+
+            // ── Save metadata + R2 URL to Firestore ──
+            const emojis = ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'];
+            await FB.addDoc(FB.collection(FB.db, 'storeTracks'), {
+                title, artist, genre, price, badge,
+                url,
+                emoji: emojis[Math.floor(Math.random() * emojis.length)],
+                color: '#0d001a',
+                createdAt: FB.serverTimestamp(),
+                addedBy: currentAdminUid
+            });
+
+            showToast(`"${title}" uploaded to store`, true);
+            statusEl.textContent = '✓ Uploaded successfully';
+            progressBar.style.display = 'none';
+            uploadedAudioFile = null;
+            document.getElementById('metadataForm').style.display = 'none';
+            document.getElementById('uploadFileName').style.display = 'none';
+            document.getElementById('adminAudioFile').value = '';
+            loadStoreTracks();
         } catch(e) {
             showToast('Upload error: ' + e.message, false, true);
             statusEl.textContent = '';
