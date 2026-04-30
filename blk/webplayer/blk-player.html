@@ -2716,7 +2716,8 @@
             document.getElementById('playerArt').classList.add('playing');
             _earnLastTs = Date.now();
             // Re-fetch duration if PLAY fired before READY's getDuration callback returned
-            if (!scCurrentDur) {
+            // Only do this when the widget is confirmed ready — guards against stale PLAY from old widget
+            if (!scCurrentDur && scWidgetReady) {
                 scWidget.getDuration(d => {
                     scCurrentDur = d || 0;
                     if (scCurrentDur) document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
@@ -2772,7 +2773,8 @@
         scProgressTimer = setInterval(() => {
             if (!scWidget || !scWidgetReady || !isPlaying) return;
             // Re-fetch duration if it still hasn't arrived (race between READY and PLAY)
-            if (!scCurrentDur) {
+            // Only when widget is confirmed ready so we don't pull stale data from old widget
+            if (!scCurrentDur && scWidgetReady) {
                 scWidget.getDuration(d => {
                     scCurrentDur = d || 0;
                     if (scCurrentDur) document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
