@@ -2687,7 +2687,7 @@
     // Increments scGeneration so any in-flight async callbacks from the old widget
     // detect they are stale and skip all progress bar / state writes.
     function scDestroyWidget() {
-        scGeneration++;          // invalidate all callbacks from the previous widget
+        scGeneration++;
         scStopProgressLoop();
         if (scWidget) {
             try {
@@ -2705,11 +2705,7 @@
         scWidgetUrl   = null;
         scCurrentDur  = 0;
         scCurrentPos  = 0;
-        // Clear any pending onload so a stale about:blank navigation doesn't
-        // accidentally trigger scInitWidget for the wrong track.
-        const iframe = document.getElementById('scHiddenWidget');
-        if (iframe) iframe.onload = null;
-        // NOTE: we do NOT set iframe.src here — _scLoadAndPlay owns the src.
+        // The iframe element itself is recreated in _scLoadAndPlay, so nothing to clear here.
     }
 
     function scInitWidget() {
@@ -2919,7 +2915,6 @@
     }
 
     function _scLoadAndPlay(trackUrl) {
-        const iframe   = document.getElementById('scHiddenWidget');
         const embedUrl = _scBuildEmbedUrl(trackUrl);
 
         if (scWidgetUrl === trackUrl && scWidgetReady) {
@@ -2928,18 +2923,29 @@
             return;
         }
 
-        // scDestroyWidget() has already been called by the caller (playTrack / FINISH handler).
-        // Just record the new URL, reset UI, load the iframe, then bind immediately.
-        // The SC Widget API is designed so you can call SC.Widget(iframe) right away —
-        // the READY event fires when the widget is actually ready regardless of load state.
-        scWidgetUrl  = trackUrl;
+        // scDestroyWidget() has already been called by the caller.
+        scWidgetUrl = trackUrl;
         _earnReset();
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
 
-        iframe.onload = null;
-        iframe.src = embedUrl;
+        // The SC Widget API caches widget instances by iframe element reference.
+        // Reusing the same <iframe> and just changing src returns the stale cached
+        // instance, so READY/PLAY never fire correctly on the second track.
+        // Fix: destroy and recreate the iframe element entirely each time so the
+        // SC API always sees a brand-new node with no cache entry.
+        const container = document.querySelector('[aria-hidden="true"]');
+        const oldIframe = document.getElementById('scHiddenWidget');
+        if (oldIframe) oldIframe.remove();
+
+        const newIframe = document.createElement('iframe');
+        newIframe.id    = 'scHiddenWidget';
+        newIframe.style.cssText = 'width:1px;height:1px;border:none;display:block;';
+        newIframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+        newIframe.src   = embedUrl;
+        container.appendChild(newIframe);
+
         scInitWidget();
     }
     function scTogglePlay() {
