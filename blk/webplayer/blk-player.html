@@ -3306,32 +3306,30 @@
             spStartProgressLoop();
         } else {
             spStopProgressLoop();
-            _earnLastTs = 0; // paused — stop wall-clock earn accumulation
-            // Spotify signals natural track end by resetting position to 0 while paused.
-            // Use prevUri (captured before any _lastUri update) so the comparison is against
-            // the track that was actually playing, not the one that may have just been swapped in.
+            _earnLastTs = 0;
+            // Spotify signals a natural track end in one of two ways:
+            // A) Same URI, paused, position reset to 0 (paused-at-end before auto-advancing)
+            // B) URI has changed AND position is 0 — Spotify already advanced to next track.
+            //    In this case prevUri is the track that just finished.
+            // In both cases we check prevUri (the track that was playing) is in previous_tracks.
             const prevTracks = (state.track_window && state.track_window.previous_tracks) || [];
-            const uriToCheck = prevUri; // must be the track that was playing, never the new one
-            const justFinished = uriToCheck && prevTracks.length > 0 && prevTracks[prevTracks.length - 1].uri === uriToCheck;
+            const finishedUri = (newUri !== prevUri) ? prevUri : newUri;
+            const justFinished = finishedUri && prevTracks.some(pt => pt.uri === finishedUri);
             const trackEndedNaturally = !spTransitioning
                 && prevDuration > 0
                 && (state.position || 0) === 0
-                && uriToCheck
+                && finishedUri
                 && (justFinished || prevPosition >= prevDuration - 2);
             if (trackEndedNaturally) {
-                _earnOnTrackEnd(); // track finished — allow replay to earn again
+                _earnOnTrackEnd();
                 if (repeat === 2) {
-                    // Repeat One: re-issue a full play command via the Web API rather than
-                    // seek(0)+resume(), which is unreliable after a track ends because
-                    // Spotify's internal state is no longer in a "paused mid-track" state.
-                    // restartCurrentTrack() calls spPlayTrack() → POST /me/player/play with
-                    // the track URI, which is the only reliable way to restart a finished track.
                     spTransitioning = true;
                     setTimeout(() => {
                         restartCurrentTrack();
                         spTransitioning = false;
                     }, 200);
-                } else if (currentIdx >= 0) {
+                } else if (newUri === prevUri && currentIdx >= 0) {
+                    // Only call nextTrack if Spotify hasn't already auto-advanced
                     nextTrack();
                 }
             }
