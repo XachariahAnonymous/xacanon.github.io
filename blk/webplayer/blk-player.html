@@ -2735,6 +2735,49 @@
                     }
                 });
             }, 500);
+
+            // Fetch full track metadata from the widget — includes artwork_url, duration, title etc.
+            // This backfills cover art for tracks added before art-fetching was in place.
+            scWidget.getCurrentSound(sound => {
+                if (scGeneration !== myGen || !sound) return;
+                const t = library[currentIdx];
+                if (!t || t.source !== 'soundcloud') return;
+
+                // artwork_url is 100×100 by default — upgrade to 500×500
+                let art = sound.artwork_url || sound.user && sound.user.avatar_url || null;
+                if (art) art = art.replace('-large.', '-t500x500.').replace('-large', '-t500x500')
+                                   .replace('-small.', '-t500x500.').replace('-small', '-t500x500');
+
+                if (art && !t.albumArt) {
+                    t.albumArt = art;
+                    idbSaveStreaming(t);
+                    fbSaveStreamingTrack(t);
+                }
+
+                // Always update player art display with whatever we got
+                const finalArt = t.albumArt || art;
+                if (finalArt) {
+                    const playerArt = document.getElementById('playerArt');
+                    if (playerArt) {
+                        const existing = playerArt.querySelector('img');
+                        if (existing) { existing.src = finalArt; }
+                        else {
+                            const img = document.createElement('img');
+                            img.src = finalArt;
+                            img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;';
+                            playerArt.appendChild(img);
+                        }
+                    }
+                    // Also patch the track thumb in the library row if visible
+                    renderLibrary();
+                }
+
+                // Backfill duration if not yet known
+                if (!scCurrentDur && sound.duration) {
+                    scCurrentDur = sound.duration;
+                    document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                }
+            });
         });
 
         scWidget.bind(SC.Widget.Events.PLAY, () => {
