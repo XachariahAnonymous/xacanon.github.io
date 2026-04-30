@@ -3182,6 +3182,9 @@
             const matchIdx = library.findIndex(l => l.spUri === newUri);
             if (matchIdx >= 0) currentIdx = matchIdx;
         }
+        // Capture position BEFORE overwriting — needed for end detection below
+        const prevPosition = spCurrentPosition;
+        const prevDuration = spCurrentDuration;
         spCurrentDuration = (state.duration || 0) / 1000;
         spCurrentPosition = (state.position || 0) / 1000;
         isPlaying = !state.paused;
@@ -3200,9 +3203,9 @@
             const uriToCheck = prevUri || newUri;
             const justFinished = prevTracks.length > 0 && prevTracks[prevTracks.length - 1].uri === uriToCheck;
             const trackEndedNaturally = !spTransitioning
-                && spCurrentDuration > 0
+                && prevDuration > 0
                 && (state.position || 0) === 0
-                && (justFinished || spCurrentPosition >= spCurrentDuration - 1);
+                && (justFinished || prevPosition >= prevDuration - 2);
             if (trackEndedNaturally) {
                 _earnOnTrackEnd(); // track finished — allow replay to earn again
                 if (repeat === 2) {
