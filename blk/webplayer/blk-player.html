@@ -22,6 +22,7 @@
             measurementId:     "G-3ENRZMXQP6"
         };
 
+  
         const SPOTIFY_CLIENT_ID    = '3aa3338a8af249e88ca5fa488cedd32f';
         const SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
         const SPOTIFY_SCOPES = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative user-read-recently-played';
@@ -3831,7 +3832,7 @@
         const embedSrc = 'https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0';
         document.getElementById('embedTitle').textContent = (title || 'Spotify Track') + (artist ? ' — ' + artist : '');
         document.getElementById('embedNote').innerHTML =
-            '🎵 Spotify Embed · 30s preview for free accounts · Full track with Premium'
+            '🎵 Spotify Embed · 30s Preview · Full Track with Free or Premium'
             + '<div id="spPremiumWarn" style="margin-top:0.6rem;padding:0.55rem 0.8rem;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-left:3px solid var(--warn);font-family:\'Space Mono\',monospace;font-size:0.55rem;color:var(--warn);letter-spacing:0.5px;line-height:1.6;">⚠ To earn BLK through Spotify, please sign into a Spotify Premium account</div>';
         document.getElementById('embedIframeWrap').innerHTML =
             '<iframe src="' + embedSrc + '" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
