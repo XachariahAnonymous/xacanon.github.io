@@ -1084,22 +1084,25 @@
 
                     <!-- Add by URL -->
                     <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;">Add SoundCloud Track</div>
-                    <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem;">
+                    <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;">
                         <input class="stream-input-url" id="soundcloudUrlInput" type="text"
                             placeholder="Paste a SoundCloud track URL..."
                             oninput="soundcloudUrlHint()"
                             onkeydown="if(event.key==='Enter')addSoundcloudTrack()"
                             style="flex:1;">
-                        <button class="stream-add-btn sc" onclick="addSoundcloudTrack()" style="white-space:nowrap;flex-shrink:0;">Add to Library</button>
+                        <button class="stream-add-btn sc" id="scAddBtn" onclick="addSoundcloudTrack()" style="white-space:nowrap;flex-shrink:0;">Add to Library</button>
                     </div>
-                    <div class="stream-meta-fields" id="soundcloudMetaFields" style="display:none;margin-bottom:0.8rem;">
-                        <input class="stream-meta-input" id="soundcloudMetaTitle"  type="text" placeholder="Song title">
-                        <input class="stream-meta-input" id="soundcloudMetaArtist" type="text" placeholder="Artist name">
-                        <input class="stream-meta-input" id="soundcloudMetaArt"    type="text" placeholder="Album art URL (optional)">
+                    <!-- Auto-fetched preview -->
+                    <div id="soundcloudPreview" style="display:none;margin-bottom:0.8rem;background:rgba(255,85,0,0.06);border:1px solid rgba(255,85,0,0.2);padding:0.75rem;align-items:center;gap:0.8rem;">
+                        <img id="scPreviewArt" src="" alt="" style="width:44px;height:44px;object-fit:cover;flex-shrink:0;background:var(--surface2);">
+                        <div style="flex:1;min-width:0;">
+                            <div id="scPreviewTitle"  style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                            <div id="scPreviewArtist" style="font-family:'Space Mono',monospace;font-size:0.58rem;color:#ff5500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                        </div>
                     </div>
+                    <div id="scFetchStatus" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:1px;margin-bottom:0.5rem;min-height:1rem;color:rgba(255,255,255,0.3);"></div>
                     <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.18);letter-spacing:1px;line-height:1.9;margin-bottom:2.5rem;">
-                        Copy any public SoundCloud track URL and paste it above.<br>
-                        Tracks play directly in BLK — no login required.
+                        Paste any public SoundCloud track URL — metadata fetched automatically.
                     </div>
 
                     <!-- Library list -->
@@ -2607,19 +2610,8 @@
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
             scTransitioning = false;
-            // Fetch duration immediately and retry until we get a non-zero value
-            // (SC sometimes returns 0 on first call if the track hasn't buffered)
-            const _fetchDur = (attempt) => {
-                scWidget.getDuration(d => {
-                    if (d && d > 0) {
-                        scCurrentDur = d;
-                        document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
-                    } else if (attempt < 8) {
-                        setTimeout(() => _fetchDur(attempt + 1), 300);
-                    }
-                });
-            };
-            _fetchDur(0);
+            scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
+            // Shrink iframe back to 1×1 after autoplay budget is granted
             if (typeof onReadyCb === 'function') onReadyCb();
         });
         scWidget.bind(SC.Widget.Events.PLAY, () => {
@@ -2657,9 +2649,9 @@
         });
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
             scCurrentPos = obj.currentPosition || 0;
-            // Only update bar if we have a real duration (avoid NaN/0 on first events)
-            if (scCurrentDur > 0 && !isDraggingProgress) {
-                const pct = (scCurrentPos / scCurrentDur) * 100;
+            scCurrentDur = scCurrentDur || 1;
+            if (!isDraggingProgress) {
+                const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100 : 0;
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
@@ -2673,32 +2665,8 @@
         scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
 
-    function scStartProgressLoop() {
-        scStopProgressLoop();
-        // Poll every 250ms as a reliable fallback — PLAY_PROGRESS alone is inconsistent
-        scProgressTimer = setInterval(() => {
-            if (!scWidget || !scWidgetReady || !isPlaying) return;
-            scWidget.getPosition(pos => {
-                scCurrentPos = pos || 0;
-                // Lazily grab duration if we don't have it yet
-                if (!scCurrentDur) {
-                    scWidget.getDuration(d => {
-                        if (d) {
-                            scCurrentDur = d;
-                            document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
-                        }
-                    });
-                    return;
-                }
-                if (!isDraggingProgress) {
-                    const pct = (scCurrentPos / scCurrentDur) * 100;
-                    document.getElementById('progressFill').style.width = pct + '%';
-                    document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
-                }
-            });
-        }, 250);
-    }
-    function scStopProgressLoop() { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
+    function scStartProgressLoop() { scStopProgressLoop(); }
+    function scStopProgressLoop()  { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
 
     function scEnsureAPI(cb) {
         if (window.SC && window.SC.Widget) { cb(); return; }
@@ -3715,31 +3683,80 @@
 
     function toggleSoundcloudPanel() { openStreamingView('soundcloud'); }
 
+    let _scPendingMeta = {};
+    let _scFetchTimer  = null;
+
     function soundcloudUrlHint() {
-        const url   = document.getElementById('soundcloudUrlInput').value.trim();
-        const valid = url.includes('soundcloud.com/');
-        const el    = document.getElementById('soundcloudMetaFields');
-        el.style.display = valid ? 'flex' : 'none';
-        if (!valid) return;
-        const parts = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const tEl = document.getElementById('soundcloudMetaTitle');
-        const aEl = document.getElementById('soundcloudMetaArtist');
-        if (!tEl.value) tEl.value = (parts[parts.length-1]||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        if (!aEl.value) aEl.value = (parts[parts.length-2]||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        const url    = document.getElementById('soundcloudUrlInput').value.trim();
+        const status = document.getElementById('scFetchStatus');
+        const preview= document.getElementById('soundcloudPreview');
+        const addBtn = document.getElementById('scAddBtn');
+        if (!url || !url.includes('soundcloud.com/')) {
+            if (preview) preview.style.display = 'none';
+            if (status)  status.textContent = '';
+            _scPendingMeta = {};
+            return;
+        }
+        if (_scPendingMeta.url === url) return; // already fetched
+        clearTimeout(_scFetchTimer);
+        if (status) { status.style.color = 'rgba(255,255,255,0.3)'; status.textContent = 'Fetching track info...'; }
+        if (preview) preview.style.display = 'none';
+        if (addBtn)  { addBtn.disabled = true; addBtn.style.opacity = '0.5'; }
+        _scFetchTimer = setTimeout(() => _scFetchMeta(url), 700);
+    }
+
+    async function _scFetchMeta(url) {
+        const status = document.getElementById('scFetchStatus');
+        const preview= document.getElementById('soundcloudPreview');
+        const addBtn = document.getElementById('scAddBtn');
+        try {
+            const resp = await fetch('https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url));
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const data = await resp.json();
+
+            // title from oEmbed is often "Track Name by Artist" — split it
+            let title  = data.title || '';
+            let artist = data.author_name || '';
+            const byIdx = title.lastIndexOf(' by ');
+            if (byIdx !== -1) title = title.slice(0, byIdx).trim();
+
+            // Upgrade thumbnail from 100px to 500px
+            let art = data.thumbnail_url || null;
+            if (art) art = art.replace('-large.', '-t500x500.').replace('-large', '-t500x500');
+
+            _scPendingMeta = { url, title, artist, art };
+
+            if (preview) {
+                preview.style.display = 'flex';
+                const artEl    = document.getElementById('scPreviewArt');
+                const titleEl  = document.getElementById('scPreviewTitle');
+                const artistEl = document.getElementById('scPreviewArtist');
+                if (artEl)    { artEl.src = art || ''; artEl.style.display = art ? 'block' : 'none'; }
+                if (titleEl)  titleEl.textContent  = title  || 'Unknown Title';
+                if (artistEl) artistEl.textContent = artist || 'Unknown Artist';
+            }
+            if (status) { status.style.color = 'rgba(30,215,96,0.7)'; status.textContent = '✓ Track found'; }
+            if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
+        } catch(err) {
+            _scPendingMeta = {};
+            if (status) { status.style.color = 'rgba(255,100,0,0.7)'; status.textContent = 'Could not fetch info — will use URL as fallback'; }
+            if (preview) preview.style.display = 'none';
+            if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
+        }
     }
 
     function addSoundcloudTrack() {
-        const url    = document.getElementById('soundcloudUrlInput').value.trim();
+        const url = document.getElementById('soundcloudUrlInput').value.trim();
         if (!url) { showToast('Paste a SoundCloud URL first'); return; }
         if (!url.includes('soundcloud.com/')) { showToast('Not a valid SoundCloud URL'); return; }
-        const parts  = url.replace(/\?.*$/, '').split('/').filter(Boolean);
-        const tEl    = document.getElementById('soundcloudMetaTitle');
-        const aEl    = document.getElementById('soundcloudMetaArtist');
-        const artEl  = document.getElementById('soundcloudMetaArt');
-        const title  = tEl.value.trim()  || (parts[parts.length-1]||'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        const artist = aEl.value.trim()  || (parts[parts.length-2]||'Unknown Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        const albumArt = artEl ? artEl.value.trim() || null : null;
         if (library.some(l => l.soundcloudUrl === url)) { showToast('Already in library'); return; }
+
+        const meta   = (_scPendingMeta.url === url) ? _scPendingMeta : {};
+        const parts  = url.replace(/\?.*$/, '').split('/').filter(Boolean);
+        const title  = meta.title  || (parts[parts.length-1]  || 'SoundCloud Track').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        const artist = meta.artist || (parts[parts.length-2] || 'Unknown Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        const albumArt = meta.art || null;
+
         const track = {
             id: 'sc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             url, title, artist, album: 'SoundCloud', albumArt,
@@ -3749,10 +3766,16 @@
         soundcloudTracks.push(track); library.push(track);
         idbSaveStreaming(track); fbSaveStreamingTrack(track);
         renderSoundcloudTracks(); renderLibrary(); renderQueue();
+
         document.getElementById('soundcloudUrlInput').value = '';
-        tEl.value = ''; aEl.value = ''; if (artEl) artEl.value = '';
-        document.getElementById('soundcloudMetaFields').style.display = 'none';
-        showToast('"' + title + '" added to library', true);
+        const preview = document.getElementById('soundcloudPreview');
+        const status  = document.getElementById('scFetchStatus');
+        const addBtn  = document.getElementById('scAddBtn');
+        if (preview) preview.style.display = 'none';
+        if (status)  status.textContent = '';
+        if (addBtn)  { addBtn.disabled = false; addBtn.style.opacity = '1'; }
+        _scPendingMeta = {};
+        showToast('"'+ title +'" added to library', true);
     }
 
     function removeSoundcloudTrack(trackId, e) {
