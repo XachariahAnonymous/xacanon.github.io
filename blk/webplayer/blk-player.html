@@ -1461,6 +1461,10 @@
                 currentUser = null;
                 userProfile = null;
                 _pendingVerifyEmail = null; _pendingVerifyPass = null;
+                // Clear Spotify state so next user starts fresh
+                spAccessToken = spRefreshToken = null; spTokenExpiry = 0;
+                if (spPlayer) { try { spPlayer.disconnect(); } catch(_) {} spPlayer = null; }
+                spDeviceId = null;
                 showAuth();
             }
         });
@@ -1490,6 +1494,8 @@
         loadStoreTracks();
         // Restore streaming tracks from Firestore (cross-device sync)
         await fbLoadStreamingTracks(user.uid);
+        // Restore Spotify session keyed to this user
+        spRestoreSession().catch(() => {});
     }
 
     async function fbSaveStreamingTrack(track) {
@@ -3324,15 +3330,20 @@
         spSaveTokens(await resp.json()); return true;
     }
 
+    function _spKeys() {
+        const uid = (currentUser && currentUser.uid) ? currentUser.uid : 'anon';
+        return { at: 'sp_at_' + uid, rt: 'sp_rt_' + uid, exp: 'sp_exp_' + uid };
+    }
+
     function spSaveTokens(d) {
         spAccessToken  = d.access_token;
         if (d.refresh_token) spRefreshToken = d.refresh_token;
         spTokenExpiry  = Date.now() + (d.expires_in || 3600) * 1000;
-        try { localStorage.setItem('sp_at', spAccessToken); localStorage.setItem('sp_rt', spRefreshToken || ''); localStorage.setItem('sp_exp', String(spTokenExpiry)); } catch(e) {}
+        try { const k = _spKeys(); localStorage.setItem(k.at, spAccessToken); localStorage.setItem(k.rt, spRefreshToken || ''); localStorage.setItem(k.exp, String(spTokenExpiry)); } catch(e) {}
     }
 
     function spLoadTokens() {
-        try { spAccessToken = localStorage.getItem('sp_at') || null; spRefreshToken = localStorage.getItem('sp_rt') || null; spTokenExpiry = parseInt(localStorage.getItem('sp_exp') || '0'); } catch(e) {}
+        try { const k = _spKeys(); spAccessToken = localStorage.getItem(k.at) || null; spRefreshToken = localStorage.getItem(k.rt) || null; spTokenExpiry = parseInt(localStorage.getItem(k.exp) || '0'); } catch(e) {}
     }
 
     async function spOnConnected() {
@@ -3829,7 +3840,7 @@
     function spotifyLogout() {
         if (spPlayer) { spPlayer.disconnect(); spPlayer = null; }
         spAccessToken = spRefreshToken = null; spDeviceId = null; spOffset = 0;
-        try { localStorage.removeItem('sp_at'); localStorage.removeItem('sp_rt'); localStorage.removeItem('sp_exp'); } catch(e) {}
+        try { const k = _spKeys(); localStorage.removeItem(k.at); localStorage.removeItem(k.rt); localStorage.removeItem(k.exp); } catch(e) {}
         const btnText = document.getElementById('spotifyBtnText');
         const connectBtn = document.getElementById('spotifyConnectBtn');
         const statusEl = document.getElementById('spotifyStatus');
@@ -4541,7 +4552,6 @@
         return restoreLibraryFromIDB();
     }).catch(() => {}).finally(() => {
         initAuth();
-        spRestoreSession().catch(() => {});
     });
 
     // Art image fallback: if t500x500 doesn't exist on SC CDN, retry with -large
