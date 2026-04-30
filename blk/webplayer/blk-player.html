@@ -2552,18 +2552,6 @@
         else if (repeat === 1) { btn.classList.add('active');    btn.textContent = '↺'; btn.title = 'Repeat All'; }
         else                   { btn.classList.add('active');    btn.textContent = '↻'; btn.title = 'Repeat One'; }
         renderQueue();
-        // If a Spotify track is currently playing, re-issue the play command with the
-        // correct payload (single URI for repeat-one, full list otherwise) so Spotify's
-        // auto-advance behaviour matches the new repeat mode immediately.
-        if (spPlayer && spDeviceId && currentIdx >= 0) {
-            const t = library[currentIdx];
-            if (t && t.source === 'spotify') {
-                const uri = t.spUri || t.url || null;
-                if (uri && uri.startsWith('spotify:')) {
-                    spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
-                }
-            }
-        }
     }
 
     // ── PROGRESS BAR DRAG ──
