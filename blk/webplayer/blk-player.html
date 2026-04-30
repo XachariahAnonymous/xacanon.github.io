@@ -1378,9 +1378,13 @@
     const COIN_PER_PLAY = 0.001;  // 1000 completions = 1.00 BLK
 
     let _earnLastTs = 0; // kept for API compatibility (play/pause handlers touch this)
+    let _userSeeked = false; // true for 3s after any progress-bar seek — suppresses coin earn
+    let _userSeekedTimer = null;
 
     // Called when a track ends naturally — award the coin
     function _earnOnTrackEnd() {
+        // Don't award coins if the user dragged the progress bar to the end
+        if (_userSeeked) return;
         listenCount++;
         coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
 
@@ -2569,6 +2573,10 @@
         }
         function commitPct(pct) {
             isDraggingProgress = false; bar.classList.remove('dragging');
+            // Mark that user manually seeked — suppress coin earn for 3s
+            _userSeeked = true;
+            clearTimeout(_userSeekedTimer);
+            _userSeekedTimer = setTimeout(() => { _userSeeked = false; }, 3000);
             const t = currentIdx >= 0 ? library[currentIdx] : null;
             if (t && t.source === 'soundcloud') {
                 scSeekTo(pct);
