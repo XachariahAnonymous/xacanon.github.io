@@ -1043,6 +1043,16 @@
                 </button>
                 <button onclick="spotifyLogout()" id="spViewDisconnectBtn" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.2);cursor:pointer;flex-shrink:0;">Disconnect</button>
             </div>
+            <!-- Add by URL — always visible, no auth required -->
+            <div id="spUrlBar" style="padding:0.75rem 2.5rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;flex-shrink:0;background:rgba(30,215,96,0.025);">
+                <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:rgba(30,215,96,0.6);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">Add by URL</div>
+                <input class="stream-input-url" id="spUrlInput" type="text"
+                    placeholder="Paste a Spotify track URL — metadata fetched automatically..."
+                    onkeydown="if(event.key==='Enter')addSpotifyTrackByUrl()"
+                    style="flex:1;min-width:180px;border-color:rgba(30,215,96,0.2);">
+                <button id="spUrlAddBtn" onclick="addSpotifyTrackByUrl()" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.55rem 1rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Add to Library</button>
+                <div id="spUrlStatus" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;color:rgba(255,255,255,0.3);min-height:0.8rem;"></div>
+            </div>
             <!-- Not connected -->
             <div id="spViewConnect" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:4rem;text-align:center;">
                 <div style="font-size:3.5rem;">🎵</div>
@@ -3764,6 +3774,89 @@
         showToast('"' + t.title + '" added to library', true);
     }
 
+    async function addSpotifyTrackByUrl() {
+        const input  = document.getElementById('spUrlInput');
+        const btn    = document.getElementById('spUrlAddBtn');
+        const status = document.getElementById('spUrlStatus');
+        const url    = input ? input.value.trim() : '';
+
+        if (!url) { showToast('Paste a Spotify track URL first'); return; }
+
+        // Accept both /track/ URLs and spotify:track: URIs
+        const mUrl = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
+        const mUri = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
+        const trackId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
+        if (!trackId) { showToast('Not a valid Spotify track URL'); return; }
+
+        const spUri = 'spotify:track:' + trackId;
+        if (library.some(l => l.spUri === spUri)) { showToast('Already in library'); return; }
+
+        if (btn)    { btn.disabled = true; btn.textContent = 'Fetching...'; btn.style.opacity = '0.6'; }
+        if (status) { status.textContent = 'Fetching track metadata...'; status.style.color = 'rgba(30,215,96,0.5)'; }
+
+        let trackData = null;
+
+        try {
+            // ── Path A: authenticated Spotify API (full metadata, duration, high-res art) ──
+            if (typeof spAccessToken !== 'undefined' && spAccessToken) {
+                await spRefreshIfNeeded();
+                const r = await fetch('https://api.spotify.com/v1/tracks/' + trackId, {
+                    headers: { 'Authorization': 'Bearer ' + spAccessToken }
+                });
+                if (r.ok) {
+                    const t = await r.json();
+                    trackData = spFromAPI(t);
+                    trackData.spUri = spUri;
+                }
+            }
+        } catch(_) {}
+
+        // ── Path B: Spotify oEmbed (no auth needed — public endpoint) ──
+        if (!trackData) {
+            try {
+                const r = await fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/track/' + trackId);
+                if (r.ok) {
+                    const d = await r.json();
+                    // oEmbed title is often "Song · Artist" — split carefully
+                    let title = d.title || 'Spotify Track';
+                    let artist = d.author_name || 'Unknown Artist';
+                    // Some responses format title as "Track Name" and author_name as "Artist Name"
+                    trackData = {
+                        spUri, title, artist,
+                        album: '', artwork: d.thumbnail_url || null, duration: 0
+                    };
+                }
+            } catch(_) {}
+        }
+
+        // ── Path C: bare minimum from the URL ──
+        if (!trackData) {
+            trackData = { spUri, title: 'Spotify Track', artist: 'Unknown Artist', album: '', artwork: null, duration: 0 };
+        }
+
+        const track = {
+            id: 'sp_lib_' + Date.now(),
+            spUri, url: spUri,
+            title: trackData.title, artist: trackData.artist, album: trackData.album || '',
+            albumArt: trackData.artwork || null,
+            duration: trackData.duration || 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '🎵', source: 'spotify',
+            spotifyType: 'track', spotifyTrackId: trackId
+        };
+
+        library.push(track);
+        spotifyTracks.push(track);
+        if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+        if (typeof fbSaveStreamingTrack === 'function') fbSaveStreamingTrack(track);
+        renderLibrary(); renderQueue();
+
+        if (input)  input.value = '';
+        if (status) { status.textContent = ''; }
+        if (btn)    { btn.disabled = false; btn.textContent = 'Add to Library'; btn.style.opacity = '1'; }
+        showToast('"' + track.title + '" added to library', true);
+    }
+
     function renderSpotifyPlaylists(playlists, append) {
         const sideEl   = document.getElementById('spotifyTracks');
         const browseEl = document.getElementById('spBrowseTracks');
@@ -3982,13 +4075,8 @@
         const userEl = document.getElementById('spViewUser');
         if (userEl && spUserId) userEl.textContent = spUserId;
         if (connected && spViewMain) {
-            const tracksEl = document.getElementById('spViewTracks');
-            const alreadyLoaded = tracksEl && tracksEl.children.length > 0
-                && !tracksEl.innerHTML.includes('Loading...');
-            if (!alreadyLoaded) {
-                // Only fire a load if the panel is empty / not yet populated
-                spViewSetTab(_spViewTab);
-            }
+            // load liked songs if view is freshly opened
+            spViewSetTab(_spViewTab);
         }
     }
 
@@ -4011,11 +4099,7 @@
         let data;
         if (_spViewTab === 'liked') {
             data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + _spViewOffset);
-            if (!data) {
-                if (!append) tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">Could not load tracks — check your connection and try again.</div>';
-                if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-                return;
-            }
+            if (!data) return;
             const tracks = (data.items || []).map(i => spFromAPI(i.track)).filter(Boolean);
             _spViewRawTracks = append ? _spViewRawTracks.concat(tracks) : tracks;
             _spViewOffset += tracks.length;
@@ -4023,11 +4107,7 @@
             if (loadMoreBtn) loadMoreBtn.style.display = data.next ? 'block' : 'none';
         } else if (_spViewTab === 'recent') {
             data = await spAPI('/me/player/recently-played?limit=' + lim);
-            if (!data) {
-                if (!append) tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">Could not load tracks — check your connection and try again.</div>';
-                if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-                return;
-            }
+            if (!data) return;
             const seen = new Set();
             const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
             _spViewRawTracks = tracks;
