@@ -2195,7 +2195,7 @@
             const thumbInner = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
                 : '<span>' + t.emoji + '</span>';
-            return '<div class="track-row ' + (currentIdx === libIdx ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
+            return '<div class="track-row ' + (currentIdx === libIdx && isPlaying ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
                 + '<span class="track-idx">' + (currentIdx === libIdx ? '▶' : i+1) + '</span>'
                 + '<div class="track-info">'
                 + '<div class="track-thumb">' + thumbInner + '<div class="play-overlay">' + (currentIdx === libIdx && isPlaying ? '⏸' : '▶') + '</div></div>'
@@ -2675,7 +2675,10 @@
         document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶';
         // Only update row play-state indicators, not full re-render
         document.querySelectorAll('.track-row').forEach((row, i) => {
-            row.classList.toggle('playing', i === currentIdx && isPlaying);
+            const isActive = i === currentIdx && isPlaying;
+            row.classList.toggle('playing', isActive);
+            const overlay = row.querySelector('.play-overlay');
+            if (overlay) overlay.textContent = (i === currentIdx && isPlaying) ? '⏸' : '▶';
         });
     }
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
