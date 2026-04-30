@@ -983,8 +983,7 @@
                             <input type="text" id="spBrowseSearch" placeholder="Filter tracks..." oninput="filterSpotifyBrowse()" style="background:none;border:none;outline:none;color:#fff;font-family:'Space Mono',monospace;font-size:0.65rem;width:100%;">
                         </div>
                         <div style="display:flex;border:1px solid var(--border);">
-                            <button id="spBTab-liked"     onclick="loadSpotifyTab('liked')"     class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                            <button id="spBTab-recent"    onclick="loadSpotifyTab('recent')"    class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
+                            <button id="spBTab-url" onclick="loadSpotifyTab('url')" class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:rgba(30,215,96,0.08);border:none;color:#1ED760;cursor:pointer;">URL Added</button>
                         </div>
                     </div>
                     <!-- Track list -->
@@ -1064,8 +1063,7 @@
             <div id="spViewMain" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
                 <div style="padding:1rem 2.5rem;border-bottom:1px solid var(--border);display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;flex-shrink:0;">
                     <div style="display:flex;border:1px solid var(--border);">
-                        <button id="spVTab-liked"  onclick="spViewSetTab('liked')"  class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:rgba(30,215,96,0.08);border:none;border-right:1px solid var(--border);color:#1ED760;cursor:pointer;">Liked</button>
-                        <button id="spVTab-recent" onclick="spViewSetTab('recent')" class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;">Recent</button>
+                        <button id="spVTab-url" onclick="spViewSetTab('url')" class="sp-tab sp-vtab" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:rgba(30,215,96,0.08);border:none;color:#1ED760;cursor:pointer;">URL Added</button>
                     </div>
                 </div>
                 <div id="spViewTracks" style="flex:1;overflow-y:auto;padding:0.5rem 2.5rem 2rem;"></div>
@@ -3281,7 +3279,7 @@
     let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
     let spDeviceId     = null, spPlayer = null, spNoPremium = false, spIsPremium = false;
     let spTransitioning = false;  // true while a new Spotify track is being loaded
-    let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
+    let spTab          = 'url', spOffset = 0, spPlaylistId = null, spListenTick = 0;
     let spUserId       = null;
 
     // ── LIKED SONGS AUTO-SYNC ──
@@ -3450,7 +3448,7 @@
         if (spViewMain) { spViewMain.style.display = 'flex'; }
         if (spViewDisconnect) spViewDisconnect.style.display = 'inline-block';
         spOffset = 0;
-        await loadSpotifyTab('liked');
+        await loadSpotifyTab('url');
         spStartLikedSync();
         // Also load view page if spotify view is active
         if (document.getElementById('view-spotify') && document.getElementById('view-spotify').style.display !== 'none') {
@@ -3473,10 +3471,10 @@
             const hasNew = newUris.some(function(uri) { return !_spKnownLikedUris.has(uri); });
             if (!hasNew) return;
             newUris.forEach(function(uri) { _spKnownLikedUris.add(uri); });
-            // Refresh the browse panel Liked tab if it is currently showing
-            if (spTab === 'liked') { spOffset = 0; spFetchPage(false); }
-            // Refresh the full Spotify view Liked tab if it is open
-            if (_spViewTab === 'liked') { _spViewOffset = 0; _spViewRawTracks = []; spViewLoadPage(false); }
+            // Refresh the browse panel URL tab if it is currently showing
+            if (spTab === 'url') { spOffset = 0; spFetchPage(false); }
+            // Refresh the full Spotify view URL tab if it is open
+            if (_spViewTab === 'url') { _spViewOffset = 0; _spViewRawTracks = []; spViewLoadPage(false); }
         } catch(e) {}
     }
 
@@ -3626,14 +3624,14 @@
         const spLoadMore = document.getElementById('spLoadMore');
         const spBrowseLoadMore = document.getElementById('spBrowseLoadMore');
         let data;
-        if (spTab === 'liked') {
-            data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + spOffset);
-            if (!data) return;
-            renderSpotifyTracklist((data.items || []).map(i => spFromAPI(i.track)), append);
-            spOffset += (data.items || []).length;
-            const hasMore = !!data.next;
-            if (spLoadMore) spLoadMore.style.display = hasMore ? 'block' : 'none';
-            if (spBrowseLoadMore) spBrowseLoadMore.style.display = hasMore ? 'block' : 'none';
+        if (spTab === 'url') {
+            // Show only Spotify tracks in the library added via URL
+            const urlTracks = library.filter(function(t) { return t.source === 'spotify' && t.spUri; }).map(function(t) {
+                return { spUri: t.spUri, title: t.title, artist: t.artist, album: t.album || '', artwork: t.albumArt || null, duration: t.duration || 0 };
+            });
+            renderSpotifyTracklist(urlTracks, false);
+            if (spLoadMore) spLoadMore.style.display = 'none';
+            if (spBrowseLoadMore) spBrowseLoadMore.style.display = 'none';
         } else if (spTab === 'playlists') {
             if (!spPlaylistId) {
                 data = await spAPI('/me/playlists?limit=' + lim + '&offset=' + spOffset);
@@ -3647,14 +3645,6 @@
                 if (spLoadMore) spLoadMore.style.display = hasMore ? 'block' : 'none';
                 if (spBrowseLoadMore) spBrowseLoadMore.style.display = hasMore ? 'block' : 'none';
             }
-        } else if (spTab === 'recent') {
-            data = await spAPI('/me/player/recently-played?limit=' + lim);
-            if (!data) return;
-            const seen = new Set();
-            const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
-            renderSpotifyTracklist(tracks, false);
-            if (spLoadMore) spLoadMore.style.display = 'none';
-            if (spBrowseLoadMore) spBrowseLoadMore.style.display = 'none';
         }
     }
 
@@ -3710,7 +3700,7 @@
         };
 
         if (!tracks.length && !append) {
-            const empty = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks found</div>';
+            const empty = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No tracks added by URL yet — paste a Spotify track URL to get started.</div>';
             if (sideEl)   sideEl.innerHTML = empty;
             if (browseEl) browseEl.innerHTML = empty;
             return;
@@ -4060,7 +4050,7 @@
     }
 
     // ── SPOTIFY FULL PAGE VIEW ──
-    let _spViewTab = 'liked', _spViewOffset = 0, _spViewRawTracks = [];
+    let _spViewTab = 'url', _spViewOffset = 0, _spViewRawTracks = [];
 
     function spViewInit() {
         const connected = !!spAccessToken;
@@ -4075,7 +4065,7 @@
         const userEl = document.getElementById('spViewUser');
         if (userEl && spUserId) userEl.textContent = spUserId;
         if (connected && spViewMain) {
-            // load liked songs if view is freshly opened
+            // load URL-added songs if view is freshly opened
             spViewSetTab(_spViewTab);
         }
     }
@@ -4097,21 +4087,12 @@
         if (!append) tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:1.5rem 0;">Loading...</div>';
         const lim = 20;
         let data;
-        if (_spViewTab === 'liked') {
-            data = await spAPI('/me/tracks?limit=' + lim + '&offset=' + _spViewOffset);
-            if (!data) return;
-            const tracks = (data.items || []).map(i => spFromAPI(i.track)).filter(Boolean);
-            _spViewRawTracks = append ? _spViewRawTracks.concat(tracks) : tracks;
-            _spViewOffset += tracks.length;
-            spViewRenderTracks(tracks, append);
-            if (loadMoreBtn) loadMoreBtn.style.display = data.next ? 'block' : 'none';
-        } else if (_spViewTab === 'recent') {
-            data = await spAPI('/me/player/recently-played?limit=' + lim);
-            if (!data) return;
-            const seen = new Set();
-            const tracks = (data.items || []).filter(i => i && i.track && i.track.id).filter(i => { if (seen.has(i.track.id)) return false; seen.add(i.track.id); return true; }).map(i => spFromAPI(i.track));
-            _spViewRawTracks = tracks;
-            spViewRenderTracks(tracks, false);
+        if (_spViewTab === 'url') {
+            const urlTracks = library.filter(function(t) { return t.source === 'spotify' && t.spUri; }).map(function(t) {
+                return { spUri: t.spUri, title: t.title, artist: t.artist, album: t.album || '', artwork: t.albumArt || null, duration: t.duration || 0 };
+            });
+            _spViewRawTracks = urlTracks;
+            spViewRenderTracks(urlTracks, false);
             if (loadMoreBtn) loadMoreBtn.style.display = 'none';
         }
     }
@@ -4124,7 +4105,7 @@
         const tracksEl = document.getElementById('spViewTracks');
         if (!tracksEl) return;
         if (!tracks.length && !append) {
-            tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">No tracks found</div>';
+            tracksEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1.5rem 0;">No tracks added by URL yet — paste a Spotify track URL above to get started.</div>';
             return;
         }
         const html = tracks.map(t => {
