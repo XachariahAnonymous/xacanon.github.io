@@ -2607,8 +2607,19 @@
         scWidget.bind(SC.Widget.Events.READY, () => {
             scWidgetReady = true;
             scTransitioning = false;
-            scWidget.getDuration(d => { scCurrentDur = d || 0; document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000); });
-            // Shrink iframe back to 1×1 after autoplay budget is granted
+            // Fetch duration immediately and retry until we get a non-zero value
+            // (SC sometimes returns 0 on first call if the track hasn't buffered)
+            const _fetchDur = (attempt) => {
+                scWidget.getDuration(d => {
+                    if (d && d > 0) {
+                        scCurrentDur = d;
+                        document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                    } else if (attempt < 8) {
+                        setTimeout(() => _fetchDur(attempt + 1), 300);
+                    }
+                });
+            };
+            _fetchDur(0);
             if (typeof onReadyCb === 'function') onReadyCb();
         });
         scWidget.bind(SC.Widget.Events.PLAY, () => {
@@ -2646,9 +2657,9 @@
         });
         scWidget.bind(SC.Widget.Events.PLAY_PROGRESS, obj => {
             scCurrentPos = obj.currentPosition || 0;
-            scCurrentDur = scCurrentDur || 1;
-            if (!isDraggingProgress) {
-                const pct = scCurrentDur ? (scCurrentPos / scCurrentDur) * 100 : 0;
+            // Only update bar if we have a real duration (avoid NaN/0 on first events)
+            if (scCurrentDur > 0 && !isDraggingProgress) {
+                const pct = (scCurrentPos / scCurrentDur) * 100;
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             }
@@ -2662,8 +2673,32 @@
         scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
 
-    function scStartProgressLoop() { scStopProgressLoop(); }
-    function scStopProgressLoop()  { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
+    function scStartProgressLoop() {
+        scStopProgressLoop();
+        // Poll every 250ms as a reliable fallback — PLAY_PROGRESS alone is inconsistent
+        scProgressTimer = setInterval(() => {
+            if (!scWidget || !scWidgetReady || !isPlaying) return;
+            scWidget.getPosition(pos => {
+                scCurrentPos = pos || 0;
+                // Lazily grab duration if we don't have it yet
+                if (!scCurrentDur) {
+                    scWidget.getDuration(d => {
+                        if (d) {
+                            scCurrentDur = d;
+                            document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                        }
+                    });
+                    return;
+                }
+                if (!isDraggingProgress) {
+                    const pct = (scCurrentPos / scCurrentDur) * 100;
+                    document.getElementById('progressFill').style.width = pct + '%';
+                    document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
+                }
+            });
+        }, 250);
+    }
+    function scStopProgressLoop() { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
 
     function scEnsureAPI(cb) {
         if (window.SC && window.SC.Widget) { cb(); return; }
