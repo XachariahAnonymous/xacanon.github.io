@@ -1394,7 +1394,12 @@
             STORE.length = 0;
             snap.forEach(d => {
                 const t = d.data();
-                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: ownedIds.has(d.id) });
+                const owned = ownedIds.has(d.id);
+                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned });
+                // Restore purchased tracks into library so they survive page refresh
+                if (owned && !library.some(l => l.id === d.id+'_lib')) {
+                    library.push({ id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store' });
+                }
             });
             storeLoaded = true;
             renderStore();
@@ -2920,7 +2925,7 @@
         }
         setTimeout(() => {
             s.owned = true;
-            library.push({ id: s.id+'_lib', url: '', title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
+            library.push({ id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' });
             btn.textContent = '✓ Added to Library'; btn.className = 'modal-btn success'; btn.disabled = false;
             renderLibrary(); renderQueue(); renderStore(); updateProfileView();
             showToast('"' + s.title + '" added to your library', true);
