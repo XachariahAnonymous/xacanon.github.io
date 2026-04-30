@@ -1378,8 +1378,7 @@
     const COIN_PER_PLAY = 0.001;  // 1000 completions = 1.00 BLK
 
     let _earnLastTs = 0; // kept for API compatibility (play/pause handlers touch this)
-    let _userSeeked = false; // true for 3s after any progress-bar seek — suppresses coin earn
-    let _userSeekedTimer = null;
+    let _userSeeked = false; // true after any progress-bar seek — suppresses coin earn until next track
 
     // Called when a track ends naturally — award the coin
     function _earnOnTrackEnd() {
@@ -1395,7 +1394,7 @@
 
     // No-ops kept so callers (play/pause handlers etc.) don't throw errors
     function _earnTick() {}
-    function _earnReset() { _earnLastTs = 0; }
+    function _earnReset() { _earnLastTs = 0; _userSeeked = false; }
     // ─────────────────────────────────────────────────────────────────────────
 
     const audio = document.getElementById('audioEl');
@@ -2573,10 +2572,6 @@
         }
         function commitPct(pct) {
             isDraggingProgress = false; bar.classList.remove('dragging');
-            // Mark that user manually seeked — suppress coin earn for 3s
-            _userSeeked = true;
-            clearTimeout(_userSeekedTimer);
-            _userSeekedTimer = setTimeout(() => { _userSeeked = false; }, 3000);
             const t = currentIdx >= 0 ? library[currentIdx] : null;
             if (t && t.source === 'soundcloud') {
                 scSeekTo(pct);
@@ -2588,10 +2583,10 @@
                 audio.currentTime = pct * audio.duration;
             }
         }
-        bar.addEventListener('mousedown', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
+        bar.addEventListener('mousedown', e => { isDraggingProgress = true; bar.classList.add('dragging'); _userSeeked = true; applyPct(getPct(e)); e.preventDefault(); });
         document.addEventListener('mousemove', e => { if (!isDraggingProgress) return; applyPct(getPct(e)); });
         document.addEventListener('mouseup', e => { if (!isDraggingProgress) return; commitPct(getPct(e)); });
-        bar.addEventListener('touchstart', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); }, { passive: false });
+        bar.addEventListener('touchstart', e => { isDraggingProgress = true; bar.classList.add('dragging'); _userSeeked = true; applyPct(getPct(e)); e.preventDefault(); }, { passive: false });
         document.addEventListener('touchmove', e => { if (!isDraggingProgress) return; applyPct(getPct(e)); }, { passive: true });
         document.addEventListener('touchend', e => {
             if (!isDraggingProgress) return;
