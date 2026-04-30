@@ -3251,9 +3251,11 @@
 
     // ── SPOTIFY PROGRESS RAF LOOP (smooth, no DOM thrash) ──
     let spRafId = null, spCurrentDuration = 0, spCurrentPosition = 0, spRafLastTs = 0;
+    let _spEndFired = false; // guard so end fires exactly once per track
     function spStartProgressLoop() {
         // Always cancel any existing loop so a track transition gets a clean baseline.
         if (spRafId) { cancelAnimationFrame(spRafId); spRafId = null; }
+        _spEndFired = false;
         function tick(ts) {
             if (!isPlaying || !spCurrentDuration) { spRafId = null; return; }
             const elapsed = ts - spRafLastTs;
@@ -3263,13 +3265,21 @@
                 document.getElementById('progressFill').style.width = (spCurrentPosition / spCurrentDuration * 100).toFixed(2) + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(Math.round(spCurrentPosition));
             }
-
+            // Fire end-of-track when position reaches duration — same pattern as SC FINISH event
+            if (!_spEndFired && spCurrentPosition >= spCurrentDuration - 0.3) {
+                _spEndFired = true;
+                spRafId = null;
+                _earnOnTrackEnd();
+                if (repeat === 2) { restartCurrentTrack(); }
+                else { nextTrack(); }
+                return;
+            }
             spRafId = requestAnimationFrame(tick);
         }
         spRafLastTs = performance.now();
         spRafId = requestAnimationFrame(tick);
     }
-    function spStopProgressLoop() { if (spRafId) { cancelAnimationFrame(spRafId); spRafId = null; } }
+    function spStopProgressLoop() { if (spRafId) { cancelAnimationFrame(spRafId); spRafId = null; } _spEndFired = true; }
 
     function spOnStateChange(state) {
         if (!state) return;
@@ -3302,37 +3312,11 @@
         updatePlayBtn();
         document.getElementById('playerArt').classList.toggle('playing', !state.paused);
         if (!state.paused) {
-            spTransitioning = false;  // new track is confirmed playing
+            spTransitioning = false;
             spStartProgressLoop();
         } else {
             spStopProgressLoop();
             _earnLastTs = 0;
-            // Spotify signals a natural track end in one of two ways:
-            // A) Same URI, paused, position reset to 0 (paused-at-end before auto-advancing)
-            // B) URI has changed AND position is 0 — Spotify already advanced to next track.
-            //    In this case prevUri is the track that just finished.
-            // In both cases we check prevUri (the track that was playing) is in previous_tracks.
-            const prevTracks = (state.track_window && state.track_window.previous_tracks) || [];
-            const finishedUri = (newUri !== prevUri) ? prevUri : newUri;
-            const justFinished = finishedUri && prevTracks.some(pt => pt.uri === finishedUri);
-            const trackEndedNaturally = !spTransitioning
-                && prevDuration > 0
-                && (state.position || 0) === 0
-                && finishedUri
-                && (justFinished || prevPosition >= prevDuration - 2);
-            if (trackEndedNaturally) {
-                _earnOnTrackEnd();
-                if (repeat === 2) {
-                    spTransitioning = true;
-                    setTimeout(() => {
-                        restartCurrentTrack();
-                        spTransitioning = false;
-                    }, 200);
-                } else if (newUri === prevUri && currentIdx >= 0) {
-                    // Only call nextTrack if Spotify hasn't already auto-advanced
-                    nextTrack();
-                }
-            }
         }
     }
     spOnStateChange._lastUri = null;
