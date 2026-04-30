@@ -1380,6 +1380,26 @@
     audio.volume = volume;
 
     const STORE = [];
+    let storeLoaded = false;
+
+    async function loadStoreTracks() {
+        if (!FB) return;
+        try {
+            const snap = await FB.getDocs(FB.collection(FB.db, 'storeTracks'));
+            let ownedIds = new Set();
+            if (currentUser) {
+                const purchSnap = await FB.getDocs(FB.collection(FB.db, 'purchases'));
+                purchSnap.forEach(d => { const p = d.data(); if (p.uid === currentUser.uid) ownedIds.add(p.trackId); });
+            }
+            STORE.length = 0;
+            snap.forEach(d => {
+                const t = d.data();
+                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: ownedIds.has(d.id) });
+            });
+            storeLoaded = true;
+            renderStore();
+        } catch(e) { console.warn('loadStoreTracks failed:', e); }
+    }
 
     // ════════════════════════════════════════
     // AUTH
@@ -1420,6 +1440,8 @@
         updateNavUser();
         updateCoins();
         updateProfileView();
+        // Load store tracks from Firestore
+        loadStoreTracks();
         // Restore streaming tracks from Firestore (cross-device sync)
         await fbLoadStreamingTracks(user.uid);
     }
@@ -1887,7 +1909,7 @@
         document.querySelectorAll('.nav-tab').forEach((t, i) => {
             t.classList.toggle('active', ['library','store','playlists','profile'][i] === v);
         });
-        if (v === 'store') renderStore();
+        if (v === 'store') { if (!storeLoaded) loadStoreTracks(); else renderStore(); }
         if (v === 'profile') updateProfileView();
         if (v === 'playlists') renderPlaylists();
         if (v === 'spotify') spViewInit();
