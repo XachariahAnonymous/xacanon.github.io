@@ -2526,9 +2526,15 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
+        function getDuration() {
+            const t = currentIdx >= 0 ? library[currentIdx] : null;
+            if (t && t.source === 'soundcloud') return scCurrentDur / 1000;
+            if (t && t.source === 'spotify')    return spCurrentDuration;
+            return isFinite(audio.duration) ? audio.duration : 0;
+        }
         function applyPct(pct) {
             fill.style.width = (pct * 100) + '%';
-            const dur = audio.duration || spCurrentDuration || (scCurrentDur / 1000) || 0;
+            const dur = getDuration();
             if (dur) document.getElementById('timeElapsed').textContent = fmt(pct * dur);
         }
         function commitPct(pct) {
@@ -2536,16 +2542,15 @@
             const t = currentIdx >= 0 ? library[currentIdx] : null;
             if (t && t.source === 'soundcloud' && scCurrentDur) {
                 scSeekTo(pct);
-            } else if (spCurrentDuration && spPlayer && (spDeviceId || spNoPremium === false)) {
+            } else if (t && t.source === 'spotify' && spCurrentDuration && spPlayer) {
                 const ms = Math.round(pct * spCurrentDuration * 1000);
                 spCurrentPosition = pct * spCurrentDuration;
                 spPlayer.seek(ms);
-            } else if (audio.duration) {
+            } else if (isFinite(audio.duration) && audio.duration > 0) {
                 audio.currentTime = pct * audio.duration;
             }
         }
         bar.addEventListener('mousedown', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
-        bar.addEventListener('click', e => { applyPct(getPct(e)); commitPct(getPct(e)); });
         document.addEventListener('mousemove', e => { if (!isDraggingProgress) return; applyPct(getPct(e)); });
         document.addEventListener('mouseup', e => { if (!isDraggingProgress) return; commitPct(getPct(e)); });
         bar.addEventListener('touchstart', e => { isDraggingProgress = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); }, { passive: false });
