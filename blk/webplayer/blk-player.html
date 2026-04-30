@@ -2929,21 +2929,18 @@
         }
 
         // scDestroyWidget() has already been called by the caller (playTrack / FINISH handler).
-        // Just record the new URL, reset UI, then load the iframe.
+        // Just record the new URL, reset UI, load the iframe, then bind immediately.
+        // The SC Widget API is designed so you can call SC.Widget(iframe) right away —
+        // the READY event fires when the widget is actually ready regardless of load state.
         scWidgetUrl  = trackUrl;
         _earnReset();
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
 
-        // Capture generation so the onload callback discards itself if superseded.
-        const loadGen = scGeneration;
-        iframe.onload = () => {
-            iframe.onload = null;
-            if (scGeneration !== loadGen) return;
-            scInitWidget();
-        };
+        iframe.onload = null;
         iframe.src = embedUrl;
+        scInitWidget();
     }
     function scTogglePlay() {
         if (!scWidget) return;
