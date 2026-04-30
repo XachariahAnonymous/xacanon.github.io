@@ -1389,6 +1389,9 @@
     function _earnOnTrackEnd() {
         // Don't award coins if the user dragged the progress bar to the end
         if (_userSeeked) return;
+        // Don't award coins for Spotify tracks when the user is not on a Premium account
+        const currentTrack = library[currentIdx];
+        if (currentTrack && currentTrack.source === 'spotify' && !spIsPremium) return;
         listenCount++;
         coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
 
@@ -3253,7 +3256,7 @@
     let soundcloudPanelOpen = false;
 
     let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
-    let spDeviceId     = null, spPlayer = null, spNoPremium = false;
+    let spDeviceId     = null, spPlayer = null, spNoPremium = false, spIsPremium = false;
     let spTransitioning = false;  // true while a new Spotify track is being loaded
     let spTab          = 'liked', spOffset = 0, spPlaylistId = null, spListenTick = 0;
     let spUserId       = null;
@@ -3363,6 +3366,7 @@
         const me = await spAPI('/me');
         if (me) {
             spUserId = me.id || null;
+            spIsPremium = (me.product === 'premium');
             document.getElementById('spotifyStatus').textContent  = me.display_name || me.email || '';
             document.getElementById('spBrowseUser').textContent   = me.display_name || me.email || '';
             const spViewUserEl = document.getElementById('spViewUser');
@@ -3826,7 +3830,9 @@
     function openSpotifyEmbed(trackId, title, artist) {
         const embedSrc = 'https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0';
         document.getElementById('embedTitle').textContent = (title || 'Spotify Track') + (artist ? ' — ' + artist : '');
-        document.getElementById('embedNote').textContent  = '🎵 Spotify Embed · 30s preview for free accounts · Full track with Premium';
+        document.getElementById('embedNote').innerHTML =
+            '🎵 Spotify Embed · 30s preview for free accounts · Full track with Premium'
+            + '<div id="spPremiumWarn" style="margin-top:0.6rem;padding:0.55rem 0.8rem;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-left:3px solid var(--warn);font-family:\'Space Mono\',monospace;font-size:0.55rem;color:var(--warn);letter-spacing:0.5px;line-height:1.6;">⚠ To earn BLK through Spotify, please sign into a Spotify Premium account</div>';
         document.getElementById('embedIframeWrap').innerHTML =
             '<iframe src="' + embedSrc + '" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
         document.getElementById('embedOverlay').classList.add('open');
