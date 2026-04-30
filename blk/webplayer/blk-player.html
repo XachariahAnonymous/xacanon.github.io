@@ -1381,7 +1381,7 @@
     function _earnOnTrackEnd() {
         listenCount++;
         coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
-        console.log('[BLK] _earnOnTrackEnd fired — coins now:', coins);
+
         updateCoins();
         flashCoinEarn();
         syncCoinsToFirestore(COIN_PER_PLAY);
@@ -2372,16 +2372,21 @@
             if (isPlaying) { audio.pause(); } else { audio.play().catch(()=>{}); }
             return;
         }
-        // Stop whatever is currently playing
+        // Stop ALL sources cleanly before switching
         audio.pause();
-        _earnReset(); // new track — reset listen accumulator
-        if (spPlayer) { try { spPlayer.pause(); } catch(e) {} }  // pause Spotify SDK player
+        audio.src = '';
+        _earnReset();
+        if (spPlayer) { try { spPlayer.pause(); } catch(e) {} }
         spStopProgressLoop();
-        // Pause SC widget if active
-        if (scWidget && scWidgetUrl && t.source !== 'soundcloud') {
-            try { scWidget.pause(); } catch(e) {}
-            scWidgetUrl = null;
-        }
+        scStopProgressLoop();
+        if (scWidget) { try { scWidget.pause(); } catch(e) {} }
+        if (t.source !== 'soundcloud') { scWidgetUrl = null; }
+
+        // Reset progress bar immediately so it doesn't show stale position
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('timeElapsed').textContent  = '0:00';
+        document.getElementById('timeDuration').textContent = '0:00';
+
         currentIdx = idx;
         updatePlayerUI(t);
         renderLibrary(); renderQueue();
@@ -2399,9 +2404,7 @@
             }
             return;
         }
-        // Local file — reset state before loading new src
-        audio.src = '';
-        audio.currentTime = 0;
+        // Local file
         audio.src = t.url;
         audio.load();
         audio.play().catch(()=>{});
@@ -2643,7 +2646,6 @@
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
     function updateCoins() {
         const el = document.getElementById('coinDisplay');
-        console.log('[BLK] updateCoins — el:', el, '— coins:', coins);
         if (el) el.textContent = coins.toFixed(3)+' BLK';
         const statEl = document.getElementById('statCoins');
         if (statEl) statEl.textContent = coins.toFixed(3);
@@ -2724,8 +2726,21 @@
         scWidget.bind(SC.Widget.Events.ERROR, () => { _scHandleError(); });
     }
 
-    function scStartProgressLoop() { scStopProgressLoop(); }
-    function scStopProgressLoop()  { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
+    function scStartProgressLoop() {
+        scStopProgressLoop();
+        scProgressTimer = setInterval(() => {
+            if (!scWidget || !scWidgetReady || !isPlaying) return;
+            scWidget.getPosition(pos => {
+                scCurrentPos = pos || 0;
+                if (!isDraggingProgress && scCurrentDur) {
+                    const pct = (scCurrentPos / scCurrentDur) * 100;
+                    document.getElementById('progressFill').style.width = pct + '%';
+                    document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
+                }
+            });
+        }, 500);
+    }
+    function scStopProgressLoop() { if (scProgressTimer) { clearInterval(scProgressTimer); scProgressTimer = null; } }
 
     function scEnsureAPI(cb) {
         if (window.SC && window.SC.Widget) { cb(); return; }
