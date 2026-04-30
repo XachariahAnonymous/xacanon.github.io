@@ -1498,8 +1498,18 @@
         loadStoreTracks();
         // Restore streaming tracks from Firestore (cross-device sync)
         await fbLoadStreamingTracks(user.uid);
-        // Restore Spotify session keyed to this user
-        spRestoreSession().catch(() => {});
+        // Restore Spotify session keyed to this user — or, if we just came back from
+        // a Spotify OAuth redirect, complete the token exchange now that currentUser
+        // is set so tokens are saved under the correct UID key (Bug 1/3 fix).
+        if (_pendingSpCallback) {
+            _pendingSpCallback = false; // consume the flag
+            const code = _pendingSpCode, st = _pendingSpState;
+            _pendingSpCode = null; _pendingSpState = null;
+            ensureSpotifyConfig();
+            spHandleCallback(code, st).catch(() => {});
+        } else {
+            spRestoreSession().catch(() => {});
+        }
     }
 
     async function fbSaveStreamingTrack(track) {
@@ -3293,14 +3303,18 @@
         window.location.href = 'https://accounts.spotify.com/authorize?' + params;
     }
 
-    async function spHandleCallback() {
+    async function spHandleCallback(preCode, preSt) {
         ensureSpotifyConfig();
-        const url  = new URL(window.location.href);
-        const code = url.searchParams.get('code');
-        const st   = url.searchParams.get('state');
-        const err  = url.searchParams.get('error');
-        if (!code) return;
-        window.history.replaceState({}, '', window.location.pathname);
+        // Accept either pre-parsed values (deferred path) or read from URL (direct call)
+        let code = preCode, st = preSt, err = null;
+        if (!code) {
+            const url = new URL(window.location.href);
+            code = url.searchParams.get('code');
+            st   = url.searchParams.get('state');
+            err  = url.searchParams.get('error');
+            if (!code) return;
+            window.history.replaceState({}, '', window.location.pathname);
+        }
         if (err) { showToast('Spotify denied: ' + err); return; }
         if (st !== sessionStorage.getItem('sp_st')) { showToast('Spotify state mismatch'); return; }
         const verifier = sessionStorage.getItem('sp_cv');
@@ -4546,12 +4560,25 @@
     plLoad();
 
     // ── BOOT ──
-    // Handle Spotify OAuth callback before anything else
-    (async () => {
-        // Wait for module to expose config before callback handler runs
-        await waitForFB();
-        ensureSpotifyConfig();
-        try { await spHandleCallback(); } catch(e) {}
+    // Detect a Spotify OAuth callback (?code=...) early so we can strip the URL
+    // immediately — but defer the actual token exchange until AFTER Firebase auth
+    // resolves and currentUser is set.  If we exchanged tokens here (before auth),
+    // _spKeys() would return 'sp_at_anon' and spRestoreSession() (keyed to the real
+    // UID) would never find them — Bug 1 / Bug 3 from the audit.
+    let _pendingSpCallback = false;
+    let _pendingSpCode = null, _pendingSpState = null;
+    (function detectSpCallback() {
+        const url  = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        if (!code) return;
+        // Save values before wiping the URL — spHandleCallback will need them
+        _pendingSpCode  = code;
+        _pendingSpState = url.searchParams.get('state');
+        // Strip the query string immediately so the URL looks clean while the user
+        // waits for auth to resolve.  The verifier is already in sessionStorage
+        // (set by spotifyAuth() before the redirect), so it is safe.
+        window.history.replaceState({}, '', window.location.pathname);
+        _pendingSpCallback = true;
     })();
 
     openIDB().then(db => {
