@@ -2540,7 +2540,7 @@
         function commitPct(pct) {
             isDraggingProgress = false; bar.classList.remove('dragging');
             const t = currentIdx >= 0 ? library[currentIdx] : null;
-            if (t && t.source === 'soundcloud' && scCurrentDur) {
+            if (t && t.source === 'soundcloud') {
                 scSeekTo(pct);
             } else if (t && t.source === 'spotify' && spCurrentDuration && spPlayer) {
                 const ms = Math.round(pct * spCurrentDuration * 1000);
@@ -2885,8 +2885,19 @@
     }
 
     function scSeekTo(pct) {
-        if (!scWidget || !scCurrentDur) return;
-        scWidget.seekTo(Math.round(pct * scCurrentDur));
+        if (!scWidget || !scWidgetReady) return;
+        if (scCurrentDur) {
+            scWidget.seekTo(Math.round(pct * scCurrentDur));
+        } else {
+            // Duration not yet cached — fetch it first, then seek
+            scWidget.getDuration(d => {
+                scCurrentDur = d || 0;
+                if (scCurrentDur) {
+                    scWidget.seekTo(Math.round(pct * scCurrentDur));
+                    document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                }
+            });
+        }
     }
 
     function scSetVolume(v) {
@@ -3227,11 +3238,12 @@
             // Use prevUri (captured before any _lastUri update) so the comparison is against
             // the track that was actually playing, not the one that may have just been swapped in.
             const prevTracks = (state.track_window && state.track_window.previous_tracks) || [];
-            const uriToCheck = prevUri || newUri;
-            const justFinished = prevTracks.length > 0 && prevTracks[prevTracks.length - 1].uri === uriToCheck;
+            const uriToCheck = prevUri; // must be the track that was playing, never the new one
+            const justFinished = uriToCheck && prevTracks.length > 0 && prevTracks[prevTracks.length - 1].uri === uriToCheck;
             const trackEndedNaturally = !spTransitioning
                 && prevDuration > 0
                 && (state.position || 0) === 0
+                && uriToCheck
                 && (justFinished || prevPosition >= prevDuration - 2);
             if (trackEndedNaturally) {
                 _earnOnTrackEnd(); // track finished — allow replay to earn again
