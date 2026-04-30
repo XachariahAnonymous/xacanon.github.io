@@ -1369,6 +1369,7 @@
     let library = [], currentIdx = -1, isPlaying = false;
     let shuffle = false, repeat = 0, muted = false, volume = 0.8;
     let shuffleQueue = [];
+    let activePlaylistId = null; // null = full library context, string = playlist context
     let coins = 0, listenCount = 0, pendingPurchase = null;
 
     // ── BLK COIN EARN: finish-based model ────────────────────────────────────
@@ -2398,7 +2399,8 @@
     // ════════════════════════════════════════
     // PLAYBACK
     // ════════════════════════════════════════
-    function playTrack(idx) {
+    function playTrack(idx, keepContext) {
+        if (!keepContext) activePlaylistId = null;
         if (idx < 0 || idx >= library.length) return;
         const t = library[idx];
         if (t.missing) { showToast('⚠ File missing — re-upload to restore playback'); return; }
@@ -2480,38 +2482,52 @@
     function nextTrack() {
         if (!library.length) return;
         if (repeat === 2) { restartCurrentTrack(); return; } // repeat-one
+        const pool = getPlayPool(); // indices to draw from (playlist or full library)
         if (shuffle) {
             if (!shuffleQueue.length) {
-                if (repeat === 1) buildShuffleQueue(); // rebuild for repeat-all
-                else return; // repeat off, shuffle exhausted — stop
+                if (repeat === 1) buildShuffleQueue();
+                else return;
             }
             if (!shuffleQueue.length) return;
-            playTrack(shuffleQueue.shift());
+            playTrack(shuffleQueue.shift(), true);
             return;
         }
-        const nextIdx = currentIdx + 1;
-        if (nextIdx >= library.length) {
-            if (repeat === 1) { playTrack(0); return; } // repeat-all: wrap to start
-            // repeat off: stop — reset progress and button state
+        const pos = pool.indexOf(currentIdx);
+        const nextPos = pos + 1;
+        if (nextPos >= pool.length) {
+            if (repeat === 1) { playTrack(pool[0], true); return; }
             isPlaying = false;
             updatePlayBtn();
             return;
         }
-        playTrack(nextIdx);
+        playTrack(pool[nextPos], true);
     }
 
     function prevTrack() {
         if (!library.length) return;
         const t = library[currentIdx];
-        // If >3s in, restart current track instead of going back
         if (t && t.source === 'local' && audio.currentTime > 3) { audio.currentTime = 0; return; }
         if (t && t.source === 'spotify' && spPlayer && spCurrentPosition > 3) { spPlayer.seek(0); return; }
         if (repeat === 2) { restartCurrentTrack(); return; }
-        playTrack(currentIdx <= 0 ? library.length - 1 : currentIdx - 1);
+        const pool = getPlayPool();
+        const pos = pool.indexOf(currentIdx);
+        playTrack(pool[pos <= 0 ? pool.length - 1 : pos - 1], true);
+    }
+
+    function getPlayPool() {
+        if (activePlaylistId) {
+            plLoad();
+            const pl = playlists.find(p => p.id === activePlaylistId);
+            if (pl) {
+                const indices = pl.trackIds.map(id => library.findIndex(t => t.id === id)).filter(i => i >= 0);
+                if (indices.length) return indices;
+            }
+        }
+        return library.map((_, i) => i);
     }
 
     function buildShuffleQueue() {
-        const indices = library.map((_, i) => i).filter(i => i !== currentIdx);
+        const indices = getPlayPool().filter(i => i !== currentIdx);
         for (let i = indices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [indices[i], indices[j]] = [indices[j], indices[i]];
@@ -4435,7 +4451,7 @@
             var isStream = t.source === 'spotify' || t.source === 'soundcloud';
             var srcTag = isStream ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';margin-left:4px;">' + (t.source==='spotify'?'SP':'SC') + '</span>' : '';
             var thumb = t.albumArt ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;" onerror="_imgArtErr(this)">' : '<span>' + (t.emoji||'\u25C8') + '</span>';
-            return '<div class="track-row" onclick="playTrack(' + libIdx + ')">'
+            return '<div class="track-row" onclick="activePlaylistId=\'' + id + '\';playTrack(' + libIdx + ',true)">'
                 + '<span class="track-idx">' + (i+1) + '</span>'
                 + '<div class="track-info"><div class="track-thumb">' + thumb + '<div class="play-overlay">&#9654;</div></div>'
                 + '<div><div class="track-name">' + esc(t.title) + srcTag + '</div><div class="track-name-artist">' + esc(t.artist) + '</div></div></div>'
@@ -4488,7 +4504,9 @@
             if (idx >= 0) { first = idx; break; }
         }
         if (first < 0) { showToast('No playable tracks in playlist'); return; }
-        playTrack(first);
+        activePlaylistId = id; // set context BEFORE playTrack so keepContext isn't needed
+        playTrack(first, true);
+        if (shuffle) buildShuffleQueue(); // rebuild shuffle within playlist
         showToast('Playing "' + pl.name + '"', true);
     }
 
