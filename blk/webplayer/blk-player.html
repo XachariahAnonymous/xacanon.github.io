@@ -249,7 +249,7 @@
             display: none;
             position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
             background: var(--surface); border: 1px solid var(--border);
-            min-width: 320px; max-height: 70vh; overflow-y: auto;
+            min-width: 380px; max-height: 80vh; overflow-y: auto;
             z-index: 300; box-shadow: 0 12px 40px rgba(0,0,0,0.8);
         }
         .streaming-dropdown::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
@@ -885,6 +885,37 @@
                             <span id="spotifyBtnText">Connect Spotify</span>
                             <span class="stream-status" id="spotifyStatus"></span>
                         </button>
+
+                        <!-- ── SONG URL TAB ── -->
+                        <div style="margin-bottom:0.5rem;">
+                            <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:rgba(30,215,96,0.55);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.35rem;">Song URL</div>
+                            <div style="display:flex;gap:0.35rem;">
+                                <input type="text" id="ddSpSongUrl"
+                                    placeholder="Paste Spotify track URL..."
+                                    onclick="event.stopPropagation()"
+                                    onkeydown="if(event.key==='Enter'){event.stopPropagation();ddAddSpotifySong();}"
+                                    style="flex:1;background:var(--bg);border:1px solid rgba(30,215,96,0.2);color:#fff;font-family:'Space Mono',monospace;font-size:0.55rem;padding:0.4rem 0.6rem;outline:none;min-width:0;">
+                                <button onclick="event.stopPropagation();ddAddSpotifySong()"
+                                    style="font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.7rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;">Add</button>
+                            </div>
+                            <div id="ddSpSongStatus" style="font-family:'Space Mono',monospace;font-size:0.45rem;color:rgba(255,255,255,0.3);letter-spacing:0.5px;margin-top:0.25rem;min-height:0.7rem;"></div>
+                        </div>
+
+                        <!-- ── PLAYLIST URL TAB ── -->
+                        <div style="margin-bottom:0.5rem;">
+                            <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:rgba(30,215,96,0.55);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.35rem;">Playlist URL</div>
+                            <div style="display:flex;gap:0.35rem;">
+                                <input type="text" id="ddSpPlaylistUrl"
+                                    placeholder="Paste Spotify playlist URL..."
+                                    onclick="event.stopPropagation()"
+                                    onkeydown="if(event.key==='Enter'){event.stopPropagation();ddAddSpotifyPlaylist();}"
+                                    style="flex:1;background:var(--bg);border:1px solid rgba(30,215,96,0.2);color:#fff;font-family:'Space Mono',monospace;font-size:0.55rem;padding:0.4rem 0.6rem;outline:none;min-width:0;">
+                                <button onclick="event.stopPropagation();ddAddSpotifyPlaylist()"
+                                    style="font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.7rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;">Import</button>
+                            </div>
+                            <div id="ddSpPlaylistStatus" style="font-family:'Space Mono',monospace;font-size:0.45rem;color:rgba(255,255,255,0.3);letter-spacing:0.5px;margin-top:0.25rem;min-height:0.7rem;"></div>
+                        </div>
+
                         <button onclick="openStreamingView('spotify')" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:rgba(30,215,96,0.08);border:1px solid rgba(30,215,96,0.2);color:#1ED760;cursor:pointer;margin-bottom:0.3rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(30,215,96,0.18)'" onmouseout="this.style.background='rgba(30,215,96,0.08)'">Open Spotify View →</button>
                     </div>
                     <div class="stream-dd-section" style="border-top:1px solid var(--border);padding-top:1rem;">
@@ -3959,6 +3990,165 @@
 
         const skipped = allTracks.length - added;
         showToast(added + ' tracks imported · playlist "' + name + '" created', true);
+    }
+
+    // ── HAMBURGER DROPDOWN: ADD SONG BY URL ──
+    async function ddAddSpotifySong() {
+        const input  = document.getElementById('ddSpSongUrl');
+        const status = document.getElementById('ddSpSongStatus');
+        const url    = (input ? input.value.trim() : '');
+        if (!url) { if (status) { status.textContent = 'Paste a Spotify track URL first'; status.style.color = 'var(--error)'; } return; }
+
+        const mUrl   = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
+        const mUri   = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
+        const trackId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
+        if (!trackId) { if (status) { status.textContent = 'Not a valid Spotify track URL'; status.style.color = 'var(--error)'; } return; }
+
+        const spUri = 'spotify:track:' + trackId;
+        if (library.some(l => l.spUri === spUri)) {
+            if (status) { status.textContent = 'Already in library'; status.style.color = 'var(--warn)'; }
+            return;
+        }
+
+        if (status) { status.textContent = 'Fetching...'; status.style.color = 'rgba(30,215,96,0.6)'; }
+
+        let trackData = null;
+        try {
+            if (typeof spAccessToken !== 'undefined' && spAccessToken) {
+                await spRefreshIfNeeded();
+                const r = await fetch('https://api.spotify.com/v1/tracks/' + trackId, {
+                    headers: { 'Authorization': 'Bearer ' + spAccessToken }
+                });
+                if (r.ok) { const t = await r.json(); trackData = spFromAPI(t); trackData.spUri = spUri; }
+            }
+        } catch(_) {}
+
+        if (!trackData) {
+            try {
+                const r = await fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/track/' + trackId);
+                if (r.ok) {
+                    const d = await r.json();
+                    trackData = { spUri, title: d.title || 'Spotify Track', artist: d.author_name || 'Unknown Artist', album: '', artwork: d.thumbnail_url || null, duration: 0 };
+                }
+            } catch(_) {}
+        }
+
+        if (!trackData) trackData = { spUri, title: 'Spotify Track', artist: 'Unknown Artist', album: '', artwork: null, duration: 0 };
+
+        const track = {
+            id: 'sp_lib_' + Date.now(),
+            spUri, url: spUri,
+            title: trackData.title, artist: trackData.artist, album: trackData.album || '',
+            albumArt: trackData.artwork || null,
+            duration: trackData.duration || 0,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '🎵', source: 'spotify',
+            spotifyType: 'track', spotifyTrackId: trackId
+        };
+
+        library.push(track);
+        spotifyTracks.push(track);
+        if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+        if (typeof fbSaveStreamingTrack === 'function') fbSaveStreamingTrack(track);
+        renderLibrary(); renderQueue();
+
+        if (input)  input.value = '';
+        if (status) { status.textContent = '✓ "' + track.title + '" added'; status.style.color = 'var(--success)'; setTimeout(() => { if (status) status.textContent = ''; }, 3000); }
+        showToast('"' + track.title + '" added to library', true);
+    }
+
+    // ── HAMBURGER DROPDOWN: IMPORT PLAYLIST BY URL ──
+    async function ddAddSpotifyPlaylist() {
+        const input  = document.getElementById('ddSpPlaylistUrl');
+        const status = document.getElementById('ddSpPlaylistStatus');
+        const url    = (input ? input.value.trim() : '');
+        if (!url) { if (status) { status.textContent = 'Paste a Spotify playlist URL first'; status.style.color = 'var(--error)'; } return; }
+
+        const mUrl = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?playlist\/([A-Za-z0-9]+)/);
+        const mUri = url.match(/^spotify:playlist:([A-Za-z0-9]+)$/);
+        const playlistId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
+        if (!playlistId) { if (status) { status.textContent = 'Not a valid Spotify playlist URL'; status.style.color = 'var(--error)'; } return; }
+
+        if (!spAccessToken) {
+            if (status) { status.textContent = 'Connect Spotify first'; status.style.color = 'var(--warn)'; }
+            showToast('Connect Spotify to import playlists');
+            return;
+        }
+
+        if (status) { status.textContent = 'Fetching playlist...'; status.style.color = 'rgba(30,215,96,0.6)'; }
+
+        // Get playlist name
+        let playlistName = 'Imported Playlist';
+        try {
+            await spRefreshIfNeeded();
+            const meta = await fetch('https://api.spotify.com/v1/playlists/' + playlistId + '?fields=name', {
+                headers: { 'Authorization': 'Bearer ' + spAccessToken }
+            });
+            if (meta.ok) { const m = await meta.json(); playlistName = m.name || playlistName; }
+        } catch(_) {}
+
+        if (status) { status.textContent = 'Importing "' + playlistName + '"...'; status.style.color = 'rgba(30,215,96,0.6)'; }
+
+        // Paginate through all tracks
+        let allTracks = [], offset = 0, total = null;
+        while (total === null || offset < total) {
+            try {
+                await spRefreshIfNeeded();
+                const r = await fetch('https://api.spotify.com/v1/playlists/' + playlistId + '/tracks?limit=50&offset=' + offset, {
+                    headers: { 'Authorization': 'Bearer ' + spAccessToken }
+                });
+                if (!r.ok) { if (status) { status.textContent = 'Error: ' + r.status; status.style.color = 'var(--error)'; } return; }
+                const data = await r.json();
+                total = data.total || 0;
+                const page = (data.items || []).filter(i => i && i.track && i.track.id).map(i => spFromAPI(i.track));
+                allTracks = allTracks.concat(page);
+                offset += 50;
+                if (!data.next) break;
+            } catch(e) { if (status) { status.textContent = 'Import failed'; status.style.color = 'var(--error)'; } return; }
+        }
+
+        if (!allTracks.length) { if (status) { status.textContent = 'Playlist is empty'; status.style.color = 'var(--warn)'; } return; }
+
+        let added = 0;
+        allTracks.forEach(t => {
+            if (!t || library.some(l => l.spUri === t.spUri)) return;
+            const track = {
+                id: 'sp_lib_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                spUri: t.spUri, url: t.spUri,
+                title: t.title, artist: t.artist, album: t.album || playlistName,
+                albumArt: t.artwork || null,
+                duration: t.duration || 0,
+                dateAdded: new Date().toLocaleDateString(),
+                emoji: '🎵', source: 'spotify',
+                playlist: playlistName
+            };
+            library.push(track);
+            spotifyTracks.push(track);
+            if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+            if (typeof fbSaveStreamingTrack === 'function') fbSaveStreamingTrack(track);
+            added++;
+        });
+
+        renderLibrary(); renderQueue();
+
+        // Auto-create a BLK playlist from the imported tracks
+        if (added > 0) {
+            plLoad();
+            const newIds = library.filter(t => t.playlist === playlistName).map(t => t.id);
+            if (!playlists.find(p => p.name === playlistName)) {
+                playlists.push({ id: 'pl_' + Date.now(), name: playlistName, trackIds: newIds, createdAt: new Date().toISOString() });
+                plSave();
+            }
+        }
+
+        if (input) input.value = '';
+        const skipped = allTracks.length - added;
+        const msg = added + ' tracks imported · playlist "' + playlistName + '" created' + (skipped ? ' · ' + skipped + ' skipped' : '');
+        if (status) { status.textContent = '✓ ' + added + ' tracks added'; status.style.color = 'var(--success)'; setTimeout(() => { if (status) status.textContent = ''; }, 4000); }
+        showToast(msg, true);
+
+        // Switch to playlists view to show the result
+        switchView('playlists');
     }
 
     async function spPlayTrack(uri, title, artist, album, artwork, duration) {
