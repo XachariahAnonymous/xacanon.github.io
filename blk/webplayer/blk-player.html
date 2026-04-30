@@ -2920,10 +2920,11 @@
         }
         scWidgetReady = false;
         iframe.src = embedUrl;
-        iframe.onload = () => {
-            iframe.onload = null;
-            scInitWidget(_scExpand);
-        };
+        // Call scInitWidget immediately after setting src — do NOT wait for iframe onload.
+        // SC.Widget() communicates via postMessage and handles its own readiness internally;
+        // binding inside onload is too late on some browsers and causes events to be missed.
+        // The READY event from the SC widget itself is the correct signal, not iframe onload.
+        scInitWidget(_scExpand);
     }
 
     function scTogglePlay() {
