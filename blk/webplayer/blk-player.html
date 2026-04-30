@@ -2685,6 +2685,30 @@
     let scProgressTimer  = null;
     let scTransitioning  = false;  // true while a new track is being loaded into the widget
 
+    // Completely tear down the current SC widget and reset the hidden iframe to blank.
+    // This ensures each new song starts with a fresh player instance.
+    function scDestroyWidget() {
+        if (scWidget) {
+            try {
+                scWidget.unbind(SC.Widget.Events.READY);
+                scWidget.unbind(SC.Widget.Events.PLAY);
+                scWidget.unbind(SC.Widget.Events.PAUSE);
+                scWidget.unbind(SC.Widget.Events.FINISH);
+                scWidget.unbind(SC.Widget.Events.PLAY_PROGRESS);
+                scWidget.unbind(SC.Widget.Events.ERROR);
+                scWidget.pause();
+            } catch(_) {}
+            scWidget = null;
+        }
+        scWidgetReady = false;
+        scWidgetUrl   = null;
+        scCurrentDur  = 0;
+        scCurrentPos  = 0;
+        // Reset iframe to blank so the next song gets a truly fresh player
+        const iframe = document.getElementById('scHiddenWidget');
+        if (iframe) { iframe.onload = null; iframe.src = 'about:blank'; }
+    }
+
     function scInitWidget() {
         const iframe = document.getElementById('scHiddenWidget');
         if (!iframe || !window.SC || !window.SC.Widget) return;
@@ -2738,14 +2762,12 @@
             document.getElementById('progressFill').style.width = '100%';
             if (repeat === 2) {
                 scTransitioning = true;
-                scWidgetReady = false;
-                scWidgetUrl = null;
+                scDestroyWidget();
                 const t = library[currentIdx];
                 if (t) scLoadAndPlay(t.soundcloudUrl || t.url);
                 return;
             }
-            scWidgetReady = false;
-            scWidgetUrl = null;
+            scDestroyWidget();
             nextTrack();
         });
 
@@ -2868,24 +2890,9 @@
             return;
         }
 
-        // Stop old widget cleanly
-        if (scWidget) {
-            try {
-                scWidget.unbind(SC.Widget.Events.READY);
-                scWidget.unbind(SC.Widget.Events.PLAY);
-                scWidget.unbind(SC.Widget.Events.PAUSE);
-                scWidget.unbind(SC.Widget.Events.FINISH);
-                scWidget.unbind(SC.Widget.Events.PLAY_PROGRESS);
-                scWidget.unbind(SC.Widget.Events.ERROR);
-                scWidget.pause();
-            } catch(_) {}
-            scWidget = null;
-        }
-
-        scWidgetReady = false;
+        // Stop old widget cleanly and reset iframe to blank
+        scDestroyWidget();
         scWidgetUrl   = trackUrl;
-        scCurrentDur  = 0;
-        scCurrentPos  = 0;
         scStopProgressLoop();
         _earnReset();
         document.getElementById('progressFill').style.width = '0%';
