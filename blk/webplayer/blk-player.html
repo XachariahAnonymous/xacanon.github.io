@@ -3210,11 +3210,29 @@
         const artEl   = document.getElementById('playerArt');
         const emojiEl = document.getElementById('playerArtEmoji');
         const art     = t.albumArt || t.artwork || null;
-        if (art) {
-            artEl.style.backgroundImage    = "url('" + art + "')";
+        const BLK_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0a'/%3E%3Ctext x='50' y='62' font-family='monospace' font-weight='bold' font-size='28' fill='%238A2BE2' text-anchor='middle' letter-spacing='2'%3EBLK%3C/text%3E%3C/svg%3E";
+        function _applyArt(url) {
+            artEl.style.backgroundImage    = "url('" + url + "')";
             artEl.style.backgroundSize     = 'cover';
             artEl.style.backgroundPosition = 'center';
             emojiEl.style.display = 'none';
+        }
+        if (art) {
+            const probe = new Image();
+            probe.onload  = function() { _applyArt(art); };
+            probe.onerror = function() {
+                // t500x500 → retry with -large, then fall back to BLK logo
+                if (art.indexOf('t500x500') !== -1) {
+                    const large = art.replace('-t500x500', '-large');
+                    const probe2 = new Image();
+                    probe2.onload  = function() { _applyArt(large); };
+                    probe2.onerror = function() { _applyArt(BLK_LOGO); };
+                    probe2.src = large;
+                } else {
+                    _applyArt(BLK_LOGO);
+                }
+            };
+            probe.src = art;
         } else {
             artEl.style.backgroundImage = '';
             emojiEl.style.display = '';
