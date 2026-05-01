@@ -2740,11 +2740,10 @@
             const sourceTag = isStream
                 ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify'?'SPOTIFY':'SC') + '</span>'
                 : '';
-            const BLK_LOGO_URL = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%230a0a0a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20font-size%3D%2228%22%20fill%3D%22%238A2BE2%22%20text-anchor%3D%22middle%22%20letter-spacing%3D%222%22%3EBLK%3C%2Ftext%3E%3C%2Fsvg%3E";
             const safeArt = t.albumArt ? t.albumArt.replace(/"/g, '%22') : null;
             const thumbInner = safeArt
                 ? '<img src="' + safeArt + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
-                : '<img src="' + BLK_LOGO_URL + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
+                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
             return '<div class="track-row ' + (currentIdx === libIdx && isPlaying ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
                 + '<span class="track-idx">' + (currentIdx === libIdx ? '▶' : i+1) + '</span>'
                 + '<div class="track-info">'
@@ -5318,12 +5317,11 @@
             el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1rem 0;">No tracks yet — paste a URL above to get started</div>';
             return;
         }
-        const _scBLK = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%230a0a0a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20font-size%3D%2228%22%20fill%3D%22%238A2BE2%22%20text-anchor%3D%22middle%22%20letter-spacing%3D%222%22%3EBLK%3C%2Ftext%3E%3C%2Fsvg%3E";
         el.innerHTML = soundcloudTracks.map(t => {
             const safeScArt = t.albumArt ? t.albumArt.replace(/"/g, '%22') : null;
             const artInner = safeScArt
                 ? '<img src="' + safeScArt + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
-                : '<img src="' + _scBLK + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
+                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
             return '<div class="stream-track-item" onclick="playTrack(' + library.indexOf(t) + ')" style="cursor:pointer;">'
                 + '<div class="stream-track-icon soundcloud" style="overflow:hidden;padding:0;">' + artInner + '</div>'
                 + '<div class="stream-track-info">'
