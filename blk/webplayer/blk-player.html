@@ -1955,6 +1955,8 @@
         // Restore streaming tracks from Firestore (cross-device sync)
         await fbLoadStreamingTracks(user.uid);
         await plLoadFirestore();
+        // Backfill missing durations for existing SC tracks
+        scBackfillDurations();
         // Restore Spotify session keyed to this user — or, if we just came back from
         // a Spotify OAuth redirect, complete the token exchange now that currentUser
         // is set so tokens are saved under the correct UID key (Bug 1/3 fix).
@@ -1967,6 +1969,25 @@
         } else {
             spRestoreSession().catch(() => {});
         }
+    }
+
+    // Backfill duration for any SC tracks that were saved with duration:0
+    async function scBackfillDurations() {
+        const missing = library.filter(t => t.source === 'soundcloud' && (!t.duration || t.duration === 0));
+        for (const t of missing) {
+            try {
+                const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(t.soundcloudUrl || t.url) + '&client_id=' + SC_CLIENT_ID;
+                const res = await fetch(resolveUrl);
+                if (!res.ok) continue;
+                const d = await res.json();
+                if (d && d.duration) {
+                    t.duration = Math.round(d.duration / 1000);
+                    if (typeof idbSaveStreaming === 'function') idbSaveStreaming(t);
+                    fbSaveStreamingTrack(t);
+                }
+            } catch(e) { /* non-fatal */ }
+        }
+        if (missing.length) { renderLibrary(); renderQueue(); }
     }
 
     async function fbSaveStreamingTrack(track) {
@@ -1982,7 +2003,10 @@
                 soundcloudUrl: track.soundcloudUrl || null,
                 spotifyType: track.spotifyType || null,
                 spotifyTrackId: track.spotifyTrackId || null,
-                playlist: track.playlist || null
+                playlist: track.playlist || null,
+                // Store/BLK tracks
+                url: (track.source === 'store' || track.source === 'local') ? (track.url || '') : null,
+                fileName: track.fileName || null
             });
         } catch(e) { /* non-fatal */ }
     }
@@ -2037,7 +2061,8 @@
                 const alreadyIn = library.some(t => t.id === r.id);
                 if (alreadyIn) return;
                 const track = {
-                    id: r.id, url: r.spUri || r.soundcloudUrl || '',
+                    id: r.id,
+                    url: r.url || r.spUri || r.soundcloudUrl || '',
                     title: r.title, artist: r.artist, album: r.album || '',
                     albumArt: r.albumArt || null, duration: r.duration || 0,
                     dateAdded: r.dateAdded || new Date().toLocaleDateString(),
@@ -2046,7 +2071,10 @@
                     soundcloudUrl: r.soundcloudUrl || null,
                     spotifyType: r.spotifyType || null,
                     spotifyTrackId: r.spotifyTrackId || null,
-                    playlist: r.playlist || null
+                    playlist: r.playlist || null,
+                    fileName: r.fileName || null,
+                    // Local tracks restored from Firestore are marked missing (no audio binary on new device)
+                    missing: r.source === 'local' ? true : false
                 };
                 library.push(track);
                 if (r.source === 'spotify') spotifyTracks.push(track);
@@ -2681,6 +2709,8 @@
             };
             library.push(track);
             idbSaveTrack(track, file);
+            // Save local track metadata to Firestore (no audio binary — for cross-device awareness)
+            fbSaveStreamingTrack(track);
             const tmp = new Audio(url);
             tmp.addEventListener('loadedmetadata', () => {
                 track.duration = tmp.duration;
@@ -3675,6 +3705,7 @@
         const _reAddTrack = { id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' };
         library.push(_reAddTrack);
         probeStoreDuration(_reAddTrack);
+        fbSaveStreamingTrack(_reAddTrack);
         s.owned = true;
         renderLibrary(); renderQueue(); renderStore();
         showToast('"' + s.title + '" added back to library', true);
@@ -3759,6 +3790,7 @@
             const _purchaseTrack = { id: s.id+'_lib', url: s.url, title: s.title, artist: s.artist, album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: s.emoji, source: 'store' };
             library.push(_purchaseTrack);
             probeStoreDuration(_purchaseTrack);
+            fbSaveStreamingTrack(_purchaseTrack);
             btn.textContent = '✓ Added to Library'; btn.className = 'modal-btn success'; btn.disabled = false;
             renderLibrary(); renderQueue(); renderStore(); updateProfileView();
             showToast('"' + s.title + '" added to your library', true);
@@ -5085,7 +5117,7 @@
         };
 
         try {
-            let title = '', artist = '', art = null;
+            let title = '', artist = '', art = null, duration = 0;
 
             // ── 1. Direct oEmbed fetch (SC sends Access-Control-Allow-Origin: * so this
             //       works from a browser — no proxy needed in normal conditions) ──────
@@ -5126,13 +5158,14 @@
                 let d2 = await tryFetch(resolveUrl);
                 if (!d2) d2 = await proxyJSON(resolveUrl);
                 if (d2) {
-                    if (!title)  title  = d2.title || '';
-                    if (!artist) artist = (d2.user && d2.user.username) || '';
-                    if (!art)    art    = upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
+                    if (!title)    title    = d2.title || '';
+                    if (!artist)   artist   = (d2.user && d2.user.username) || '';
+                    if (!art)      art      = upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
+                    if (d2.duration) duration = Math.round(d2.duration / 1000); // ms → seconds
                 }
             }
 
-            _scPendingMeta = { url, title, artist, art };
+            _scPendingMeta = { url, title, artist, art, duration };
 
             if (preview) {
                 preview.style.display = 'flex';
@@ -5181,7 +5214,7 @@
         const track = {
             id: 'sc_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             url, title, artist, album: 'SoundCloud', albumArt,
-            duration: 0, dateAdded: new Date().toLocaleDateString(),
+            duration: meta.duration || 0, dateAdded: new Date().toLocaleDateString(),
             emoji: '☁', source: 'soundcloud', soundcloudUrl: url
         };
         soundcloudTracks.push(track); library.push(track);
