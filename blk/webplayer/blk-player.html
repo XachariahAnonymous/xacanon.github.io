@@ -715,6 +715,59 @@
         .blk-warn-detail span:last-child { color: #fff; }
 
 
+        /* ── MOBILE UPLOAD ZONE ── */
+        .mob-upload-zone {
+            border: 2px dashed var(--border);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            background: var(--surface);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mob-upload-zone:active { border-color: var(--accent); background: var(--accent-dim); }
+
+        /* ── MOBILE STREAM CARD ── */
+        .mob-stream-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 1.2rem;
+            position: relative;
+        }
+        .mob-stream-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: inherit;
+        }
+        .mob-stream-card-header {
+            display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+        }
+        .mob-stream-input {
+            font-size: 0.7rem !important;
+            padding: 0.6rem 0.8rem !important;
+        }
+
+        /* ── MOBILE LOCAL TRACK ROW ── */
+        .mob-local-row {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+        }
+        .mob-local-row:last-child { border-bottom: none; }
+        .mob-local-row:active { background: rgba(255,255,255,0.04); }
+        .mob-local-thumb {
+            width: 36px; height: 36px; flex-shrink: 0;
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+        .mob-local-info { flex: 1; min-width: 0; }
+        .mob-local-title { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mob-local-artist { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
         /* ── PLAYLIST CARDS ── */
         .pl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; padding: 2rem 2.5rem; }
         .pl-card {
@@ -1060,7 +1113,9 @@
 <div id="mobile-tab-bar" style="display:none;">
     <button class="mob-tab active" onclick="switchView('library')" data-view="library"><span class="mob-tab-icon">♪</span>Library</button>
     <button class="mob-tab" onclick="switchView('store')" data-view="store"><span class="mob-tab-icon">◈</span>Store</button>
-    <button class="mob-tab" onclick="switchView('playlists')" data-view="playlists"><span class="mob-tab-icon">≡</span>Playlists</button>
+    <button class="mob-tab" onclick="switchView('mob-upload')" data-view="mob-upload"><span class="mob-tab-icon">⊕</span>Upload</button>
+    <button class="mob-tab" onclick="switchView('mob-streaming')" data-view="mob-streaming"><span class="mob-tab-icon">⇌</span>Streaming</button>
+    <button class="mob-tab" onclick="switchView('playlists')" data-view="playlists"><span class="mob-tab-icon">≡</span>Lists</button>
     <button class="mob-tab" onclick="switchView('profile')" data-view="profile"><span class="mob-tab-icon">◉</span>Profile</button>
 </div>
 
@@ -1324,6 +1379,115 @@
                             SoundCloud Library <span id="scLibCount" style="color:var(--accent);"></span>
                         </div>
                         <div class="stream-tracks" id="soundcloudTracks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBILE UPLOAD VIEW -->
+        <div id="view-mob-upload" style="display:none;">
+            <div class="view-header">
+                <div>
+                    <div class="view-sub">Local Files</div>
+                    <div class="view-title">Upload Music</div>
+                </div>
+            </div>
+            <div style="padding:1.5rem;">
+                <!-- Drop zone -->
+                <div class="mob-upload-zone" onclick="document.getElementById('mobFileInput').click()">
+                    <input type="file" id="mobFileInput" multiple accept="audio/*" style="display:none;" onchange="handleMobFileUpload(event)">
+                    <div style="font-size:3rem;margin-bottom:0.8rem;opacity:0.5;">⊕</div>
+                    <div style="font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--text);margin-bottom:0.4rem;">Tap to Browse</div>
+                    <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:1px;">MP3 · WAV · FLAC · AAC</div>
+                </div>
+                <!-- Uploaded count -->
+                <div id="mobUploadStatus" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;text-align:center;margin-top:1rem;min-height:1.2rem;"></div>
+                <!-- Local tracks in library -->
+                <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.2rem;">
+                    <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.8rem;">
+                        Local Files in Library <span id="mobLocalCount" style="color:var(--accent);"></span>
+                    </div>
+                    <div id="mobLocalList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBILE STREAMING VIEW -->
+        <div id="view-mob-streaming" style="display:none;">
+            <div class="view-header">
+                <div>
+                    <div class="view-sub">Connect Services</div>
+                    <div class="view-title">Streaming</div>
+                </div>
+            </div>
+            <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+
+                <!-- SPOTIFY CARD -->
+                <div class="mob-stream-card" style="border-color:rgba(30,215,96,0.25);">
+                    <div class="mob-stream-card-header">
+                        <div style="display:flex;align-items:center;gap:0.8rem;">
+                            <span style="font-size:1.6rem;">🎵</span>
+                            <div>
+                                <div style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;color:#1ED760;text-transform:uppercase;">Spotify</div>
+                                <div id="mobSpStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;margin-top:2px;">Not connected</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <button id="mobSpConnectBtn" onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:1.5px;padding:0.5rem 1rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;">Connect</button>
+                            <button id="mobSpDisconnectBtn" onclick="spotifyLogout()" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.3);cursor:pointer;">Disconnect</button>
+                        </div>
+                    </div>
+                    <!-- Add by URL -->
+                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(30,215,96,0.12);">
+                        <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(30,215,96,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;">Add by URL</div>
+                        <div style="display:flex;gap:0.4rem;">
+                            <input class="stream-input-url mob-stream-input" id="mobSpUrlInput" type="text"
+                                placeholder="Paste Spotify track URL..."
+                                onkeydown="if(event.key==='Enter')mobAddSpotifyUrl()"
+                                style="flex:1;min-width:0;border-color:rgba(30,215,96,0.2);">
+                            <button onclick="mobAddSpotifyUrl()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.5rem 0.7rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;flex-shrink:0;white-space:nowrap;">Add</button>
+                        </div>
+                        <div id="mobSpUrlStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:0.4rem;min-height:0.8rem;"></div>
+                    </div>
+                    <!-- Open full view -->
+                    <button onclick="switchView('spotify')" style="width:100%;margin-top:0.8rem;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem;background:rgba(30,215,96,0.06);border:1px solid rgba(30,215,96,0.2);color:#1ED760;cursor:pointer;">Open Spotify View →</button>
+                </div>
+
+                <!-- SOUNDCLOUD CARD -->
+                <div class="mob-stream-card" style="border-color:rgba(255,85,0,0.25);">
+                    <div class="mob-stream-card-header">
+                        <div style="display:flex;align-items:center;gap:0.8rem;">
+                            <span style="font-size:1.6rem;">☁</span>
+                            <div>
+                                <div style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;color:#ff5500;text-transform:uppercase;">SoundCloud</div>
+                                <div id="mobScStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;margin-top:2px;">Add by URL</div>
+                            </div>
+                        </div>
+                        <button onclick="switchView('soundcloud')" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:rgba(255,85,0,0.1);border:1px solid rgba(255,85,0,0.3);color:#ff5500;cursor:pointer;white-space:nowrap;">Open →</button>
+                    </div>
+                    <!-- Add by URL -->
+                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,85,0,0.12);">
+                        <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,85,0,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;">Add by URL</div>
+                        <div style="display:flex;gap:0.4rem;">
+                            <input class="stream-input-url mob-stream-input" id="mobScUrlInput" type="text"
+                                placeholder="Paste SoundCloud track URL..."
+                                onkeydown="if(event.key==='Enter')mobAddSoundcloudUrl()"
+                                style="flex:1;min-width:0;border-color:rgba(255,85,0,0.2);">
+                            <button onclick="mobAddSoundcloudUrl()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.5rem 0.7rem;background:#ff5500;border:none;color:#fff;cursor:pointer;font-weight:700;flex-shrink:0;white-space:nowrap;">Add</button>
+                        </div>
+                        <div id="mobScUrlStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:0.4rem;min-height:0.8rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Stats row -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:0.2rem;">
+                    <div style="background:var(--surface2);border:1px solid var(--border);padding:1rem;text-align:center;">
+                        <div id="mobSpCount" style="font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:#1ED760;">0</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-top:0.3rem;">Spotify Tracks</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid var(--border);padding:1rem;text-align:center;">
+                        <div id="mobScCount" style="font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:#ff5500;">0</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-top:0.3rem;">SoundCloud Tracks</div>
                     </div>
                 </div>
             </div>
@@ -2197,7 +2361,7 @@
     // VIEWS
     // ════════════════════════════════════════
     function switchView(v) {
-        ['library','store','playlists','profile','spotify','soundcloud'].forEach(id => {
+        ['library','store','playlists','profile','spotify','soundcloud','mob-upload','mob-streaming'].forEach(id => {
             const el = document.getElementById('view-' + id);
             if (!el) return;
             if (id === 'spotify' || id === 'soundcloud') {
@@ -2218,6 +2382,8 @@
         if (v === 'playlists') renderPlaylists();
         if (v === 'spotify') spViewInit();
         if (v === 'soundcloud') renderSoundcloudTracks();
+        if (v === 'mob-upload') renderMobLocalList();
+        if (v === 'mob-streaming') updateMobStreamingView();
         toggleDropdown(true);
         // streaming dropdown closes automatically on hover-out (CSS)
     }
@@ -5387,6 +5553,139 @@
             el.style.display = 'none';
         }
     };
+
+    // ════════════════════════════════════════
+    // MOBILE UPLOAD VIEW
+    // ════════════════════════════════════════
+    function handleMobFileUpload(e) {
+        var files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        // Reuse existing desktop file handler if available
+        if (typeof handleFiles === 'function') {
+            handleFiles(files);
+            var statusEl = document.getElementById('mobUploadStatus');
+            if (statusEl) statusEl.textContent = files.length + ' file' + (files.length > 1 ? 's' : '') + ' added ✓';
+            setTimeout(function() {
+                if (statusEl) statusEl.textContent = '';
+                renderMobLocalList();
+            }, 2500);
+        }
+        e.target.value = '';
+    }
+
+    function renderMobLocalList() {
+        var listEl = document.getElementById('mobLocalList');
+        var countEl = document.getElementById('mobLocalCount');
+        if (!listEl) return;
+        var localTracks = library.filter(function(t) { return t.source === 'local'; });
+        if (countEl) countEl.textContent = localTracks.length ? '(' + localTracks.length + ')' : '';
+        if (!localTracks.length) {
+            listEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.6rem;color:rgba(255,255,255,0.2);padding:1.5rem 0;text-align:center;">No local files uploaded yet</div>';
+            return;
+        }
+        listEl.innerHTML = localTracks.map(function(t) {
+            var libIdx = library.indexOf(t);
+            var thumb = t.albumArt
+                ? '<img src="' + esc(t.albumArt) + '" style="width:36px;height:36px;object-fit:cover;" onerror="_imgArtErr(this)">'
+                : '<span>' + (t.emoji || '♪') + '</span>';
+            return '<div class="mob-local-row" onclick="playTrack(' + libIdx + ',true);switchView(\'library\')">'
+                + '<div class="mob-local-thumb">' + thumb + '</div>'
+                + '<div class="mob-local-info"><div class="mob-local-title">' + esc(t.title) + '</div><div class="mob-local-artist">' + esc(t.artist) + '</div></div>'
+                + '<span style="font-family:Space Mono,monospace;font-size:0.55rem;color:var(--sub);flex-shrink:0;">' + fmt(t.duration) + '</span>'
+                + '</div>';
+        }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // MOBILE STREAMING VIEW
+    // ════════════════════════════════════════
+    function updateMobStreamingView() {
+        // Spotify status
+        var spConnected = !!spAccessToken;
+        var spCountEl = document.getElementById('mobSpCount');
+        var scCountEl = document.getElementById('mobScCount');
+        var mobSpStatus = document.getElementById('mobSpStatus');
+        var mobSpConnectBtn = document.getElementById('mobSpConnectBtn');
+        var mobSpDisconnectBtn = document.getElementById('mobSpDisconnectBtn');
+
+        var spTracks = library.filter(function(t) { return t.source === 'spotify'; });
+        var scTracks = library.filter(function(t) { return t.source === 'soundcloud'; });
+
+        if (spCountEl) spCountEl.textContent = spTracks.length;
+        if (scCountEl) scCountEl.textContent = scTracks.length;
+
+        if (mobSpStatus) {
+            mobSpStatus.textContent = spConnected
+                ? (spTracks.length + ' track' + (spTracks.length !== 1 ? 's' : '') + ' linked')
+                : 'Not connected';
+            mobSpStatus.style.color = spConnected ? '#1ED760' : 'var(--sub)';
+        }
+        if (mobSpConnectBtn) mobSpConnectBtn.style.display = spConnected ? 'none' : 'inline-block';
+        if (mobSpDisconnectBtn) mobSpDisconnectBtn.style.display = spConnected ? 'inline-block' : 'none';
+
+        var mobScStatus = document.getElementById('mobScStatus');
+        if (mobScStatus) {
+            mobScStatus.textContent = scTracks.length
+                ? (scTracks.length + ' track' + (scTracks.length !== 1 ? 's' : '') + ' linked')
+                : 'Add by URL';
+        }
+    }
+
+    function mobAddSpotifyUrl() {
+        var input = document.getElementById('mobSpUrlInput');
+        var statusEl = document.getElementById('mobSpUrlStatus');
+        if (!input || !input.value.trim()) return;
+        // Sync value into the desktop input and call existing handler
+        var desktopInput = document.getElementById('spUrlInput');
+        if (desktopInput) {
+            desktopInput.value = input.value.trim();
+            if (typeof addSpotifyTrackByUrl === 'function') {
+                if (statusEl) statusEl.textContent = 'Fetching...';
+                // Temporarily redirect status updates
+                var origEl = document.getElementById('spUrlStatus');
+                var _origText = origEl ? origEl.textContent : '';
+                addSpotifyTrackByUrl();
+                input.value = '';
+                // Poll for status update from desktop element
+                var polls = 0;
+                var poll = setInterval(function() {
+                    if (origEl && origEl.textContent !== _origText) {
+                        if (statusEl) statusEl.textContent = origEl.textContent;
+                        _origText = origEl.textContent;
+                    }
+                    if (++polls > 40) { clearInterval(poll); }
+                }, 250);
+            }
+        }
+    }
+
+    function mobAddSoundcloudUrl() {
+        var input = document.getElementById('mobScUrlInput');
+        var statusEl = document.getElementById('mobScUrlStatus');
+        if (!input || !input.value.trim()) return;
+        // Sync value into the desktop input and call existing handler
+        var desktopInput = document.getElementById('soundcloudUrlInput');
+        if (desktopInput) {
+            desktopInput.value = input.value.trim();
+            if (typeof addSoundcloudTrack === 'function') {
+                if (statusEl) statusEl.textContent = 'Fetching...';
+                var origEl = document.getElementById('scFetchStatus');
+                var _origText = origEl ? origEl.textContent : '';
+                addSoundcloudTrack();
+                input.value = '';
+                var polls = 0;
+                var poll = setInterval(function() {
+                    if (origEl && origEl.textContent !== _origText) {
+                        if (statusEl) statusEl.textContent = origEl.textContent;
+                        _origText = origEl.textContent;
+                    }
+                    if (++polls > 40) { clearInterval(poll); }
+                }, 250);
+            }
+        }
+    }
+
+
 
 </script>
 </body>
