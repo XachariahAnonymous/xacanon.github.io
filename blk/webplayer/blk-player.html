@@ -843,51 +843,75 @@
             /* ── Hide sidebar on mobile ── */
             aside { display: none !important; }
 
-            /* ── Nav: compact, hide top tabs (replaced by bottom bar) ── */
+            /* ── Nav: 2-row mobile nav ── */
             nav {
-                padding: 0 1rem;
-                grid-template-columns: 1fr auto;
-                height: 56px;
-            }
-            .nav-center { display: none; }
-            .nav-right { gap: 0.5rem; }
-            .nav-coins { padding: 0.35rem 0.6rem; font-size: 0.6rem; }
-            .nav-coins::before { font-size: 0.75rem; }
-
-            /* ── Bottom tab bar ── */
-            #mobile-tab-bar {
+                padding: 0;
+                height: auto;
                 display: flex;
-                position: fixed;
-                bottom: 0;
-                left: 0; right: 0;
-                height: 52px;
-                background: rgba(0,0,0,0.97);
-                border-top: 1px solid var(--border);
-                z-index: 99;
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
+                flex-direction: column;
+                grid-template-columns: unset;
             }
-            .mob-tab {
-                flex: 1;
-                display: flex; flex-direction: column;
-                align-items: center; justify-content: center;
-                gap: 3px;
-                background: none; border: none;
-                color: var(--sub); cursor: pointer;
+            /* Row 1: logo + coins + avatar */
+            .mob-nav-top {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 1rem;
+                height: 48px;
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            /* Row 2: scrollable tabs */
+            .mob-nav-tabs {
+                display: flex !important;
+                align-items: stretch;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                height: 44px;
+                flex-shrink: 0;
+            }
+            .mob-nav-tabs::-webkit-scrollbar { display: none; }
+            .mob-nav-tab {
+                flex-shrink: 0;
+                display: flex; align-items: center; justify-content: center;
+                padding: 0 1rem;
                 font-family: 'Space Mono', monospace;
-                font-size: 0.42rem; letter-spacing: 1.5px; text-transform: uppercase;
-                transition: color 0.2s;
+                font-size: 0.55rem; letter-spacing: 1.5px; text-transform: uppercase;
+                background: none; border: none; border-right: 1px solid var(--border);
+                color: var(--sub); cursor: pointer;
+                transition: color 0.15s, background 0.15s;
                 -webkit-tap-highlight-color: transparent;
-                min-height: 44px;
+                white-space: nowrap;
+                gap: 0.4rem;
+                position: relative;
             }
-            .mob-tab.active { color: var(--accent); }
-            .mob-tab-icon { font-size: 1.1rem; line-height: 1; }
+            .mob-nav-tab:last-child { border-right: none; }
+            .mob-nav-tab.active { color: #fff; background: var(--accent-dim); }
+            .mob-nav-tab.active::after {
+                content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+                height: 2px; background: var(--accent);
+            }
+            .mob-nav-tab:active:not(.active) { background: rgba(255,255,255,0.06); }
+
+            /* Hide original desktop nav children — replaced by mob-nav elements */
+            .nav-logo { display: none !important; }
+            .nav-center { display: none !important; }
+            .nav-right { display: none !important; }
+
+            /* Bottom tab bar — hidden, replaced by top nav row 2 */
+            #mobile-tab-bar { display: none !important; }
+
+            /* App shell: account for taller nav (48+44=92px) */
+            #app-shell {
+                grid-template-rows: 92px 1fr auto;
+            }
 
             /* ── Main area scrollable ── */
             main {
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                padding-bottom: 60px; /* space for fixed bottom tab bar */
+                padding-bottom: 20px;
                 height: 100%;
             }
 
@@ -1031,9 +1055,11 @@
             .track-meta { display: none; }
         }
 
-        /* ── Desktop: hide mobile tab bar ── */
+        /* ── Desktop: hide mobile tab bar AND mobile nav rows ── */
         @media (min-width: 769px) {
             #mobile-tab-bar { display: none !important; }
+            .mob-nav-top { display: none !important; }
+            .mob-nav-tabs { display: none !important; }
         }
     </style>
     <!-- SoundCloud Widget API -->
@@ -1122,6 +1148,7 @@
 <div id="app-shell">
     <!-- NAV -->
     <nav>
+        <!-- Row 1: Logo + Coins + Avatar (desktop) / Logo + Coins + Avatar (mobile) -->
         <a href="#" class="nav-logo">BLK.</a>
         <div class="nav-center">
             <div class="nav-tabs" style="border-right:none;">
@@ -1172,6 +1199,25 @@
                     <div class="dropdown-item danger" onclick="doSignOut()">→ &nbsp;Sign Out</div>
                 </div>
             </div>
+        </div>
+
+        <!-- MOBILE ROW 1: Logo + Coins + Avatar -->
+        <div class="mob-nav-top">
+            <span style="font-family:'Space Mono',monospace;font-weight:700;font-size:1rem;letter-spacing:3px;color:#fff;">BLK.</span>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+                <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);border:1px solid var(--accent-dim);padding:0.3rem 0.7rem;display:flex;align-items:center;gap:0.4rem;"><span style="font-size:0.8rem;">◈</span><span id="mobCoinDisplay">0 BLK</span></div>
+                <div onclick="switchView('profile')" style="width:32px;height:32px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:0.7rem;cursor:pointer;overflow:hidden;" id="mobNavAvatar">?</div>
+            </div>
+        </div>
+
+        <!-- MOBILE ROW 2: Scrollable tab strip -->
+        <div class="mob-nav-tabs" id="mobNavTabs">
+            <button class="mob-nav-tab active" onclick="switchView('library')" data-view="library">♪ Library</button>
+            <button class="mob-nav-tab" onclick="switchView('store')" data-view="store">◈ Store</button>
+            <button class="mob-nav-tab" onclick="switchView('mob-upload')" data-view="mob-upload">⊕ Upload</button>
+            <button class="mob-nav-tab" onclick="switchView('mob-streaming')" data-view="mob-streaming">⇌ Streaming</button>
+            <button class="mob-nav-tab" onclick="switchView('playlists')" data-view="playlists">≡ Playlists</button>
+            <button class="mob-nav-tab" onclick="switchView('profile')" data-view="profile">◉ Profile</button>
         </div>
     </nav>
 
@@ -2233,10 +2279,13 @@
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
         const navAvatar = document.getElementById('navAvatar');
+        const mobAvatar = document.getElementById('mobNavAvatar');
         if (userProfile.avatarUrl) {
             navAvatar.innerHTML = `<img src="${userProfile.avatarUrl}" alt="avatar">`;
+            if (mobAvatar) mobAvatar.innerHTML = `<img src="${userProfile.avatarUrl}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
         } else {
             navAvatar.textContent = initials;
+            if (mobAvatar) mobAvatar.textContent = initials;
         }
         document.getElementById('navUsername').textContent = userProfile.displayName || userProfile.email;
         const isAdmin = userProfile.role === 'admin';
@@ -2373,8 +2422,12 @@
         document.querySelectorAll('.nav-tab').forEach((t, i) => {
             t.classList.toggle('active', ['library','store','playlists','profile'][i] === v);
         });
-        // Sync mobile bottom tab bar
+        // Sync mobile bottom tab bar (legacy, now hidden)
         document.querySelectorAll('.mob-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.view === v);
+        });
+        // Sync mobile top tab strip
+        document.querySelectorAll('.mob-nav-tab').forEach(t => {
             t.classList.toggle('active', t.dataset.view === v);
         });
         if (v === 'store') { if (!storeLoaded) loadStoreTracks(); else renderStore(); }
@@ -2385,7 +2438,6 @@
         if (v === 'mob-upload') renderMobLocalList();
         if (v === 'mob-streaming') updateMobStreamingView();
         toggleDropdown(true);
-        // streaming dropdown closes automatically on hover-out (CSS)
     }
 
     function openStreamingView(service) {
@@ -3127,6 +3179,8 @@
     function updateCoins() {
         const el = document.getElementById('coinDisplay');
         if (el) el.textContent = coins.toFixed(3)+' BLK';
+        const mobEl = document.getElementById('mobCoinDisplay');
+        if (mobEl) mobEl.textContent = coins.toFixed(3)+' BLK';
         const statEl = document.getElementById('statCoins');
         if (statEl) statEl.textContent = coins.toFixed(3);
     }
