@@ -772,16 +772,183 @@
         .pl-pick-row .pl-pick-title { font-size: 0.78rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pl-pick-row .pl-pick-artist { font-size: 0.65rem; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
         .pl-pick-row .pl-pick-dur { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: rgba(255,255,255,0.35); flex-shrink: 0; }
-        @media (max-width: 900px) {
-            #app-shell { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; grid-template-areas: "nav" "sidebar" "main" "player"; height: auto; min-height: 100vh; overflow: auto; }
-            aside { max-height: 360px; border-right: none; border-bottom: 1px solid var(--border); }
-            main { overflow-y: visible; }
-            .player-bar { grid-template-columns: 1fr; height: auto; padding: 1rem; gap: 0.8rem; }
-            .player-track { justify-content: center; }
-            .player-right { justify-content: center; }
-            .track-list-header, .track-row { grid-template-columns: 30px 1fr 80px 28px 28px; }
+        /* ══════════════════════════════════════════════════
+           MOBILE — 768px and below
+        ══════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* ── App shell: single column, nav top, player bottom ── */
+            #app-shell {
+                grid-template-columns: 1fr;
+                grid-template-rows: 56px 1fr 80px;
+                grid-template-areas: "nav" "main" "player";
+                height: 100dvh;
+                overflow: hidden;
+            }
+            #app-shell.visible { display: grid; }
+
+            /* ── Hide sidebar on mobile ── */
+            aside { display: none !important; }
+
+            /* ── Nav: compact, hide top tabs (replaced by bottom bar) ── */
+            nav {
+                padding: 0 1rem;
+                grid-template-columns: 1fr auto;
+                height: 56px;
+            }
+            .nav-center { display: none; }
+            .nav-right { gap: 0.5rem; }
+            .nav-coins { padding: 0.35rem 0.6rem; font-size: 0.6rem; }
+            .nav-coins::before { font-size: 0.75rem; }
+
+            /* ── Bottom tab bar ── */
+            #mobile-tab-bar {
+                display: flex;
+                position: fixed;
+                bottom: 80px;
+                left: 0; right: 0;
+                height: 52px;
+                background: rgba(0,0,0,0.97);
+                border-top: 1px solid var(--border);
+                z-index: 99;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+            }
+            .mob-tab {
+                flex: 1;
+                display: flex; flex-direction: column;
+                align-items: center; justify-content: center;
+                gap: 3px;
+                background: none; border: none;
+                color: var(--sub); cursor: pointer;
+                font-family: 'Space Mono', monospace;
+                font-size: 0.42rem; letter-spacing: 1.5px; text-transform: uppercase;
+                transition: color 0.2s;
+                -webkit-tap-highlight-color: transparent;
+                min-height: 44px;
+            }
+            .mob-tab.active { color: var(--accent); }
+            .mob-tab-icon { font-size: 1.1rem; line-height: 1; }
+
+            /* ── Main area scrollable ── */
+            main {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 52px; /* space for bottom tab bar */
+                height: 100%;
+            }
+
+            /* ── Player bar: compact 3-col (art | info+controls | nothing) ── */
+            .player-bar {
+                grid-template-columns: auto 1fr auto;
+                height: 80px;
+                padding: 0 1rem;
+                gap: 0.8rem;
+                align-items: center;
+            }
+            .player-art { width: 44px; height: 44px; font-size: 1rem; }
+            .player-track { min-width: 0; flex: 1; }
+            .player-track-name { font-size: 0.78rem; }
+            .player-track-artist { font-size: 0.62rem; }
+            .player-progress { display: none; }
+            .player-right { display: none; }
+            .player-controls { gap: 0.4rem; }
+            .player-btns { gap: 0.8rem; }
+            .ctrl-play { width: 42px; height: 42px; font-size: 1rem; }
+            .ctrl-btn { width: 36px; height: 36px; font-size: 1rem; }
+
+            /* ── View header ── */
+            .view-header {
+                padding: 1.2rem 1rem 1rem;
+                flex-wrap: wrap;
+                gap: 0.8rem;
+            }
+            .view-title { font-size: 1.6rem; }
+            .search-bar { min-width: 0; width: 100%; }
+
+            /* ── Track list: simplified columns ── */
+            .track-list-header {
+                grid-template-columns: 28px 1fr 36px 32px;
+                padding: 0.4rem 1rem;
+                gap: 0.6rem;
+            }
+            .track-row {
+                grid-template-columns: 28px 1fr 36px 32px;
+                padding: 0.6rem 1rem;
+                gap: 0.6rem;
+            }
             .track-album, .track-meta { display: none; }
-            .auth-box { width: 95%; padding: 2rem; }
+            .track-addpl-btn { display: none; }
+            .track-thumb { width: 36px; height: 36px; }
+            .track-name { font-size: 0.82rem; }
+            .track-name-artist { font-size: 0.65rem; }
+
+            /* ── Library filter tabs: horizontal scroll ── */
+            .lib-filter-row {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                white-space: nowrap;
+                display: flex;
+                padding: 0 0.5rem;
+            }
+            .lib-filter-row::-webkit-scrollbar { display: none; }
+            .lib-filter-tab { padding: 0.7rem 1rem; font-size: 0.55rem; }
+
+            /* ── Store: 2-column grid ── */
+            .store-grid { grid-template-columns: repeat(2, 1fr); margin: 0.8rem; }
+            .store-info { padding: 0.7rem; }
+            .store-title { font-size: 0.78rem; }
+            .store-artist { font-size: 0.62rem; margin-bottom: 0.5rem; }
+            .store-buy-btn { font-size: 0.48rem; padding: 0.35rem 0.6rem; }
+
+            /* ── Playlists: 2-column grid ── */
+            .pl-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; padding: 1rem; }
+            .pl-card-name { font-size: 0.8rem; }
+            .pl-card-overlay { opacity: 1; background: rgba(0,0,0,0.45); } /* always show on touch */
+
+            /* ── Modals ── */
+            .modal { padding: 2rem 1.5rem; width: 95%; }
+
+            /* ── Auth screen ── */
+            .auth-box { width: 92%; padding: 2rem 1.5rem; }
+            .auth-logo { font-size: 1.2rem; }
+
+            /* ── Streaming dropdown: nearly full-width ── */
+            .streaming-dropdown { min-width: 90vw; left: 50%; transform: translateX(-50%); }
+
+            /* ── Queue panel: full-width ── */
+            .queue-panel { width: calc(100vw - 2rem); right: 1rem; left: 1rem; bottom: 140px; }
+
+            /* ── Profile ── */
+            .profile-stat-val { font-size: 1.1rem; }
+            .profile-panel { padding: 1.5rem 1rem; }
+
+            /* ── Streaming views ── */
+            .streaming-view-header { padding: 1rem; }
+            .streaming-view-body { padding: 1rem; }
+
+            /* ── Playlist detail overlay ── */
+            #playlistDetailOverlay { padding-bottom: 160px; }
+
+            /* ── Missing banner ── */
+            .missing-banner { margin: 0.8rem 1rem 0; padding: 0.6rem 1rem; }
+
+            /* ── Touch targets: all interactive elements min 44px ── */
+            .auth-btn, .auth-google-btn, .settings-btn { min-height: 44px; }
+        }
+
+        /* ── Tablet: 769–1024px ── */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #app-shell { grid-template-columns: 200px 1fr; }
+            .player-bar { grid-template-columns: 220px 1fr 220px; }
+            .track-list-header, .track-row { grid-template-columns: 30px 1fr 100px 60px 28px 28px; }
+            .track-meta { display: none; }
+        }
+
+        /* ── Desktop: hide mobile tab bar ── */
+        @media (min-width: 769px) {
+            #mobile-tab-bar { display: none !important; }
         }
     </style>
     <!-- SoundCloud Widget API -->
@@ -857,6 +1024,14 @@
 </div>
 
 <!-- MAIN APP SHELL -->
+<!-- MOBILE BOTTOM TAB BAR -->
+<div id="mobile-tab-bar" style="display:none;">
+    <button class="mob-tab active" onclick="switchView('library')" data-view="library"><span class="mob-tab-icon">♪</span>Library</button>
+    <button class="mob-tab" onclick="switchView('store')" data-view="store"><span class="mob-tab-icon">◈</span>Store</button>
+    <button class="mob-tab" onclick="switchView('playlists')" data-view="playlists"><span class="mob-tab-icon">≡</span>Playlists</button>
+    <button class="mob-tab" onclick="switchView('profile')" data-view="profile"><span class="mob-tab-icon">◉</span>Profile</button>
+</div>
+
 <div id="app-shell">
     <!-- NAV -->
     <nav>
@@ -2001,6 +2176,10 @@
         });
         document.querySelectorAll('.nav-tab').forEach((t, i) => {
             t.classList.toggle('active', ['library','store','playlists','profile'][i] === v);
+        });
+        // Sync mobile bottom tab bar
+        document.querySelectorAll('.mob-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.view === v);
         });
         if (v === 'store') { if (!storeLoaded) loadStoreTracks(); else renderStore(); }
         if (v === 'profile') updateProfileView();
@@ -5115,6 +5294,16 @@
         if (shuffle) buildShuffleQueue(); // rebuild shuffle within playlist
         showToast('Playing "' + pl.name + '"', true);
     }
+
+    // ── Show mobile bottom tab bar on small screens ──
+    (function() {
+        function checkMobile() {
+            var bar = document.getElementById('mobile-tab-bar');
+            if (bar) bar.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+        }
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+    })();
 
     // Load playlists on boot
     plLoad();
