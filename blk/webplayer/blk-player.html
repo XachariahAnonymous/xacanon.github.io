@@ -2015,21 +2015,30 @@
 
     // Backfill duration for any SC tracks that were saved with duration:0
     async function scBackfillDurations() {
+        // Only backfill tracks genuinely missing a duration — don't re-fetch tracks
+        // that already have one (avoids hammering the SC API on every login).
         const missing = library.filter(t => t.source === 'soundcloud' && (!t.duration || t.duration === 0));
+        if (!missing.length) return;
+        let anyFilled = false;
         for (const t of missing) {
             try {
                 const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(t.soundcloudUrl || t.url) + '&client_id=' + SC_CLIENT_ID;
                 const res = await fetch(resolveUrl);
+                // Stop immediately on rate-limit — don't burn remaining quota
+                if (res.status === 429) break;
                 if (!res.ok) continue;
                 const d = await res.json();
                 if (d && d.duration) {
                     t.duration = Math.round(d.duration / 1000);
                     if (typeof idbSaveStreaming === 'function') idbSaveStreaming(t);
                     fbSaveStreamingTrack(t);
+                    anyFilled = true;
                 }
+                // Gentle delay between requests so we don't trigger rate-limiting
+                await new Promise(r => setTimeout(r, 800));
             } catch(e) { /* non-fatal */ }
         }
-        if (missing.length) { renderLibrary(); renderQueue(); }
+        if (anyFilled) { renderLibrary(); renderQueue(); }
     }
 
     async function fbSaveStreamingTrack(track) {
@@ -2804,6 +2813,8 @@
     }
     function _probeArt(url) {
         if (!url) return Promise.resolve(false);
+        // SoundCloud's fb_placeholder images are dead on the CDN — treat as broken immediately
+        if (url.indexOf('fb_placeholder') !== -1) { _artCache[url] = false; return Promise.resolve(false); }
         if (_artCache[url] !== undefined) return Promise.resolve(_artCache[url]);
         return new Promise(res => {
             const img = new Image();
@@ -3315,21 +3326,27 @@
             emojiEl.style.display = 'none';
         }
         if (art) {
-            const probe = new Image();
-            probe.onload  = function() { _applyArt(art); };
-            probe.onerror = function() {
-                // t500x500 → retry with -large, then fall back to BLK logo
-                if (art.indexOf('t500x500') !== -1) {
-                    const large = art.replace('-t500x500', '-large');
-                    const probe2 = new Image();
-                    probe2.onload  = function() { _applyArt(large); };
-                    probe2.onerror = function() { _applyArt(BLK_LOGO); };
-                    probe2.src = large;
-                } else {
-                    _applyArt(BLK_LOGO);
-                }
-            };
-            probe.src = art;
+            // SoundCloud's fb_placeholder images are dead on the CDN — skip straight to logo
+            if (art.indexOf('fb_placeholder') !== -1) {
+                _applyArt(BLK_LOGO);
+            } else {
+                const probe = new Image();
+                probe.onload  = function() { _applyArt(art); };
+                probe.onerror = function() {
+                    // t500x500 → retry with -large, then fall back to BLK logo
+                    if (art.indexOf('t500x500') !== -1) {
+                        const large = art.replace('-t500x500', '-large');
+                        if (large.indexOf('fb_placeholder') !== -1) { _applyArt(BLK_LOGO); return; }
+                        const probe2 = new Image();
+                        probe2.onload  = function() { _applyArt(large); };
+                        probe2.onerror = function() { _applyArt(BLK_LOGO); };
+                        probe2.src = large;
+                    } else {
+                        _applyArt(BLK_LOGO);
+                    }
+                };
+                probe.src = art;
+            }
         } else {
             _applyArt(BLK_LOGO);
         }
@@ -3406,10 +3423,8 @@
             if (scGeneration !== myGen) return;
             scWidgetReady = true;
             scTransitioning = false;
-            // auto_play is disabled in the embed URL to avoid AudioContext errors from
-            // the browser's autoplay policy. We trigger play here instead — this call
-            // is always in response to a user gesture (play button / track click) so
-            // the browser allows it.
+            // Trigger play here (not via auto_play URL param) so the browser
+            // treats it as user-gesture-initiated — avoids AudioContext errors.
             scWidget.play();
             let _durTries = 0;
             const _pollDur = setInterval(() => {
@@ -3452,18 +3467,13 @@
                 const finalArt = t.albumArt || art;
                 const _blkLogo = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%230a0a0a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20font-size%3D%2228%22%20fill%3D%22%238A2BE2%22%20text-anchor%3D%22middle%22%20letter-spacing%3D%222%22%3EBLK%3C%2Ftext%3E%3C%2Fsvg%3E";
                 function _setScArtImg(el, src) {
-                    // SoundCloud's fb_placeholder images are dead on their CDN — skip
-                    // straight to the BLK logo to avoid noisy 404s in the console.
                     if (!src || src.indexOf('fb_placeholder') !== -1) {
                         el.src = _blkLogo; el.onerror = null; return;
                     }
                     el.onerror = function() {
                         if (src.indexOf('t500x500') !== -1) {
                             var large = src.replace('-t500x500', '-large');
-                            // Also guard the fallback against fb_placeholder
-                            if (large.indexOf('fb_placeholder') !== -1) {
-                                el.src = _blkLogo; el.onerror = null; return;
-                            }
+                            if (large.indexOf('fb_placeholder') !== -1) { el.src = _blkLogo; el.onerror = null; return; }
                             el.onerror = function() { el.src = _blkLogo; el.onerror = null; };
                             el.src = large;
                         } else {
@@ -3630,10 +3640,9 @@
     const SC_CLIENT_ID = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX';
 
     function _scBuildEmbedUrl(trackUrl) {
-        // Use the most permissive widget params to minimise geo-restriction triggers.
-        // auto_play=true is required here — the Widget API itself triggers play via postMessage
-        // which is treated as a user-gesture relay in modern browsers ONLY when the iframe
-        // was loaded with auto_play=true (the browser trusts the initial navigation intent).
+        // auto_play is intentionally FALSE — we call scWidget.play() in the READY
+        // handler instead, which keeps it tied to the original user gesture and
+        // avoids AudioContext / autoplay-policy errors in the browser.
         return 'https://w.soundcloud.com/player/?url='
             + encodeURIComponent(trackUrl)
             + '&color=%238A2BE2&auto_play=false&hide_related=true'
