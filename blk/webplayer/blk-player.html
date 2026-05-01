@@ -2098,13 +2098,18 @@
                 snap.docChanges().forEach(change => {
                     const r = change.doc.data();
                     if (change.type === 'removed' || r._deleted) {
+                        const removedId = r.id || change.doc.id;
                         // Remove from library, spotifyTracks, soundcloudTracks
-                        const idx = library.findIndex(t => t.id === r.id);
+                        const idx = library.findIndex(t => t.id === removedId);
                         if (idx !== -1) library.splice(idx, 1);
-                        const spIdx = spotifyTracks.findIndex(t => t.id === r.id);
+                        const spIdx = spotifyTracks.findIndex(t => t.id === removedId);
                         if (spIdx !== -1) spotifyTracks.splice(spIdx, 1);
-                        const scIdx = soundcloudTracks.findIndex(t => t.id === r.id);
+                        const scIdx = soundcloudTracks.findIndex(t => t.id === removedId);
                         if (scIdx !== -1) soundcloudTracks.splice(scIdx, 1);
+                        // Also remove from IDB so it doesn't resurrect on next page load
+                        if (typeof idbDeleteTrack === 'function') idbDeleteTrack(removedId);
+                        // Add tombstone on this device too so IDB restore stays clean
+                        _addTombstone(removedId);
                         return;
                     }
                     if (tombstones.has(r.id)) return;
