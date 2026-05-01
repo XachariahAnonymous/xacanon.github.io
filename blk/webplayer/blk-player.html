@@ -1091,9 +1091,9 @@
 
 <!-- SC WIDGET — must be in-viewport for modern browsers to allow autoplay -->
 <!-- 1×1 at bottom:0, opacity:0 — technically visible to the browser (no overflow:hidden clipping) -->
-<div id="scWidgetContainer" style="position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0;z-index:-1;pointer-events:none;" aria-hidden="true">
+<div id="scWidgetContainer" style="position:fixed;bottom:0;right:0;width:300px;height:300px;opacity:0;z-index:-1;pointer-events:none;" aria-hidden="true">
     <iframe id="scHiddenWidget" src="about:blank"
-        style="width:1px;height:1px;border:none;display:block;"
+        style="width:300px;height:300px;border:none;display:block;"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 </div>
 <!-- Art prefetch container — throwaway iframes loaded here to silently fetch cover art via Widget API -->
@@ -2014,32 +2014,11 @@
     }
 
     // Backfill duration for any SC tracks that were saved with duration:0
-    async function scBackfillDurations() {
-        // Only backfill tracks genuinely missing a duration — don't re-fetch tracks
-        // that already have one (avoids hammering the SC API on every login).
-        const missing = library.filter(t => t.source === 'soundcloud' && (!t.duration || t.duration === 0));
-        if (!missing.length) return;
-        let anyFilled = false;
-        for (const t of missing) {
-            try {
-                const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(t.soundcloudUrl || t.url) + '&client_id=' + SC_CLIENT_ID;
-                const res = await fetch(resolveUrl);
-                // Stop immediately on rate-limit — don't burn remaining quota
-                if (res.status === 429) break;
-                if (!res.ok) continue;
-                const d = await res.json();
-                if (d && d.duration) {
-                    t.duration = Math.round(d.duration / 1000);
-                    if (typeof idbSaveStreaming === 'function') idbSaveStreaming(t);
-                    fbSaveStreamingTrack(t);
-                    anyFilled = true;
-                }
-                // Gentle delay between requests so we don't trigger rate-limiting
-                await new Promise(r => setTimeout(r, 800));
-            } catch(e) { /* non-fatal */ }
-        }
-        if (anyFilled) { renderLibrary(); renderQueue(); }
-    }
+    // scBackfillDurations previously called api.soundcloud.com/resolve which now returns
+    // 401 Unauthorized (the public client ID has been revoked by SoundCloud).
+    // Duration is now populated from the widget's getDuration() callback when a track plays.
+    // This function is kept as a no-op so existing call sites don't error.
+    function scBackfillDurations() { /* no-op — resolve API no longer available */ }
 
     async function fbSaveStreamingTrack(track) {
         if (!currentUser || !FB) return;
@@ -3333,7 +3312,6 @@
                 const probe = new Image();
                 probe.onload  = function() { _applyArt(art); };
                 probe.onerror = function() {
-                    // t500x500 → retry with -large, then fall back to BLK logo
                     if (art.indexOf('t500x500') !== -1) {
                         const large = art.replace('-t500x500', '-large');
                         if (large.indexOf('fb_placeholder') !== -1) { _applyArt(BLK_LOGO); return; }
@@ -3499,10 +3477,20 @@
                     renderSoundcloudTracks();
                 }
 
-                // Backfill duration if not yet known
-                if (!scCurrentDur && sound.duration) {
-                    scCurrentDur = sound.duration;
-                    document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                // Backfill duration from widget — persist so it survives reload
+                // without any external API call.
+                if (sound.duration) {
+                    const durSecs = Math.round(sound.duration / 1000);
+                    if (!scCurrentDur) {
+                        scCurrentDur = sound.duration;
+                        document.getElementById('timeDuration').textContent = fmt(scCurrentDur / 1000);
+                    }
+                    if (t && (!t.duration || t.duration === 0)) {
+                        t.duration = durSecs;
+                        if (typeof idbSaveStreaming === 'function') idbSaveStreaming(t);
+                        fbSaveStreamingTrack(t);
+                        renderLibrary(); renderQueue();
+                    }
                 }
             });
         });
@@ -3635,14 +3623,14 @@
         scEnsureAPI(() => _scLoadAndPlay(trackUrl));
     }
 
-    // SC_CLIENT_ID is the public SoundCloud JS SDK client ID used for resolve/stream lookups.
-    // This is the same public key baked into the SC Widget itself — not a secret.
-    const SC_CLIENT_ID = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX';
+    // NOTE: SoundCloud's public JS SDK client ID (previously used for resolve/stream
+    // lookups) now returns 401 Unauthorized. All direct API calls have been removed.
+    // Playback uses the SC Widget iframe API exclusively; metadata uses oEmbed.
 
     function _scBuildEmbedUrl(trackUrl) {
         // auto_play is intentionally FALSE — we call scWidget.play() in the READY
-        // handler instead, which keeps it tied to the original user gesture and
-        // avoids AudioContext / autoplay-policy errors in the browser.
+        // handler instead, keeping playback tied to the original user gesture and
+        // avoiding AudioContext / autoplay-policy errors.
         return 'https://w.soundcloud.com/player/?url='
             + encodeURIComponent(trackUrl)
             + '&color=%238A2BE2&auto_play=false&hide_related=true'
@@ -3651,18 +3639,9 @@
             + '&visual=false';
     }
 
-    // Resolve a SC track URL to a direct stream URL via the public API.
-    // Gracefully returns null on failure so the caller can still fall back to a toast.
-    async function _scResolveStreamUrl(trackUrl) {
-        try {
-            const res = await fetch('https://api.soundcloud.com/resolve?url='
-                + encodeURIComponent(trackUrl) + '&client_id=' + SC_CLIENT_ID);
-            if (!res.ok) return null;
-            const data = await res.json();
-            if (data && data.stream_url) return data.stream_url + '?client_id=' + SC_CLIENT_ID;
-            return null;
-        } catch(e) { return null; }
-    }
+    // _scResolveStreamUrl previously used api.soundcloud.com/resolve which now returns
+    // 401 Unauthorized. Kept as a stub so _scHandleError doesn't throw.
+    async function _scResolveStreamUrl() { return null; }
 
     // Called when the SC widget fires an ERROR event (geo-block / unavailable).
     // Tries to fall back to a direct audio stream via the resolve API.
@@ -3710,7 +3689,7 @@
 
         const newIframe = document.createElement('iframe');
         newIframe.id    = 'scHiddenWidget';
-        newIframe.style.cssText = 'width:1px;height:1px;border:none;display:block;';
+        newIframe.style.cssText = 'width:300px;height:300px;border:none;display:block;';
         newIframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
         newIframe.src   = embedUrl;
         container.appendChild(newIframe);
@@ -3780,11 +3759,7 @@
         const oembedUrl = 'https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(trackUrl);
         let d = await tryFetch(oembedUrl) || await proxyJSON(oembedUrl);
         if (d && d.thumbnail_url) return upgradeArt(d.thumbnail_url);
-        // ── 2. Resolve API (direct, then proxy) ───────────────────────────────
-        const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(trackUrl) + '&client_id=' + SC_CLIENT_ID;
-        let d2 = await tryFetch(resolveUrl) || await proxyJSON(resolveUrl);
-        if (d2) return upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
-        // ── 3. Widget API — load a hidden iframe and call getCurrentSound ─────
+        // ── 2. Widget API — load a hidden iframe and call getCurrentSound ─────
         // This is the most reliable fallback: the Widget API always returns artwork.
         try {
             const widgetArt = await new Promise((resolve) => {
@@ -5299,19 +5274,8 @@
                 }
             }
 
-            // ── 4. SC resolve API — richer data, direct artwork_url ───────────────────
-            //       (also try direct first, proxy as fallback)
-            if (!art || !title) {
-                const resolveUrl = 'https://api.soundcloud.com/resolve?url=' + encodeURIComponent(url) + '&client_id=' + SC_CLIENT_ID;
-                let d2 = await tryFetch(resolveUrl);
-                if (!d2) d2 = await proxyJSON(resolveUrl);
-                if (d2) {
-                    if (!title)    title    = d2.title || '';
-                    if (!artist)   artist   = (d2.user && d2.user.username) || '';
-                    if (!art)      art      = upgradeArt(d2.artwork_url || (d2.user && d2.user.avatar_url));
-                    if (d2.duration) duration = Math.round(d2.duration / 1000); // ms → seconds
-                }
-            }
+            // ── 4. SC resolve API is no longer available (401 Unauthorized) ─────────
+            //       oEmbed above is the reliable source for title/art without a client ID.
 
             _scPendingMeta = { url, title, artist, art, duration };
 
