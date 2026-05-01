@@ -4592,10 +4592,22 @@
                     ? { uris: orderedUris.slice(0, 750), position_ms: 0 }
                     : { uris: [uri], position_ms: 0 };
             }
-            await spAPI('/me/player/play?device_id=' + spDeviceId, {
+            const playResult = await spAPI('/me/player/play?device_id=' + spDeviceId, {
                 method: 'PUT',
                 body: JSON.stringify(payload)
             });
+            if (playResult === null) {
+                // spAPI returned null — either 429 rate limit or auth error
+                if (Date.now() < _spRateLimitedUntil) {
+                    const secsLeft = Math.ceil((_spRateLimitedUntil - Date.now()) / 1000);
+                    showToast('Spotify rate limited — try again in ' + secsLeft + 's');
+                } else {
+                    showToast('Spotify playback error — try again');
+                }
+                isPlaying = false; updatePlayBtn();
+                document.getElementById('playerArt').classList.remove('playing');
+                return;
+            }
         } catch(e) {
             if (trackId) openSpotifyEmbed(trackId, title, artist);
             return;
