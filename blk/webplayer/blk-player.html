@@ -780,7 +780,7 @@
             /* ── App shell: single column, nav top, player bottom ── */
             #app-shell {
                 grid-template-columns: 1fr;
-                grid-template-rows: 56px 1fr 80px;
+                grid-template-rows: 56px 1fr auto;
                 grid-template-areas: "nav" "main" "player";
                 height: 100dvh;
                 overflow: hidden;
@@ -805,7 +805,7 @@
             #mobile-tab-bar {
                 display: flex;
                 position: fixed;
-                bottom: 80px;
+                bottom: 0;
                 left: 0; right: 0;
                 height: 52px;
                 background: rgba(0,0,0,0.97);
@@ -834,28 +834,114 @@
             main {
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                padding-bottom: 52px; /* space for bottom tab bar */
+                padding-bottom: 60px; /* space for fixed bottom tab bar */
                 height: 100%;
             }
 
-            /* ── Player bar: compact 3-col (art | info+controls | nothing) ── */
+            /* ── Player bar: 2-row mobile layout ── */
             .player-bar {
-                grid-template-columns: auto 1fr auto;
-                height: 80px;
-                padding: 0 1rem;
-                gap: 0.8rem;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                height: auto;
+                min-height: 88px;
+                padding: 0.6rem 1rem 0.5rem;
+                gap: 0.5rem;
                 align-items: center;
             }
-            .player-art { width: 44px; height: 44px; font-size: 1rem; }
-            .player-track { min-width: 0; flex: 1; }
+            /* Row 1: art + track info + playback controls */
+            .player-track {
+                min-width: 0;
+                flex: 1;
+            }
+            .player-track-none {
+                font-size: 0.6rem;
+                white-space: nowrap;
+            }
+            .player-art { width: 40px; height: 40px; flex-shrink: 0; font-size: 0.9rem; }
             .player-track-name { font-size: 0.78rem; }
             .player-track-artist { font-size: 0.62rem; }
-            .player-progress { display: none; }
+            /* Controls row: art | name/artist | buttons — all in one flex line */
+            .player-controls {
+                display: contents; /* let children participate in player-bar grid */
+            }
+            /* Override: put art + track + btns in a single flex row */
+            .player-bar {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+            .player-bar > .player-track,
+            .player-bar > .player-controls,
+            .player-bar > .player-right { all: unset; }
+
+            /* Re-implement as two explicit rows */
+            .player-bar {
+                display: grid;
+                grid-template-areas:
+                    "mob-top"
+                    "mob-progress";
+                grid-template-rows: 1fr auto;
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: 88px;
+                padding: 0.55rem 1rem 0.4rem;
+                gap: 0.4rem;
+            }
+            .player-track { grid-area: unset; }
+            .player-controls { grid-area: unset; }
             .player-right { display: none; }
-            .player-controls { gap: 0.4rem; }
-            .player-btns { gap: 0.8rem; }
-            .ctrl-play { width: 42px; height: 42px; font-size: 1rem; }
-            .ctrl-btn { width: 36px; height: 36px; font-size: 1rem; }
+
+            /* Row 1 wrapper: art + info + buttons side by side */
+            .player-bar::before { display: none; }
+            .mob-player-row1 {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                min-width: 0;
+            }
+            /* Since we can't restructure the HTML easily, use flex on player-bar children */
+            .player-bar {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0.45rem !important;
+                padding: 0.6rem 1rem 0.5rem !important;
+                height: auto !important;
+                min-height: 88px !important;
+            }
+            .player-track {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                min-width: 0;
+                flex: 0 0 auto;
+                width: 100%;
+            }
+            .player-track > div { min-width: 0; flex: 1; }
+            .player-controls {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.4rem !important;
+                width: 100% !important;
+                flex: 0 0 auto !important;
+            }
+            .player-btns {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 1.2rem;
+            }
+            /* Progress bar: show and full width */
+            .player-progress {
+                display: flex !important;
+                align-items: center;
+                gap: 0.6rem;
+                width: 100%;
+            }
+            .progress-bar { flex: 1; height: 4px; }
+            .progress-time { font-size: 0.55rem; }
+            .ctrl-play { width: 40px; height: 40px; font-size: 0.95rem; }
+            .ctrl-btn { width: 34px; height: 34px; font-size: 0.95rem; }
 
             /* ── View header ── */
             .view-header {
@@ -918,7 +1004,7 @@
             .streaming-dropdown { min-width: 90vw; left: 50%; transform: translateX(-50%); }
 
             /* ── Queue panel: full-width ── */
-            .queue-panel { width: calc(100vw - 2rem); right: 1rem; left: 1rem; bottom: 140px; }
+            .queue-panel { width: calc(100vw - 2rem); right: 1rem; left: 1rem; bottom: 100px; }
 
             /* ── Profile ── */
             .profile-stat-val { font-size: 1.1rem; }
