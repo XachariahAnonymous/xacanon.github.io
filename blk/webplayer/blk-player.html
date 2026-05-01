@@ -1954,6 +1954,7 @@
         loadStoreTracks();
         // Restore streaming tracks from Firestore (cross-device sync)
         await fbLoadStreamingTracks(user.uid);
+        await plLoadFirestore();
         // Restore Spotify session keyed to this user — or, if we just came back from
         // a Spotify OAuth redirect, complete the token exchange now that currentUser
         // is set so tokens are saved under the correct UID key (Bug 1/3 fix).
@@ -2874,7 +2875,7 @@
             nextList.forEach(function({ idx, t }, pos) {
                 const artInner = (t.albumArt||t.artwork)
                     ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
-                    : '<span>' + esc2(t.emoji||'◈') + '</span>';
+                    : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
                 html += '<div class="qp-row" onclick="activePlaylistId=activePlaylistId;playTrack(' + idx + ',true)">'
                     + '<span class="qp-row-num">' + (pos+1) + '</span>'
                     + '<div class="qp-row-art">' + artInner + '</div>'
@@ -2897,7 +2898,7 @@
             prevList.forEach(function({ idx, t }) {
                 const artInner = (t.albumArt||t.artwork)
                     ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
-                    : '<span>' + esc2(t.emoji||'◈') + '</span>';
+                    : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
                 html += '<div class="qp-row" style="opacity:0.55;" onclick="playTrack(' + idx + ',true)">'
                     + '<div class="qp-row-art">' + artInner + '</div>'
                     + '<div class="qp-row-info"><div class="qp-row-title">' + esc2(t.title) + '</div><div class="qp-row-artist">' + esc2(t.artist) + '</div></div>'
@@ -5299,9 +5300,36 @@
     // ── Persist to localStorage (lightweight — no IDB needed for small metadata) ──
     function plSave() {
         try { localStorage.setItem('blk_playlists', JSON.stringify(playlists)); } catch(e) {}
+        plSaveFirestore();
     }
     function plLoad() {
         try { const d = localStorage.getItem('blk_playlists'); if (d) playlists = JSON.parse(d); } catch(e) {}
+    }
+    async function plSaveFirestore() {
+        if (!currentUser || !FB) return;
+        try {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid);
+            await FB.updateDoc(ref, { playlists: JSON.stringify(playlists) });
+        } catch(e) { console.warn('plSaveFirestore:', e); }
+    }
+    async function plLoadFirestore() {
+        if (!currentUser || !FB) return;
+        try {
+            const ref = FB.doc(FB.db, 'users', currentUser.uid);
+            const snap = await FB.getDoc(ref);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.playlists) {
+                    const remote = JSON.parse(data.playlists);
+                    // Merge: remote wins for any playlist by id, keep local-only ones too
+                    const remoteIds = new Set(remote.map(p => p.id));
+                    const localOnly = playlists.filter(p => !remoteIds.has(p.id));
+                    playlists = [...remote, ...localOnly];
+                    try { localStorage.setItem('blk_playlists', JSON.stringify(playlists)); } catch(e) {}
+                    renderPlaylists();
+                }
+            }
+        } catch(e) { console.warn('plLoadFirestore:', e); }
     }
 
     // ── Render the playlists grid ──
@@ -5392,7 +5420,7 @@
             var checked = selectedIds.indexOf(t.id) >= 0;
             var artHtml = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;" onerror="_imgArtErr(this)">'
-                : '<span style="font-size:0.7rem;">' + (t.emoji || '\u25C8') + '</span>';
+                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
             var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : 'var(--sub)';
             var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : '';
             var srcTag = srcLabel ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + srcColor + ';margin-left:4px;">' + srcLabel + '</span>' : '';
@@ -5522,7 +5550,7 @@
             var libIdx = library.indexOf(t);
             var isStream = t.source === 'spotify' || t.source === 'soundcloud';
             var srcTag = isStream ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';margin-left:4px;">' + (t.source==='spotify'?'SP':'SC') + '</span>' : '';
-            var thumb = t.albumArt ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;" onerror="_imgArtErr(this)">' : '<span>' + (t.emoji||'\u25C8') + '</span>';
+            var thumb = t.albumArt ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;" onerror="_imgArtErr(this)">' : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
             return '<div class="track-row" onclick="activePlaylistId=\'' + id + '\';playTrack(' + libIdx + ',true)">'
                 + '<span class="track-idx">' + (i+1) + '</span>'
                 + '<div class="track-info"><div class="track-thumb">' + thumb + '<div class="play-overlay">&#9654;</div></div>'
@@ -5592,7 +5620,7 @@
         window.addEventListener('resize', checkMobile);
     })();
 
-    // Load playlists on boot
+    // Load playlists on boot (local first, then Firestore after auth)
     plLoad();
 
     // ── BOOT ──
@@ -5631,7 +5659,9 @@
         if (src.indexOf('t500x500') !== -1) {
             el.src = src.replace('-t500x500', '-large');
         } else {
-            el.style.display = 'none';
+            // Show BLK logo placeholder instead of hiding
+            el.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0a0a'/%3E%3Ctext x='50' y='62' font-family='monospace' font-weight='bold' font-size='28' fill='%238A2BE2' text-anchor='middle' letter-spacing='2'%3EBLK%3C/text%3E%3C/svg%3E";
+            el.onerror = null; // prevent infinite loop
         }
     };
 
@@ -5668,7 +5698,7 @@
             var libIdx = library.indexOf(t);
             var thumb = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:36px;height:36px;object-fit:cover;" onerror="_imgArtErr(this)">'
-                : '<span>' + (t.emoji || '♪') + '</span>';
+                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
             return '<div class="mob-local-row" onclick="playTrack(' + libIdx + ',true);switchView(\'library\')">'
                 + '<div class="mob-local-thumb">' + thumb + '</div>'
                 + '<div class="mob-local-info"><div class="mob-local-title">' + esc(t.title) + '</div><div class="mob-local-artist">' + esc(t.artist) + '</div></div>'
