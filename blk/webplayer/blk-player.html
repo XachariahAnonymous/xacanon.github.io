@@ -1435,7 +1435,7 @@
                     </div>
                     <!-- Auto-fetched preview -->
                     <div id="soundcloudPreview" style="display:none;margin-bottom:0.8rem;background:rgba(255,85,0,0.06);border:1px solid rgba(255,85,0,0.2);padding:0.75rem;align-items:center;gap:0.8rem;">
-                        <img id="scPreviewArt" src="" alt="" style="width:44px;height:44px;object-fit:cover;flex-shrink:0;background:var(--surface2);" onerror="_imgArtErr(this)">
+                        <img id="scPreviewArt" alt="" style="width:44px;height:44px;object-fit:cover;flex-shrink:0;background:var(--surface2);">
                         <div style="flex:1;min-width:0;">
                             <div id="scPreviewTitle"  style="font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
                             <div id="scPreviewArtist" style="font-family:'Space Mono',monospace;font-size:0.58rem;color:#ff5500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
@@ -5202,7 +5202,13 @@
                 const artEl    = document.getElementById('scPreviewArt');
                 const titleEl  = document.getElementById('scPreviewTitle');
                 const artistEl = document.getElementById('scPreviewArtist');
-                if (artEl)    { const artSrc = art || ''; artEl.src = artSrc; artEl.style.display = artSrc ? 'block' : 'none'; console.log('[SC] Preview art URL:', artSrc); }
+                if (artEl)    {
+                    const BLK_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%230a0a0a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20font-size%3D%2228%22%20fill%3D%22%238A2BE2%22%20text-anchor%3D%22middle%22%20letter-spacing%3D%222%22%3EBLK%3C%2Ftext%3E%3C%2Fsvg%3E";
+                    artEl.style.display = 'block';
+                    artEl.onerror = function() { artEl.src = BLK_LOGO; artEl.onerror = null; };
+                    artEl.src = art || BLK_LOGO;
+                    console.log('[SC] Preview art URL:', art);
+                }
                 if (titleEl)  titleEl.textContent  = title  || 'Unknown Title';
                 if (artistEl) artistEl.textContent = artist || 'Unknown Artist';
             }
