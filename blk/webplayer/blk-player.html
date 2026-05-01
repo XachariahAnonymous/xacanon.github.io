@@ -10,7 +10,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc, onSnapshot, query } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey:            "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
@@ -32,7 +32,7 @@
         const db   = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
-        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc };
+        window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc, onSnapshot, query };
         window.SPOTIFY_CLIENT_ID    = SPOTIFY_CLIENT_ID;
         window.SPOTIFY_REDIRECT_URI = SPOTIFY_REDIRECT_URI;
         window.SPOTIFY_SCOPES       = SPOTIFY_SCOPES;
@@ -1865,37 +1865,45 @@
 
     const STORE = [];
     let storeLoaded = false;
+    let _storeUnsubscribe = null; // real-time listener cleanup
 
     async function loadStoreTracks() {
         if (!FB) return;
-        try {
-            const snap = await FB.getDocs(FB.collection(FB.db, 'storeTracks'));
-            let ownedIds = new Set();
-            if (currentUser) {
+        // Tear down any existing listener before starting a new one
+        if (_storeUnsubscribe) { _storeUnsubscribe(); _storeUnsubscribe = null; }
+
+        // Fetch purchases once (they don't change mid-session)
+        let ownedIds = new Set();
+        if (currentUser) {
+            try {
                 const purchSnap = await FB.getDocs(FB.collection(FB.db, 'purchases'));
                 purchSnap.forEach(d => { const p = d.data(); if (p.uid === currentUser.uid) ownedIds.add(p.trackId); });
-            }
-            // Sync purchasedStoreIds with server data
-            ownedIds.forEach(id => purchasedStoreIds.add(id));
-            savePurchasedIds();
+            } catch(e) { console.warn('purchases fetch failed:', e); }
+        }
+        ownedIds.forEach(id => purchasedStoreIds.add(id));
+        savePurchasedIds();
 
-            STORE.length = 0;
-            snap.forEach(d => {
-                const t = d.data();
-                const purchased = ownedIds.has(d.id);
-                const inLibrary = library.some(l => l.id === d.id+'_lib');
-                STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary, coverUrl: t.coverUrl||null });
-                // Auto-restore purchased tracks into library on page load
-                if (purchased && !inLibrary) {
-                    const _storeTrack = { id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store', albumArt: t.coverUrl||null };
-                    library.push(_storeTrack);
-                    probeStoreDuration(_storeTrack);
-                    STORE[STORE.length - 1].owned = true;
-                }
-            });
-            storeLoaded = true;
-            renderStore();
-            renderLibrary(); renderQueue();
+        // Live listener on storeTracks — fires immediately and on every change
+        try {
+            const col = FB.collection(FB.db, 'storeTracks');
+            _storeUnsubscribe = FB.onSnapshot(col, snap => {
+                STORE.length = 0;
+                snap.forEach(d => {
+                    const t = d.data();
+                    const purchased = ownedIds.has(d.id);
+                    const inLibrary = library.some(l => l.id === d.id+'_lib');
+                    STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary, coverUrl: t.coverUrl||null });
+                    if (purchased && !inLibrary) {
+                        const _storeTrack = { id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store', albumArt: t.coverUrl||null };
+                        library.push(_storeTrack);
+                        probeStoreDuration(_storeTrack);
+                        STORE[STORE.length - 1].owned = true;
+                    }
+                });
+                storeLoaded = true;
+                renderStore();
+                renderLibrary(); renderQueue();
+            }, e => { console.warn('storeTracks listener error:', e); });
         } catch(e) { console.warn('loadStoreTracks failed:', e); }
     }
 
@@ -1921,6 +1929,11 @@
                 currentUser = null;
                 userProfile = null;
                 _pendingVerifyEmail = null; _pendingVerifyPass = null;
+                // Tear down real-time listeners
+                if (_storeUnsubscribe) { _storeUnsubscribe(); _storeUnsubscribe = null; }
+                if (_userProfileUnsubscribe) { _userProfileUnsubscribe(); _userProfileUnsubscribe = null; }
+                if (_streamingUnsubscribe) { _streamingUnsubscribe(); _streamingUnsubscribe = null; }
+                storeLoaded = false;
                 // Clear Spotify state so next user starts fresh
                 spAccessToken = spRefreshToken = null; spTokenExpiry = 0;
                 if (spPlayer) { try { spPlayer.disconnect(); } catch(_) {} spPlayer = null; }
@@ -1930,26 +1943,55 @@
         });
     }
 
+    let _userProfileUnsubscribe = null;
+
     async function loadUserProfile(user) {
-        const { db, doc, getDoc } = FB;
+        const { db, doc, getDoc, onSnapshot, setDoc } = FB;
         const ref = doc(db, 'users', user.uid);
+
+        // Create profile doc if it doesn't exist yet
         const snap = await getDoc(ref);
-        if (snap.exists()) {
-            userProfile = snap.data();
-            coins = userProfile.coins || 0;
-            listenCount = userProfile.listenCount || 0;
-        } else {
+        if (!snap.exists()) {
             userProfile = {
                 uid: user.uid, email: user.email,
                 displayName: user.displayName || user.email.split('@')[0],
                 role: 'user', coins: 0, listenCount: 0, purchases: 0,
                 joinedAt: new Date().toISOString()
             };
-            await FB.setDoc(ref, userProfile);
+            await setDoc(ref, userProfile);
         }
-        updateNavUser();
-        updateCoins();
-        updateProfileView();
+
+        // Tear down any previous listener
+        if (_userProfileUnsubscribe) { _userProfileUnsubscribe(); _userProfileUnsubscribe = null; }
+
+        // Live listener — fires immediately then on every change
+        await new Promise(resolve => {
+            let resolved = false;
+            _userProfileUnsubscribe = onSnapshot(ref, snapLive => {
+                if (snapLive.exists()) {
+                    const data = snapLive.data();
+                    userProfile = data;
+                    coins = data.coins || 0;
+                    listenCount = data.listenCount || 0;
+                    updateNavUser();
+                    updateCoins();
+                    updateProfileView();
+                    // Sync playlists
+                    if (data.playlists) {
+                        try {
+                            const remote = JSON.parse(data.playlists);
+                            const remoteIds = new Set(remote.map(p => p.id));
+                            const localOnly = playlists.filter(p => !remoteIds.has(p.id));
+                            playlists = [...remote, ...localOnly];
+                            try { localStorage.setItem('blk_playlists', JSON.stringify(playlists)); } catch(_) {}
+                            if (typeof renderPlaylists === 'function') renderPlaylists();
+                        } catch(_) {}
+                    }
+                }
+                if (!resolved) { resolved = true; resolve(); }
+            }, () => { if (!resolved) { resolved = true; resolve(); } });
+        });
+
         // Load store tracks from Firestore
         loadStoreTracks();
         // Restore streaming tracks from Firestore (cross-device sync)
@@ -2044,56 +2086,80 @@
         _pruneTombstones();
     }
 
+    let _streamingUnsubscribe = null;
+
     async function fbLoadStreamingTracks(uid) {
         if (!FB) return;
+        if (_streamingUnsubscribe) { _streamingUnsubscribe(); _streamingUnsubscribe = null; }
         try {
-            // Timeout after 5s so it never blocks login/showApp
-            const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
             const colRef = FB.collection(FB.db, 'users', uid, 'streamingTracks');
-            const snap = await Promise.race([FB.getDocs(colRef), timeoutPromise]);
-            const tombstones = _getTombstones();
-            snap.forEach(docSnap => {
-                const r = docSnap.data();
-                if (r._deleted) return;
-                // Skip locally tombstoned tracks (deleted on this device, Firestore may lag)
-                if (tombstones.has(r.id)) return;
-                // Don't duplicate if already in library (from IDB restore)
-                const alreadyIn = library.some(t => t.id === r.id);
-                if (alreadyIn) return;
-                const track = {
-                    id: r.id,
-                    url: r.url || r.spUri || r.soundcloudUrl || '',
-                    title: r.title, artist: r.artist, album: r.album || '',
-                    albumArt: r.albumArt || null, duration: r.duration || 0,
-                    dateAdded: r.dateAdded || new Date().toLocaleDateString(),
-                    emoji: r.emoji || '🎵', source: r.source,
-                    spUri: r.spUri || null,
-                    soundcloudUrl: r.soundcloudUrl || null,
-                    spotifyType: r.spotifyType || null,
-                    spotifyTrackId: r.spotifyTrackId || null,
-                    playlist: r.playlist || null,
-                    fileName: r.fileName || null,
-                    // Local tracks restored from Firestore are marked missing (no audio binary on new device)
-                    missing: r.source === 'local' ? true : false
-                };
-                library.push(track);
-                if (r.source === 'spotify') spotifyTracks.push(track);
-                else if (r.source === 'soundcloud') soundcloudTracks.push(track);
-                // Also save to IDB for offline access
-                if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
-            });
-            if (spotifyTracks.length || soundcloudTracks.length) {
+            _streamingUnsubscribe = FB.onSnapshot(colRef, snap => {
+                const tombstones = _getTombstones();
+                snap.docChanges().forEach(change => {
+                    const r = change.doc.data();
+                    if (change.type === 'removed' || r._deleted) {
+                        // Remove from library, spotifyTracks, soundcloudTracks
+                        const idx = library.findIndex(t => t.id === r.id);
+                        if (idx !== -1) library.splice(idx, 1);
+                        const spIdx = spotifyTracks.findIndex(t => t.id === r.id);
+                        if (spIdx !== -1) spotifyTracks.splice(spIdx, 1);
+                        const scIdx = soundcloudTracks.findIndex(t => t.id === r.id);
+                        if (scIdx !== -1) soundcloudTracks.splice(scIdx, 1);
+                        return;
+                    }
+                    if (tombstones.has(r.id)) return;
+                    if (change.type === 'added') {
+                        const alreadyIn = library.some(t => t.id === r.id);
+                        if (alreadyIn) return;
+                        const track = {
+                            id: r.id,
+                            url: r.url || r.spUri || r.soundcloudUrl || '',
+                            title: r.title, artist: r.artist, album: r.album || '',
+                            albumArt: r.albumArt || null, duration: r.duration || 0,
+                            dateAdded: r.dateAdded || new Date().toLocaleDateString(),
+                            emoji: r.emoji || '🎵', source: r.source,
+                            spUri: r.spUri || null,
+                            soundcloudUrl: r.soundcloudUrl || null,
+                            spotifyType: r.spotifyType || null,
+                            spotifyTrackId: r.spotifyTrackId || null,
+                            playlist: r.playlist || null,
+                            fileName: r.fileName || null,
+                            missing: r.source === 'local' ? true : false
+                        };
+                        library.push(track);
+                        if (r.source === 'spotify') spotifyTracks.push(track);
+                        else if (r.source === 'soundcloud') soundcloudTracks.push(track);
+                        if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+                    } else if (change.type === 'modified') {
+                        // Update existing track in place
+                        const existing = library.find(t => t.id === r.id);
+                        if (existing) {
+                            existing.albumArt = r.albumArt || null;
+                            existing.duration = r.duration || existing.duration;
+                            existing.title = r.title || existing.title;
+                            existing.artist = r.artist || existing.artist;
+                        }
+                    }
+                });
+                // Update UI
                 renderLibrary(); renderQueue();
+                renderSoundcloudTracks();
                 if (spotifyTracks.length) {
                     document.getElementById('spotifyStatus').textContent = spotifyTracks.length + ' linked';
                     document.getElementById('spotifyConnectBtn').classList.add('connected');
+                } else {
+                    document.getElementById('spotifyStatus').textContent = '';
+                    document.getElementById('spotifyConnectBtn').classList.remove('connected');
                 }
                 if (soundcloudTracks.length) {
                     document.getElementById('soundcloudStatus').textContent = soundcloudTracks.length + ' linked';
                     const _scBtn = document.getElementById('soundcloudConnectBtn'); if (_scBtn) _scBtn.classList.add('connected');
+                } else {
+                    document.getElementById('soundcloudStatus').textContent = '';
+                    const _scBtn = document.getElementById('soundcloudConnectBtn'); if (_scBtn) _scBtn.classList.remove('connected');
                 }
-            }
-        } catch(e) { /* non-fatal: offline or no data yet */ }
+            }, e => { /* non-fatal: offline or no data yet */ });
+        } catch(e) { /* non-fatal */ }
     }
 
     function showAuth() {
@@ -5417,25 +5483,8 @@
             await FB.updateDoc(ref, { playlists: JSON.stringify(playlists) });
         } catch(e) { console.warn('plSaveFirestore:', e); }
     }
-    async function plLoadFirestore() {
-        if (!currentUser || !FB) return;
-        try {
-            const ref = FB.doc(FB.db, 'users', currentUser.uid);
-            const snap = await FB.getDoc(ref);
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.playlists) {
-                    const remote = JSON.parse(data.playlists);
-                    // Merge: remote wins for any playlist by id, keep local-only ones too
-                    const remoteIds = new Set(remote.map(p => p.id));
-                    const localOnly = playlists.filter(p => !remoteIds.has(p.id));
-                    playlists = [...remote, ...localOnly];
-                    try { localStorage.setItem('blk_playlists', JSON.stringify(playlists)); } catch(e) {}
-                    renderPlaylists();
-                }
-            }
-        } catch(e) { console.warn('plLoadFirestore:', e); }
-    }
+    // Playlist sync is handled by the user profile onSnapshot listener in loadUserProfile
+    async function plLoadFirestore() { /* no-op — covered by _userProfileUnsubscribe */ }
 
     // ── Render the playlists grid ──
     function renderPlaylists() {
