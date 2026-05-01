@@ -2727,6 +2727,43 @@
     // ════════════════════════════════════════
     // LIBRARY RENDER
     // ════════════════════════════════════════
+    const _artCache = {}; // url -> true (ok) | false (broken)
+    function _blkThumbDiv() {
+        return '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
+    }
+    function _probeArt(url) {
+        if (!url) return Promise.resolve(false);
+        if (_artCache[url] !== undefined) return Promise.resolve(_artCache[url]);
+        return new Promise(res => {
+            const img = new Image();
+            img.onload  = () => { _artCache[url] = true;  res(true); };
+            img.onerror = () => { _artCache[url] = false; res(false); };
+            img.src = url;
+        });
+    }
+    function _buildLibraryRow(t, i, tracks) {
+        const libIdx   = library.indexOf(t);
+        const isStream = t.source === 'spotify' || t.source === 'soundcloud';
+        const sourceTag = isStream
+            ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify'?'SPOTIFY':'SC') + '</span>'
+            : '';
+        const artOk = t.albumArt && _artCache[t.albumArt] !== false;
+        const thumbInner = artOk
+            ? '<img src="' + t.albumArt.replace(/"/g,'%22') + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
+            : _blkThumbDiv();
+        return '<div class="track-row ' + (currentIdx === libIdx && isPlaying ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
+            + '<span class="track-idx">' + (currentIdx === libIdx ? '▶' : i+1) + '</span>'
+            + '<div class="track-info">'
+            + '<div class="track-thumb">' + thumbInner + '<div class="play-overlay">' + (currentIdx === libIdx && isPlaying ? '⏸' : '▶') + '</div></div>'
+            + '<div><div class="track-name">' + esc(t.title) + sourceTag + '</div><div class="track-name-artist">' + esc(t.artist) + '</div></div>'
+            + '</div>'
+            + '<span class="track-album">' + esc(t.album) + '</span>'
+            + '<span class="track-meta">' + t.dateAdded + '</span>'
+            + '<span class="track-duration">' + (t.missing ? '⚠ missing' : fmt(t.duration)) + '</span>'
+            + '<button class="track-addpl-btn" onclick="event.stopPropagation();openAddToPlaylistMenu(event,' + libIdx + ')" title="Add to playlist">⊕</button>'
+            + '<button class="track-remove-btn" onclick="removeTrack(event,' + libIdx + ')" title="Remove track">✕</button>'
+            + '</div>';
+    }
     function renderLibrary(filtered) {
         const tracks = filtered ?? library;
         const body = document.getElementById('trackListBody');
@@ -2734,29 +2771,17 @@
             body.innerHTML = '<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>';
             return;
         }
-        body.innerHTML = tracks.map((t, i) => {
-            const libIdx    = library.indexOf(t);
-            const isStream  = t.source === 'spotify' || t.source === 'soundcloud';
-            const sourceTag = isStream
-                ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify'?'SPOTIFY':'SC') + '</span>'
-                : '';
-            const safeArt = t.albumArt ? t.albumArt.replace(/"/g, '%22') : null;
-            const thumbInner = safeArt
-                ? '<img src="' + safeArt + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
-                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
-            return '<div class="track-row ' + (currentIdx === libIdx && isPlaying ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
-                + '<span class="track-idx">' + (currentIdx === libIdx ? '▶' : i+1) + '</span>'
-                + '<div class="track-info">'
-                + '<div class="track-thumb">' + thumbInner + '<div class="play-overlay">' + (currentIdx === libIdx && isPlaying ? '⏸' : '▶') + '</div></div>'
-                + '<div><div class="track-name">' + esc(t.title) + sourceTag + '</div><div class="track-name-artist">' + esc(t.artist) + '</div></div>'
-                + '</div>'
-                + '<span class="track-album">' + esc(t.album) + '</span>'
-                + '<span class="track-meta">' + t.dateAdded + '</span>'
-                + '<span class="track-duration">' + (t.missing ? '⚠ missing' : fmt(t.duration)) + '</span>'
-                + '<button class="track-addpl-btn" onclick="event.stopPropagation();openAddToPlaylistMenu(event,' + libIdx + ')" title="Add to playlist">⊕</button>'
-                + '<button class="track-remove-btn" onclick="removeTrack(event,' + libIdx + ')" title="Remove track">✕</button>'
-                + '</div>';
-        }).join('');
+        // Probe any uncached art URLs first, then render
+        const uncached = tracks.filter(t => t.albumArt && _artCache[t.albumArt] === undefined);
+        if (uncached.length) {
+            Promise.all(uncached.map(t => _probeArt(t.albumArt))).then(() => {
+                body.innerHTML = tracks.map((t, i) => _buildLibraryRow(t, i, tracks)).join('');
+            });
+            // Render immediately with what we know while probing
+            body.innerHTML = tracks.map((t, i) => _buildLibraryRow(t, i, tracks)).join('');
+        } else {
+            body.innerHTML = tracks.map((t, i) => _buildLibraryRow(t, i, tracks)).join('');
+        }
     }
 
     function removeTrack(e, libIdx) {
@@ -5308,6 +5333,20 @@
         showToast('Track removed');
     }
 
+    function _buildScRow(t) {
+        const artOk = t.albumArt && _artCache[t.albumArt] !== false;
+        const artInner = artOk
+            ? '<img src="' + t.albumArt.replace(/"/g,'%22') + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
+            : _blkThumbDiv();
+        return '<div class="stream-track-item" onclick="playTrack(' + library.indexOf(t) + ')" style="cursor:pointer;">'
+            + '<div class="stream-track-icon soundcloud" style="overflow:hidden;padding:0;">' + artInner + '</div>'
+            + '<div class="stream-track-info">'
+            + '<div class="stream-track-name">' + esc(t.title) + '</div>'
+            + '<div class="stream-track-artist">' + esc(t.artist) + ' · SoundCloud</div>'
+            + '</div>'
+            + '<button class="stream-track-remove" onclick="removeSoundcloudTrack(\'' + t.id + '\',event)" title="Remove">✕</button>'
+            + '</div>';
+    }
     function renderSoundcloudTracks() {
         const el = document.getElementById('soundcloudTracks');
         if (!el) return;
@@ -5317,20 +5356,13 @@
             el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:1rem 0;">No tracks yet — paste a URL above to get started</div>';
             return;
         }
-        el.innerHTML = soundcloudTracks.map(t => {
-            const safeScArt = t.albumArt ? t.albumArt.replace(/"/g, '%22') : null;
-            const artInner = safeScArt
-                ? '<img src="' + safeScArt + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
-                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
-            return '<div class="stream-track-item" onclick="playTrack(' + library.indexOf(t) + ')" style="cursor:pointer;">'
-                + '<div class="stream-track-icon soundcloud" style="overflow:hidden;padding:0;">' + artInner + '</div>'
-                + '<div class="stream-track-info">'
-                + '<div class="stream-track-name">' + esc(t.title) + '</div>'
-                + '<div class="stream-track-artist">' + esc(t.artist) + ' · SoundCloud</div>'
-                + '</div>'
-                + '<button class="stream-track-remove" onclick="removeSoundcloudTrack(\'' + t.id + '\',event)" title="Remove">✕</button>'
-                + '</div>';
-        }).join('');
+        const uncachedSc = soundcloudTracks.filter(t => t.albumArt && _artCache[t.albumArt] === undefined);
+        if (uncachedSc.length) {
+            Promise.all(uncachedSc.map(t => _probeArt(t.albumArt))).then(() => {
+                el.innerHTML = soundcloudTracks.map(_buildScRow).join('');
+            });
+        }
+        el.innerHTML = soundcloudTracks.map(_buildScRow).join('');
     }
 
     // Stub for IDB restore compat
