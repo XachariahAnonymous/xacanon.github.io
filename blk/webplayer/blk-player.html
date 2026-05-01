@@ -3708,19 +3708,38 @@
         spPlayer = new Spotify.Player({
             name: 'BLK Player',
             getOAuthToken: async cb => { await spRefreshIfNeeded(); cb(spAccessToken); },
-            volume: volume,
-            robustness: {
-                audio: 'SW_SECURE_CRYPTO',
-                video: 'SW_SECURE_CRYPTO'
+            volume: volume
+        });
+        spPlayer.addListener('ready', ({ device_id }) => {
+            spDeviceId = device_id;
+            console.log('[BLK] Spotify player ready, device_id:', device_id);
+        });
+        spPlayer.addListener('not_ready', ({ device_id }) => {
+            console.warn('[BLK] Spotify player not ready, device_id:', device_id);
+            spDeviceId = null;
+        });
+        spPlayer.addListener('player_state_changed', spOnStateChange);
+        spPlayer.addListener('initialization_error', ({ message }) => {
+            console.error('[BLK] Spotify init error:', message);
+            showToast('Spotify player error: ' + message);
+            spPlayer = null;
+        });
+        spPlayer.addListener('authentication_error', ({ message }) => {
+            console.error('[BLK] Spotify auth error:', message);
+            showToast('Spotify auth error — try reconnecting');
+        });
+        spPlayer.addListener('account_error', ({ message }) => {
+            console.warn('[BLK] Spotify account error:', message);
+            spNoPremium = true;
+            showToast('Spotify Free detected — using embed player instead');
+        });
+        spPlayer.connect().then(success => {
+            if (!success) {
+                console.error('[BLK] Spotify player failed to connect');
+                showToast('Spotify player failed to connect — check Premium status');
+                spPlayer = null;
             }
         });
-        spPlayer.addListener('ready', ({ device_id }) => { spDeviceId = device_id; });
-        spPlayer.addListener('not_ready', () => { spDeviceId = null; });
-        spPlayer.addListener('player_state_changed', spOnStateChange);
-        spPlayer.addListener('initialization_error', ({ message }) => showToast('Spotify: ' + message));
-        spPlayer.addListener('authentication_error', () => showToast('Spotify auth error - try reconnecting'));
-        spPlayer.addListener('account_error', () => { spNoPremium = true; showToast('Spotify Free detected — using embed player instead'); });
-        spPlayer.connect();
     }
 
     // ── SPOTIFY PROGRESS RAF LOOP (smooth, no DOM thrash) ──
@@ -4532,6 +4551,18 @@
 
     async function spPlayTrack(uri, title, artist, album, artwork, duration) {
         const trackId = uri && uri.startsWith('spotify:track:') ? uri.split(':')[2] : null;
+
+        // If player exists but device_id isn't ready yet, wait up to 5s
+        if (spPlayer && !spDeviceId) {
+            let waited = 0;
+            await new Promise(res => {
+                const poll = setInterval(() => {
+                    waited += 200;
+                    if (spDeviceId || waited >= 5000) { clearInterval(poll); res(); }
+                }, 200);
+            });
+        }
+
         if (spNoPremium || !spDeviceId || !spPlayer) {
             if (trackId) openSpotifyEmbed(trackId, title, artist);
             else showToast('Cannot play — link your Spotify account first');
