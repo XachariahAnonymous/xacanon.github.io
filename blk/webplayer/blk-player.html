@@ -822,12 +822,196 @@
             color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
         .pl-back-btn:hover { color: #fff; border-color: rgba(255,255,255,0.35); }
-        .pl-pick-row { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.8rem; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; color: #fff; background: var(--surface); }
-        .pl-pick-row:hover { background: rgba(255,255,255,0.07); }
-        .pl-pick-row input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
-        .pl-pick-row .pl-pick-title { font-size: 0.78rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pl-pick-row .pl-pick-artist { font-size: 0.65rem; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-        .pl-pick-row .pl-pick-dur { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: rgba(255,255,255,0.35); flex-shrink: 0; }
+        /* ── PLAYLIST MODAL OVERRIDES ── */
+        #playlistModal .modal {
+            padding: 0;
+            max-width: 520px;
+            width: 94%;
+            display: flex;
+            flex-direction: column;
+            max-height: 88vh;
+            overflow: hidden;
+        }
+        .pl-modal-header {
+            padding: 1.8rem 2rem 1.4rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .pl-modal-body {
+            padding: 1.4rem 2rem;
+            flex-shrink: 0;
+        }
+        .pl-modal-footer {
+            padding: 1.2rem 2rem 1.6rem;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            gap: 0.6rem;
+        }
+        .pl-name-wrap {
+            position: relative;
+        }
+        .pl-name-wrap input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            padding: 0.85rem 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .pl-name-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent-dim);
+        }
+        .pl-name-wrap input::placeholder { color: rgba(255,255,255,0.2); }
+
+        .pl-section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.5rem;
+            color: var(--sub);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .pl-section-label .pl-count-badge {
+            background: var(--accent-dim);
+            border: 1px solid rgba(138,43,226,0.3);
+            color: var(--accent);
+            font-size: 0.48rem;
+            padding: 0.15rem 0.5rem;
+            letter-spacing: 1px;
+        }
+        .pl-search-wrap {
+            position: relative;
+            margin-bottom: 0.6rem;
+        }
+        .pl-search-wrap input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.6rem 0.9rem 0.6rem 2.2rem;
+            outline: none;
+            transition: border-color 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .pl-search-wrap input:focus { border-color: rgba(138,43,226,0.4); }
+        .pl-search-wrap input::placeholder { color: rgba(255,255,255,0.18); }
+        .pl-search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: var(--sub);
+            pointer-events: none;
+        }
+        .pl-picker-scroll {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            overflow-y: auto;
+            max-height: 300px;
+            flex: 1;
+        }
+        .pl-picker-scroll::-webkit-scrollbar { width: 2px; }
+        .pl-picker-scroll::-webkit-scrollbar-thumb { background: var(--accent-dim); }
+
+        /* Track rows */
+        .pl-pick-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.55rem 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.12s;
+            color: #fff;
+            user-select: none;
+        }
+        .pl-pick-row:last-child { border-bottom: none; }
+        .pl-pick-row:hover { background: rgba(255,255,255,0.05); }
+        .pl-pick-row.is-checked { background: rgba(138,43,226,0.08); }
+        .pl-pick-row.is-checked:hover { background: rgba(138,43,226,0.13); }
+
+        /* Custom checkbox */
+        .pl-pick-row input[type=checkbox] { display: none; }
+        .pl-pick-check {
+            width: 16px; height: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            font-size: 0.6rem;
+            color: transparent;
+        }
+        .pl-pick-row.is-checked .pl-pick-check {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .pl-pick-row .pl-pick-title {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        .pl-pick-row .pl-pick-artist {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.4);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+        .pl-pick-row .pl-pick-dur {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.52rem;
+            color: rgba(255,255,255,0.25);
+            flex-shrink: 0;
+        }
+
+        /* Footer buttons */
+        .pl-btn-save {
+            flex: 1;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            padding: 0.9rem 1rem;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pl-btn-save:hover { background: #7B27CC; }
+        .pl-btn-delete {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0.9rem 1.2rem;
+            background: none;
+            border: 1px solid rgba(255,0,51,0.4);
+            color: var(--error);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .pl-btn-delete:hover { background: rgba(255,0,51,0.08); border-color: var(--error); }
         /* ══════════════════════════════════════════════════
            MOBILE — 768px and below
         ══════════════════════════════════════════════════ */
@@ -1765,25 +1949,43 @@
 
 <!-- PLAYLIST MODAL (create / edit) -->
 <div class="modal-bg" id="playlistModal" onclick="if(event.target===this)closePlaylistModal()">
-    <div class="modal" style="max-width:500px;width:94%;">
-        <button class="modal-close" onclick="closePlaylistModal()">✕</button>
-        <span class="modal-tag" id="playlistModalTag">Playlists // Create</span>
-        <h3 id="playlistModalTitle" style="margin-bottom:1.5rem;">New Playlist</h3>
+    <div class="modal">
+        <button class="modal-close" onclick="closePlaylistModal()" style="top:1.2rem;right:1.2rem;">✕</button>
 
-        <div class="auth-field">
-            <label>Playlist Name</label>
-            <input type="text" id="plNameInput" placeholder="My Playlist" style="width:100%;background:var(--bg);border:1px solid var(--border);color:#fff;font-family:'Space Mono',monospace;font-size:0.8rem;padding:0.8rem 1rem;outline:none;" oninput="document.getElementById('plNameInput').style.borderColor='var(--accent)'">
+        <!-- Header -->
+        <div class="pl-modal-header">
+            <span class="modal-tag" id="playlistModalTag" style="margin-bottom:0.5rem;">Playlists // Create</span>
+            <div id="playlistModalTitle" style="font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;color:#fff;">New Playlist</div>
+        </div>
+
+        <!-- Name field -->
+        <div class="pl-modal-body" style="padding-bottom:1rem;">
+            <div class="pl-section-label" style="margin-bottom:0.5rem;">Playlist Name</div>
+            <div class="pl-name-wrap">
+                <input type="text" id="plNameInput" placeholder="My Playlist"
+                    oninput="document.getElementById('plNameInput').style.borderColor='var(--accent)'"
+                    onkeydown="if(event.key==='Enter')savePlaylist()">
+            </div>
         </div>
 
         <!-- Track picker -->
-        <div style="margin-top:1.2rem;">
-            <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.6rem;">Tracks <span id="plTrackCount" style="color:var(--accent);">0</span></div>
-            <div style="background:var(--surface2);border:1px solid var(--border);max-height:260px;overflow-y:auto;" id="plTrackPicker"></div>
+        <div style="padding:0 2rem;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+            <div class="pl-section-label">
+                Tracks
+                <span class="pl-count-badge" id="plTrackCount">0</span>
+            </div>
+            <div class="pl-search-wrap">
+                <span class="pl-search-icon">⌕</span>
+                <input type="text" id="plPickerSearch" placeholder="Filter tracks…"
+                    oninput="filterPlPicker(this.value)">
+            </div>
+            <div class="pl-picker-scroll" id="plTrackPicker"></div>
         </div>
 
-        <div style="display:flex;gap:0.5rem;margin-top:1.5rem;">
-            <button class="modal-btn" id="playlistSaveBtn" onclick="savePlaylist()" style="flex:1;">Save Playlist</button>
-            <button id="playlistDeleteBtn" onclick="deletePlaylist()" style="display:none;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:1px;padding:1rem 1.4rem;background:none;border:1px solid var(--error);color:var(--error);cursor:pointer;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='rgba(255,0,51,0.1)'" onmouseout="this.style.background='none'">Delete</button>
+        <!-- Footer -->
+        <div class="pl-modal-footer">
+            <button class="pl-btn-save" id="playlistSaveBtn" onclick="savePlaylist()">Create Playlist</button>
+            <button class="pl-btn-delete" id="playlistDeleteBtn" onclick="deletePlaylist()" style="display:none;">Delete</button>
         </div>
     </div>
 </div>
@@ -3298,13 +3500,6 @@
         const emojiEl = document.getElementById('playerArtEmoji');
         const art     = t.albumArt || t.artwork || null;
         const BLK_LOGO = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%230a0a0a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20font-size%3D%2228%22%20fill%3D%22%238A2BE2%22%20text-anchor%3D%22middle%22%20letter-spacing%3D%222%22%3EBLK%3C%2Ftext%3E%3C%2Fsvg%3E";
-        // Clear any stale <img> injected by the SC backfill so it can't overlap new art
-        Array.from(artEl.querySelectorAll('img')).forEach(img => img.remove());
-        // Reset background immediately so old art doesn't linger during async probe
-        artEl.style.backgroundImage    = 'none';
-        artEl.style.backgroundSize     = '';
-        artEl.style.backgroundPosition = '';
-
         function _applyArt(url) {
             artEl.style.backgroundImage    = "url('" + url + "')";
             artEl.style.backgroundSize     = 'cover';
@@ -3471,8 +3666,6 @@
                 if (finalArt) {
                     const playerArt = document.getElementById('playerArt');
                     if (playerArt) {
-                        // Clear any backgroundImage set by updatePlayerUI so img takes over cleanly
-                        playerArt.style.backgroundImage = 'none';
                         const existing = playerArt.querySelector('img');
                         if (existing) { _setScArtImg(existing, finalArt); }
                         else {
@@ -5540,6 +5733,7 @@
         document.getElementById('playlistSaveBtn').textContent = 'Create Playlist';
         buildTrackPicker([]);
         document.getElementById('playlistModal').classList.add('open');
+        setTimeout(function(){ var el = document.getElementById('plNameInput'); if(el) el.focus(); }, 80);
     }
 
     // ── Open edit modal ──
@@ -5548,14 +5742,15 @@
         var pl = playlists.find(function(p) { return p.id === id; });
         if (!pl) return;
         _editingPlaylistId = id;
-        document.getElementById('playlistModalTag').textContent   = 'Playlists';
-        document.getElementById('playlistModalTitle').textContent = 'Edit Playlist';
+        document.getElementById('playlistModalTag').textContent   = 'Playlists // Edit';
+        document.getElementById('playlistModalTitle').textContent = pl.name;
         document.getElementById('plNameInput').value = pl.name;
         document.getElementById('plNameInput').style.borderColor = 'var(--border)';
         document.getElementById('playlistDeleteBtn').style.display = 'inline-block';
         document.getElementById('playlistSaveBtn').textContent = 'Save Changes';
         buildTrackPicker(pl.trackIds);
         document.getElementById('playlistModal').classList.add('open');
+        setTimeout(function(){ var el = document.getElementById('plNameInput'); if(el) el.focus(); }, 80);
     }
 
     function closePlaylistModal() {
@@ -5565,21 +5760,24 @@
     // ── Build the track picker list ──
     function buildTrackPicker(selectedIds) {
         var picker = document.getElementById('plTrackPicker');
+        var searchEl = document.getElementById('plPickerSearch');
+        if (searchEl) searchEl.value = '';
         if (!library.length) {
-            picker.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);padding:1rem;text-align:center;">No tracks in library</div>';
+            picker.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);padding:1.5rem;text-align:center;letter-spacing:1px;">No tracks in library</div>';
             updatePlTrackCount(); return;
         }
         picker.innerHTML = library.map(function(t) {
             var checked = selectedIds.indexOf(t.id) >= 0;
             var artHtml = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;" onerror="_imgArtErr(this)">'
-                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:\'Space Mono\',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
-            var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : 'var(--sub)';
+                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:\'Space Mono\',monospace;font-weight:700;font-size:0.5rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
+            var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : '';
             var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : '';
-            var srcTag = srcLabel ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + srcColor + ';margin-left:4px;">' + srcLabel + '</span>' : '';
-            return '<label class="pl-pick-row">'
-                + '<input type="checkbox" data-tid="' + esc(t.id) + '" ' + (checked ? 'checked' : '') + ' onchange="updatePlTrackCount()">'
-                + '<div style="width:32px;height:32px;background:var(--surface2);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;">' + artHtml + '</div>'
+            var srcTag = srcLabel ? '<span style="font-family:Space Mono,monospace;font-size:0.42rem;color:' + srcColor + ';margin-left:5px;opacity:0.9;">' + srcLabel + '</span>' : '';
+            return '<label class="pl-pick-row' + (checked ? ' is-checked' : '') + '" onclick="togglePlRow(this)">'
+                + '<input type="checkbox" data-tid="' + esc(t.id) + '" ' + (checked ? 'checked' : '') + '>'
+                + '<div class="pl-pick-check">✓</div>'
+                + '<div style="width:34px;height:34px;background:var(--surface2);flex-shrink:0;overflow:hidden;">' + artHtml + '</div>'
                 + '<div style="flex:1;min-width:0;">'
                 + '<div class="pl-pick-title">' + esc(t.title) + srcTag + '</div>'
                 + '<div class="pl-pick-artist">' + esc(t.artist) + '</div>'
@@ -5590,9 +5788,28 @@
         updatePlTrackCount();
     }
 
+    function togglePlRow(label) {
+        var cb = label.querySelector('input[type=checkbox]');
+        if (!cb) return;
+        cb.checked = !cb.checked;
+        label.classList.toggle('is-checked', cb.checked);
+        updatePlTrackCount();
+    }
+
+    function filterPlPicker(query) {
+        var q = query.toLowerCase().trim();
+        document.querySelectorAll('#plTrackPicker .pl-pick-row').forEach(function(row) {
+            var title  = (row.querySelector('.pl-pick-title')  || {}).textContent || '';
+            var artist = (row.querySelector('.pl-pick-artist') || {}).textContent || '';
+            var match  = !q || title.toLowerCase().includes(q) || artist.toLowerCase().includes(q);
+            row.style.display = match ? '' : 'none';
+        });
+    }
+
     function updatePlTrackCount() {
         var n = document.querySelectorAll('#plTrackPicker input[type=checkbox]:checked').length;
-        document.getElementById('plTrackCount').textContent = n;
+        var badge = document.getElementById('plTrackCount');
+        if (badge) badge.textContent = n;
     }
 
     // ── Save (create or update) ──
@@ -5677,6 +5894,7 @@
         document.getElementById('playlistSaveBtn').textContent = 'Create Playlist';
         buildTrackPicker(t ? [t.id] : []);
         document.getElementById('playlistModal').classList.add('open');
+        setTimeout(function(){ var el = document.getElementById('plNameInput'); if(el) el.focus(); }, 80);
     }
 
     // ── Delete ──
