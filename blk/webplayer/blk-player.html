@@ -5337,7 +5337,10 @@
     }
 
     async function spPlayTrack(uri, title, artist, album, artwork, duration) {
-        const trackId = uri && uri.startsWith('spotify:track:') ? uri.split(':')[2] : null;
+        const isEpisodeUri = uri && uri.startsWith('spotify:episode:');
+        const trackId  = uri && uri.startsWith('spotify:track:')   ? uri.split(':')[2] : null;
+        const epId     = uri && isEpisodeUri                        ? uri.split(':')[2] : null;
+        const contentId = trackId || epId;
 
         // If player exists but device_id isn't ready yet, wait up to 5s
         if (spPlayer && !spDeviceId) {
@@ -5351,7 +5354,7 @@
         }
 
         if (spNoPremium || !spDeviceId || !spPlayer) {
-            if (trackId) openSpotifyEmbed(trackId, title, artist);
+            if (contentId) openSpotifyEmbed(contentId, title, artist, isEpisodeUri ? 'episode' : 'track');
             else showToast('Cannot play — link your Spotify account first');
             updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
             return;
@@ -5365,6 +5368,10 @@
             let payload;
             if (repeat === 2) {
                 payload = { uris: [uri], position_ms: 0 };
+            } else if (isEpisodeUri) {
+                // Episodes must be played as a single URI — Spotify SDK does not mix
+                // tracks and episodes in one context; send only this episode URI
+                payload = { uris: [uri], position_ms: 0 };
             } else {
                 // Build a queue of all Spotify track URIs from the library, starting at the selected one
                 // This lets BLK's nextTrack() drive playback order rather than Spotify's own queue
@@ -5372,9 +5379,9 @@
                     .filter(t => t.source === 'spotify' && t.spUri && t.spUri.startsWith('spotify:track:'))
                     .map(t => t.spUri);
                 const startIdx = spUris.indexOf(uri);
-                const orderedUris = startIdx > 0
+                const orderedUris = startIdx >= 0
                     ? spUris.slice(startIdx).concat(spUris.slice(0, startIdx))
-                    : spUris;
+                    : [uri];
                 payload = orderedUris.length > 1
                     ? { uris: orderedUris.slice(0, 750), position_ms: 0 }
                     : { uris: [uri], position_ms: 0 };
@@ -5396,7 +5403,7 @@
                 return;
             }
         } catch(e) {
-            if (trackId) openSpotifyEmbed(trackId, title, artist);
+            if (contentId) openSpotifyEmbed(contentId, title, artist, isEpisodeUri ? 'episode' : 'track');
             return;
         }
         spCurrentPosition = 0;
@@ -5408,11 +5415,13 @@
         document.getElementById('playerArt').classList.add('playing');
     }
 
-    function openSpotifyEmbed(trackId, title, artist) {
-        const embedSrc = 'https://open.spotify.com/embed/track/' + trackId + '?utm_source=generator&theme=0';
-        document.getElementById('embedTitle').textContent = (title || 'Spotify Track') + (artist ? ' — ' + artist : '');
+    function openSpotifyEmbed(contentId, title, artist, type) {
+        const embedType = type || 'track';
+        const embedSrc = 'https://open.spotify.com/embed/' + embedType + '/' + contentId + '?utm_source=generator&theme=0';
+        const label = embedType === 'episode' ? 'Podcast Episode' : 'Spotify Track';
+        document.getElementById('embedTitle').textContent = (title || label) + (artist ? ' — ' + artist : '');
         document.getElementById('embedNote').innerHTML =
-            '🎵 Spotify Embed · 30s Preview · Full Track with Free or Premium'
+            '🎵 Spotify Embed · ' + (embedType === 'episode' ? 'Full Episode' : '30s Preview · Full Track with Free or Premium')
             + '<div id="spPremiumWarn" style="margin-top:0.6rem;padding:0.55rem 0.8rem;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-left:3px solid var(--warn);font-family:\'Space Mono\',monospace;font-size:0.55rem;color:var(--warn);letter-spacing:0.5px;line-height:1.6;">⚠ To earn BLK through Spotify, please sign into a Spotify Premium account</div>';
         document.getElementById('embedIframeWrap').innerHTML =
             '<iframe src="' + embedSrc + '" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
