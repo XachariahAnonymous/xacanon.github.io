@@ -5768,16 +5768,17 @@
         }
         picker.innerHTML = library.map(function(t) {
             var checked = selectedIds.indexOf(t.id) >= 0;
+            var blkPh = '<div style=\\"width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.65rem;letter-spacing:3px;color:#8A2BE2;\\">BLK</div>';
             var artHtml = t.albumArt
-                ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:100%;object-fit:cover;" onerror="_imgArtErr(this)">'
-                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:\'Space Mono\',monospace;font-weight:700;font-size:0.5rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
+                ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:34px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.insertAdjacentHTML(\'afterend\',\'' + blkPh + '\')">'
+                : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.65rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
             var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : '';
             var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : '';
             var srcTag = srcLabel ? '<span style="font-family:Space Mono,monospace;font-size:0.42rem;color:' + srcColor + ';margin-left:5px;opacity:0.9;">' + srcLabel + '</span>' : '';
             return '<label class="pl-pick-row' + (checked ? ' is-checked' : '') + '" onclick="togglePlRow(this)">'
                 + '<input type="checkbox" data-tid="' + esc(t.id) + '" ' + (checked ? 'checked' : '') + '>'
                 + '<div class="pl-pick-check">✓</div>'
-                + '<div style="width:34px;height:34px;background:var(--surface2);flex-shrink:0;overflow:hidden;">' + artHtml + '</div>'
+                + '<div style="width:34px;height:34px;background:#0a0a0a;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">' + artHtml + '</div>'
                 + '<div style="flex:1;min-width:0;">'
                 + '<div class="pl-pick-title">' + esc(t.title) + srcTag + '</div>'
                 + '<div class="pl-pick-artist">' + esc(t.artist) + '</div>'
