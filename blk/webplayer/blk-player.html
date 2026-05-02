@@ -5768,9 +5768,8 @@
         }
         picker.innerHTML = library.map(function(t) {
             var checked = selectedIds.indexOf(t.id) >= 0;
-            var blkPh = '<div style=\\"width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.65rem;letter-spacing:3px;color:#8A2BE2;\\">BLK</div>';
             var artHtml = t.albumArt
-                ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:34px;object-fit:cover;display:block;" onerror="this.style.display=\'none\';this.insertAdjacentHTML(\'afterend\',\'' + blkPh + '\')">'
+                ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:34px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
                 : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.65rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
             var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : '';
             var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : '';
@@ -6038,6 +6037,17 @@
             ph.textContent = 'BLK';
             parent.replaceChild(ph, el);
         }
+    };
+
+    // Playlist picker art error — parent is a flex wrapper so we can safely replaceChild
+    window._plArtErr = function(el) {
+        el.onerror = null;
+        var parent = el.parentNode;
+        if (!parent) return;
+        var ph = document.createElement('div');
+        ph.style.cssText = 'width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.65rem;letter-spacing:3px;color:#8A2BE2;';
+        ph.textContent = 'BLK';
+        parent.replaceChild(ph, el);
     };
 
     // ════════════════════════════════════════
