@@ -1582,11 +1582,12 @@
             <div id="spUrlBar" style="padding:0.75rem 2.5rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;flex-shrink:0;background:rgba(30,215,96,0.025);">
                 <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:rgba(30,215,96,0.6);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">Add by URL</div>
                 <input class="stream-input-url" id="spUrlInput" type="text"
-                    placeholder="Paste a Spotify track URL — metadata fetched automatically..."
+                    placeholder="Paste a Spotify track, podcast episode, or show URL..."
                     onkeydown="if(event.key==='Enter')addSpotifyTrackByUrl()"
                     style="flex:1;min-width:180px;border-color:rgba(30,215,96,0.2);">
                 <button id="spUrlAddBtn" onclick="addSpotifyTrackByUrl()" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.55rem 1rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Add to Library</button>
                 <div id="spUrlStatus" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;color:rgba(255,255,255,0.3);min-height:0.8rem;"></div>
+                <div style="width:100%;font-family:'Space Mono',monospace;font-size:0.43rem;color:rgba(255,255,255,0.15);letter-spacing:0.5px;">Supports: track · podcast episode · podcast show (imports all episodes — show import requires Spotify login)</div>
             </div>
 
             <!-- Not connected -->
@@ -1715,7 +1716,7 @@
                         <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(30,215,96,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;">Add by URL</div>
                         <div style="display:flex;gap:0.4rem;">
                             <input class="stream-input-url mob-stream-input" id="mobSpUrlInput" type="text"
-                                placeholder="Paste Spotify track URL..."
+                                placeholder="Paste Spotify track, episode, or show URL..."
                                 onkeydown="if(event.key==='Enter')mobAddSpotifyUrl()"
                                 style="flex:1;min-width:0;border-color:rgba(30,215,96,0.2);">
                             <button onclick="mobAddSpotifyUrl()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.5rem 0.7rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;flex-shrink:0;white-space:nowrap;">Add</button>
@@ -3023,8 +3024,9 @@
     function _buildLibraryRow(t, i, tracks) {
         const libIdx   = library.indexOf(t);
         const isStream = t.source === 'spotify' || t.source === 'soundcloud';
+        const isPodcast = t.source === 'spotify' && t.spotifyType === 'episode';
         const sourceTag = isStream
-            ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify'?'SPOTIFY':'SC') + '</span>'
+            ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify' ? (isPodcast ? 'PODCAST' : 'SPOTIFY') : 'SC') + '</span>'
             : '';
         const artOk = t.albumArt && _artCache[t.albumArt] !== false;
         const thumbInner = artOk
@@ -4519,6 +4521,110 @@
         };
     }
 
+    // Convert a Spotify episode API object to the internal track format
+    function spEpisodeFromAPI(e) {
+        if (!e) return null;
+        const img = e.images;
+        const showName = (e.show && e.show.name) || '';
+        const publisher = (e.show && e.show.publisher) || '';
+        return {
+            spUri: e.uri,
+            title: e.name,
+            artist: publisher || showName || 'Podcast',
+            album: showName || '',
+            artwork: img && img[1] ? img[1].url : img && img[0] ? img[0].url : null,
+            duration: Math.round((e.duration_ms || 0) / 1000),
+            isEpisode: true,
+            description: e.description || ''
+        };
+    }
+
+    // Import all episodes from a Spotify show URL
+    async function addSpotifyShowEpisodes(showId, input, btn, status) {
+        if (btn)    { btn.disabled = true; btn.textContent = 'Fetching...'; btn.style.opacity = '0.6'; }
+        if (status) { status.textContent = 'Fetching podcast episodes...'; status.style.color = 'rgba(30,215,96,0.5)'; }
+
+        let showName = '';
+        let publisher = '';
+        let episodes = [];
+
+        try {
+            if (typeof spAccessToken !== 'undefined' && spAccessToken) {
+                await spRefreshIfNeeded();
+
+                // Fetch show metadata
+                const showRes = await fetch('https://api.spotify.com/v1/shows/' + showId, {
+                    headers: { 'Authorization': 'Bearer ' + spAccessToken }
+                });
+                if (showRes.ok) {
+                    const showData = await showRes.json();
+                    showName  = showData.name  || '';
+                    publisher = showData.publisher || '';
+                }
+
+                // Fetch episodes (up to 50 at a time)
+                let offset = 0, total = 1;
+                while (offset < total && offset < 200) {
+                    if (status) status.textContent = 'Loaded ' + offset + ' episodes...';
+                    const r = await fetch('https://api.spotify.com/v1/shows/' + showId + '/episodes?limit=50&offset=' + offset, {
+                        headers: { 'Authorization': 'Bearer ' + spAccessToken }
+                    });
+                    if (!r.ok) break;
+                    const d = await r.json();
+                    total = d.total || 0;
+                    (d.items || []).forEach(ep => {
+                        if (!ep) return;
+                        episodes.push({
+                            spUri: ep.uri,
+                            title: ep.name,
+                            artist: publisher || showName || 'Podcast',
+                            album: showName || '',
+                            artwork: ep.images && ep.images[0] ? ep.images[0].url : null,
+                            duration: Math.round((ep.duration_ms || 0) / 1000),
+                            isEpisode: true
+                        });
+                    });
+                    offset += 50;
+                    if (!d.next) break;
+                }
+            }
+        } catch(e) {}
+
+        if (!episodes.length) {
+            if (status) { status.textContent = 'No episodes found. Connect Spotify to import shows.'; status.style.color = 'var(--warn)'; }
+            if (btn) { btn.disabled = false; btn.textContent = 'Add to Library'; btn.style.opacity = '1'; }
+            return;
+        }
+
+        if (status) status.textContent = 'Adding ' + episodes.length + ' episodes...';
+        let added = 0;
+        episodes.forEach(ep => {
+            if (!ep.spUri || library.some(l => l.spUri === ep.spUri)) return;
+            const track = {
+                id: 'sp_lib_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                spUri: ep.spUri, url: ep.spUri,
+                title: ep.title, artist: ep.artist, album: ep.album || showName,
+                albumArt: ep.artwork || null,
+                duration: ep.duration || 0,
+                dateAdded: new Date().toLocaleDateString(),
+                emoji: '🎙️', source: 'spotify',
+                spotifyType: 'episode',
+                spotifyTrackId: ep.spUri.includes(':') ? ep.spUri.split(':')[2] : null
+            };
+            library.push(track);
+            spotifyTracks.push(track);
+            if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+            if (typeof fbSaveStreamingTrack === 'function') fbSaveStreamingTrack(track);
+            added++;
+        });
+
+        renderLibrary(); renderQueue();
+        if (input) input.value = '';
+        if (btn)   { btn.disabled = false; btn.textContent = 'Add to Library'; btn.style.opacity = '1'; }
+        if (status) { status.textContent = ''; }
+        showToast(added + ' podcast episode' + (added !== 1 ? 's' : '') + ' from "' + showName + '" added', true);
+    }
+
     const _spTrackMap = {};
     let   _spTrackKey = 0;
     // Cache raw tracks for browse panel search filtering
@@ -4629,19 +4735,37 @@
         const status = document.getElementById('spUrlStatus');
         const url    = input ? input.value.trim() : '';
 
-        if (!url) { showToast('Paste a Spotify track URL first'); return; }
+        if (!url) { showToast('Paste a Spotify track or podcast episode URL first'); return; }
 
-        // Accept both /track/ URLs and spotify:track: URIs
-        const mUrl = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
-        const mUri = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
-        const trackId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
-        if (!trackId) { showToast('Not a valid Spotify track URL'); return; }
+        // Accept track URLs/URIs, episode URLs/URIs, and show URLs
+        const mTrackUrl   = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
+        const mTrackUri   = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
+        const mEpisodeUrl = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?episode\/([A-Za-z0-9]+)/);
+        const mEpisodeUri = url.match(/^spotify:episode:([A-Za-z0-9]+)$/);
+        const mShowUrl    = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?show\/([A-Za-z0-9]+)/);
+        const mShowUri    = url.match(/^spotify:show:([A-Za-z0-9]+)$/);
 
-        const spUri = 'spotify:track:' + trackId;
+        const trackId   = (mTrackUrl   && mTrackUrl[1])   || (mTrackUri   && mTrackUri[1]);
+        const episodeId = (mEpisodeUrl && mEpisodeUrl[1]) || (mEpisodeUri && mEpisodeUri[1]);
+        const showId    = (mShowUrl    && mShowUrl[1])    || (mShowUri    && mShowUri[1]);
+
+        if (!trackId && !episodeId && !showId) { showToast('Not a valid Spotify track, episode, or show URL'); return; }
+
+        // ── Handle show URL: import all episodes ──
+        if (showId && !episodeId && !trackId) {
+            await addSpotifyShowEpisodes(showId, input, btn, status);
+            return;
+        }
+
+        const isEpisode = !!episodeId;
+        const contentId = episodeId || trackId;
+        const spUri = isEpisode ? ('spotify:episode:' + contentId) : ('spotify:track:' + contentId);
+        const apiPath = isEpisode ? 'episodes' : 'tracks';
+
         if (library.some(l => l.spUri === spUri)) { showToast('Already in library'); return; }
 
         if (btn)    { btn.disabled = true; btn.textContent = 'Fetching...'; btn.style.opacity = '0.6'; }
-        if (status) { status.textContent = 'Fetching track metadata...'; status.style.color = 'rgba(30,215,96,0.5)'; }
+        if (status) { status.textContent = isEpisode ? 'Fetching episode metadata...' : 'Fetching track metadata...'; status.style.color = 'rgba(30,215,96,0.5)'; }
 
         let trackData = null;
 
@@ -4649,12 +4773,16 @@
             // ── Path A: authenticated Spotify API (full metadata, duration, high-res art) ──
             if (typeof spAccessToken !== 'undefined' && spAccessToken) {
                 await spRefreshIfNeeded();
-                const r = await fetch('https://api.spotify.com/v1/tracks/' + trackId, {
+                const r = await fetch('https://api.spotify.com/v1/' + apiPath + '/' + contentId, {
                     headers: { 'Authorization': 'Bearer ' + spAccessToken }
                 });
                 if (r.ok) {
                     const t = await r.json();
-                    trackData = spFromAPI(t);
+                    if (isEpisode) {
+                        trackData = spEpisodeFromAPI(t);
+                    } else {
+                        trackData = spFromAPI(t);
+                    }
                     trackData.spUri = spUri;
                 }
             }
@@ -4663,16 +4791,16 @@
         // ── Path B: Spotify oEmbed (no auth needed — public endpoint) ──
         if (!trackData) {
             try {
-                const r = await fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/track/' + trackId);
+                const oembed_type = isEpisode ? 'episode' : 'track';
+                const r = await fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/' + oembed_type + '/' + contentId);
                 if (r.ok) {
                     const d = await r.json();
-                    // oEmbed title is often "Song · Artist" — split carefully
-                    let title = d.title || 'Spotify Track';
-                    let artist = d.author_name || 'Unknown Artist';
-                    // Some responses format title as "Track Name" and author_name as "Artist Name"
+                    let title = d.title || (isEpisode ? 'Podcast Episode' : 'Spotify Track');
+                    let artist = d.author_name || 'Unknown';
                     trackData = {
                         spUri, title, artist,
-                        album: '', artwork: d.thumbnail_url || null, duration: 0
+                        album: '', artwork: d.thumbnail_url || null, duration: 0,
+                        isEpisode
                     };
                 }
             } catch(_) {}
@@ -4680,7 +4808,7 @@
 
         // ── Path C: bare minimum from the URL ──
         if (!trackData) {
-            trackData = { spUri, title: 'Spotify Track', artist: 'Unknown Artist', album: '', artwork: null, duration: 0 };
+            trackData = { spUri, title: isEpisode ? 'Podcast Episode' : 'Spotify Track', artist: 'Unknown', album: '', artwork: null, duration: 0, isEpisode };
         }
 
         const track = {
@@ -4690,8 +4818,9 @@
             albumArt: trackData.artwork || null,
             duration: trackData.duration || 0,
             dateAdded: new Date().toLocaleDateString(),
-            emoji: '🎵', source: 'spotify',
-            spotifyType: 'track', spotifyTrackId: trackId
+            emoji: isEpisode ? '🎙️' : '🎵', source: 'spotify',
+            spotifyType: isEpisode ? 'episode' : 'track',
+            spotifyTrackId: contentId
         };
 
         library.push(track);
@@ -5016,14 +5145,46 @@
         const input  = document.getElementById('ddSpSongUrl');
         const status = document.getElementById('ddSpSongStatus');
         const url    = (input ? input.value.trim() : '');
-        if (!url) { if (status) { status.textContent = 'Paste a Spotify track URL first'; status.style.color = 'var(--error)'; } return; }
+        if (!url) { if (status) { status.textContent = 'Paste a Spotify track, episode, or show URL first'; status.style.color = 'var(--error)'; } return; }
 
-        const mUrl   = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
-        const mUri   = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
-        const trackId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
-        if (!trackId) { if (status) { status.textContent = 'Not a valid Spotify track URL'; status.style.color = 'var(--error)'; } return; }
+        const mTrackUrl   = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
+        const mTrackUri   = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
+        const mEpisodeUrl = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?episode\/([A-Za-z0-9]+)/);
+        const mEpisodeUri = url.match(/^spotify:episode:([A-Za-z0-9]+)$/);
+        const mShowUrl    = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?show\/([A-Za-z0-9]+)/);
+        const mShowUri    = url.match(/^spotify:show:([A-Za-z0-9]+)$/);
 
-        const spUri = 'spotify:track:' + trackId;
+        const trackId   = (mTrackUrl && mTrackUrl[1])     || (mTrackUri   && mTrackUri[1]);
+        const episodeId = (mEpisodeUrl && mEpisodeUrl[1]) || (mEpisodeUri && mEpisodeUri[1]);
+        const showId    = (mShowUrl && mShowUrl[1])       || (mShowUri    && mShowUri[1]);
+
+        if (!trackId && !episodeId && !showId) {
+            if (status) { status.textContent = 'Not a valid Spotify track, episode, or show URL'; status.style.color = 'var(--error)'; }
+            return;
+        }
+
+        // Delegate to main handler by populating spUrlInput
+        const mainInput = document.getElementById('spUrlInput');
+        if (mainInput) {
+            mainInput.value = url;
+            if (status) { status.textContent = 'Fetching...'; status.style.color = 'rgba(30,215,96,0.6)'; }
+            await addSpotifyTrackByUrl();
+            if (input)  input.value = '';
+            if (status) { status.textContent = ''; }
+            return;
+        }
+
+        // Fallback: handle show redirect
+        if (showId && !episodeId && !trackId) {
+            await addSpotifyShowEpisodes(showId, input, null, status);
+            return;
+        }
+
+        const isEpisode = !!episodeId;
+        const contentId = episodeId || trackId;
+        const spUri = isEpisode ? ('spotify:episode:' + contentId) : ('spotify:track:' + contentId);
+        const apiPath = isEpisode ? 'episodes' : 'tracks';
+
         if (library.some(l => l.spUri === spUri)) {
             if (status) { status.textContent = 'Already in library'; status.style.color = 'var(--warn)'; }
             return;
@@ -5035,24 +5196,29 @@
         try {
             if (typeof spAccessToken !== 'undefined' && spAccessToken) {
                 await spRefreshIfNeeded();
-                const r = await fetch('https://api.spotify.com/v1/tracks/' + trackId, {
+                const r = await fetch('https://api.spotify.com/v1/' + apiPath + '/' + contentId, {
                     headers: { 'Authorization': 'Bearer ' + spAccessToken }
                 });
-                if (r.ok) { const t = await r.json(); trackData = spFromAPI(t); trackData.spUri = spUri; }
+                if (r.ok) {
+                    const t = await r.json();
+                    trackData = isEpisode ? spEpisodeFromAPI(t) : spFromAPI(t);
+                    trackData.spUri = spUri;
+                }
             }
         } catch(_) {}
 
         if (!trackData) {
             try {
-                const r = await fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/track/' + trackId);
+                const oembed_type = isEpisode ? 'episode' : 'track';
+                const r = await fetch('https://open.spotify.com/oembed?url=https://open.spotify.com/' + oembed_type + '/' + contentId);
                 if (r.ok) {
                     const d = await r.json();
-                    trackData = { spUri, title: d.title || 'Spotify Track', artist: d.author_name || 'Unknown Artist', album: '', artwork: d.thumbnail_url || null, duration: 0 };
+                    trackData = { spUri, title: d.title || (isEpisode ? 'Podcast Episode' : 'Spotify Track'), artist: d.author_name || 'Unknown', album: '', artwork: d.thumbnail_url || null, duration: 0 };
                 }
             } catch(_) {}
         }
 
-        if (!trackData) trackData = { spUri, title: 'Spotify Track', artist: 'Unknown Artist', album: '', artwork: null, duration: 0 };
+        if (!trackData) trackData = { spUri, title: isEpisode ? 'Podcast Episode' : 'Spotify Track', artist: 'Unknown', album: '', artwork: null, duration: 0 };
 
         const track = {
             id: 'sp_lib_' + Date.now(),
@@ -5061,8 +5227,8 @@
             albumArt: trackData.artwork || null,
             duration: trackData.duration || 0,
             dateAdded: new Date().toLocaleDateString(),
-            emoji: '🎵', source: 'spotify',
-            spotifyType: 'track', spotifyTrackId: trackId
+            emoji: isEpisode ? '🎙️' : '🎵', source: 'spotify',
+            spotifyType: isEpisode ? 'episode' : 'track', spotifyTrackId: contentId
         };
 
         library.push(track);
