@@ -383,8 +383,8 @@
         .search-bar input::placeholder { color: var(--sub); }
 
         .track-list { padding: 1rem 0; }
-        .track-list-header { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
-        .track-row { display: grid; grid-template-columns: 40px 1fr 160px 80px 60px 28px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
+        .track-list-header { display: grid; grid-template-columns: 40px 1fr 200px 90px 60px 28px 28px; gap: 1rem; padding: 0.5rem 2.5rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+        .track-row { display: grid; grid-template-columns: 40px 1fr 200px 90px 60px 28px 28px; gap: 1rem; padding: 0.7rem 2.5rem; align-items: center; cursor: pointer; transition: background 0.15s; position: relative; }
         .track-remove-btn { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; font-size: 0.7rem; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 2px; }
         .track-remove-btn:hover { color: var(--error); background: rgba(255,0,51,0.1); }
         .track-row:hover .track-remove-btn { color: rgba(255,255,255,0.35); }
@@ -5935,8 +5935,8 @@
                 + '</div>';
         }).join('') : '<div style="font-family:Space Mono,monospace;font-size:0.65rem;color:rgba(255,255,255,0.2);padding:2rem;text-align:center;">No tracks in this playlist</div>';
 
-        overlay.innerHTML = '<div style="max-width:900px;margin:0 auto;padding:2.5rem;">'
-            + '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">'
+        overlay.innerHTML = '<div style="width:100%;padding:2rem 0;">'
+            + '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;padding:0 2.5rem;">'
             + '<button class="pl-back-btn" onclick="closePlaylistDetail()">‹ Back</button>'
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:0.3rem;">Playlist</div>'
