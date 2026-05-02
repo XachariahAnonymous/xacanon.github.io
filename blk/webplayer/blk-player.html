@@ -3162,8 +3162,8 @@
             const t = library[currentIdx];
             html += '<div class="qp-section-label">Now Playing</div>';
             const artInner = (t.albumArt||t.artwork)
-                ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
-                : '<span>' + esc2(t.emoji||'◈') + '</span>';
+                ? '<img src="' + esc2(t.albumArt||t.artwork) + '" style="width:40px;height:40px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
+                : '<div style="width:40px;height:40px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.6rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
             html += '<div class="qp-now-card" onclick="playTrack(' + currentIdx + ')">'
                 + '<div class="qp-art qp-art-playing">' + artInner + '</div>'
                 + '<div class="qp-info"><div class="qp-title">' + esc2(t.title) + '</div><div class="qp-artist">' + esc2(t.artist) + '</div></div>'
@@ -3193,8 +3193,8 @@
             html += '<div class="qp-section-label">Next Up</div>';
             nextList.forEach(function({ idx, t }, pos) {
                 const artInner = (t.albumArt||t.artwork)
-                    ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
-                    : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:\'Space Mono\',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
+                    ? '<img src="' + esc2(t.albumArt||t.artwork) + '" style="width:32px;height:32px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
+                    : '<div style="width:32px;height:32px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
                 html += '<div class="qp-row" onclick="activePlaylistId=activePlaylistId;playTrack(' + idx + ',true)">'
                     + '<span class="qp-row-num">' + (pos+1) + '</span>'
                     + '<div class="qp-row-art">' + artInner + '</div>'
@@ -3216,8 +3216,8 @@
             html += '<div class="qp-section-label">Previous</div>';
             prevList.forEach(function({ idx, t }) {
                 const artInner = (t.albumArt||t.artwork)
-                    ? '<img src="' + esc2(t.albumArt||t.artwork) + '" onerror="_imgArtErr(this)">'
-                    : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:\'Space Mono\',monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK.</div>';
+                    ? '<img src="' + esc2(t.albumArt||t.artwork) + '" style="width:32px;height:32px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
+                    : '<div style="width:32px;height:32px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.55rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
                 html += '<div class="qp-row" style="opacity:0.55;" onclick="playTrack(' + idx + ',true)">'
                     + '<div class="qp-row-art">' + artInner + '</div>'
                     + '<div class="qp-row-info"><div class="qp-row-title">' + esc2(t.title) + '</div><div class="qp-row-artist">' + esc2(t.artist) + '</div></div>'
@@ -6041,14 +6041,15 @@
         }
     };
 
-    // Playlist picker / detail art error — replaces broken img with BLK placeholder
+    // Playlist picker / detail / queue art error — replaces broken img with BLK placeholder
     window._plArtErr = function(el) {
         el.onerror = null;
         var parent = el.parentNode;
         if (!parent) return;
-        var size = el.style.width || '40px';
+        var w = el.style.width  || '40px';
+        var h = el.style.height || w;
         var ph = document.createElement('div');
-        ph.style.cssText = 'width:' + size + ';height:' + size + ';background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.6rem;letter-spacing:2px;color:#8A2BE2;flex-shrink:0;';
+        ph.style.cssText = 'width:' + w + ';height:' + h + ';background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.6rem;letter-spacing:2px;color:#8A2BE2;flex-shrink:0;';
         ph.textContent = 'BLK';
         parent.replaceChild(ph, el);
     };
