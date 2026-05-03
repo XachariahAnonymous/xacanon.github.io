@@ -1957,7 +1957,7 @@
     let shuffleQueue = [];
     let activePlaylistId = null; 
     let coins = 0, listenCount = 0, pendingPurchase = null;
-    let isGuest = false;
+    let isGuest = sessionStorage.getItem('blk_guest') === '1';
 
     const GUEST_LIB_KEY = 'blk_guest_library';
     const GUEST_PL_KEY  = 'blk_guest_playlists';
@@ -2006,6 +2006,7 @@
 
     function continueAsGuest() {
         isGuest = true;
+        sessionStorage.setItem('blk_guest', '1');
         currentUser = null;
         userProfile = null;
         document.getElementById('coinDisplay').style.display = 'none';
@@ -2524,6 +2525,7 @@
     async function doSignOut() {
         if (isGuest) {
             isGuest = false;
+            sessionStorage.removeItem('blk_guest');
             library = []; currentIdx = -1; isPlaying = false; coins = 0;
             spotifyTracks = []; soundcloudTracks = [];
             audio.pause(); audio.src = '';
@@ -5932,6 +5934,35 @@
         idb = db;
         return restoreLibraryFromIDB();
     }).catch(() => {}).finally(() => {
+        if (isGuest) {
+            document.getElementById('coinDisplay').style.display = 'none';
+            const mobCoinWrap = document.getElementById('mobCoinDisplay');
+            if (mobCoinWrap && mobCoinWrap.parentElement) mobCoinWrap.parentElement.parentElement.style.display = 'none';
+            const adminBadge = document.getElementById('navAdminBadge');
+            if (adminBadge) adminBadge.style.display = 'none';
+            const adminLink = document.getElementById('adminPanelLink');
+            if (adminLink) adminLink.style.display = 'none';
+            const profileRole = document.getElementById('profileRole');
+            if (profileRole) profileRole.textContent = 'GUEST';
+            const navUsername = document.getElementById('navUsername');
+            if (navUsername) navUsername.textContent = 'Guest';
+            const navAvatar = document.getElementById('navAvatar');
+            if (navAvatar) navAvatar.textContent = 'G';
+            guestRestoreLibrary();
+            guestRestorePlaylists();
+            showApp();
+            renderLibrary(); renderQueue(); renderPlaylists();
+            loadStoreTracks();
+            if (_pendingSpCallback) {
+                _pendingSpCallback = false;
+                const code = _pendingSpCode, st = _pendingSpState;
+                _pendingSpCode = null; _pendingSpState = null;
+                ensureSpotifyConfig();
+                spHandleCallback(code, st).catch(() => {});
+            } else {
+                spRestoreSession().catch(() => {});
+            }
+        }
         initAuth();
     });
 
