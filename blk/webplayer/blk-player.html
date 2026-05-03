@@ -3032,7 +3032,7 @@
         const thumbInner = artOk
             ? '<img src="' + t.albumArt.replace(/"/g,'%22') + '" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="_imgArtErr(this)">'
             : _blkThumbDiv();
-        return '<div class="track-row ' + (currentIdx === libIdx && isPlaying ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" onclick="playTrack(' + libIdx + ')">'
+        return '<div class="track-row ' + (currentIdx === libIdx && isPlaying ? 'playing' : '') + ' ' + (t.missing ? 'missing' : '') + '" data-libidx="' + libIdx + '" onclick="playTrack(' + libIdx + ')">'
             + '<span class="track-idx">' + (currentIdx === libIdx ? '▶' : i+1) + '</span>'
             + '<div class="track-info">'
             + '<div class="track-thumb">' + thumbInner + '<div class="play-overlay">' + (currentIdx === libIdx && isPlaying ? '⏸' : '▶') + '</div></div>'
@@ -3553,12 +3553,13 @@
 
     function updatePlayBtn() {
         document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶';
-        // Only update row play-state indicators, not full re-render
-        document.querySelectorAll('.track-row').forEach((row, i) => {
-            const isActive = i === currentIdx && isPlaying;
+        // Update play-state on every .track-row that carries a data-libidx attribute
+        document.querySelectorAll('.track-row[data-libidx]').forEach(row => {
+            const idx = parseInt(row.dataset.libidx, 10);
+            const isActive = idx === currentIdx && isPlaying;
             row.classList.toggle('playing', isActive);
             const overlay = row.querySelector('.play-overlay');
-            if (overlay) overlay.textContent = (i === currentIdx && isPlaying) ? '⏸' : '▶';
+            if (overlay) overlay.textContent = isActive ? '⏸' : '▶';
         });
     }
     function flashCoinEarn() { const el = document.getElementById('coinEarn'); el.classList.add('visible'); setTimeout(()=>el.classList.remove('visible'), 2000); }
@@ -6115,9 +6116,9 @@
             var thumbInner = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:40px;height:40px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
                 : '<div style="width:40px;height:40px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.6rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
-            return '<div class="track-row" onclick="activePlaylistId=\'' + id + '\';playTrack(' + libIdx + ',true)">'
+            return '<div class="track-row' + (currentIdx === libIdx && isPlaying ? ' playing' : '') + '" data-libidx="' + libIdx + '" onclick="activePlaylistId=\'' + id + '\';playTrack(' + libIdx + ',true)">'
                 + '<span class="track-idx">' + (i+1) + '</span>'
-                + '<div class="track-info"><div class="track-thumb">' + thumbInner + '<div class="play-overlay">&#9654;</div></div>'
+                + '<div class="track-info"><div class="track-thumb">' + thumbInner + '<div class="play-overlay">' + (currentIdx === libIdx && isPlaying ? '⏸' : '▶') + '</div></div>'
                 + '<div><div class="track-name">' + esc(t.title) + srcTag + '</div><div class="track-name-artist">' + esc(t.artist) + '</div></div></div>'
                 + '<span class="track-album">' + esc(t.album||'') + '</span>'
                 + '<span class="track-meta">' + (t.dateAdded||'') + '</span>'
