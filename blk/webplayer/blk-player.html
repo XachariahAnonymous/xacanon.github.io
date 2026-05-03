@@ -4619,7 +4619,7 @@
         showToast(added + ' tracks imported · playlist "' + name + '" created', true);
     }
 
-    async function addSpotifyPlaylistByUrl() 
+    async function addSpotifyPlaylistByUrl() {}
     async function _addSpotifyPlaylistByUrl_disabled() {
         const input  = document.getElementById('spPlaylistInput');
         const btn    = document.getElementById('spPlaylistImportBtn');
@@ -5470,7 +5470,7 @@
             await FB.updateDoc(ref, { playlists: JSON.stringify(playlists) });
         } catch(e) { console.warn('plSaveFirestore:', e); }
     }
-    async function plLoadFirestore() 
+    async function plLoadFirestore() {}
 
     function renderPlaylists() {
         plLoad();
