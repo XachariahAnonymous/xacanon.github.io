@@ -6,7 +6,6 @@
     <title>BLK | Music</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- ── FIREBASE ── -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -55,7 +54,6 @@
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* ── AUTH SCREEN ── */
         #auth-screen {
             position: fixed; inset: 0;
             background: var(--bg);
@@ -187,7 +185,6 @@
         }
         .auth-forgot:hover { color: #fff; }
 
-        /* ── MAIN APP ── */
         #app-shell {
             display: none;
             height: 100vh;
@@ -204,7 +201,6 @@
         }
         #app-shell.visible { display: grid; }
 
-        /* ── NAV ── */
         nav {
             grid-area: nav;
             display: grid;
@@ -215,7 +211,6 @@
             background: rgba(0,0,0,0.95);
             backdrop-filter: blur(20px); z-index: 100;
         }
-        /* Mobile-only nav rows — hidden on desktop */
         .mob-nav-top { display: none; }
         .mob-nav-tabs { display: none; }
         .nav-logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.1rem; letter-spacing: 3px; color: var(--text); text-decoration: none; justify-self: start; }
@@ -230,7 +225,6 @@
         .nav-tab.active { color: #fff; background: var(--accent-dim); }
         .nav-tab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.04); }
 
-        /* ── STREAMING HAMBURGER MENU ── */
         .streaming-hamburger {
             position: relative; cursor: pointer; user-select: none;
         }
@@ -265,7 +259,6 @@
         }
         .stream-dd-status { margin-left: auto; color: var(--success); font-size: 0.5rem; }
 
-        /* ── STREAMING FULL-PAGE VIEWS ── */
         #view-spotify, #view-soundcloud {
             display: none; flex-direction: column; height: 100%;
         }
@@ -334,7 +327,6 @@
         .dropdown-item.admin-link { color: var(--accent); }
         .dropdown-item.admin-link:hover { background: var(--accent-dim); }
 
-        /* ── SIDEBAR ── */
         aside {
             grid-area: sidebar; border-right: 1px solid var(--border);
             overflow-y: auto; background: var(--surface); display: flex; flex-direction: column;
@@ -367,7 +359,6 @@
         .queue-artist { font-size: 0.65rem; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .queue-duration { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: rgba(255,255,255,0.35); flex-shrink: 0; }
 
-        /* ── MAIN ── */
         main { grid-area: main; overflow-y: auto; background: var(--bg); }
         main::-webkit-scrollbar { width: 2px; }
         main::-webkit-scrollbar-thumb { background: var(--border); }
@@ -422,7 +413,6 @@
         .empty-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; }
         .empty-hint { font-size: 0.85rem; color: rgba(255,255,255,0.3); }
 
-        /* ── STORE ── */
         .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--border); margin: 1.5rem; border: 1px solid var(--border); }
         .store-card { background: var(--bg); cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
         .store-card:hover { background: var(--surface); }
@@ -443,7 +433,6 @@
         .store-buy-btn.owned:hover { background: none; }
         .store-badge { position: absolute; top: 0.6rem; right: 0.6rem; font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.2rem 0.5rem; background: var(--accent); color: #fff; z-index: 2; }
 
-        /* ── PLAYER BAR ── */
         .player-bar { grid-area: player; height: 88px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.97); backdrop-filter: blur(20px); display: grid; grid-template-columns: 280px 1fr 280px; align-items: center; padding: 0 2rem; gap: 1rem; z-index: 100; }
         .player-track { display: flex; align-items: center; gap: 1rem; min-width: 0; }
         .player-art { width: 52px; height: 52px; background: var(--surface2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; overflow: hidden; position: relative; }
@@ -476,7 +465,6 @@
         .vol-bar:hover .vol-dot, .vol-bar.dragging .vol-dot { transform: translateY(-50%) scale(1); }
         .player-right { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
 
-        /* ── QUEUE TOGGLE BUTTON ── */
         .queue-toggle-btn {
             background: none; border: 1px solid var(--border); color: var(--sub);
             cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
@@ -484,7 +472,6 @@
         }
         .queue-toggle-btn:hover, .queue-toggle-btn.active { color: #fff; border-color: var(--accent); background: var(--accent-dim); }
 
-        /* ── QUEUE PANEL ── */
         .queue-panel {
             position: fixed;
             bottom: 96px; right: 1.5rem;
@@ -520,7 +507,6 @@
         }
         .qp-empty { font-family:'Space Mono',monospace; font-size:0.6rem; color:rgba(255,255,255,0.15); letter-spacing:1px; text-align:center; padding:2.5rem 1rem; }
 
-        /* Now Playing card */
         .qp-now-card {
             display: flex; align-items: center; gap: 0.8rem;
             padding: 0.7rem 1rem; background: var(--accent-dim);
@@ -548,7 +534,6 @@
         .qp-artist { font-size: 0.63rem; color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .qp-dur { font-family:'Space Mono',monospace; font-size:0.55rem; color:rgba(255,255,255,0.35); flex-shrink:0; }
 
-        /* Next / Prev rows */
         .qp-row {
             display: flex; align-items: center; gap: 0.7rem;
             padding: 0.55rem 1rem; cursor: pointer;
@@ -572,7 +557,6 @@
         .coin-earn.visible { opacity: 1; }
         .scanline { width: 100%; height: 100%; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px); pointer-events: none; }
 
-        /* ── MODALS ── */
         .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-bg.open { opacity: 1; pointer-events: all; }
         .modal { background: var(--surface); border: 1px solid var(--border); padding: 3rem; max-width: 420px; width: 90%; position: relative; transform: translateY(20px); transition: transform 0.3s; }
@@ -593,12 +577,10 @@
         .modal-btn:hover { background: #7B27CC; }
         .modal-btn.success { background: var(--success); color: #000; }
 
-        /* ── TOAST ── */
         .toast { position: fixed; bottom: 108px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--surface); border: 1px solid var(--border); border-left: 2px solid var(--accent); padding: 0.8rem 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; color: #fff; z-index: 500; opacity: 0; transition: all 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { border-left-color: var(--success); }
 
-        /* ── PROFILE PANEL ── */
         .profile-panel { padding: 2.5rem; }
         .profile-avatar-lg {
             width: 96px; height: 96px;
@@ -618,7 +600,6 @@
         .profile-stat-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; }
         .profile-stat-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; margin-top: 0.3rem; }
 
-        /* ── SETTINGS BUTTONS ── */
         .settings-btn-group { display: flex; flex-direction: column; gap: 2px; }
         .settings-btn {
             display: flex; align-items: center; gap: 1rem;
@@ -631,13 +612,11 @@
         .settings-btn-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; margin-bottom: 0.2rem; }
         .settings-btn-sub { font-size: 0.7rem; color: var(--sub); }
 
-        /* ── FILE MISSING WARNING ── */
         .track-row.missing { opacity: 0.5; }
         .track-row.missing .track-name::after { content: ' ⚠'; color: var(--warn); font-size: 0.7rem; }
         .missing-banner { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1.5rem; background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2); border-left: 3px solid var(--warn); margin: 1rem 2.5rem 0; font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--warn); letter-spacing: 1px; }
         .missing-banner-icon { font-size: 1rem; flex-shrink: 0; }
 
-        /* ── EMBED PLAYER ── */
         .embed-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(16px); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .embed-overlay.open { opacity: 1; pointer-events: all; }
         .embed-box { width: min(520px, 94vw); background: var(--surface); border: 1px solid var(--border); position: relative; }
@@ -685,7 +664,6 @@
         .stream-meta-input:focus { border-color: var(--accent); }
         .stream-meta-input::placeholder { color: rgba(255,255,255,0.2); }
 
-        /* ── ADD TO PLAYLIST DROPDOWN ── */
         .addpl-menu {
             position: fixed; z-index: 600;
             background: var(--surface); border: 1px solid var(--border);
@@ -701,11 +679,9 @@
         .addpl-menu-item.new:hover { background: var(--accent-dim); }
         .addpl-menu-empty { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: rgba(255,255,255,0.2); padding: 0.8rem; text-align: center; }
 
-        /* ── PLAYLIST DETAIL OVERLAY (inside main, not fixed) ── */
         #playlistDetailOverlay { display: none; position: absolute; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; padding-bottom: 100px; }
         #view-playlists { position: relative; height: 100%; }
 
-        /* ── PLAYLIST CARD READABILITY FIXES ── */
         .pl-card-overlay { background: rgba(0,0,0,0.65); }
         .pl-card-btn { font-size: 0.52rem; padding: 0.5rem 1rem; }
 
@@ -718,7 +694,6 @@
         .blk-warn-detail span:last-child { color: #fff; }
 
 
-        /* ── MOBILE UPLOAD ZONE ── */
         .mob-upload-zone {
             border: 2px dashed var(--border);
             padding: 2.5rem 1.5rem;
@@ -731,7 +706,6 @@
         }
         .mob-upload-zone:active { border-color: var(--accent); background: var(--accent-dim); }
 
-        /* ── MOBILE STREAM CARD ── */
         .mob-stream-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -752,7 +726,6 @@
             padding: 0.6rem 0.8rem !important;
         }
 
-        /* ── MOBILE LOCAL TRACK ROW ── */
         .mob-local-row {
             display: flex; align-items: center; gap: 0.7rem;
             padding: 0.6rem 0;
@@ -771,7 +744,6 @@
         .mob-local-title { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mob-local-artist { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
-        /* ── PLAYLIST CARDS ── */
         .pl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; padding: 2rem 2.5rem; }
         .pl-card {
             background: var(--surface2); cursor: pointer;
@@ -822,7 +794,6 @@
             color: rgba(255,255,255,0.6); cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
         .pl-back-btn:hover { color: #fff; border-color: rgba(255,255,255,0.35); }
-        /* ── PLAYLIST MODAL OVERRIDES ── */
         #playlistModal .modal {
             padding: 0;
             max-width: 520px;
@@ -926,7 +897,6 @@
         .pl-picker-scroll::-webkit-scrollbar { width: 2px; }
         .pl-picker-scroll::-webkit-scrollbar-thumb { background: var(--accent-dim); }
 
-        /* Track rows */
         .pl-pick-row {
             display: flex;
             align-items: center;
@@ -943,7 +913,6 @@
         .pl-pick-row.is-checked { background: rgba(138,43,226,0.08); }
         .pl-pick-row.is-checked:hover { background: rgba(138,43,226,0.13); }
 
-        /* Custom checkbox */
         .pl-pick-row input[type=checkbox] { display: none; }
         .pl-pick-check {
             width: 16px; height: 16px;
@@ -983,7 +952,6 @@
             flex-shrink: 0;
         }
 
-        /* Footer buttons */
         .pl-btn-save {
             flex: 1;
             font-family: 'Space Mono', monospace;
@@ -1012,12 +980,8 @@
             white-space: nowrap;
         }
         .pl-btn-delete:hover { background: rgba(255,0,51,0.08); border-color: var(--error); }
-        /* ══════════════════════════════════════════════════
-           MOBILE — 768px and below
-        ══════════════════════════════════════════════════ */
         @media (max-width: 900px) {
 
-            /* ── App shell ── */
             #app-shell {
                 grid-template-columns: 1fr;
                 grid-template-rows: 108px 1fr auto;
@@ -1027,10 +991,8 @@
             }
             #app-shell.visible { display: grid; }
 
-            /* ── Hide sidebar on mobile ── */
             aside { display: none !important; }
 
-            /* ── Nav: 2-row mobile nav ── */
             nav {
                 padding: 0;
                 height: auto;
@@ -1038,7 +1000,6 @@
                 flex-direction: column;
                 grid-template-columns: unset;
             }
-            /* Row 1: logo left | coin center | avatar right */
             .mob-nav-top {
                 display: grid !important;
                 grid-template-columns: 1fr auto 1fr;
@@ -1049,7 +1010,6 @@
                 flex-shrink: 0;
                 width: 100%;
             }
-            /* Row 2: full-width tabs */
             .mob-nav-tabs {
                 display: flex !important;
                 align-items: stretch;
@@ -1082,15 +1042,12 @@
             }
             .mob-nav-tab:active:not(.active) { background: rgba(255,255,255,0.06); }
 
-            /* Hide original desktop nav children — replaced by mob-nav elements */
             .nav-logo { display: none !important; }
             .nav-center { display: none !important; }
             .nav-right { display: none !important; }
 
-            /* Bottom tab bar — hidden, replaced by top nav row 2 */
             #mobile-tab-bar { display: none !important; }
 
-            /* ── Main area scrollable ── */
             main {
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -1099,7 +1056,6 @@
             }
 
 
-            /* ── Player bar: centered 2-row layout ── */
             .player-bar {
                 display: flex !important;
                 flex-direction: column !important;
@@ -1137,9 +1093,7 @@
                 gap: 0.9rem;
                 width: 100%;
             }
-            /* Hide desktop right panel; queue btn moved inline */
             .player-right { display: none !important; }
-            /* Progress bar: always visible, full width, centered */
             .player-progress {
                 display: flex !important;
                 align-items: center;
@@ -1151,7 +1105,6 @@
             .progress-time { font-size: 0.5rem; }
             .ctrl-play { width: 38px; height: 38px; font-size: 0.9rem; }
             .ctrl-btn { width: 30px; height: 30px; font-size: 0.85rem; }
-            /* Queue button */
             .queue-toggle-btn {
                 padding: 0 !important;
                 border: none !important;
@@ -1159,7 +1112,6 @@
                 width: 30px; height: 30px;
             }
 
-            /* ── Track list: compact ── */
             .track-list-header {
                 grid-template-columns: 24px 1fr 44px 24px;
                 padding: 0.4rem 0.9rem;
@@ -1178,7 +1130,6 @@
             .track-name { font-size: 0.78rem; }
             .track-name-artist { font-size: 0.62rem; }
 
-            /* ── Playlist detail header: mobile ── */
             #playlistDetailOverlay .pl-detail-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -1194,7 +1145,6 @@
                 justify-content: flex-start;
             }
 
-            /* ── View headers: compact ── */
             .view-header {
                 padding: 0.8rem 0.9rem 0.7rem;
                 flex-wrap: wrap;
@@ -1205,7 +1155,6 @@
             .search-bar { min-width: 0; flex: 1; padding: 0.4rem 0.65rem; }
             .search-bar input { font-size: 0.62rem; }
 
-            /* ── Library filter tabs: horizontal scroll ── */
             .lib-filter-row {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
@@ -1217,14 +1166,12 @@
             .lib-filter-row::-webkit-scrollbar { display: none; }
             .lib-filter-tab { padding: 0.5rem 0.75rem; font-size: 0.48rem; }
 
-            /* ── Store: compact 2-col ── */
             .store-grid { grid-template-columns: repeat(2, 1fr); margin: 0.5rem; }
             .store-info { padding: 0.5rem 0.55rem 0.6rem; }
             .store-title { font-size: 0.7rem; }
             .store-artist { font-size: 0.56rem; margin-bottom: 0.3rem; }
             .store-buy-btn { font-size: 0.42rem; padding: 0.28rem 0.5rem; }
 
-            /* ── Playlists: compact 2-col ── */
             .pl-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; padding: 0.7rem; }
             .pl-card-name { font-size: 0.72rem; }
             .pl-card-info { padding: 0.55rem 0.65rem 0.65rem; gap: 0.25rem; }
@@ -1232,44 +1179,33 @@
             .pl-card-btn { font-size: 0.42rem; padding: 0.3rem 0.5rem; }
             .pl-card-count { font-size: 0.48rem; }
 
-            /* ── Modals ── */
             .modal { padding: 1.5rem 1.1rem; width: 95%; }
 
-            /* ── Auth screen ── */
             .auth-box { width: 92%; padding: 1.8rem 1.2rem; }
             .auth-logo { font-size: 1.2rem; }
 
-            /* ── Streaming dropdown: full-width ── */
             .streaming-dropdown { min-width: 90vw; left: 50%; transform: translateX(-50%); }
 
-            /* ── Queue panel ── */
             .queue-panel { width: calc(100vw - 1.5rem); right: 0.75rem; left: 0.75rem; bottom: 96px; }
 
-            /* ── Profile ── */
             .profile-stat-val { font-size: 1rem; }
             .profile-panel { padding: 1.1rem 0.9rem; }
 
-            /* ── Streaming views ── */
             .streaming-view-header { padding: 0.75rem 0.9rem; }
             .streaming-view-body { padding: 0.75rem 0.9rem; }
 
-            /* ── Playlist detail overlay ── */
             #playlistDetailOverlay { padding-bottom: 100px; }
 
-            /* ── Missing banner ── */
             .missing-banner { margin: 0.5rem 0.8rem 0; padding: 0.45rem 0.75rem; }
 
-            /* ── Touch targets ── */
             .auth-btn, .auth-google-btn, .settings-btn { min-height: 44px; }
 
-            /* ── Mobile upload/streaming: compact padding ── */
             #view-mob-upload > div:not(.view-header),
             #view-mob-streaming > div:not(.view-header) { padding: 0.75rem !important; }
             .mob-stream-card { padding: 0.8rem; }
             .mob-upload-zone { padding: 1.5rem 0.8rem; }
         }
 
-        /* ── Tablet: 769–1024px ── */
         @media (min-width: 769px) and (max-width: 1024px) {
             #app-shell { grid-template-columns: 200px 1fr; }
             .player-bar { grid-template-columns: 220px 1fr 220px; }
@@ -1277,29 +1213,23 @@
             .track-meta { display: none; }
         }
 
-        /* ── Desktop: hide mobile tab bar AND mobile nav rows ── */
         @media (min-width: 901px) {
             #mobile-tab-bar { display: none !important; }
             .mob-nav-top { display: none !important; }
             .mob-nav-tabs { display: none !important; }
         }
     </style>
-    <!-- SoundCloud Widget API -->
     <script src="https://w.soundcloud.com/player/api.js"></script>
 </head>
 <body>
 
-<!-- SC WIDGET — must be in-viewport for modern browsers to allow autoplay -->
-<!-- 1×1 at bottom:0, opacity:0 — technically visible to the browser (no overflow:hidden clipping) -->
 <div id="scWidgetContainer" style="position:fixed;bottom:0;right:0;width:300px;height:300px;opacity:0;z-index:-1;pointer-events:none;" aria-hidden="true">
     <iframe id="scHiddenWidget" src="about:blank"
         style="width:300px;height:300px;border:none;display:block;"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 </div>
-<!-- Art prefetch container — throwaway iframes loaded here to silently fetch cover art via Widget API -->
 <div id="scArtPrefetchContainer" style="position:fixed;bottom:0;left:0;width:1px;height:1px;opacity:0;z-index:-1;pointer-events:none;" aria-hidden="true"></div>
 
-<!-- AUTH SCREEN -->
 <div id="auth-screen">
     <div class="auth-bg-grid"></div>
     <div class="auth-glow"></div>
@@ -1310,7 +1240,6 @@
             <button class="auth-tab active" onclick="setAuthTab('login')">Sign In</button>
             <button class="auth-tab" onclick="setAuthTab('register')">Create Account</button>
         </div>
-        <!-- LOGIN -->
         <div id="auth-login">
             <div class="auth-field">
                 <label>Email</label>
@@ -1331,7 +1260,6 @@
             <button id="resend-verify-btn" onclick="resendVerification()" style="display:none;width:100%;margin-top:0.5rem;font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:1px;padding:0.6rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;">Resend Verification Email</button>
             <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;text-align:center;margin-top:1rem;">Email verification required to access BLK</div>
         </div>
-        <!-- REGISTER -->
         <div id="auth-register" style="display:none;">
             <div class="auth-field">
                 <label>Display Name</label>
@@ -1356,8 +1284,6 @@
     </div>
 </div>
 
-<!-- MAIN APP SHELL -->
-<!-- MOBILE BOTTOM TAB BAR -->
 <div id="mobile-tab-bar" style="display:none;">
     <button class="mob-tab active" onclick="switchView('library')" data-view="library"><span class="mob-tab-icon">♪</span>Library</button>
     <button class="mob-tab" onclick="switchView('store')" data-view="store"><span class="mob-tab-icon">◈</span>Store</button>
@@ -1368,9 +1294,7 @@
 </div>
 
 <div id="app-shell">
-    <!-- NAV -->
     <nav>
-        <!-- Row 1: Logo + Coins + Avatar (desktop) / Logo + Coins + Avatar (mobile) -->
         <a href="#" class="nav-logo">BLK.</a>
         <div class="nav-center">
             <div class="nav-tabs" style="border-right:none;">
@@ -1379,7 +1303,6 @@
                 <button class="nav-tab" onclick="switchView('playlists')">Playlists</button>
                 <button class="nav-tab" onclick="switchView('profile')">Profile</button>
             </div>
-            <!-- STREAMING HAMBURGER — inline with tabs -->
             <div class="streaming-hamburger" id="streamingHamburger" style="border:1px solid var(--border);border-left:none;">
                 <button class="streaming-hamburger-btn">
                     <div class="hamburger-lines"><span></span><span></span><span></span></div>
@@ -1423,21 +1346,16 @@
             </div>
         </div>
 
-        <!-- MOBILE ROW 1: Avatar left | BLK center | Coin right -->
         <div class="mob-nav-top">
-            <!-- Left: avatar flush to edge -->
             <div style="display:flex;align-items:center;padding-left:1rem;">
                 <div onclick="switchView('profile')" style="width:40px;height:40px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:0.8rem;cursor:pointer;overflow:hidden;" id="mobNavAvatar">?</div>
             </div>
-            <!-- Center: BLK logo -->
             <span style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.3rem;letter-spacing:4px;color:#fff;text-align:center;">BLK.</span>
-            <!-- Right: coin flush to edge -->
             <div style="display:flex;align-items:center;justify-content:flex-end;padding-right:1rem;">
                 <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);border:1px solid var(--accent-dim);padding:0.35rem 0.8rem;display:flex;align-items:center;gap:0.4rem;"><span style="font-size:0.85rem;">◈</span><span id="mobCoinDisplay">0 BLK</span></div>
             </div>
         </div>
 
-        <!-- MOBILE ROW 2: Scrollable tab strip -->
         <div class="mob-nav-tabs" id="mobNavTabs">
             <button class="mob-nav-tab active" onclick="switchView('library')" data-view="library">Library</button>
             <button class="mob-nav-tab" onclick="switchView('store')" data-view="store">Store</button>
@@ -1448,7 +1366,6 @@
         </div>
     </nav>
 
-    <!-- SIDEBAR -->
     <aside>
         <div class="sidebar-section" style="flex:1;border-bottom:none;">
             <div class="sidebar-label">Upload Music</div>
@@ -1460,9 +1377,7 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main>
-        <!-- LIBRARY -->
         <div id="view-library">
             <div class="view-header">
                 <div>
@@ -1494,16 +1409,13 @@
                 </div>
             </div>
 
-            <!-- SPOTIFY BROWSE PANEL (shown when Spotify filter active) -->
             <div id="spotifyBrowsePanel" style="display:none;flex:1;overflow-y:auto;padding:1.5rem 2.5rem;">
-                <!-- Not connected state -->
                 <div id="spBrowseConnect" style="text-align:center;padding:4rem 2rem;">
                     <div style="font-size:3rem;margin-bottom:1rem;">🎵</div>
                     <div style="font-family:'Space Mono',monospace;font-size:0.7rem;letter-spacing:2px;margin-bottom:0.5rem;">CONNECT SPOTIFY</div>
                     <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);margin-bottom:2rem;line-height:1.8;">Browse your Spotify library and add tracks directly to BLK</div>
                     <button onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.8rem 2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;">Connect Spotify</button>
                 </div>
-                <!-- Connected state -->
                 <div id="spBrowseMain" style="display:none;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:gap:0.5rem;">
                         <div style="display:flex;align-items:center;gap:0.6rem;">
@@ -1512,7 +1424,6 @@
                         </div>
                         <button onclick="spotifyLogout()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.3rem 0.8rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;">Disconnect</button>
                     </div>
-                    <!-- Search + tab row -->
                     <div style="display:flex;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap;">
                         <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surface2);border:1px solid var(--border);padding:0.4rem 0.8rem;flex:1;min-width:160px;">
                             <span style="color:var(--sub);font-size:0.7rem;">⌕</span>
@@ -1522,14 +1433,12 @@
                             <button id="spBTab-url" onclick="loadSpotifyTab('url')" class="sp-tab sp-btab" style="flex:1;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.4rem 0.8rem;background:rgba(30,215,96,0.08);border:none;color:#1ED760;cursor:pointer;">URL Added</button>
                         </div>
                     </div>
-                    <!-- Track list -->
                     <div id="spBrowseTracks"></div>
                     <button id="spBrowseLoadMore" onclick="loadMoreSpotify()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.6rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;margin-top:0.8rem;">Load More</button>
                 </div>
             </div>
         </div>
 
-        <!-- STORE -->
         <div id="view-store" style="display:none;">
             <div class="view-header">
                 <div>
@@ -1544,7 +1453,6 @@
             <div class="store-grid" id="storeGrid"></div>
         </div>
 
-        <!-- PLAYLISTS -->
         <div id="view-playlists" style="display:none;position:relative;height:100%;overflow:hidden;">
             <div style="overflow-y:auto;height:100%;">
             <div class="view-header">
@@ -1556,11 +1464,9 @@
             </div>
             <div id="playlistGrid" class="pl-grid"></div>
             </div>
-            <!-- PLAYLIST DETAIL (overlays within playlists panel) -->
             <div id="playlistDetailOverlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:50;overflow-y:auto;padding-bottom:100px;"></div>
         </div>
 
-        <!-- SPOTIFY FULL PAGE VIEW -->
         <div id="view-spotify" style="display:none;flex-direction:column;height:100%;">
             <div class="streaming-view-header">
                 <button class="streaming-return-btn" onclick="switchView('library')">‹ Back to Library</button>
@@ -1578,7 +1484,6 @@
                 </button>
                 <button onclick="spotifyLogout()" id="spViewDisconnectBtn" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.2);cursor:pointer;flex-shrink:0;">Disconnect</button>
             </div>
-            <!-- Add by URL — always visible, no auth required -->
             <div id="spUrlBar" style="padding:0.75rem 2.5rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;flex-shrink:0;background:rgba(30,215,96,0.025);">
                 <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:rgba(30,215,96,0.6);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">Add by URL</div>
                 <input class="stream-input-url" id="spUrlInput" type="text"
@@ -1590,14 +1495,12 @@
                 <div style="width:100%;font-family:'Space Mono',monospace;font-size:0.43rem;color:rgba(255,255,255,0.15);letter-spacing:0.5px;">Supports: track · podcast episode · podcast show (imports all episodes — show import requires Spotify login)</div>
             </div>
 
-            <!-- Not connected -->
             <div id="spViewConnect" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:4rem;text-align:center;">
                 <div style="font-size:3.5rem;">🎵</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;">Connect Spotify</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);line-height:1.8;max-width:360px;">Browse your Spotify library, search for any song, and add tracks to your BLK library</div>
                 <button onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.8rem 2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;margin-top:0.5rem;">Connect Spotify</button>
             </div>
-            <!-- Connected -->
             <div id="spViewMain" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
                 <div style="padding:1rem 2.5rem;border-bottom:1px solid var(--border);display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;flex-shrink:0;">
                     <div style="display:flex;border:1px solid var(--border);">
@@ -1609,7 +1512,6 @@
             </div>
         </div>
 
-        <!-- SOUNDCLOUD FULL PAGE VIEW -->
         <div id="view-soundcloud" style="display:none;flex-direction:column;height:100%;">
             <div class="streaming-view-header">
                 <button class="streaming-return-btn" onclick="switchView('library')">‹ Back to Library</button>
@@ -1624,7 +1526,6 @@
             <div style="flex:1;overflow-y:auto;padding:2rem 2.5rem;">
                 <div style="max-width:600px;margin:0 auto;">
 
-                    <!-- Add by URL -->
                     <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.2rem;">Add SoundCloud Track</div>
                     <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;">
                         <input class="stream-input-url" id="soundcloudUrlInput" type="text"
@@ -1634,7 +1535,6 @@
                             style="flex:1;">
                         <button class="stream-add-btn sc" id="scAddBtn" onclick="addSoundcloudTrack()" style="white-space:nowrap;flex-shrink:0;">Add to Library</button>
                     </div>
-                    <!-- Auto-fetched preview -->
                     <div id="soundcloudPreview" style="display:none;margin-bottom:0.8rem;background:rgba(255,85,0,0.06);border:1px solid rgba(255,85,0,0.2);padding:0.75rem;align-items:center;gap:0.8rem;">
                         <img id="scPreviewArt" alt="" style="width:44px;height:44px;object-fit:cover;flex-shrink:0;background:var(--surface2);">
                         <div style="flex:1;min-width:0;">
@@ -1647,7 +1547,6 @@
                         Paste any public SoundCloud track URL — metadata fetched automatically.
                     </div>
 
-                    <!-- Library list -->
                     <div style="border-top:1px solid var(--border);padding-top:1.5rem;">
                         <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">
                             SoundCloud Library <span id="scLibCount" style="color:var(--accent);"></span>
@@ -1658,7 +1557,6 @@
             </div>
         </div>
 
-        <!-- MOBILE UPLOAD VIEW -->
         <div id="view-mob-upload" style="display:none;">
             <div class="view-header">
                 <div>
@@ -1667,16 +1565,13 @@
                 </div>
             </div>
             <div style="padding:1.5rem;">
-                <!-- Drop zone -->
                 <div class="mob-upload-zone" onclick="document.getElementById('mobFileInput').click()">
                     <input type="file" id="mobFileInput" multiple accept="audio/*" style="display:none;" onchange="handleMobFileUpload(event)">
                     <div style="font-size:3rem;margin-bottom:0.8rem;opacity:0.5;">⊕</div>
                     <div style="font-family:'Space Mono',monospace;font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--text);margin-bottom:0.4rem;">Tap to Browse</div>
                     <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:1px;">MP3 · WAV · FLAC · AAC</div>
                 </div>
-                <!-- Uploaded count -->
                 <div id="mobUploadStatus" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;text-align:center;margin-top:1rem;min-height:1.2rem;"></div>
-                <!-- Local tracks in library -->
                 <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.2rem;">
                     <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.8rem;">
                         Local Files in Library <span id="mobLocalCount" style="color:var(--accent);"></span>
@@ -1686,7 +1581,6 @@
             </div>
         </div>
 
-        <!-- MOBILE STREAMING VIEW -->
         <div id="view-mob-streaming" style="display:none;">
             <div class="view-header">
                 <div>
@@ -1696,7 +1590,6 @@
             </div>
             <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
 
-                <!-- SPOTIFY CARD -->
                 <div class="mob-stream-card" style="border-color:rgba(30,215,96,0.25);">
                     <div class="mob-stream-card-header">
                         <div style="display:flex;align-items:center;gap:0.8rem;">
@@ -1711,7 +1604,6 @@
                             <button id="mobSpDisconnectBtn" onclick="spotifyLogout()" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.3);cursor:pointer;">Disconnect</button>
                         </div>
                     </div>
-                    <!-- Add by URL -->
                     <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(30,215,96,0.12);">
                         <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(30,215,96,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;">Add by URL</div>
                         <div style="display:flex;gap:0.4rem;">
@@ -1723,11 +1615,9 @@
                         </div>
                         <div id="mobSpUrlStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:0.4rem;min-height:0.8rem;"></div>
                     </div>
-                    <!-- Open full view -->
                     <button onclick="switchView('spotify')" style="width:100%;margin-top:0.8rem;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem;background:rgba(30,215,96,0.06);border:1px solid rgba(30,215,96,0.2);color:#1ED760;cursor:pointer;">Open Spotify View →</button>
                 </div>
 
-                <!-- SOUNDCLOUD CARD -->
                 <div class="mob-stream-card" style="border-color:rgba(255,85,0,0.25);">
                     <div class="mob-stream-card-header">
                         <div style="display:flex;align-items:center;gap:0.8rem;">
@@ -1739,7 +1629,6 @@
                         </div>
                         <button onclick="switchView('soundcloud')" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:rgba(255,85,0,0.1);border:1px solid rgba(255,85,0,0.3);color:#ff5500;cursor:pointer;white-space:nowrap;">Open →</button>
                     </div>
-                    <!-- Add by URL -->
                     <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,85,0,0.12);">
                         <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,85,0,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:0.5rem;">Add by URL</div>
                         <div style="display:flex;gap:0.4rem;">
@@ -1753,7 +1642,6 @@
                     </div>
                 </div>
 
-                <!-- Stats row -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:0.2rem;">
                     <div style="background:var(--surface2);border:1px solid var(--border);padding:1rem;text-align:center;">
                         <div id="mobSpCount" style="font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:#1ED760;">0</div>
@@ -1767,7 +1655,6 @@
             </div>
         </div>
 
-        <!-- PROFILE -->
         <div id="view-profile" style="display:none;">
             <div class="view-header">
                 <div>
@@ -1828,7 +1715,6 @@
         </div>
     </main>
 
-    <!-- PLAYER BAR -->
     <div class="player-bar">
         <div class="player-track">
             <div class="player-art" id="playerArt">
@@ -1877,7 +1763,6 @@
     </div>
 </div>
 
-<!-- QUEUE PANEL -->
 <div id="queuePanel" class="queue-panel">
     <div class="queue-panel-header">
         <span class="queue-panel-title">Queue</span>
@@ -1892,7 +1777,6 @@
     </div>
 </div>
 
-<!-- EMBED PLAYER OVERLAY -->
 <div class="embed-overlay" id="embedOverlay" onclick="if(event.target===this)closeEmbed()">
     <div class="embed-box">
         <div class="embed-header">
@@ -1904,7 +1788,6 @@
     </div>
 </div>
 
-<!-- INSUFFICIENT BLK MODAL -->
 <div class="modal-bg" id="blkWarnModal" onclick="if(event.target===this)closeBlkWarn()">
     <div class="modal blk-warn-modal">
         <button class="modal-close" onclick="closeBlkWarn()">✕</button>
@@ -1922,7 +1805,6 @@
     </div>
 </div>
 
-<!-- PURCHASE MODAL -->
 <div class="modal-bg" id="modalBg" onclick="closeModal(event)">
     <div class="modal">
         <button class="modal-close" onclick="closeModalDirect()">✕</button>
@@ -1944,7 +1826,6 @@
     </div>
 </div>
 
-<!-- CHANGE EMAIL MODAL -->
 <div class="modal-bg" id="changeEmailModal" onclick="if(event.target===this)closeChangeEmailModal()">
     <div class="modal">
         <button class="modal-close" onclick="closeChangeEmailModal()">✕</button>
@@ -1964,18 +1845,15 @@
 </div>
 
 
-<!-- PLAYLIST MODAL (create / edit) -->
 <div class="modal-bg" id="playlistModal" onclick="if(event.target===this)closePlaylistModal()">
     <div class="modal">
         <button class="modal-close" onclick="closePlaylistModal()" style="top:1.2rem;right:1.2rem;">✕</button>
 
-        <!-- Header -->
         <div class="pl-modal-header">
             <span class="modal-tag" id="playlistModalTag" style="margin-bottom:0.5rem;">Playlists // Create</span>
             <div id="playlistModalTitle" style="font-size:1.3rem;font-weight:700;letter-spacing:-0.02em;color:#fff;">New Playlist</div>
         </div>
 
-        <!-- Name field -->
         <div class="pl-modal-body" style="padding-bottom:1rem;">
             <div class="pl-section-label" style="margin-bottom:0.5rem;">Playlist Name</div>
             <div class="pl-name-wrap">
@@ -1985,7 +1863,6 @@
             </div>
         </div>
 
-        <!-- Track picker -->
         <div style="padding:0 2rem;flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;">
             <div class="pl-section-label">
                 Tracks
@@ -1999,7 +1876,6 @@
             <div class="pl-picker-scroll" id="plTrackPicker"></div>
         </div>
 
-        <!-- Footer -->
         <div class="pl-modal-footer">
             <button class="pl-btn-save" id="playlistSaveBtn" onclick="savePlaylist()">Create Playlist</button>
             <button class="pl-btn-delete" id="playlistDeleteBtn" onclick="deletePlaylist()" style="display:none;">Delete</button>
@@ -2012,15 +1888,12 @@
 <audio id="audioEl"></audio>
 
 <script>
-    // ── FIREBASE INIT ──
-    // FIX 2: FB is initialised via waitForFB() before any auth call is made.
-    // All auth functions now await waitForFB() if FB is still null.
     let FB = null;
     let _loginAttempts = 0;
     let _loginLockedUntil = 0;
     let currentUser = null;
     let userProfile = null;
-    let _pendingVerifyEmail = null; // closure — never stored in DOM
+    let _pendingVerifyEmail = null; 
     let _pendingVerifyPass  = null;
 
     const waitForFB = () => new Promise(res => {
@@ -2030,11 +1903,9 @@
         }, 50);
     });
 
-    // Expose Spotify config (set by module script above)
     let SPOTIFY_CLIENT_ID    = '';
     let SPOTIFY_REDIRECT_URI = '';
     let SPOTIFY_SCOPES       = '';
-    // Pull from window after module sets them
     function ensureSpotifyConfig() {
         if (!SPOTIFY_CLIENT_ID) {
             SPOTIFY_CLIENT_ID    = window.SPOTIFY_CLIENT_ID    || '';
@@ -2043,30 +1914,21 @@
         }
     }
 
-    // ── PLAYER STATE ──
     let library = [], currentIdx = -1, isPlaying = false;
     let shuffle = false, repeat = 0, muted = false, volume = 0.8;
     let shuffleQueue = [];
-    let activePlaylistId = null; // null = full library context, string = playlist context
+    let activePlaylistId = null; 
     let coins = 0, listenCount = 0, pendingPurchase = null;
 
-    // ── BLK COIN EARN: finish-based model ────────────────────────────────────
-    // 1 coin is awarded each time a track finishes naturally (reaches its end).
-    // Skipping never earns. Works in background tabs because it fires from
-    // ended/FINISH events, not from timeupdate/RAF/postMessage polling.
-    const COIN_PER_PLAY = 0.001;  // 1000 completions = 1.00 BLK
+    const COIN_PER_PLAY = 0.001; 
 
-    let _earnLastTs = 0; // kept for API compatibility (play/pause handlers touch this)
-    let _userSeeked = false; // true after any progress-bar seek — suppresses coin earn until next track
+    let _earnLastTs = 0; 
+    let _userSeeked = false; 
 
-    // Called when a track ends naturally — award the coin
     function _earnOnTrackEnd() {
-        // Don't award coins if the user dragged the progress bar to the end
         if (_userSeeked) return;
-        // Don't award coins for Spotify tracks when the user is not on a Premium account
         const currentTrack = library[currentIdx];
         if (currentTrack && currentTrack.source === 'spotify' && !spIsPremium) return;
-        // Only award coins for tracks longer than 1 minute (60 seconds)
         const dur = currentTrack && (currentTrack.duration || 0);
         if (!dur || dur < 60) return;
         listenCount++;
@@ -2077,24 +1939,20 @@
         syncCoinsToFirestore(COIN_PER_PLAY);
     }
 
-    // No-ops kept so callers (play/pause handlers etc.) don't throw errors
     function _earnTick() {}
     function _earnReset() { _earnLastTs = 0; _userSeeked = false; }
-    // ─────────────────────────────────────────────────────────────────────────
 
     const audio = document.getElementById('audioEl');
     audio.volume = volume;
 
     const STORE = [];
     let storeLoaded = false;
-    let _storeUnsubscribe = null; // real-time listener cleanup
+    let _storeUnsubscribe = null;
 
     async function loadStoreTracks() {
         if (!FB) return;
-        // Tear down any existing listener before starting a new one
         if (_storeUnsubscribe) { _storeUnsubscribe(); _storeUnsubscribe = null; }
 
-        // Fetch purchases once (they don't change mid-session)
         let ownedIds = new Set();
         if (currentUser) {
             try {
@@ -2105,7 +1963,6 @@
         ownedIds.forEach(id => purchasedStoreIds.add(id));
         savePurchasedIds();
 
-        // Live listener on storeTracks — fires immediately and on every change
         try {
             const col = FB.collection(FB.db, 'storeTracks');
             _storeUnsubscribe = FB.onSnapshot(col, snap => {
@@ -2129,34 +1986,28 @@
         } catch(e) { console.warn('loadStoreTracks failed:', e); }
     }
 
-    // ════════════════════════════════════════
-    // AUTH
-    // ════════════════════════════════════════
     async function initAuth() {
         FB = await waitForFB();
         FB.onAuthStateChanged(FB.auth, async user => {
             if (user) {
                 currentUser = user;
-                // Load profile first, then reveal app — never show UI before role is confirmed
                 try {
                     await loadUserProfile(user);
                     showApp();
-                    spPreRestoreUI(); // paint Spotify connected state from cache immediately
+                    spPreRestoreUI(); 
                 } catch(e) {
                     console.warn('loadUserProfile failed:', e);
-                    showApp(); // still show on error so user isn't locked out
+                    showApp(); 
                     spPreRestoreUI();
                 }
             } else {
                 currentUser = null;
                 userProfile = null;
                 _pendingVerifyEmail = null; _pendingVerifyPass = null;
-                // Tear down real-time listeners
                 if (_storeUnsubscribe) { _storeUnsubscribe(); _storeUnsubscribe = null; }
                 if (_userProfileUnsubscribe) { _userProfileUnsubscribe(); _userProfileUnsubscribe = null; }
                 if (_streamingUnsubscribe) { _streamingUnsubscribe(); _streamingUnsubscribe = null; }
                 storeLoaded = false;
-                // Clear Spotify state so next user starts fresh
                 spAccessToken = spRefreshToken = null; spTokenExpiry = 0;
                 if (spPlayer) { try { spPlayer.disconnect(); } catch(_) {} spPlayer = null; }
                 spDeviceId = null;
@@ -2171,7 +2022,6 @@
         const { db, doc, getDoc, onSnapshot, setDoc } = FB;
         const ref = doc(db, 'users', user.uid);
 
-        // Create profile doc if it doesn't exist yet
         const snap = await getDoc(ref);
         if (!snap.exists()) {
             userProfile = {
@@ -2183,10 +2033,8 @@
             await setDoc(ref, userProfile);
         }
 
-        // Tear down any previous listener
         if (_userProfileUnsubscribe) { _userProfileUnsubscribe(); _userProfileUnsubscribe = null; }
 
-        // Live listener — fires immediately then on every change
         await new Promise(resolve => {
             let resolved = false;
             _userProfileUnsubscribe = onSnapshot(ref, snapLive => {
@@ -2198,7 +2046,6 @@
                     updateNavUser();
                     updateCoins();
                     updateProfileView();
-                    // Sync playlists
                     if (data.playlists) {
                         try {
                             const remote = JSON.parse(data.playlists);
@@ -2214,18 +2061,13 @@
             }, () => { if (!resolved) { resolved = true; resolve(); } });
         });
 
-        // Load store tracks from Firestore
         loadStoreTracks();
-        // Restore streaming tracks from Firestore (cross-device sync)
         await fbLoadStreamingTracks(user.uid);
         await plLoadFirestore();
-        // Backfill missing durations for existing SC tracks
         scBackfillDurations();
-        // Restore Spotify session keyed to this user — or, if we just came back from
-        // a Spotify OAuth redirect, complete the token exchange now that currentUser
-        // is set so tokens are saved under the correct UID key (Bug 1/3 fix).
+
         if (_pendingSpCallback) {
-            _pendingSpCallback = false; // consume the flag
+            _pendingSpCallback = false; 
             const code = _pendingSpCode, st = _pendingSpState;
             _pendingSpCode = null; _pendingSpState = null;
             ensureSpotifyConfig();
@@ -2235,12 +2077,7 @@
         }
     }
 
-    // Backfill duration for any SC tracks that were saved with duration:0
-    // scBackfillDurations previously called api.soundcloud.com/resolve which now returns
-    // 401 Unauthorized (the public client ID has been revoked by SoundCloud).
-    // Duration is now populated from the widget's getDuration() callback when a track plays.
-    // This function is kept as a no-op so existing call sites don't error.
-    function scBackfillDurations() { /* no-op — resolve API no longer available */ }
+    function scBackfillDurations() { }
 
     async function fbSaveStreamingTrack(track) {
         if (!currentUser || !FB) return;
@@ -2256,15 +2093,12 @@
                 spotifyType: track.spotifyType || null,
                 spotifyTrackId: track.spotifyTrackId || null,
                 playlist: track.playlist || null,
-                // Store/BLK tracks
                 url: (track.source === 'store' || track.source === 'local') ? (track.url || '') : null,
                 fileName: track.fileName || null
             });
-        } catch(e) { /* non-fatal */ }
+        } catch(e) {  }
     }
 
-    // ── Tombstone helpers — track IDs deleted by the user, persisted in localStorage
-    // so that Firestore/IDB restores don't resurrect them on reload.
     const _SC_DELETED_KEY = 'blk_deleted_streaming';
     function _getTombstones() {
         try { return new Set(JSON.parse(localStorage.getItem(_SC_DELETED_KEY) || '[]')); } catch(e) { return new Set(); }
@@ -2286,13 +2120,12 @@
     }
 
     async function fbDeleteStreamingTrack(trackId) {
-        // Record tombstone locally so restores skip this track even if Firestore lags
         _addTombstone(trackId);
         if (!currentUser || !FB) return;
         try {
             const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', trackId);
             await FB.deleteDoc(ref);
-        } catch(e) { /* non-fatal */ }
+        } catch(e) {  }
         _pruneTombstones();
     }
 
@@ -2309,16 +2142,13 @@
                     const r = change.doc.data();
                     if (change.type === 'removed' || r._deleted) {
                         const removedId = r.id || change.doc.id;
-                        // Remove from library, spotifyTracks, soundcloudTracks
                         const idx = library.findIndex(t => t.id === removedId);
                         if (idx !== -1) library.splice(idx, 1);
                         const spIdx = spotifyTracks.findIndex(t => t.id === removedId);
                         if (spIdx !== -1) spotifyTracks.splice(spIdx, 1);
                         const scIdx = soundcloudTracks.findIndex(t => t.id === removedId);
                         if (scIdx !== -1) soundcloudTracks.splice(scIdx, 1);
-                        // Also remove from IDB so it doesn't resurrect on next page load
                         if (typeof idbDeleteTrack === 'function') idbDeleteTrack(removedId);
-                        // Add tombstone on this device too so IDB restore stays clean
                         _addTombstone(removedId);
                         return;
                     }
@@ -2346,7 +2176,6 @@
                         else if (r.source === 'soundcloud') soundcloudTracks.push(track);
                         if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
                     } else if (change.type === 'modified') {
-                        // Update existing track in place
                         const existing = library.find(t => t.id === r.id);
                         if (existing) {
                             existing.albumArt = r.albumArt || null;
@@ -2356,7 +2185,6 @@
                         }
                     }
                 });
-                // Update UI
                 renderLibrary(); renderQueue();
                 renderSoundcloudTracks();
                 if (spotifyTracks.length) {
@@ -2373,14 +2201,13 @@
                     document.getElementById('soundcloudStatus').textContent = '';
                     const _scBtn = document.getElementById('soundcloudConnectBtn'); if (_scBtn) _scBtn.classList.remove('connected');
                 }
-            }, e => { /* non-fatal: offline or no data yet */ });
-        } catch(e) { /* non-fatal */ }
+            }, e => { });
+        } catch(e) {  }
     }
 
     function showAuth() {
         document.getElementById('auth-screen').classList.remove('hidden');
         document.getElementById('app-shell').classList.remove('visible');
-        // Always reset login button when auth screen is shown
         const loginBtn = document.getElementById('login-btn');
         if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'Sign In'; }
         const regBtn = document.getElementById('reg-btn');
@@ -2402,7 +2229,6 @@
         document.getElementById('reg-error').textContent   = '';
     }
 
-    // FIX 2 applied to doLogin, doRegister, doGoogle, doForgotPassword
     async function resendVerification() {
         const email = _pendingVerifyEmail, pass = _pendingVerifyPass;
         if (!email || !pass) { showToast('Sign in first to resend'); return; }
@@ -2433,7 +2259,6 @@
             return;
         }
         btn.disabled = true; btn.textContent = 'Signing in...';
-        // Safety: always re-enable button after 8s if nothing happens
         const safetyTimer = setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 8000);
         try {
             const cred = await FB.signInWithEmailAndPassword(FB.auth, email, pass);
@@ -2448,8 +2273,6 @@
                 if (resendBtn) { resendBtn.style.display = 'inline-block'; }
                 btn.disabled = false; btn.textContent = 'Sign In';
             } else {
-                // Verified: onAuthStateChanged -> showApp() -> showAuth() resets button on any failure
-                // But also reset here after short delay in case showApp is slow
                 btn.textContent = 'Signed in ✓';
                 setTimeout(() => { btn.disabled = false; btn.textContent = 'Sign In'; }, 4000);
             }
@@ -2518,9 +2341,6 @@
         }
     }
 
-    // ════════════════════════════════════════
-    // ACCOUNT SETTINGS
-    // ════════════════════════════════════════
     async function sendVerificationEmail() {
         if (!currentUser) return;
         try {
@@ -2609,9 +2429,6 @@
         return map[code] || 'Something went wrong. Please try again.';
     }
 
-    // ════════════════════════════════════════
-    // NAV / USER UI
-    // ════════════════════════════════════════
     function updateNavUser() {
         if (!userProfile) return;
         const initials = (userProfile.displayName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
@@ -2717,7 +2534,6 @@
     });
 
     function toggleStreamingDropdown(e) {
-        // no-op: hover is handled by CSS
     }
 
     function openAdminPanel() {
@@ -2725,9 +2541,6 @@
         toggleDropdown(true);
     }
 
-    // ════════════════════════════════════════
-    // COIN SYNC
-    // ════════════════════════════════════════
     async function syncCoinsToFirestore(delta) {
         if (!currentUser || !FB) return;
         const ref = FB.doc(FB.db, 'users', currentUser.uid);
@@ -2743,9 +2556,6 @@
         updateProfileView();
     }
 
-    // ════════════════════════════════════════
-    // VIEWS
-    // ════════════════════════════════════════
     function switchView(v) {
         ['library','store','playlists','profile','spotify','soundcloud','mob-upload','mob-streaming'].forEach(id => {
             const el = document.getElementById('view-' + id);
@@ -2759,11 +2569,9 @@
         document.querySelectorAll('.nav-tab').forEach((t, i) => {
             t.classList.toggle('active', ['library','store','playlists','profile'][i] === v);
         });
-        // Sync mobile bottom tab bar (legacy, now hidden)
         document.querySelectorAll('.mob-tab').forEach(t => {
             t.classList.toggle('active', t.dataset.view === v);
         });
-        // Sync mobile top tab strip
         document.querySelectorAll('.mob-nav-tab').forEach(t => {
             t.classList.toggle('active', t.dataset.view === v);
         });
@@ -2781,9 +2589,6 @@
         switchView(service);
     }
 
-    // ════════════════════════════════════════
-    // INDEXEDDB
-    // ════════════════════════════════════════
     let idb = null;
     const IDB_NAME = 'blk-library', IDB_VER = 1, IDB_STORE = 'tracks';
 
@@ -2821,7 +2626,6 @@
         });
     }
 
-    // Probe a store track's audio URL and back-fill duration in library + re-render
     function probeStoreDuration(track) {
         if (!track.url || track.duration > 0) return;
         const tmp = new Audio();
@@ -2872,9 +2676,7 @@
                 const tombstones = _getTombstones();
                 let missingCount = 0;
                 records.forEach(r => {
-                    // Skip tracks the user has deleted — tombstone prevents resurrection
                     if (tombstones.has(r.id)) {
-                        // Also clean up the stale IDB entry asynchronously
                         idbDeleteTrack(r.id);
                         return;
                     }
@@ -2920,10 +2722,8 @@
                 if (soundcloudTracks.length) {
                     const _scStatus=document.getElementById('soundcloudStatus');if(_scStatus)_scStatus.textContent=soundcloudTracks.length+' linked';
                     const _scBtn=document.getElementById('soundcloudConnectBtn');if(_scBtn)_scBtn.classList.add('connected');
-                    // Silently backfill art for any SC tracks saved without it
                     const artless = soundcloudTracks.filter(t => !t.albumArt && (t.soundcloudUrl || t.url));
                     if (artless.length) {
-                        // Stagger prefetch so we don't hammer the SC API on load
                         artless.forEach(t => {
                             _scPrefetchArt(t).then(art => {
                                 if (!art || t.albumArt) return;
@@ -2953,9 +2753,6 @@
         banner.innerHTML = '<span class="missing-banner-icon">⚠</span> ' + count + ' track' + (count>1?'s':'') + ' could not be restored — the file' + (count>1?' have':' has') + ' moved or been deleted. Re-upload to fix.';
     }
 
-    // ════════════════════════════════════════
-    // FILE UPLOAD
-    // ════════════════════════════════════════
     document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
     const uploadZone = document.getElementById('uploadZone');
     uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
@@ -2990,7 +2787,6 @@
             };
             library.push(track);
             idbSaveTrack(track, file);
-            // Save local track metadata to Firestore (no audio binary — for cross-device awareness)
             fbSaveStreamingTrack(track);
             const tmp = new Audio(url);
             tmp.addEventListener('loadedmetadata', () => {
@@ -3005,16 +2801,12 @@
 
     function randomEmoji() { return ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'][Math.floor(Math.random()*8)]; }
 
-    // ════════════════════════════════════════
-    // LIBRARY RENDER
-    // ════════════════════════════════════════
-    const _artCache = {}; // url -> true (ok) | false (broken)
+    const _artCache = {}; 
     function _blkThumbDiv() {
         return '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
     }
     function _probeArt(url) {
         if (!url) return Promise.resolve(false);
-        // SoundCloud's fb_placeholder images are dead on the CDN — treat as broken immediately
         if (url.indexOf('fb_placeholder') !== -1) { _artCache[url] = false; return Promise.resolve(false); }
         if (_artCache[url] !== undefined) return Promise.resolve(_artCache[url]);
         return new Promise(res => {
@@ -3055,13 +2847,11 @@
             body.innerHTML = '<div class="empty-library"><div class="empty-icon">◈</div><div class="empty-label">Library Empty</div><div class="empty-hint">Upload audio files using the panel on the left</div></div>';
             return;
         }
-        // Probe any uncached art URLs first, then render
         const uncached = tracks.filter(t => t.albumArt && _artCache[t.albumArt] === undefined);
         if (uncached.length) {
             Promise.all(uncached.map(t => _probeArt(t.albumArt))).then(() => {
                 body.innerHTML = tracks.map((t, i) => _buildLibraryRow(t, i, tracks)).join('');
             });
-            // Render immediately with what we know while probing
             body.innerHTML = tracks.map((t, i) => _buildLibraryRow(t, i, tracks)).join('');
         } else {
             body.innerHTML = tracks.map((t, i) => _buildLibraryRow(t, i, tracks)).join('');
@@ -3072,7 +2862,6 @@
         e.stopPropagation();
         const t = library[libIdx]; if (!t) return;
         if (t.source === 'store') {
-            // Mark the store item as not-in-library (purchased remains true via purchasedStoreIds)
             const storeId = t.id.replace(/_lib$/, '');
             const storeItem = STORE.find(x => x.id === storeId);
             if (storeItem) storeItem.owned = false;
@@ -3114,7 +2903,6 @@
         document.getElementById('filter-' + filter).classList.add('active');
         const browsePanel = document.getElementById('spotifyBrowsePanel');
         const trackList   = document.querySelector('#view-library .track-list');
-        // Spotify filter always shows library tracks (already-added ones only)
         browsePanel.style.display = 'none';
         if (trackList) trackList.style.display = '';
         filterTracks();
@@ -3128,7 +2916,6 @@
         renderLibrary(tracks.length === library.length && !q ? undefined : tracks);
     }
 
-    // ── QUEUE PANEL ──
     let queuePanelOpen = false;
 
     function toggleQueuePanel() {
@@ -3138,7 +2925,6 @@
         if (queuePanelOpen) renderQueue();
     }
 
-    // Close panel when clicking outside
     document.addEventListener('click', function(e) {
         if (!queuePanelOpen) return;
         const panel = document.getElementById('queuePanel');
@@ -3151,7 +2937,6 @@
     });
 
     function renderQueue() {
-        // Always update count badge
         document.getElementById('queueCount').textContent = getPlayPool().length;
 
         if (!queuePanelOpen) return;
@@ -3178,7 +2963,6 @@
 
         let html = '';
 
-        // ── Now Playing ──
         if (currentIdx >= 0 && library[currentIdx]) {
             const t = library[currentIdx];
             html += '<div class="qp-section-label">Now Playing</div>';
@@ -3192,17 +2976,14 @@
                 + '</div>';
         }
 
-        // ── Build next-up list ──
         const pool = getPlayPool();
         const poolPos = pool.indexOf(currentIdx);
         let nextList = [];
         if (repeat === 2 && currentIdx >= 0 && library[currentIdx]) {
-            // Repeat One: next up is always the same track, looping
             for (let i = 0; i < 5; i++) nextList.push({ idx: currentIdx, t: library[currentIdx] });
         } else if (shuffle && shuffleQueue.length) {
             nextList = shuffleQueue.slice(0, 20).map(i => ({ idx: i, t: library[i] })).filter(x => x.t);
         } else {
-            // Linear: tracks after currentIdx within pool, then wrap
             for (let i = 1; i < pool.length && nextList.length < 20; i++) {
                 const idx = pool[(poolPos + i) % pool.length];
                 if (idx === currentIdx) break;
@@ -3225,7 +3006,6 @@
             });
         }
 
-        // ── Previous ──
         const prevList = [];
         if (!shuffle && poolPos > 0) {
             const from = Math.max(0, poolPos - 5);
@@ -3251,9 +3031,6 @@
         body.innerHTML = html;
     }
 
-    // ════════════════════════════════════════
-    // PLAYBACK
-    // ════════════════════════════════════════
     function playTrack(idx, keepContext) {
         if (!keepContext) activePlaylistId = null;
         if (idx < 0 || idx >= library.length) return;
@@ -3265,15 +3042,13 @@
             if (isPlaying) { audio.pause(); } else { audio.play().catch(()=>{}); }
             return;
         }
-        // Stop ALL sources cleanly before switching
         audio.pause();
         audio.src = '';
         _earnReset();
         if (spPlayer) { try { spPlayer.pause(); } catch(e) {} }
         spStopProgressLoop();
-        scDestroyWidget();  // bumps scGeneration, stops loop, blanks iframe
+        scDestroyWidget();  
 
-        // Reset progress bar immediately so it doesn't show stale position
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
@@ -3295,7 +3070,6 @@
             }
             return;
         }
-        // Local file
         audio.src = t.url;
         audio.load();
         audio.play().catch(()=>{});
@@ -3320,11 +3094,9 @@
                 spPlayTrack(uri, t.title, t.artist, t.album, t.albumArt || null, t.duration || 0);
             }
         } else if (t.source === 'soundcloud') {
-            // Always force a fresh load — seekTo(0)+play() on a finished widget triggers ERROR
             scDestroyWidget();
             scLoadAndPlay(t.soundcloudUrl || t.url);
         } else {
-            // Reload src to avoid stale ended-event re-trigger
             const src = audio.src;
             audio.pause();
             audio.src = '';
@@ -3336,8 +3108,8 @@
 
     function nextTrack() {
         if (!library.length) return;
-        if (repeat === 2) { restartCurrentTrack(); return; } // repeat-one
-        const pool = getPlayPool(); // indices to draw from (playlist or full library)
+        if (repeat === 2) { restartCurrentTrack(); return; } 
+        const pool = getPlayPool(); 
         if (shuffle) {
             if (!shuffleQueue.length) {
                 if (repeat === 1) buildShuffleQueue();
@@ -3398,7 +3170,6 @@
         renderQueue();
     }
 
-    // repeat: 0 = off, 1 = repeat-all, 2 = repeat-one
     function toggleRepeat() {
         repeat = (repeat + 1) % 3;
         const btn = document.getElementById('btnRepeat');
@@ -3408,7 +3179,6 @@
         renderQueue();
     }
 
-    // ── PROGRESS BAR DRAG ──
     let isDraggingProgress = false;
     (function() {
         const bar  = document.getElementById('progressBar');
@@ -3456,7 +3226,6 @@
         });
     })();
 
-    // ── VOLUME BAR DRAG ──
     (function() {
         const bar  = document.getElementById('volBar');
         const fill = document.getElementById('volFill');
@@ -3505,7 +3274,7 @@
         if (_endedHandling) return;
         _endedHandling = true;
         setTimeout(() => { _endedHandling = false; }, 500);
-        _earnOnTrackEnd(); // track finished — allow replay to earn again
+        _earnOnTrackEnd(); 
         if (repeat === 2) { restartCurrentTrack(); return; }
         nextTrack();
     });
@@ -3528,7 +3297,6 @@
             emojiEl.style.display = 'none';
         }
         if (art) {
-            // SoundCloud's fb_placeholder images are dead on the CDN — skip straight to logo
             if (art.indexOf('fb_placeholder') !== -1) {
                 _applyArt(BLK_LOGO);
             } else {
@@ -3556,7 +3324,6 @@
 
     function updatePlayBtn() {
         document.getElementById('btnPlay').textContent = isPlaying ? '⏸' : '▶';
-        // Update play-state on every .track-row that carries a data-libidx attribute
         document.querySelectorAll('.track-row[data-libidx]').forEach(row => {
             const idx = parseInt(row.dataset.libidx, 10);
             const isActive = idx === currentIdx && isPlaying;
@@ -3575,23 +3342,15 @@
         if (statEl) statEl.textContent = coins.toFixed(3);
     }
 
-    // ════════════════════════════════════════
-    // EMBED PLAYER (SoundCloud)
-    // ════════════════════════════════════════
-    // SC WIDGET PLAYER  (hidden iframe, full control)
-    // ════════════════════════════════════════
-    let scWidget         = null;   // SC.Widget instance
+    let scWidget         = null;   
     let scWidgetReady    = false;
-    let scWidgetUrl      = null;   // URL currently loaded in widget
-    let scCurrentDur     = 0;     // ms
-    let scCurrentPos     = 0;     // ms
+    let scWidgetUrl      = null;   
+    let scCurrentDur     = 0;     
+    let scCurrentPos     = 0;    
     let scProgressTimer  = null;
-    let scTransitioning  = false;  // true while a new track is being loaded into the widget
-    let scGeneration     = 0;     // incremented on every destroy; callbacks check this to discard stale writes
+    let scTransitioning  = false;  
+    let scGeneration     = 0;    
 
-    // Completely tear down the current SC widget and reset the hidden iframe to blank.
-    // Increments scGeneration so any in-flight async callbacks from the old widget
-    // detect they are stale and skip all progress bar / state writes.
     function scDestroyWidget() {
         scGeneration++;
         scStopProgressLoop();
@@ -3611,7 +3370,6 @@
         scWidgetUrl   = null;
         scCurrentDur  = 0;
         scCurrentPos  = 0;
-        // The iframe element itself is recreated in _scLoadAndPlay, so nothing to clear here.
     }
 
     function scInitWidget() {
@@ -3619,14 +3377,12 @@
         if (!iframe || !window.SC || !window.SC.Widget) return;
 
         scWidget = window.SC.Widget(iframe);
-        const myGen = scGeneration;   // capture at bind time; used to discard stale callbacks
+        const myGen = scGeneration;  
 
         scWidget.bind(SC.Widget.Events.READY, () => {
             if (scGeneration !== myGen) return;
             scWidgetReady = true;
             scTransitioning = false;
-            // Trigger play here (not via auto_play URL param) so the browser
-            // treats it as user-gesture-initiated — avoids AudioContext errors.
             scWidget.play();
             let _durTries = 0;
             const _pollDur = setInterval(() => {
@@ -3643,14 +3399,11 @@
                 });
             }, 500);
 
-            // Fetch full track metadata from the widget — includes artwork_url, duration, title etc.
-            // This backfills cover art for tracks added before art-fetching was in place.
             scWidget.getCurrentSound(sound => {
                 if (scGeneration !== myGen || !sound) return;
                 const t = library[currentIdx];
                 if (!t || t.source !== 'soundcloud') return;
 
-                // artwork_url is 100×100 by default — upgrade to 500×500
                 let art = sound.artwork_url || (sound.user && sound.user.avatar_url) || null;
                 if (art) {
                     art = art.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
@@ -3665,7 +3418,6 @@
                     fbSaveStreamingTrack(t);
                 }
 
-                // Always update player art display with whatever we got
                 const finalArt = t.albumArt || art;
                 const _blkLogo = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22%230a0a0a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2262%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20font-size%3D%2228%22%20fill%3D%22%238A2BE2%22%20text-anchor%3D%22middle%22%20letter-spacing%3D%222%22%3EBLK%3C%2Ftext%3E%3C%2Fsvg%3E";
                 function _setScArtImg(el, src) {
@@ -3701,8 +3453,6 @@
                     renderSoundcloudTracks();
                 }
 
-                // Backfill duration from widget — persist so it survives reload
-                // without any external API call.
                 if (sound.duration) {
                     const durSecs = Math.round(sound.duration / 1000);
                     if (!scCurrentDur) {
@@ -3770,7 +3520,6 @@
                 document.getElementById('progressFill').style.width = pct + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(scCurrentPos / 1000);
             } else if (!isDraggingProgress && !scCurrentDur && scWidget) {
-                // Duration still unknown — fetch it now
                 scWidget.getDuration(d => {
                     if (scGeneration !== myGen || !d || d <= 0) return;
                     scCurrentDur = d;
@@ -3793,7 +3542,6 @@
         scStopProgressLoop();
         scProgressTimer = setInterval(() => {
             if (scGeneration !== gen || !scWidget || !isPlaying) return;
-            // If duration isn't known yet, fetch it now so the bar can move
             const updateBar = () => {
                 if (scGeneration !== gen) return;
                 if (!isDraggingProgress && scCurrentDur) {
@@ -3808,7 +3556,6 @@
                 if (scCurrentDur) {
                     updateBar();
                 } else {
-                    // Duration not yet cached — fetch it then update
                     scWidget.getDuration(d => {
                         if (scGeneration !== gen) return;
                         if (d && d > 0) {
@@ -3825,7 +3572,6 @@
 
     function scEnsureAPI(cb) {
         if (window.SC && window.SC.Widget) { cb(); return; }
-        // SC API script not ready yet — inject it dynamically and retry
         const existing = document.querySelector('script[src*="soundcloud.com/player/api"]');
         if (!existing) {
             const s = document.createElement('script');
@@ -3834,7 +3580,6 @@
             s.onerror = () => showToast('☁ Could not load SoundCloud player API');
             document.head.appendChild(s);
         } else {
-            // Script tag exists but SC object not ready — poll briefly
             let tries = 0;
             const poll = setInterval(() => {
                 if (window.SC && window.SC.Widget) { clearInterval(poll); cb(); }
@@ -3847,14 +3592,8 @@
         scEnsureAPI(() => _scLoadAndPlay(trackUrl));
     }
 
-    // NOTE: SoundCloud's public JS SDK client ID (previously used for resolve/stream
-    // lookups) now returns 401 Unauthorized. All direct API calls have been removed.
-    // Playback uses the SC Widget iframe API exclusively; metadata uses oEmbed.
 
     function _scBuildEmbedUrl(trackUrl) {
-        // auto_play is intentionally FALSE — we call scWidget.play() in the READY
-        // handler instead, keeping playback tied to the original user gesture and
-        // avoiding AudioContext / autoplay-policy errors.
         return 'https://w.soundcloud.com/player/?url='
             + encodeURIComponent(trackUrl)
             + '&color=%238A2BE2&auto_play=false&hide_related=true'
@@ -3863,12 +3602,8 @@
             + '&visual=false';
     }
 
-    // _scResolveStreamUrl previously used api.soundcloud.com/resolve which now returns
-    // 401 Unauthorized. Kept as a stub so _scHandleError doesn't throw.
     async function _scResolveStreamUrl() { return null; }
 
-    // Called when the SC widget fires an ERROR event (geo-block / unavailable).
-    // Tries to fall back to a direct audio stream via the resolve API.
     async function _scHandleError() {
         const t = library[currentIdx];
         if (!t || t.source !== 'soundcloud') return;
@@ -3895,18 +3630,12 @@
             return;
         }
 
-        // scDestroyWidget() has already been called by the caller.
         scWidgetUrl = trackUrl;
         _earnReset();
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
         document.getElementById('timeDuration').textContent = '0:00';
 
-        // The SC Widget API caches widget instances by iframe element reference.
-        // Reusing the same <iframe> and just changing src returns the stale cached
-        // instance, so READY/PLAY never fire correctly on the second track.
-        // Fix: destroy and recreate the iframe element entirely each time so the
-        // SC API always sees a brand-new node with no cache entry.
         const container = document.getElementById('scWidgetContainer');
         const oldIframe = document.getElementById('scHiddenWidget');
         if (oldIframe) oldIframe.remove();
@@ -3930,7 +3659,6 @@
         if (scCurrentDur) {
             scWidget.seekTo(Math.round(pct * scCurrentDur));
         } else {
-            // Duration not yet cached — fetch it first, then seek
             scWidget.getDuration(d => {
                 scCurrentDur = d || 0;
                 if (scCurrentDur) {
@@ -3946,10 +3674,6 @@
         scWidget.setVolume(Math.round(v * 100));
     }
 
-    // ── Art backfill via CORS proxy ──────────────────────────────────────────
-    // Fetches artwork for SC tracks that were saved without it.
-    // Uses the same proxyJSON approach as _scFetchMeta (Widget API iframe approach
-    // doesn't work due to cross-origin postMessage sandboxing).
     async function _scPrefetchArt(track) {
         const trackUrl = track.soundcloudUrl || track.url;
         if (!trackUrl) return null;
@@ -3979,12 +3703,9 @@
             } catch(_) {}
             return null;
         };
-        // ── 1. oEmbed (direct, then proxy) ────────────────────────────────────
         const oembedUrl = 'https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(trackUrl);
         let d = await tryFetch(oembedUrl) || await proxyJSON(oembedUrl);
         if (d && d.thumbnail_url) return upgradeArt(d.thumbnail_url);
-        // ── 2. Widget API — load a hidden iframe and call getCurrentSound ─────
-        // This is the most reliable fallback: the Widget API always returns artwork.
         try {
             const widgetArt = await new Promise((resolve) => {
                 const container = document.getElementById('scArtPrefetchContainer');
@@ -3997,7 +3718,7 @@
                 iframe.allow = 'autoplay';
                 let settled = false;
                 const finish = (v) => { if (settled) return; settled = true; try { iframe.remove(); } catch(_) {} resolve(v); };
-                setTimeout(() => finish(null), 12000); // generous timeout for widget load
+                setTimeout(() => finish(null), 12000); 
                 iframe.onload = () => {
                     try {
                         const w = SC.Widget(iframe);
@@ -4017,28 +3738,19 @@
         } catch(_) {}
         return null;
     }
-    // ────────────────────────────────────────────────────────────────────────
 
 
-    // Keep embed overlay for non-SC use (kept for backwards compat)
     function openEmbedPlayer(t) {
-        // Route to widget player instead of popup
         if (t.source === 'soundcloud') { scLoadAndPlay(t.soundcloudUrl || t.url); return; }
         if (t.source === 'spotify') { showToast('Use Spotify controls to play tracks'); return; }
     }
 
     function closeEmbed() {
-        // Stop SC widget unconditionally (not just when isPlaying, to avoid stale-event issues)
         if (scWidget) { try { scWidget.pause(); } catch(_) {} isPlaying = false; updatePlayBtn(); }
         document.getElementById('embedOverlay').classList.remove('open');
         document.getElementById('embedIframeWrap').innerHTML = '';
     }
 
-    // ════════════════════════════════════════
-    // STORE
-    // ════════════════════════════════════════
-
-    // Tracks which store IDs have been purchased (persists across library deletions)
     const purchasedStoreIds = new Set(JSON.parse(localStorage.getItem('blk_purchased_ids') || '[]'));
 
     function savePurchasedIds() {
@@ -4145,16 +3857,13 @@
         }, 800);
     }
 
-    // ════════════════════════════════════════
-    // SPOTIFY OAuth2 PKCE + Web Playback SDK
-    // ════════════════════════════════════════
     let spotifyTracks    = [];
     let soundcloudTracks = [];
     let soundcloudPanelOpen = false;
 
     let spAccessToken  = null, spRefreshToken = null, spTokenExpiry = 0;
     let spDeviceId     = null, spPlayer = null, spNoPremium = false, spIsPremium = false;
-    let spTransitioning = false;  // true while a new Spotify track is being loaded
+    let spTransitioning = false; 
     let spTab          = 'url', spOffset = 0, spPlaylistId = null, spListenTick = 0;
     let spUserId       = null;
 
@@ -4171,7 +3880,6 @@
     async function spotifyAuth() {
         ensureSpotifyConfig();
         if (spAccessToken && Date.now() < spTokenExpiry - 30000) {
-            // Already connected — open the Spotify view (switching accounts requires Disconnect first)
             openStreamingView('spotify');
             return;
         }
@@ -4185,14 +3893,13 @@
             response_type: 'code', client_id: SPOTIFY_CLIENT_ID,
             scope: SPOTIFY_SCOPES, redirect_uri: SPOTIFY_REDIRECT_URI,
             state, code_challenge_method: 'S256', code_challenge: challenge,
-            show_dialog: 'true',   // always show Spotify account picker on fresh connect
+            show_dialog: 'true',  
         });
         window.location.href = 'https://accounts.spotify.com/authorize?' + params;
     }
 
     async function spHandleCallback(preCode, preSt) {
         ensureSpotifyConfig();
-        // Accept either pre-parsed values (deferred path) or read from URL (direct call)
         let code = preCode, st = preSt, err = null;
         if (!code) {
             const url = new URL(window.location.href);
@@ -4217,7 +3924,6 @@
             })
         });
         if (!resp.ok) { showToast('Spotify token exchange failed'); return; }
-        // Cleanly tear down any existing player before switching to the new account's tokens
         if (spPlayer) { try { spPlayer.disconnect(); } catch(_) {} spPlayer = null; }
         spDeviceId = null; spNoPremium = false;
         spSaveTokens(await resp.json());
@@ -4258,16 +3964,13 @@
         try { const k = _spKeys(); spAccessToken = localStorage.getItem(k.at) || null; spRefreshToken = localStorage.getItem(k.rt) || null; spTokenExpiry = parseInt(localStorage.getItem(k.exp) || '0'); } catch(e) {}
     }
 
-    // Immediately paint the Spotify "connected" UI from cached data so there's
-    // no flash of the disconnected state while spRestoreSession runs async.
     function spPreRestoreUI() {
         try {
             const k = _spKeys();
             const at = localStorage.getItem(k.at);
             const exp = parseInt(localStorage.getItem(k.exp) || '0');
             const name = localStorage.getItem(k.name) || '';
-            if (!at || Date.now() >= exp) return; // no valid cached session
-            // Paint connected state immediately
+            if (!at || Date.now() >= exp) return; 
             const btnText = document.getElementById('spotifyBtnText');
             const connectBtn = document.getElementById('spotifyConnectBtn');
             if (btnText) btnText.textContent = 'Spotify Connected';
@@ -4287,8 +3990,6 @@
 
     async function spOnConnected() {
         if (!window.Spotify) {
-            // Assign BEFORE injecting the script — the SDK fires onSpotifyWebPlaybackSDKReady
-            // synchronously on load, so assigning after appendChild is always too late.
             window.onSpotifyWebPlaybackSDKReady = spInitPlayer;
             await new Promise((res, rej) => {
                 const s = document.createElement('script'); s.src = 'https://sdk.scdn.co/spotify-player.js';
@@ -4300,7 +4001,6 @@
         if (window.Spotify && window.Spotify.Player) spInitPlayer();
         document.getElementById('spotifyBtnText').textContent = 'Spotify Connected';
         document.getElementById('spotifyConnectBtn').classList.add('connected');
-        // Show browse panel connected state if Spotify filter is active
         document.getElementById('spBrowseConnect').style.display = 'none';
         document.getElementById('spBrowseMain').style.display    = 'block';
         const me = await spAPI('/me');
@@ -4314,7 +4014,6 @@
             const spViewUserEl = document.getElementById('spViewUser');
             if (spViewUserEl) spViewUserEl.textContent = displayName;
         }
-        // Update full-page view if visible
         const spViewConnect = document.getElementById('spViewConnect');
         const spViewMain = document.getElementById('spViewMain');
         const spViewDisconnect = document.getElementById('spViewDisconnectBtn');
@@ -4323,7 +4022,6 @@
         if (spViewDisconnect) spViewDisconnect.style.display = 'inline-block';
         spOffset = 0;
         await loadSpotifyTab('url');
-        // Also load view page if spotify view is active
         if (document.getElementById('view-spotify') && document.getElementById('view-spotify').style.display !== 'none') {
             _spViewOffset = 0; _spViewRawTracks = [];
             spViewLoadPage(false);
@@ -4369,11 +4067,9 @@
         });
     }
 
-    // ── SPOTIFY PROGRESS RAF LOOP (smooth, no DOM thrash) ──
     let spRafId = null, spCurrentDuration = 0, spCurrentPosition = 0, spRafLastTs = 0;
-    let _spEndFired = false; // guard so end fires exactly once per track
+    let _spEndFired = false; 
     function spStartProgressLoop() {
-        // Always cancel any existing loop so a track transition gets a clean baseline.
         if (spRafId) { cancelAnimationFrame(spRafId); spRafId = null; }
         _spEndFired = false;
         function tick(ts) {
@@ -4385,7 +4081,6 @@
                 document.getElementById('progressFill').style.width = (spCurrentPosition / spCurrentDuration * 100).toFixed(2) + '%';
                 document.getElementById('timeElapsed').textContent  = fmt(Math.round(spCurrentPosition));
             }
-            // Fire end-of-track when position reaches duration — same pattern as SC FINISH event
             if (!_spEndFired && spCurrentPosition >= spCurrentDuration - 0.3) {
                 _spEndFired = true;
                 spRafId = null;
@@ -4407,23 +4102,18 @@
         if (!t) return;
         const newUri = t.uri;
 
-        // Capture the URI that was playing *before* any update — needed for end-detection below
         const prevUri = spOnStateChange._lastUri;
 
-        // Only update UI metadata when track changes, not every position tick
         if (newUri !== prevUri) {
             spOnStateChange._lastUri = newUri;
-            // Reset progress immediately so the bar starts from 0 for the new track
             spCurrentPosition = (state.position || 0) / 1000;
             spCurrentDuration = (state.duration || 0) / 1000;
             const artwork = t.album && t.album.images && t.album.images[0] ? t.album.images[0].url : null;
             updatePlayerUI({ title: t.name, artist: (t.artists || []).map(a => a.name).join(', '), album: t.album ? t.album.name : '', artwork, source: 'spotify', duration: Math.round((state.duration || 0) / 1000) });
             document.getElementById('timeDuration').textContent = fmt(Math.round((state.duration || 0) / 1000));
-            // Sync currentIdx so BLK's queue pointer matches the auto-transitioned track
             const matchIdx = library.findIndex(l => l.spUri === newUri);
             if (matchIdx >= 0) currentIdx = matchIdx;
         }
-        // Capture position BEFORE overwriting — needed for end detection below
         const prevPosition = spCurrentPosition;
         const prevDuration = spCurrentDuration;
         spCurrentDuration = (state.duration || 0) / 1000;
@@ -4441,11 +4131,10 @@
     }
     spOnStateChange._lastUri = null;
 
-    let _spRateLimitedUntil = 0; // timestamp ms — block all calls until this clears
+    let _spRateLimitedUntil = 0; 
 
     async function spAPI(path, opts) {
         if (!await spRefreshIfNeeded()) return null;
-        // If we're still in a rate-limit backoff window, bail immediately
         if (Date.now() < _spRateLimitedUntil) return null;
         opts = opts || {};
         const r = await fetch('https://api.spotify.com/v1' + path, Object.assign({}, opts, {
@@ -4454,7 +4143,6 @@
         if (r.status === 204) return {};
         if (r.status === 401) { spotifyLogout(); return null; }
         if (r.status === 429) {
-            // Honour Retry-After header (seconds), default to 60s
             const retryAfter = parseInt(r.headers.get('Retry-After') || '60', 10);
             _spRateLimitedUntil = Date.now() + retryAfter * 1000;
             console.warn('[BLK] Spotify rate limited — backing off for ' + retryAfter + 's');
@@ -4466,7 +4154,6 @@
 
     async function loadSpotifyTab(tab) {
         spTab = tab; spOffset = 0; spPlaylistId = null;
-        // Highlight browse panel tabs
         document.querySelectorAll('.sp-tab').forEach(b => {
             const active = b.id === 'spTab-' + tab || b.id === 'spBTab-' + tab;
             b.style.color      = active ? '#1ED760' : 'var(--sub)';
@@ -4490,7 +4177,6 @@
         const spBrowseLoadMore = document.getElementById('spBrowseLoadMore');
         let data;
         if (spTab === 'url') {
-            // Show only Spotify tracks in the library added via URL
             const urlTracks = library.filter(function(t) { return t.source === 'spotify' && t.spUri; }).map(function(t) {
                 return { spUri: t.spUri, title: t.title, artist: t.artist, album: t.album || '', artwork: t.albumArt || null, duration: t.duration || 0 };
             });
@@ -4525,7 +4211,6 @@
         };
     }
 
-    // Convert a Spotify episode API object to the internal track format
     function spEpisodeFromAPI(e) {
         if (!e) return null;
         const img = e.images;
@@ -4543,7 +4228,6 @@
         };
     }
 
-    // Import all episodes from a Spotify show URL
     async function addSpotifyShowEpisodes(showId, input, btn, status) {
         if (btn)    { btn.disabled = true; btn.textContent = 'Fetching...'; btn.style.opacity = '0.6'; }
         if (status) { status.textContent = 'Fetching podcast episodes...'; status.style.color = 'rgba(30,215,96,0.5)'; }
@@ -4556,7 +4240,6 @@
             if (typeof spAccessToken !== 'undefined' && spAccessToken) {
                 await spRefreshIfNeeded();
 
-                // Fetch show metadata
                 const showRes = await fetch('https://api.spotify.com/v1/shows/' + showId, {
                     headers: { 'Authorization': 'Bearer ' + spAccessToken }
                 });
@@ -4566,7 +4249,6 @@
                     publisher = showData.publisher || '';
                 }
 
-                // Fetch episodes (up to 50 at a time)
                 let offset = 0, total = 1;
                 while (offset < total && offset < 200) {
                     if (status) status.textContent = 'Loaded ' + offset + ' episodes...';
@@ -4631,14 +4313,12 @@
 
     const _spTrackMap = {};
     let   _spTrackKey = 0;
-    // Cache raw tracks for browse panel search filtering
     let _spBrowseRawTracks = [];
 
     function renderSpotifyTracklist(tracks, append, intoInner) {
         if (!append) _spBrowseRawTracks = tracks.filter(Boolean);
         else         _spBrowseRawTracks = _spBrowseRawTracks.concat(tracks.filter(Boolean));
 
-        // When inside a playlist, use the unique inner divs; otherwise use the main containers
         const sideEl   = intoInner ? document.getElementById('spPlaylistTrackListSide')   : document.getElementById('spotifyTracks');
         const browseEl = intoInner ? document.getElementById('spPlaylistTrackListBrowse') : document.getElementById('spBrowseTracks');
 
@@ -4648,7 +4328,6 @@
             const artStyle  = t.artwork ? 'background-image:url(' + t.artwork + ');background-size:cover;background-position:center;font-size:0' : '';
             const inLibrary = library.some(l => l.spUri === t.spUri);
             if (browse) {
-                // Full-width browse row with Add button
                 return '<div style="display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="spPlayFromKey(' + key + ')">'
                     + '<div class="stream-track-icon spotify" style="width:36px;height:36px;flex-shrink:0;' + artStyle + '">' + (t.artwork ? '' : '&#x1F3B5;') + '</div>'
                     + '<div style="flex:1;min-width:0;">'
@@ -4686,7 +4365,6 @@
         if (!browseEl) return;
         if (!q) { renderSpotifyTracklist(_spBrowseRawTracks, false); return; }
         const filtered = _spBrowseRawTracks.filter(t => t && (t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q)));
-        // Re-render just browse panel rows with filtered tracks
         if (!filtered.length) { browseEl.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;padding:0.5rem 0;">No matches</div>'; return; }
         browseEl.innerHTML = filtered.map(t => {
             const key = _spTrackKey++;
@@ -4711,7 +4389,6 @@
 
     function spAddToLibraryFromKey(key, btn) {
         const t = _spTrackMap[key]; if (!t) return;
-        // Check not already added
         if (library.some(l => l.spUri === t.spUri)) { showToast('Already in library'); return; }
         const track = {
             id: 'sp_lib_' + Date.now(),
@@ -4741,7 +4418,6 @@
 
         if (!url) { showToast('Paste a Spotify track or podcast episode URL first'); return; }
 
-        // Accept track URLs/URIs, episode URLs/URIs, and show URLs
         const mTrackUrl   = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?track\/([A-Za-z0-9]+)/);
         const mTrackUri   = url.match(/^spotify:track:([A-Za-z0-9]+)$/);
         const mEpisodeUrl = url.match(/spotify\.com\/(?:intl-[a-z]+\/)?episode\/([A-Za-z0-9]+)/);
@@ -4755,7 +4431,6 @@
 
         if (!trackId && !episodeId && !showId) { showToast('Not a valid Spotify track, episode, or show URL'); return; }
 
-        // ── Handle show URL: import all episodes ──
         if (showId && !episodeId && !trackId) {
             await addSpotifyShowEpisodes(showId, input, btn, status);
             return;
@@ -4774,7 +4449,6 @@
         let trackData = null;
 
         try {
-            // ── Path A: authenticated Spotify API (full metadata, duration, high-res art) ──
             if (typeof spAccessToken !== 'undefined' && spAccessToken) {
                 await spRefreshIfNeeded();
                 const r = await fetch('https://api.spotify.com/v1/' + apiPath + '/' + contentId, {
@@ -4792,7 +4466,6 @@
             }
         } catch(_) {}
 
-        // ── Path B: Spotify oEmbed (no auth needed — public endpoint) ──
         if (!trackData) {
             try {
                 const oembed_type = isEpisode ? 'episode' : 'track';
@@ -4810,7 +4483,6 @@
             } catch(_) {}
         }
 
-        // ── Path C: bare minimum from the URL ──
         if (!trackData) {
             trackData = { spUri, title: isEpisode ? 'Podcast Episode' : 'Spotify Track', artist: 'Unknown', album: '', artwork: null, duration: 0, isEpisode };
         }
@@ -4883,11 +4555,9 @@
     }
 
     async function spOpenPlaylist(id, name) {
-        // Import all tracks from this playlist directly into the app library
         showToast('Importing "' + name + '"...');
         await spRefreshIfNeeded();
 
-        // Paginate through all tracks
         let allTracks = [], offset = 0, total = null;
         while (total === null || offset < total) {
             const r = await fetch('https://api.spotify.com/v1/playlists/' + id + '/tracks?limit=50&offset=' + offset, {
@@ -4908,7 +4578,6 @@
 
         if (!allTracks.length) { showToast('Playlist is empty'); return; }
 
-        // Add tracks not already in library
         let added = 0;
         allTracks.forEach(t => {
             if (!t || library.some(l => l.spUri === t.spUri)) return;
@@ -4935,26 +4604,22 @@
         if (statusEl2) statusEl2.textContent = spotifyTracks.length + ' linked';
         if (connectBtn2) connectBtn2.classList.add('connected');
 
-        // Auto-create a playlist from the imported tracks
         if (added > 0) {
             plLoad();
             const newIds = library.filter(t => t.playlist === name).map(t => t.id);
-            // Only create if no playlist with this name exists yet
             if (!playlists.find(p => p.name === name)) {
                 playlists.push({ id: 'pl_' + Date.now(), name, trackIds: newIds, createdAt: new Date().toISOString() });
                 plSave();
             }
         }
 
-        // Switch to playlists view so user sees it
         switchView('playlists');
 
         const skipped = allTracks.length - added;
         showToast(added + ' tracks imported · playlist "' + name + '" created', true);
     }
 
-    // ── HAMBURGER DROPDOWN: ADD SONG BY URL ── (playlist import removed)
-    async function addSpotifyPlaylistByUrl() { /* removed */ }
+    async function addSpotifyPlaylistByUrl() 
     async function _addSpotifyPlaylistByUrl_disabled() {
         const input  = document.getElementById('spPlaylistInput');
         const btn    = document.getElementById('spPlaylistImportBtn');
@@ -4974,7 +4639,6 @@
         let playlistName = 'Imported Playlist';
         let tracks = [];
 
-        // ── Path A: If user has Spotify connected, use the API (more complete data) ──
         if (typeof spAccessToken !== 'undefined' && spAccessToken) {
             try {
                 if (status) status.textContent = 'Using Spotify API...';
@@ -5001,26 +4665,20 @@
             } catch(e) { tracks = []; }
         }
 
-        // ── Path B: Scrape open.spotify.com/playlist/... for __NEXT_DATA__ (no auth) ──
         if (!tracks.length) {
             const pageUrl = 'https://open.spotify.com/playlist/' + playlistId;
 
-            // Helper: extract tracks from __NEXT_DATA__ JSON blob in HTML
             function parseNextData(html) {
                 const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([^<]+)<\/script>/);
                 if (!match) return null;
                 let nd;
                 try { nd = JSON.parse(match[1]); } catch(_) { return null; }
 
-                // Try multiple known structures Spotify has used over time
-                // Structure 1 (older): props.pageProps.state.data.playlist
                 const pl1 = nd && nd.props && nd.props.pageProps && nd.props.pageProps.state && nd.props.pageProps.state.data && nd.props.pageProps.state.data.playlist;
-                // Structure 2 (newer): props.pageProps.initialState.* or similar
                 const pl2 = nd && nd.props && nd.props.pageProps && nd.props.pageProps.data && nd.props.pageProps.data.playlist;
                 const pl = pl1 || pl2;
 
                 if (!pl) {
-                    // Structure 3: search entire JSON string for track URIs and names as last resort
                     return null;
                 }
 
@@ -5041,8 +4699,6 @@
                 return { name, tracks: result };
             }
 
-            // Proxy list — ordered by reliability; each entry is [url, isWrapped]
-            // isWrapped=true means response is JSON { contents: "..." } (allorigins style)
             const proxies = [
                 ['https://api.allorigins.win/get?url=' + encodeURIComponent(pageUrl), true],
                 ['https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(pageUrl), false],
@@ -5065,15 +4721,12 @@
                     }
                     if (!html) continue;
 
-                    // Check if Spotify returned a bot/auth wall (no track data)
                     if (html.includes('__NEXT_DATA__')) {
                         parsed = parseNextData(html);
                         if (parsed && parsed.tracks && parsed.tracks.length) {
                             console.log('[BLK] Proxy success:', proxyUrl, '—', parsed.tracks.length, 'tracks');
                             break;
                         }
-                        // Got __NEXT_DATA__ but no tracks — Spotify may have returned a
-                        // bot-detection / login-wall page. Try next proxy.
                         console.warn('[BLK] __NEXT_DATA__ found but no tracks via', proxyUrl);
                         parsed = null;
                     } else {
@@ -5142,9 +4795,8 @@
         if (status) { status.textContent = msg; status.style.color = 'var(--success)'; setTimeout(() => { if (status) status.textContent = ''; }, 5000); }
         if (btn) { btn.disabled = false; btn.textContent = 'Import Playlist'; btn.style.opacity = '1'; }
         showToast(added + ' tracks imported · "' + playlistName + '" created', true);
-    } // end _addSpotifyPlaylistByUrl_disabled
+    } 
 
-    // ── HAMBURGER DROPDOWN: ADD SONG BY URL ──
     async function ddAddSpotifySong() {
         const input  = document.getElementById('ddSpSongUrl');
         const status = document.getElementById('ddSpSongStatus');
@@ -5167,7 +4819,6 @@
             return;
         }
 
-        // Delegate to main handler by populating spUrlInput
         const mainInput = document.getElementById('spUrlInput');
         if (mainInput) {
             mainInput.value = url;
@@ -5178,7 +4829,6 @@
             return;
         }
 
-        // Fallback: handle show redirect
         if (showId && !episodeId && !trackId) {
             await addSpotifyShowEpisodes(showId, input, null, status);
             return;
@@ -5246,7 +4896,6 @@
         showToast('"' + track.title + '" added to library', true);
     }
 
-    // ── HAMBURGER DROPDOWN: IMPORT PLAYLIST BY URL ──
     async function ddAddSpotifyPlaylist() {
         const input  = document.getElementById('ddSpPlaylistUrl');
         const status = document.getElementById('ddSpPlaylistStatus');
@@ -5266,7 +4915,6 @@
 
         if (status) { status.textContent = 'Fetching playlist...'; status.style.color = 'rgba(30,215,96,0.6)'; }
 
-        // Get playlist name
         let playlistName = 'Imported Playlist';
         try {
             await spRefreshIfNeeded();
@@ -5278,7 +4926,6 @@
 
         if (status) { status.textContent = 'Importing "' + playlistName + '"...'; status.style.color = 'rgba(30,215,96,0.6)'; }
 
-        // Paginate through all tracks
         let allTracks = [], offset = 0, total = null;
         while (total === null || offset < total) {
             try {
@@ -5320,7 +4967,6 @@
 
         renderLibrary(); renderQueue();
 
-        // Auto-create a BLK playlist from the imported tracks
         if (added > 0) {
             plLoad();
             const newIds = library.filter(t => t.playlist === playlistName).map(t => t.id);
@@ -5336,7 +4982,6 @@
         if (status) { status.textContent = '✓ ' + added + ' tracks added'; status.style.color = 'var(--success)'; setTimeout(() => { if (status) status.textContent = ''; }, 4000); }
         showToast(msg, true);
 
-        // Switch to playlists view to show the result
         switchView('playlists');
     }
 
@@ -5346,7 +4991,6 @@
         const epId     = uri && isEpisodeUri                        ? uri.split(':')[2] : null;
         const contentId = trackId || epId;
 
-        // If player exists but device_id isn't ready yet, wait up to 5s
         if (spPlayer && !spDeviceId) {
             let waited = 0;
             await new Promise(res => {
@@ -5365,20 +5009,12 @@
         }
         await spRefreshIfNeeded();
         try {
-            // When Repeat One is active, send only the single URI so Spotify halts after
-            // the track ends (paused + position=0), giving spOnStateChange the signal it
-            // needs to detect a natural end and restart. Sending a multi-track list causes
-            // Spotify to auto-advance, bypassing our repeat logic entirely.
             let payload;
             if (repeat === 2) {
                 payload = { uris: [uri], position_ms: 0 };
             } else if (isEpisodeUri) {
-                // Episodes must be played as a single URI — Spotify SDK does not mix
-                // tracks and episodes in one context; send only this episode URI
                 payload = { uris: [uri], position_ms: 0 };
             } else {
-                // Build a queue of all Spotify track URIs from the library, starting at the selected one
-                // This lets BLK's nextTrack() drive playback order rather than Spotify's own queue
                 const spUris = library
                     .filter(t => t.source === 'spotify' && t.spUri && t.spUri.startsWith('spotify:track:'))
                     .map(t => t.spUri);
@@ -5395,7 +5031,6 @@
                 body: JSON.stringify(payload)
             });
             if (playResult === null) {
-                // spAPI returned null — either 429 rate limit or auth error
                 if (Date.now() < _spRateLimitedUntil) {
                     const secsLeft = Math.ceil((_spRateLimitedUntil - Date.now()) / 1000);
                     showToast('Spotify rate limited — try again in ' + secsLeft + 's');
@@ -5413,7 +5048,7 @@
         spCurrentPosition = 0;
         spListenTick = 0;
         spTransitioning = true;
-        spOnStateChange._lastUri = null; // force UI refresh on next state event
+        spOnStateChange._lastUri = null; 
         updatePlayerUI({ title, artist, album, artwork: artwork || null, source: 'spotify', duration });
         isPlaying = true; updatePlayBtn();
         document.getElementById('playerArt').classList.add('playing');
@@ -5450,7 +5085,6 @@
         if (statusEl) statusEl.textContent = '';
         if (tracksEl) tracksEl.innerHTML = '';
         spotifyTracks = [];
-        // Update full-page view
         const spViewMain = document.getElementById('spViewMain');
         const spViewConnect = document.getElementById('spViewConnect');
         if (spViewMain) { spViewMain.style.display = 'none'; }
@@ -5460,7 +5094,6 @@
         showToast('Spotify disconnected');
     }
 
-    // ── SPOTIFY FULL PAGE VIEW ──
     let _spViewTab = 'url', _spViewOffset = 0, _spViewRawTracks = [];
 
     function spViewInit() {
@@ -5476,7 +5109,6 @@
         const userEl = document.getElementById('spViewUser');
         if (userEl && spUserId) userEl.textContent = spUserId;
         if (connected && spViewMain) {
-            // load URL-added songs if view is freshly opened
             spViewSetTab(_spViewTab);
         }
     }
@@ -5545,9 +5177,6 @@
         if (ok) await spOnConnected();
     }
 
-    // ════════════════════════════════════════
-    // SOUNDCLOUD  —  URL paste + Widget player
-    // ════════════════════════════════════════
 
     function toggleSoundcloudPanel() { openStreamingView('soundcloud'); }
 
@@ -5565,7 +5194,7 @@
             _scPendingMeta = {};
             return;
         }
-        if (_scPendingMeta.url === url) return; // already fetched
+        if (_scPendingMeta.url === url) return;
         clearTimeout(_scFetchTimer);
         if (status) { status.style.color = 'rgba(255,255,255,0.3)'; status.textContent = 'Fetching track info...'; }
         if (preview) preview.style.display = 'none';
@@ -5573,8 +5202,6 @@
         _scFetchTimer = setTimeout(() => _scFetchMeta(url), 700);
     }
 
-    // JSONP fetch — injects a <script> tag so CORS doesn't apply.
-    // SC oEmbed supports ?callback= natively.
     function _scOembedJSONP(trackUrl) {
         return new Promise((resolve) => {
             const cbName = '_scJSONP_' + Date.now();
@@ -5588,7 +5215,7 @@
                 resolve(data || null);
             };
             window[cbName] = (data) => finish(data);
-            setTimeout(() => finish(null), 8000); // timeout
+            setTimeout(() => finish(null), 8000); 
             script.src = 'https://soundcloud.com/oembed?format=js&callback=' + cbName + '&url=' + encodeURIComponent(trackUrl);
             script.onerror = () => finish(null);
             document.head.appendChild(script);
@@ -5602,14 +5229,11 @@
 
         const upgradeArt = s => {
             if (!s) return null;
-            // Replace any known SC size token with t500x500
             let u = s.replace(/-(large|t300x300|t67x67|small|tiny|mini|badge|crop)(?=[.\?]|$)/g, '-t500x500');
-            // If nothing matched AND t500x500 not already present, inject before file extension
             if (u === s && !s.includes('t500x500')) u = s.replace(/(\.[a-z]{3,4})(\?.*)?$/, '-t500x500$1$2');
             return u;
         };
 
-        // Try a fetch, return parsed JSON or null — never throws.
         const tryFetch = async (fetchUrl, opts = {}) => {
             try {
                 const r = await fetch(fetchUrl, { signal: AbortSignal.timeout(8000), ...opts });
@@ -5618,16 +5242,12 @@
             } catch(_) { return null; }
         };
 
-        // Try to get JSON from a CORS-blocked URL via public proxies.
-        // Falls back silently if all proxies fail or return non-JSON.
         const proxyJSON = async (targetUrl) => {
-            // allorigins wraps in { contents: "..." }
             try {
                 const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
                     { signal: AbortSignal.timeout(8000) });
                 if (r.ok) { const w = await r.json(); if (w && w.contents) return JSON.parse(w.contents); }
             } catch(_) {}
-            // corsproxy.io passes through directly
             try {
                 const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(targetUrl),
                     { signal: AbortSignal.timeout(8000) });
@@ -5639,27 +5259,22 @@
         try {
             let title = '', artist = '', art = null, duration = 0;
 
-            // ── 1. Direct oEmbed fetch (SC sends Access-Control-Allow-Origin: * so this
-            //       works from a browser — no proxy needed in normal conditions) ──────
             const oembedUrl = 'https://soundcloud.com/oembed?format=json&url=' + encodeURIComponent(url);
             console.log('[SC] Trying direct oEmbed:', oembedUrl);
             let d = await tryFetch(oembedUrl);
             console.log('[SC] Direct oEmbed result:', d);
 
-            // ── 2. If direct fetch failed, try via CORS proxies ───────────────────────
             if (!d) { console.log('[SC] Direct failed, trying proxies'); d = await proxyJSON(oembedUrl); }
             console.log('[SC] After proxy attempt:', d);
 
             if (d) {
                 title  = d.title || '';
                 artist = d.author_name || '';
-                // oEmbed title is formatted as "Track Name by Artist" — strip the suffix
                 const byIdx = title.lastIndexOf(' by ');
                 if (byIdx > 0) title = title.slice(0, byIdx).trim();
                 art = upgradeArt(d.thumbnail_url);
             }
 
-            // ── 3. JSONP oEmbed — bypasses CORS via <script> tag injection ────────────
             if (!d && (!art || !title)) {
                 console.log('[SC] Trying JSONP oEmbed');
                 d = await _scOembedJSONP(url);
@@ -5671,8 +5286,6 @@
                 }
             }
 
-            // ── 4. SC resolve API is no longer available (401 Unauthorized) ─────────
-            //       oEmbed above is the reliable source for title/art without a client ID.
 
             _scPendingMeta = { url, title, artist, art, duration };
 
@@ -5714,7 +5327,6 @@
         const artist = meta.artist || (parts[parts.length-2] || 'Unknown Artist').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
         let albumArt = meta.art || null;
 
-        // Lock UI while we try to resolve art so it's always present at save time
         const addBtn  = document.getElementById('scAddBtn');
         const status  = document.getElementById('scFetchStatus');
         if (addBtn) { addBtn.disabled = true; addBtn.style.opacity = '0.5'; }
@@ -5744,7 +5356,6 @@
         _scPendingMeta = {};
         showToast('"'+ title +'" added' + (albumArt ? ' with artwork' : ' (art loads on play)'), true);
 
-        // Belt-and-suspenders: if Widget API art arrives after save, backfill it
         if (!track.albumArt) {
             _scPrefetchArt(track).then(art => {
                 if (!art || track.albumArt) return;
@@ -5763,7 +5374,6 @@
         if (idx === -1) return;
         const t = soundcloudTracks[idx];
         const libIdx = library.indexOf(t);
-        // Stop playback if this track is currently playing
         if (currentIdx === libIdx) {
             if (scWidget) { try { scWidget.pause(); } catch(_) {} }
             audio.pause(); isPlaying = false; currentIdx = -1;
@@ -5775,10 +5385,8 @@
         }
         if (libIdx !== -1) library.splice(libIdx, 1);
         soundcloudTracks.splice(idx, 1);
-        // Persist deletion so track doesn't reappear on reload
         idbDeleteTrack(t.id);
         fbDeleteStreamingTrack(t.id);
-        // Update status badge
         const statusEl = document.getElementById('soundcloudStatus');
         if (statusEl) statusEl.textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
         if (!soundcloudTracks.length) { const _scBtnR = document.getElementById('soundcloudConnectBtn'); if (_scBtnR) _scBtnR.classList.remove('connected'); }
@@ -5818,12 +5426,8 @@
         el.innerHTML = soundcloudTracks.map(_buildScRow).join('');
     }
 
-    // Stub for IDB restore compat
     function renderSpotifySidebar() {}
 
-    // ════════════════════════════════════════
-    // UTILS
-    // ════════════════════════════════════════
     function fmt(s) {
         if (!s || isNaN(s)) return '0:00';
         return Math.floor(s/60) + ':' + Math.floor(s%60).toString().padStart(2,'0');
@@ -5849,13 +5453,9 @@
     });
 
 
-    // ════════════════════════════════════════
-    // PLAYLISTS
-    // ════════════════════════════════════════
-    let playlists = [];          // [{ id, name, trackIds:[], createdAt }]
+    let playlists = [];         
     let _editingPlaylistId = null;
 
-    // ── Persist to localStorage (lightweight — no IDB needed for small metadata) ──
     function plSave() {
         try { localStorage.setItem('blk_playlists', JSON.stringify(playlists)); } catch(e) {}
         plSaveFirestore();
@@ -5870,10 +5470,8 @@
             await FB.updateDoc(ref, { playlists: JSON.stringify(playlists) });
         } catch(e) { console.warn('plSaveFirestore:', e); }
     }
-    // Playlist sync is handled by the user profile onSnapshot listener in loadUserProfile
-    async function plLoadFirestore() { /* no-op — covered by _userProfileUnsubscribe */ }
+    async function plLoadFirestore() 
 
-    // ── Render the playlists grid ──
     function renderPlaylists() {
         plLoad();
         const grid = document.getElementById('playlistGrid');
@@ -5917,7 +5515,6 @@
         }).join('');
     }
 
-    // ── Open create modal ──
     function openCreatePlaylist() {
         _editingPlaylistId = null;
         document.getElementById('playlistModalTag').textContent   = 'Playlists // Create';
@@ -5931,7 +5528,6 @@
         setTimeout(function(){ var el = document.getElementById('plNameInput'); if(el) el.focus(); }, 80);
     }
 
-    // ── Open edit modal ──
     function openEditPlaylist(id) {
         plLoad();
         var pl = playlists.find(function(p) { return p.id === id; });
@@ -5952,7 +5548,6 @@
         document.getElementById('playlistModal').classList.remove('open');
     }
 
-    // ── Build the track picker list ──
     function buildTrackPicker(selectedIds) {
         var picker = document.getElementById('plTrackPicker');
         var searchEl = document.getElementById('plPickerSearch');
@@ -6007,7 +5602,6 @@
         if (badge) badge.textContent = n;
     }
 
-    // ── Save (create or update) ──
     function savePlaylist() {
         plLoad();
         var name = document.getElementById('plNameInput').value.trim();
@@ -6023,7 +5617,6 @@
         showToast((_editingPlaylistId ? 'Playlist updated' : '"' + name + '" created'), true);
     }
 
-    // ── Add to Playlist quick-menu ──
     let _addPlMenuTrackIdx = -1;
     function openAddToPlaylistMenu(e, libIdx) {
         e.stopPropagation();
@@ -6049,7 +5642,6 @@
         html += '<div class="addpl-menu-item new" onclick="closeAddToPlaylistMenu();openCreatePlaylistWithTrack(' + libIdx + ')"><span>⊕</span> New Playlist</div>';
         menu.innerHTML = html;
         document.body.appendChild(menu);
-        // Position near button
         var rect = e.currentTarget.getBoundingClientRect();
         var top = rect.bottom + 4;
         var left = rect.left - menu.offsetWidth + rect.width;
@@ -6092,7 +5684,6 @@
         setTimeout(function(){ var el = document.getElementById('plNameInput'); if(el) el.focus(); }, 80);
     }
 
-    // ── Delete ──
     function deletePlaylist() {
         if (!_editingPlaylistId) return;
         plLoad();
@@ -6104,7 +5695,6 @@
         showToast('Playlist deleted');
     }
 
-    // ── View a playlist detail ──
     function viewPlaylist(id) {
         plLoad();
         var pl = playlists.find(function(p) { return p.id === id; });
@@ -6161,7 +5751,6 @@
         showToast('Track removed from playlist');
     }
 
-    // ── Play entire playlist ──
     function playPlaylist(id) {
         plLoad();
         var pl = playlists.find(function(p) { return p.id === id; });
@@ -6172,13 +5761,12 @@
             if (idx >= 0) { first = idx; break; }
         }
         if (first < 0) { showToast('No playable tracks in playlist'); return; }
-        activePlaylistId = id; // set context BEFORE playTrack so keepContext isn't needed
+        activePlaylistId = id; 
         playTrack(first, true);
-        if (shuffle) buildShuffleQueue(); // rebuild shuffle within playlist
+        if (shuffle) buildShuffleQueue()
         showToast('Playing "' + pl.name + '"', true);
     }
 
-    // ── Show mobile bottom tab bar on small screens ──
     (function() {
         function checkMobile() {
             var bar = document.getElementById('mobile-tab-bar');
@@ -6188,27 +5776,15 @@
         window.addEventListener('resize', checkMobile);
     })();
 
-    // Load playlists on boot (local first, then Firestore after auth)
     plLoad();
 
-    // ── BOOT ──
-    // Detect a Spotify OAuth callback (?code=...) early so we can strip the URL
-    // immediately — but defer the actual token exchange until AFTER Firebase auth
-    // resolves and currentUser is set.  If we exchanged tokens here (before auth),
-    // _spKeys() would return 'sp_at_anon' and spRestoreSession() (keyed to the real
-    // UID) would never find them — Bug 1 / Bug 3 from the audit.
     let _pendingSpCallback = false;
     let _pendingSpCode = null, _pendingSpState = null;
     (function detectSpCallback() {
         const url  = new URL(window.location.href);
         const code = url.searchParams.get('code');
         if (!code) return;
-        // Save values before wiping the URL — spHandleCallback will need them
         _pendingSpCode  = code;
-        _pendingSpState = url.searchParams.get('state');
-        // Strip the query string immediately so the URL looks clean while the user
-        // waits for auth to resolve.  The verifier is already in sessionStorage
-        // (set by spotifyAuth() before the redirect), so it is safe.
         window.history.replaceState({}, '', window.location.pathname);
         _pendingSpCallback = true;
     })();
@@ -6220,12 +5796,10 @@
         initAuth();
     });
 
-    // Art image fallback: if t500x500 doesn't exist on SC CDN, retry with -large
     var _BLK_PLACEHOLDER_HTML = '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.75rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
     window._imgArtErr = function(el) {
         var src = el.src || '';
         if (src.indexOf('fb_placeholder') !== -1) { el.style.display = 'none'; return; }
-        // Always replace the broken img with a BLK placeholder div in its parent
         el.onerror = null;
         var parent = el.parentNode;
         if (parent) {
@@ -6236,7 +5810,6 @@
         }
     };
 
-    // Playlist picker / detail / queue art error — replaces broken img with BLK placeholder
     window._plArtErr = function(el) {
         el.onerror = null;
         var parent = el.parentNode;
@@ -6249,13 +5822,9 @@
         parent.replaceChild(ph, el);
     };
 
-    // ════════════════════════════════════════
-    // MOBILE UPLOAD VIEW
-    // ════════════════════════════════════════
     function handleMobFileUpload(e) {
         var files = Array.from(e.target.files || []);
         if (!files.length) return;
-        // Reuse existing desktop file handler if available
         if (typeof handleFiles === 'function') {
             handleFiles(files);
             var statusEl = document.getElementById('mobUploadStatus');
@@ -6291,11 +5860,7 @@
         }).join('');
     }
 
-    // ════════════════════════════════════════
-    // MOBILE STREAMING VIEW
-    // ════════════════════════════════════════
     function updateMobStreamingView() {
-        // Spotify status
         var spConnected = !!spAccessToken;
         var spCountEl = document.getElementById('mobSpCount');
         var scCountEl = document.getElementById('mobScCount');
@@ -6330,18 +5895,15 @@
         var input = document.getElementById('mobSpUrlInput');
         var statusEl = document.getElementById('mobSpUrlStatus');
         if (!input || !input.value.trim()) return;
-        // Sync value into the desktop input and call existing handler
         var desktopInput = document.getElementById('spUrlInput');
         if (desktopInput) {
             desktopInput.value = input.value.trim();
             if (typeof addSpotifyTrackByUrl === 'function') {
                 if (statusEl) statusEl.textContent = 'Fetching...';
-                // Temporarily redirect status updates
                 var origEl = document.getElementById('spUrlStatus');
                 var _origText = origEl ? origEl.textContent : '';
                 addSpotifyTrackByUrl();
                 input.value = '';
-                // Poll for status update from desktop element
                 var polls = 0;
                 var poll = setInterval(function() {
                     if (origEl && origEl.textContent !== _origText) {
@@ -6358,7 +5920,6 @@
         var input = document.getElementById('mobScUrlInput');
         var statusEl = document.getElementById('mobScUrlStatus');
         if (!input || !input.value.trim()) return;
-        // Sync value into the desktop input and call existing handler
         var desktopInput = document.getElementById('soundcloudUrlInput');
         if (desktopInput) {
             desktopInput.value = input.value.trim();
