@@ -3235,7 +3235,7 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
-        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = false; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = '🔊'; }
+        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = pct === 0; audio.muted = muted; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = pct === 0 ? '🔇' : '🔊'; }
         bar.addEventListener('mousedown', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); });
         document.addEventListener('mousemove', e => { if (!dragging) return; applyPct(getPct(e)); });
