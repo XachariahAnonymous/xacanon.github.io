@@ -3235,7 +3235,7 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
-        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; volume = pct; audio.volume = pct; muted = pct === 0; audio.muted = muted; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = pct === 0 ? '🔇' : '🔊'; }
+        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; if (pct > 0) volume = pct; audio.volume = pct; audio.muted = pct === 0; muted = pct === 0; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = pct === 0 ? '🔇' : '🔊'; }
         bar.addEventListener('mousedown', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); });
         document.addEventListener('mousemove', e => { if (!dragging) return; applyPct(getPct(e)); });
@@ -3253,11 +3253,22 @@
 
     function toggleMute() {
         muted = !muted;
-        audio.muted = muted;
-        if (spPlayer) spPlayer.setVolume(muted ? 0 : volume);
-        scSetVolume(muted ? 0 : volume);
         const icon = document.querySelector('.vol-icon');
-        if (icon) icon.textContent = muted ? '🔇' : '🔊';
+        const fill = document.getElementById('volFill');
+        if (muted) {
+            audio.muted = true;
+            if (spPlayer) spPlayer.setVolume(0);
+            scSetVolume(0);
+            if (fill) fill.style.width = '0%';
+            if (icon) icon.textContent = '🔇';
+        } else {
+            audio.muted = false;
+            audio.volume = volume;
+            if (spPlayer) spPlayer.setVolume(volume);
+            scSetVolume(volume);
+            if (fill) fill.style.width = (volume * 100) + '%';
+            if (icon) icon.textContent = '🔊';
+        }
     }
 
     audio.addEventListener('timeupdate', () => {
