@@ -5926,6 +5926,7 @@
         const code = url.searchParams.get('code');
         if (!code) return;
         _pendingSpCode  = code;
+        _pendingSpState = url.searchParams.get('state');
         window.history.replaceState({}, '', window.location.pathname);
         _pendingSpCallback = true;
     })();
