@@ -1269,6 +1269,11 @@
             <div class="auth-error" id="login-error"></div>
             <button id="resend-verify-btn" onclick="resendVerification()" style="display:none;width:100%;margin-top:0.5rem;font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:1px;padding:0.6rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;">Resend Verification Email</button>
             <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:1px;text-align:center;margin-top:1rem;">Email verification required to access BLK</div>
+            <div class="auth-divider">or</div>
+            <button class="auth-google-btn" onclick="continueAsGuest()" style="opacity:0.7;">
+                Continue as Guest
+            </button>
+            <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;margin-top:0.6rem;">Guests cannot earn BLK coins</div>
         </div>
         <div id="auth-register" style="display:none;">
             <div class="auth-field">
@@ -1344,6 +1349,7 @@
         </div>
         <div class="nav-right" style="justify-self:end;">
             <div class="nav-coins" id="coinDisplay">0 BLK</div>
+            <button onclick="void(0)" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.35rem 0.8rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='var(--accent-dim)'" onmouseout="this.style.background='none'">Connect Wallet</button>
             <div class="nav-user" id="navUser" onclick="toggleDropdown()">
                 <div class="nav-avatar" id="navAvatar">?</div>
                 <span class="nav-username" id="navUsername">Loading...</span>
@@ -1361,8 +1367,9 @@
                 <div onclick="switchView('profile')" style="width:40px;height:40px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:0.8rem;cursor:pointer;overflow:hidden;" id="mobNavAvatar">?</div>
             </div>
             <span style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.3rem;letter-spacing:4px;color:#fff;text-align:center;">BLK.</span>
-            <div style="display:flex;align-items:center;justify-content:flex-end;padding-right:1rem;">
+            <div style="display:flex;align-items:center;justify-content:flex-end;padding-right:1rem;gap:0.5rem;">
                 <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);border:1px solid var(--accent-dim);padding:0.35rem 0.8rem;display:flex;align-items:center;gap:0.4rem;"><span style="font-size:0.85rem;">◈</span><span id="mobCoinDisplay">0 BLK</span></div>
+                <button onclick="void(0)" style="font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.35rem 0.6rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;white-space:nowrap;">Connect Wallet</button>
             </div>
         </div>
 
@@ -1929,6 +1936,22 @@
     let shuffleQueue = [];
     let activePlaylistId = null; 
     let coins = 0, listenCount = 0, pendingPurchase = null;
+    let isGuest = false;
+
+    function continueAsGuest() {
+        isGuest = true;
+        currentUser = null;
+        userProfile = null;
+        document.getElementById('coinDisplay').style.display = 'none';
+        const mobCoinWrap = document.getElementById('mobCoinDisplay');
+        if (mobCoinWrap && mobCoinWrap.parentElement) mobCoinWrap.parentElement.parentElement.style.display = 'none';
+        showApp();
+        const navUsername = document.getElementById('navUsername');
+        if (navUsername) navUsername.textContent = 'Guest';
+        const navAvatar = document.getElementById('navAvatar');
+        if (navAvatar) navAvatar.textContent = 'G';
+        loadStoreTracks();
+    }
 
     const COIN_PER_PLAY = 0.001; 
 
@@ -1937,6 +1960,7 @@
 
     function _earnOnTrackEnd() {
         if (_userSeeked) return;
+        if (isGuest) return;
         const currentTrack = library[currentIdx];
         if (currentTrack && currentTrack.source === 'spotify' && !spIsPremium) return;
         const dur = currentTrack && (currentTrack.duration || 0);
@@ -2011,6 +2035,7 @@
                     spPreRestoreUI();
                 }
             } else {
+                if (isGuest) return;
                 currentUser = null;
                 userProfile = null;
                 _pendingVerifyEmail = null; _pendingVerifyPass = null;
@@ -2416,6 +2441,16 @@
     }
 
     async function doSignOut() {
+        if (isGuest) {
+            isGuest = false;
+            library = []; currentIdx = -1; isPlaying = false; coins = 0;
+            spotifyTracks = []; soundcloudTracks = [];
+            audio.pause(); audio.src = '';
+            renderLibrary(); renderQueue(); updateCoins();
+            toggleDropdown(true);
+            showAuth();
+            return;
+        }
         await FB.signOut(FB.auth);
         library = []; currentIdx = -1; isPlaying = false; coins = 0;
         spotifyTracks = []; soundcloudTracks = [];
