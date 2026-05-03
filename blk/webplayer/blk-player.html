@@ -2066,6 +2066,9 @@
         // Don't award coins for Spotify tracks when the user is not on a Premium account
         const currentTrack = library[currentIdx];
         if (currentTrack && currentTrack.source === 'spotify' && !spIsPremium) return;
+        // Only award coins for tracks longer than 1 minute (60 seconds)
+        const dur = currentTrack && (currentTrack.duration || 0);
+        if (!dur || dur < 60) return;
         listenCount++;
         coins = Math.round((coins + COIN_PER_PLAY) * 100000) / 100000;
 
