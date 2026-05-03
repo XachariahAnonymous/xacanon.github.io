@@ -38,7 +38,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
 
-        /* ── ACCESS DENIED ── */
         #access-denied {
             position: fixed; inset: 0; background: var(--bg);
             display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
@@ -47,7 +46,6 @@
         #access-denied .code { font-family: 'Space Mono', monospace; font-size: 4rem; color: var(--error); font-weight: 700; }
         #access-denied .msg  { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; }
 
-        /* ── NAV ── */
         nav {
             position: sticky; top: 0;
             display: flex; justify-content: space-between; align-items: center;
@@ -62,10 +60,8 @@
         .nav-signout { cursor: pointer; color: var(--sub); transition: color 0.2s; }
         .nav-signout:hover { color: var(--error); }
 
-        /* ── LAYOUT ── */
         .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 66px); }
 
-        /* ── SIDEBAR ── */
         .admin-sidebar { border-right: 1px solid var(--border); background: var(--surface); padding: 2rem 0; }
         .sidebar-nav-item {
             display: flex; align-items: center; gap: 0.8rem;
@@ -78,7 +74,6 @@
         .sidebar-nav-item.active { color: #fff; background: var(--accent-dim); border-left-color: var(--accent); }
         .sidebar-section-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: rgba(255,255,255,0.2); letter-spacing: 3px; text-transform: uppercase; padding: 1.5rem 1.5rem 0.5rem; }
 
-        /* ── MAIN ── */
         .admin-main { padding: 2.5rem; overflow-y: auto; }
         .admin-view { display: none; }
         .admin-view.active { display: block; }
@@ -87,14 +82,12 @@
         .page-tag { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.5rem; }
         .page-title { font-size: 2rem; font-weight: 700; letter-spacing: -0.04em; }
 
-        /* ── STAT CARDS ── */
         .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2.5rem; }
         .stat-card { background: var(--bg); padding: 1.5rem; }
         .stat-card-label { font-family: 'Space Mono', monospace; font-size: 0.5rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.6rem; }
         .stat-card-val { font-family: 'Space Mono', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); }
         .stat-card-sub { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); margin-top: 0.3rem; }
 
-        /* ── TABLE ── */
         .table-wrap { border: 1px solid var(--border); overflow: hidden; }
         .table-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--surface); }
         .table-toolbar-title { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--sub); letter-spacing: 2px; text-transform: uppercase; }
@@ -136,23 +129,19 @@
 
         .empty-row td { text-align: center; padding: 3rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); letter-spacing: 2px; }
 
-        /* ── PURCHASES TABLE ── */
         .purchase-track { font-weight: 600; }
         .purchase-artist { font-size: 0.7rem; color: var(--sub); }
         .purchase-price { font-family: 'Space Mono', monospace; color: var(--accent); }
 
-        /* ── LOADING ── */
         .loading { text-align: center; padding: 3rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); letter-spacing: 3px; text-transform: uppercase; }
         .loading::after { content: '...'; animation: dots 1.5s infinite; }
         @keyframes dots { 0%,100%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
 
-        /* ── TOAST ── */
         .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--surface); border: 1px solid var(--border); border-left: 2px solid var(--accent); padding: 0.8rem 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 1px; color: #fff; z-index: 500; opacity: 0; transition: all 0.3s; pointer-events: none; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .toast.success { border-left-color: var(--success); }
         .toast.danger  { border-left-color: var(--error);   }
 
-        /* ── CONFIRM MODAL ── */
         .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .modal-bg.open { opacity: 1; pointer-events: all; }
         .modal { background: var(--surface); border: 1px solid var(--border); padding: 2.5rem; max-width: 380px; width: 90%; position: relative; }
@@ -166,7 +155,6 @@
         .modal-btn.confirm { background: var(--error); color: #fff; }
         .modal-btn.confirm:hover { opacity: 0.85; }
 
-        /* ── ADD COINS MODAL ── */
         .modal-accent::before { background: linear-gradient(90deg, var(--accent), transparent) !important; }
         .modal-success::before { background: linear-gradient(90deg, var(--success), transparent) !important; }
         .modal-input-group { margin-bottom: 1.2rem; }
@@ -180,7 +168,6 @@
         .modal-btn-accent:hover { opacity: 0.85; }
         .modal-btn-success { background: var(--success) !important; color: #000 !important; }
 
-        /* ── MUSIC UPLOAD STYLES ── */
         .upload-drop-zone { border: 1px dashed rgba(138,43,226,0.4); padding: 2.5rem 1.5rem; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; margin-bottom: 1.5rem; }
         .upload-drop-zone:hover, .upload-drop-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); }
         .upload-drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
@@ -224,7 +211,6 @@
     <div class="msg">Page Not Found</div>
 </div>
 
-<!-- NAV -->
 <nav id="admin-nav" style="display:none;">
     <div class="nav-left">
         <span class="nav-logo">BLK.</span>
@@ -237,7 +223,6 @@
 </nav>
 
 <div class="admin-layout" id="admin-layout" style="display:none;">
-    <!-- SIDEBAR -->
     <div class="admin-sidebar">
         <div class="sidebar-section-label">Overview</div>
         <div class="sidebar-nav-item active" onclick="showView('dashboard')">⬡ &nbsp;Dashboard</div>
@@ -247,10 +232,8 @@
         <div class="sidebar-nav-item" onclick="showView('store')">⬡ &nbsp;Store Music</div>
     </div>
 
-    <!-- MAIN -->
     <div class="admin-main">
 
-        <!-- DASHBOARD -->
         <div class="admin-view active" id="view-dashboard">
             <div class="page-header">
                 <div class="page-tag">BLK Admin // Overview</div>
@@ -273,7 +256,6 @@
             </div>
         </div>
 
-        <!-- USERS -->
         <div class="admin-view" id="view-users">
             <div class="page-header">
                 <div class="page-tag">BLK Admin // Manage</div>
@@ -294,7 +276,6 @@
             </div>
         </div>
 
-        <!-- PURCHASES -->
         <div class="admin-view" id="view-purchases">
             <div class="page-header">
                 <div class="page-tag">BLK Admin // Transactions</div>
@@ -311,14 +292,12 @@
             </div>
         </div>
 
-        <!-- STORE MUSIC -->
         <div class="admin-view" id="view-store">
             <div class="page-header">
                 <div class="page-tag">BLK Admin // Content</div>
                 <div class="page-title">Store Music</div>
             </div>
 
-            <!-- Upload Zone -->
             <div class="table-wrap" style="margin-bottom:2rem;">
                 <div class="table-toolbar">
                     <span class="table-toolbar-title">Upload New Track</span>
@@ -334,7 +313,6 @@
                     </div>
                     <div id="uploadFileName" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);letter-spacing:1px;margin-bottom:1rem;display:none;"></div>
 
-                    <!-- Metadata Form -->
                     <div id="metadataForm" style="display:none;">
                         <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1.2rem;">Track Metadata</div>
                         <div class="metadata-grid">
@@ -401,7 +379,6 @@
     </div>
 </div>
 
-<!-- ADD COINS MODAL -->
 <div class="modal-bg" id="addCoinsModal">
     <div class="modal modal-accent">
         <h3 id="addCoinsTitle">Add BLK Coins</h3>
@@ -432,7 +409,6 @@
     </div>
 </div>
 
-<!-- EDIT TRACK MODAL -->
 <div class="modal-bg" id="editTrackModal">
     <div class="modal modal-accent" style="max-width:500px;">
         <h3>Edit Track</h3>
@@ -479,7 +455,6 @@
     </div>
 </div>
 
-<!-- CONFIRM MODAL -->
 <div class="modal-bg" id="confirmModal">
     <div class="modal">
         <h3 id="confirmTitle">Are you sure?</h3>
@@ -494,12 +469,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-    // ── R2 CONFIG ──────────────────────────────────────────────────────────
+
     const R2_WORKER_URL    = 'https://blk-r2-worker.xacanonmusic.workers.dev';
     const R2_UPLOAD_SECRET = 'Ajax2026!';
-    // ────────────────────────────────────────────────────────────────────────
-
-    // ── SUBGENRE MAP ────────────────────────────────────────────────────────
     const SUBGENRES = {
         'R&B / Soul':          ['Contemporary R&B','Neo-Soul','Soul','Funk','Motown','Gospel','Quiet Storm'],
         'Jazz':                ['Bebop','Cool Jazz','Fusion','Smooth Jazz','Free Jazz','Acid Jazz','Swing','Latin Jazz'],
@@ -518,20 +490,17 @@
         'Spoken Word / Comedy':['Poetry','Stand-up','Storytelling','Audiobook Excerpt'],
         "Children's":          ['Nursery Rhymes','Educational','Lullabies','Kids Pop']
     };
-
-    // ── STATE ───────────────────────────────────────────────────────────────
     let FB = null;
     let allUsers = [];
     let allPurchases = [];
     let currentAdminUid = null;
     let confirmCallback = null;
     let uploadedAudioFile = null;
-    let uploadedCoverFile = null;       // ← new: track the cover art file
+    let uploadedCoverFile = null;      
     let allStoreTracks = [];
     let addCoinsTargetUid = null;
     let addCoinsTargetName = null;
 
-    // ── BOOT ────────────────────────────────────────────────────────────────
     const waitForFB = () => new Promise(res => {
         const check = setInterval(() => { if (window._adminFB) { clearInterval(check); res(window._adminFB); } }, 50);
     });
@@ -554,7 +523,6 @@
         });
     }
 
-    // ── DATA ────────────────────────────────────────────────────────────────
     async function loadAllData() {
         await Promise.all([loadUsers(), loadPurchases()]);
         updateDashboard();
@@ -581,7 +549,6 @@
         document.getElementById('statCoins').textContent     = totalCoins.toFixed(2);
     }
 
-    // ── RENDER ───────────────────────────────────────────────────────────────
     function renderDashUserList(users) {
         document.getElementById('dashUserList').innerHTML = users.length
             ? users.map(u => `
@@ -633,14 +600,6 @@
             : `<tr class="empty-row"><td colspan="4">No purchases yet</td></tr>`;
     }
 
-    // ── GENRE / SUBGENRE DROPDOWNS ──────────────────────────────────────────
-    /**
-     * Called whenever a genre select changes.
-     * @param {string} genreId    – id of the genre <select>
-     * @param {string} wrapId     – id of the subgenre wrapper div
-     * @param {string} subId      – id of the subgenre <select>
-     * @param {string} [currentSubgenre] – value to pre-select (used when editing)
-     */
     function updateSubgenre(genreId, wrapId, subId, currentSubgenre = '') {
         const genre   = document.getElementById(genreId).value;
         const wrap    = document.getElementById(wrapId);
@@ -658,19 +617,11 @@
         wrap.classList.add('visible');
     }
 
-    // ── COVER ART HELPERS ───────────────────────────────────────────────────
-    /**
-     * Handles a File object dropped or selected into a cover art zone.
-     * @param {File}   file        – the image file
-     * @param {string} zoneId      – id of the .cover-art-zone div
-     * @param {string} previewId   – id of the <img> preview element
-     */
     function handleCoverFile(file, zoneId, previewId) {
         if (!file || !file.type.startsWith('image/')) {
             showToast('Please select an image file', false, true);
             return;
         }
-        // Store reference so upload can send it
         uploadedCoverFile = file;
 
         const preview = document.getElementById(previewId);
@@ -678,17 +629,12 @@
         reader.onload = e => {
             preview.src          = e.target.result;
             preview.style.display = 'block';
-            // Hide the label text once we have a preview
             const label = document.getElementById('coverArtLabel');
             if (label) label.style.display = 'none';
         };
         reader.readAsDataURL(file);
     }
 
-    /**
-     * Handles a dragdrop event on a cover art zone.
-     * Mirrors the ondrop inline handler wired in HTML.
-     */
     function handleCoverDrop(event, zoneId, previewId, inputId) {
         event.preventDefault();
         document.getElementById(zoneId).classList.remove('drag-over');
@@ -696,7 +642,6 @@
         if (file) handleCoverFile(file, zoneId, previewId);
     }
 
-    // ── AUDIO FILE HANDLING ─────────────────────────────────────────────────
     function setupUploadListeners() {
         const adminUploadZone = document.getElementById('adminUploadZone');
         if (!adminUploadZone) return;
@@ -716,7 +661,6 @@
         nameEl.textContent    = `◈ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
         nameEl.style.display  = 'block';
 
-        // Auto-parse title / artist from "Artist - Title.mp3" convention
         const baseName = file.name.replace(/\.[^.]+$/, '');
         if (baseName.includes(' - ')) {
             const parts = baseName.split(' - ');
@@ -729,7 +673,6 @@
         document.getElementById('metadataForm').style.display = 'block';
     }
 
-    // ── UPLOAD TRACK TO R2 + FIRESTORE ──────────────────────────────────────
     async function uploadStoreTrack() {
         if (!uploadedAudioFile) { showToast('No file selected', false, true); return; }
 
@@ -749,7 +692,6 @@
         progressFill.style.width  = '0%';
 
         try {
-            // ── 1. Upload audio to R2 ──────────────────────────────────────
             const audioUrl = await xhrUpload(
                 uploadedAudioFile,
                 uploadedAudioFile.name,
@@ -760,7 +702,6 @@
                 }
             );
 
-            // ── 2. Upload cover art to R2 (if provided) ───────────────────
             let coverUrl = null;
             if (uploadedCoverFile) {
                 statusEl.textContent     = 'Uploading cover art…';
@@ -776,7 +717,6 @@
                 );
             }
 
-            // ── 3. Save metadata to Firestore ─────────────────────────────
             const emojis = ['◈','⬡','⊕','◇','⬢','⊗','◉','⬛'];
             await FB.addDoc(FB.collection(FB.db, 'storeTracks'), {
                 title, artist, genre, subgenre, price, badge,
@@ -792,7 +732,6 @@
             statusEl.textContent      = '✓ Uploaded successfully';
             progressBar.style.display = 'none';
 
-            // Reset form state
             uploadedAudioFile = null;
             uploadedCoverFile = null;
             document.getElementById('metadataForm').style.display    = 'none';
@@ -802,7 +741,6 @@
             document.getElementById('metaCoverPreview').style.display = 'none';
             const lbl = document.getElementById('coverArtLabel');
             if (lbl) lbl.style.display = '';
-            // Reset genre/subgenre
             document.getElementById('metaGenre').value = '';
             updateSubgenre('metaGenre','metaSubgenreWrap','metaSubgenre');
 
@@ -814,14 +752,6 @@
         }
     }
 
-    /**
-     * Shared XHR uploader that streams a file to the R2 Worker.
-     * @param {File}     file       – file to upload
-     * @param {string}   fileName   – filename sent as header
-     * @param {string}   mimeType   – content-type
-     * @param {function} onProgress – callback(percent)
-     * @returns {Promise<string>}   – public URL of uploaded object
-     */
     function xhrUpload(file, fileName, mimeType, onProgress) {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
@@ -844,7 +774,6 @@
         });
     }
 
-    // ── STORE TRACKS LIST ────────────────────────────────────────────────────
     async function loadStoreTracks() {
         document.getElementById('storeTrackList').innerHTML = '<div class="loading">Loading</div>';
         try {
@@ -883,7 +812,6 @@
         `).join('');
     }
 
-    // ── EDIT TRACK MODAL ─────────────────────────────────────────────────────
     function openEditTrack(id) {
         const t = allStoreTracks.find(x => x.id === id);
         if (!t) return;
@@ -893,7 +821,6 @@
         document.getElementById('editMetaPrice').value    = t.price  || '';
         document.getElementById('editMetaBadge').value    = t.badge  || '';
         document.getElementById('editMetaGenre').value    = t.genre  || '';
-        // Populate subgenre dropdown, then set saved subgenre
         updateSubgenre('editMetaGenre', 'editMetaSubgenreWrap', 'editMetaSubgenre', t.subgenre || '');
         document.getElementById('editTrackModal').classList.add('open');
     }
@@ -932,7 +859,6 @@
         });
     }
 
-    // ── USER MANAGEMENT ──────────────────────────────────────────────────────
     function filterUsers() {
         const q = document.getElementById('userSearch').value.toLowerCase();
         if (!q) { renderUserTable(allUsers); return; }
@@ -966,7 +892,6 @@
         });
     }
 
-    // ── ADD COINS ─────────────────────────────────────────────────────────────
     function openAddCoins(uid, name) {
         addCoinsTargetUid  = uid;
         addCoinsTargetName = name;
@@ -996,7 +921,6 @@
         } catch(e) { showToast('Failed to update coins', false, true); }
     }
 
-    // ── VIEWS ────────────────────────────────────────────────────────────────
     function showView(v) {
         document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
         document.getElementById('view-'+v).classList.add('active');
@@ -1006,7 +930,6 @@
         if (v === 'store') loadStoreTracks();
     }
 
-    // ── CONFIRM MODAL ─────────────────────────────────────────────────────────
     function showConfirm(title, msg, cb) {
         document.getElementById('confirmTitle').textContent = title;
         document.getElementById('confirmMsg').textContent   = msg;
@@ -1016,7 +939,6 @@
     }
     function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); confirmCallback = null; }
 
-    // ── AUTH ──────────────────────────────────────────────────────────────────
     function showAccessDenied() {
         try { if (FB && FB.auth) FB.signOut(FB.auth); } catch(_) {}
         const nav    = document.getElementById('admin-nav');
@@ -1028,7 +950,6 @@
     }
     async function doSignOut() { await FB.signOut(FB.auth); window.location.href = 'blk-player.html'; }
 
-    // ── UTILS ─────────────────────────────────────────────────────────────────
     function initials(str) { return (str||'?').split(/[\s@]+/).map(w=>w[0]).join('').toUpperCase().slice(0,2); }
     function esc(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function fmtDate(iso) {
