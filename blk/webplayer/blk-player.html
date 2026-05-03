@@ -1805,6 +1805,27 @@
     </div>
 </div>
 
+<div class="modal-bg" id="guestNoticeModal" onclick="if(event.target===this)closeGuestNotice()">
+    <div class="modal" style="max-width:360px;">
+        <button class="modal-close" onclick="closeGuestNotice()">✕</button>
+        <span class="modal-tag">Guest Access</span>
+        <h3 style="margin-bottom:0.8rem;">You're browsing as a Guest</h3>
+        <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--sub);letter-spacing:1px;line-height:2;margin-bottom:1.5rem;">
+            <span style="color:var(--error);">◈</span> BLK coins cannot be earned<br>
+            <span style="color:var(--error);">◈</span> Purchases are unavailable<br>
+            <span style="color:var(--success);">◈</span> Library saves to this device<br>
+            <span style="color:var(--success);">◈</span> Playlists save to this device
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;margin-bottom:1.5rem;line-height:1.8;">
+            Create a free account to earn BLK coins on every listen and unlock the full experience.
+        </div>
+        <div style="display:flex;gap:0.8rem;">
+            <button class="modal-btn" style="background:var(--accent);border-color:var(--accent);flex:1;" onclick="closeGuestNotice();showAuth();setAuthTab('register')">Create Account</button>
+            <button class="modal-btn" style="flex:1;" onclick="closeGuestNotice()">Continue as Guest</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-bg" id="blkWarnModal" onclick="if(event.target===this)closeBlkWarn()">
     <div class="modal blk-warn-modal">
         <button class="modal-close" onclick="closeBlkWarn()">✕</button>
@@ -1938,6 +1959,51 @@
     let coins = 0, listenCount = 0, pendingPurchase = null;
     let isGuest = false;
 
+    const GUEST_LIB_KEY = 'blk_guest_library';
+    const GUEST_PL_KEY  = 'blk_guest_playlists';
+
+    function guestSaveLibrary() {
+        if (!isGuest) return;
+        const saveable = library.filter(t => t.source !== 'local').map(t => ({
+            id: t.id, url: t.url || '', title: t.title, artist: t.artist,
+            album: t.album || '', albumArt: t.albumArt || null, duration: t.duration || 0,
+            dateAdded: t.dateAdded || '', emoji: t.emoji || '◈', source: t.source,
+            spUri: t.spUri || null, soundcloudUrl: t.soundcloudUrl || null,
+            spotifyType: t.spotifyType || null, spotifyTrackId: t.spotifyTrackId || null,
+            playlist: t.playlist || null
+        }));
+        try { localStorage.setItem(GUEST_LIB_KEY, JSON.stringify(saveable)); } catch(_) {}
+    }
+
+    function guestSavePlaylists() {
+        if (!isGuest) return;
+        try { localStorage.setItem(GUEST_PL_KEY, JSON.stringify(playlists)); } catch(_) {}
+    }
+
+    function guestRestoreLibrary() {
+        try {
+            const raw = localStorage.getItem(GUEST_LIB_KEY);
+            if (!raw) return;
+            const tracks = JSON.parse(raw);
+            tracks.forEach(t => {
+                if (library.some(e => e.id === t.id)) return;
+                library.push(t);
+                if (t.source === 'spotify') spotifyTracks.push(t);
+                else if (t.source === 'soundcloud') soundcloudTracks.push(t);
+            });
+        } catch(_) {}
+    }
+
+    function guestRestorePlaylists() {
+        try {
+            const raw = localStorage.getItem(GUEST_PL_KEY);
+            if (!raw) return;
+            const saved = JSON.parse(raw);
+            const existingIds = new Set(playlists.map(p => p.id));
+            saved.forEach(p => { if (!existingIds.has(p.id)) playlists.push(p); });
+        } catch(_) {}
+    }
+
     function continueAsGuest() {
         isGuest = true;
         currentUser = null;
@@ -1956,7 +2022,15 @@
         if (navUsername) navUsername.textContent = 'Guest';
         const navAvatar = document.getElementById('navAvatar');
         if (navAvatar) navAvatar.textContent = 'G';
+        guestRestoreLibrary();
+        guestRestorePlaylists();
+        renderLibrary(); renderQueue(); renderPlaylists();
         loadStoreTracks();
+        document.getElementById('guestNoticeModal').classList.add('open');
+    }
+
+    function closeGuestNotice() {
+        document.getElementById('guestNoticeModal').classList.remove('open');
     }
 
     const COIN_PER_PLAY = 0.001; 
@@ -2121,6 +2195,7 @@
     function scBackfillDurations() { }
 
     async function fbSaveStreamingTrack(track) {
+        if (isGuest) { guestSaveLibrary(); return; }
         if (!currentUser || !FB) return;
         try {
             const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', track.id);
@@ -2162,6 +2237,7 @@
 
     async function fbDeleteStreamingTrack(trackId) {
         _addTombstone(trackId);
+        if (isGuest) { guestSaveLibrary(); return; }
         if (!currentUser || !FB) return;
         try {
             const ref = FB.doc(FB.db, 'users', currentUser.uid, 'streamingTracks', trackId);
@@ -2292,7 +2368,6 @@
         err.textContent = '';
         err.style.color = 'var(--error)';
         if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
-        // Rate limiting: max 5 attempts, then 60s lockout
         const now = Date.now();
         if (_loginLockedUntil > now) {
             const secs = Math.ceil((_loginLockedUntil - now) / 1000);
@@ -2700,6 +2775,7 @@
     }
 
     async function idbSaveStreaming(track) {
+        if (isGuest) { guestSaveLibrary(); return; }
         if (!idb) return;
         return new Promise((res, rej) => {
             const tx = idb.transaction(IDB_STORE, 'readwrite');
@@ -5520,6 +5596,7 @@
 
     function plSave() {
         try { localStorage.setItem('blk_playlists', JSON.stringify(playlists)); } catch(e) {}
+        if (isGuest) { guestSavePlaylists(); return; }
         plSaveFirestore();
     }
     function plLoad() {
