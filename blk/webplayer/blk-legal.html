@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLK | Legal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --surface2: #111111;
+            --text: #ffffff;
+            --sub: #888888;
+            --accent: #8A2BE2;
+            --accent-dim: rgba(138,43,226,0.15);
+            --border: rgba(255,255,255,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        .bg-grid {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image: linear-gradient(rgba(138,43,226,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(138,43,226,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .nav-logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--accent);
+        }
+        .nav-sep { color: var(--border); }
+        .nav-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            color: var(--sub);
+            text-transform: uppercase;
+        }
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            position: sticky;
+            top: 57px;
+            z-index: 99;
+            padding: 0 2rem;
+        }
+        .tab {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--sub);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem 6rem;
+            position: relative; z-index: 1;
+        }
+        .section { display: none; }
+        .section.active { display: block; }
+        .doc-header {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .doc-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.5rem;
+            letter-spacing: 3px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        .doc-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 0.8rem;
+        }
+        .doc-meta {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+            color: var(--sub);
+        }
+        h2 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin: 2.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--accent-dim);
+        }
+        h3 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text);
+            margin: 1.5rem 0 0.6rem;
+        }
+        p {
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        ul {
+            list-style: none;
+            margin: 0 0 1rem 0;
+            padding: 0;
+        }
+        ul li {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.875rem;
+            padding: 0.3rem 0 0.3rem 1.2rem;
+            position: relative;
+        }
+        ul li::before {
+            content: '◈';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-size: 0.6rem;
+            top: 0.45rem;
+        }
+        .highlight-box {
+            background: var(--accent-dim);
+            border: 1px solid rgba(138,43,226,0.3);
+            border-radius: 4px;
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .highlight-box p { margin: 0; color: rgba(255,255,255,0.85); }
+        .warn-box {
+            background: rgba(255,170,0,0.07);
+            border: 1px solid rgba(255,170,0,0.25);
+            border-radius: 4px;
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .warn-box p { margin: 0; color: rgba(255,255,255,0.85); }
+        .warn-box p::before { content: '⚠ '; color: #ffaa00; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .contact-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem 1.2rem;
+        }
+        .contact-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.5rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--sub);
+            margin-bottom: 0.4rem;
+        }
+        .contact-val {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        @media (max-width: 600px) {
+            .contact-grid { grid-template-columns: 1fr; }
+            nav { padding: 1rem; }
+            .tabs { padding: 0 1rem; }
+            .container { padding: 2rem 1rem 5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<nav>
+    <span class="nav-logo" onclick="history.back()" style="cursor:pointer;">BLK</span>
+    <span class="nav-sep">|</span>
+    <span class="nav-title">Legal Documents</span>
+</nav>
+
+<div class="tabs">
+    <button class="tab active" onclick="switchTab('terms')">Terms &amp; Conditions</button>
+    <button class="tab" onclick="switchTab('privacy')">Privacy Policy</button>
+</div>
+
+<div class="container">
+
+    <div class="section active" id="terms">
+        <div class="doc-header">
+            <span class="doc-tag">Legal // Terms of Service</span>
+            <div class="doc-title">Terms &amp; Conditions</div>
+            <div class="doc-meta">Effective Date: May 2026 &nbsp;·&nbsp; Platform: blkcoin.lol</div>
+        </div>
+
+        <div class="highlight-box">
+            <p>By accessing or using BLK, you agree to be bound by these Terms. If you do not agree, do not use the platform. Please read this document in full before creating an account.</p>
+        </div>
+
+        <h2>1. About BLK</h2>
+        <p>BLK is a music platform that allows users to stream music, earn BLK coins through listening activity, purchase tracks from the BLK Store, and connect third-party music services such as Spotify and SoundCloud. BLK is accessible via blkcoin.lol.</p>
+
+        <h2>2. Eligibility</h2>
+        <p>You must be at least 13 years of age to use BLK as a music platform. Users under 18 must have parental or guardian consent. Access to any cryptocurrency or wallet-related features on BLK is restricted to users who are 18 years of age or older. By using these features, you confirm you meet this age requirement. By creating an account, you confirm that the information you provide is accurate and that you are legally capable of entering into these Terms.</p>
+
+        <h2>3. Accounts</h2>
+        <h3>3.1 Registration</h3>
+        <p>You may create an account using an email address and password, or via Google Sign-In. You are responsible for maintaining the confidentiality of your login credentials. You must not share your account with others or use another person's account without permission.</p>
+
+        <h3>3.2 Guest Access</h3>
+        <p>BLK offers guest access that allows use of the platform without registering. Guest sessions are stored locally on your device only. Guests cannot earn BLK coins, make purchases, or access account-based features. Guest data does not sync across devices.</p>
+
+        <h3>3.3 Account Termination</h3>
+        <p>We reserve the right to suspend or terminate your account at any time for violations of these Terms, suspected fraudulent activity, or at our sole discretion. You may also delete your account at any time through your account settings.</p>
+
+        <h2>4. BLK Coins</h2>
+        <h3>4.1 Platform BLK (Phantom Coin)</h3>
+        <p>BLK coins earned on the platform are a virtual reward currency ("Platform BLK") used within the BLK ecosystem. Platform BLK is earned through listening activity and can be used to purchase tracks in the BLK Store. Platform BLK is not itself a cryptocurrency and exists solely within the BLK platform.</p>
+
+        <h3>4.2 Earning</h3>
+        <p>Registered users earn Platform BLK by listening to music on the platform. Coins are awarded based on verified track listens. The current earn rate is 0.01 BLK per 10 completed track listens. This rate is subject to change at any time without notice.</p>
+
+        <h3>4.3 Exchange to Real BLK Coin</h3>
+        <p>Platform BLK may be exchanged for the real BLK coin, which is a Solana-based cryptocurrency asset. The real BLK coin is separate from the platform reward system and exists on the Solana blockchain. Exchange from Platform BLK to real BLK coin, and subsequently to Solana (SOL), is subject to availability, exchange rates set by the platform, and age verification. Exchange rates are variable and may change at any time. All exchanges are final once confirmed.</p>
+
+        <div class="warn-box">
+            <p>Cryptocurrency exchange features including conversion of Platform BLK to real BLK coin and Solana are restricted to users aged 18 and over. You must verify your age before accessing these features.</p>
+        </div>
+
+        <h3>4.4 Restrictions</h3>
+        <ul>
+            <li>Coins earned through manipulation, automation, or fraudulent activity will be removed and may result in account suspension and forfeiture of any accumulated balance.</li>
+            <li>Seeking through tracks to inflate listen counts is detected and blocked from earning.</li>
+            <li>Guest users cannot earn BLK coins under any circumstances.</li>
+            <li>All Platform BLK to real BLK coin conversions are subject to age verification. You must be 18 or older to access any cryptocurrency exchange features.</li>
+            <li>BLK is not responsible for losses arising from cryptocurrency market volatility at the time of exchange.</li>
+        </ul>
+
+        <h3>4.5 Wallet Integration</h3>
+        <p>Wallet connection and all cryptocurrency-related features on BLK are restricted to users aged 18 and over. By connecting a wallet, you confirm you are at least 18 years of age. Your Solana wallet address is stored and associated with your account to facilitate real BLK coin transfers and Solana conversions. BLK does not collect private keys or have any access to your wallet funds. You are solely responsible for ensuring your wallet address is correct before initiating any conversion.</p>
+
+        <h2>5. BLK Store &amp; Purchases</h2>
+        <h3>5.1 Purchases</h3>
+        <p>Tracks available in the BLK Store may be purchased using Platform BLK coins earned through listening activity on the platform. Platform BLK coins cannot be substituted with real BLK coin or any other currency for store purchases.</p>
+
+        <h3>5.2 Refunds</h3>
+        <p>All purchases made with BLK coins are final. We do not offer refunds or exchanges. If you believe a purchase was made in error due to a platform issue, contact us and we will review the matter at our discretion.</p>
+
+        <h3>5.3 Content Rights</h3>
+        <p>Purchasing a track grants you a personal, non-transferable licence to listen to that track within the BLK platform. It does not grant you ownership, copyright, distribution rights, or the right to use the audio for commercial purposes.</p>
+
+        <h2>6. Third-Party Services</h2>
+        <p>BLK integrates with Spotify and SoundCloud. By connecting these services, you authorise BLK to access your streaming data in accordance with the permissions you grant. BLK is not affiliated with Spotify or SoundCloud and is not responsible for any changes to their APIs, terms, or availability. Your use of these services is also governed by their respective terms and privacy policies.</p>
+
+        <h2>7. User Conduct</h2>
+        <p>You agree not to:</p>
+        <ul>
+            <li>Attempt to reverse-engineer, scrape, or exploit the platform.</li>
+            <li>Upload or distribute content you do not have the rights to.</li>
+            <li>Use automated tools to manipulate coin earning or platform metrics.</li>
+            <li>Attempt to access another user's account or data.</li>
+            <li>Use the platform for any unlawful purpose.</li>
+        </ul>
+
+        <h2>8. Uploaded Content</h2>
+        <p>If you upload audio files to your personal library, you confirm you have the rights to use that content. Uploaded files are stored locally in your browser on your device via IndexedDB and are never transmitted to BLK's servers. We have no access to your uploaded files. You are solely responsible for managing and backing up any locally stored content.</p>
+
+        <h2>9. Disclaimer of Warranties</h2>
+        <p>BLK is provided on an as-is and as-available basis. We make no warranties, express or implied, regarding uptime, availability, accuracy, or fitness for a particular purpose. The platform may experience outages, data loss, or changes to features at any time.</p>
+
+        <h2>10. Limitation of Liability</h2>
+        <p>To the fullest extent permitted by law, BLK and its operators shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the platform, including but not limited to loss of data, loss of coins, or interrupted access.</p>
+
+        <h2>11. Changes to These Terms</h2>
+        <p>We may update these Terms at any time. Continued use of BLK after changes are posted constitutes acceptance of the revised Terms. We will endeavour to notify users of significant changes via the platform.</p>
+
+        <h2>12. Governing Law</h2>
+        <p>These Terms are governed by the laws of the United States of America. Any disputes shall be subject to the exclusive jurisdiction of the courts of the United States.</p>
+
+        <h2>13. Contact</h2>
+        <div class="contact-grid">
+            <div class="contact-item">
+                <div class="contact-label">Platform</div>
+                <div class="contact-val">blkcoin.lol</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="privacy">
+        <div class="doc-header">
+            <span class="doc-tag">Legal // Privacy Policy</span>
+            <div class="doc-title">Privacy Policy</div>
+            <div class="doc-meta">Effective Date: May 2026 &nbsp;·&nbsp; Platform: blkcoin.lol</div>
+        </div>
+
+        <div class="highlight-box">
+            <p>This Privacy Policy explains what data BLK collects, how it is used, and your rights. We are committed to handling your personal information responsibly and in accordance with applicable United States privacy laws.</p>
+        </div>
+
+        <h2>1. Who We Are</h2>
+        <p>BLK is a music platform accessible via blkcoin.lol. When this policy refers to "we", "us", or "BLK", it means the operators of the BLK platform.</p>
+
+        <h2>2. Data We Collect</h2>
+
+        <h3>2.1 Account Information</h3>
+        <ul>
+            <li>Email address</li>
+            <li>Display name</li>
+            <li>Profile avatar (if uploaded)</li>
+            <li>Account creation date</li>
+            <li>Authentication provider (email/password or Google)</li>
+        </ul>
+
+        <h3>2.2 Platform Activity</h3>
+        <ul>
+            <li>BLK coin balance and transaction history</li>
+            <li>Listening time and listen count</li>
+            <li>Track purchase history</li>
+            <li>Library contents and playlists</li>
+            <li>Last active timestamp</li>
+        </ul>
+
+        <h3>2.3 IP Address &amp; Login Data</h3>
+        <p>We log your IP address and device information at the time of login and during certain platform interactions. This data is used for security purposes, fraud detection, and to identify unauthorised access to accounts. IP addresses may be stored alongside timestamps in your user record.</p>
+
+        <div class="warn-box">
+            <p>IP address logging is active on this platform. Your IP address is recorded when you sign in and may be retained for security and audit purposes.</p>
+        </div>
+
+        <h3>2.4 Wallet Data</h3>
+        <p>Wallet connection is restricted to users aged 18 and over. If you connect a Solana wallet, your wallet address is stored and linked to your BLK account to facilitate the exchange of Platform BLK to real BLK coin and subsequently to Solana. We do not collect private keys or have any access to your wallet funds. Wallet addresses and any associated conversion history are retained for account records and audit purposes.</p>
+
+        <h3>2.5 Uploaded Files</h3>
+        <p>Audio files you upload to your library are stored locally in your browser via IndexedDB on your device. These files are never transmitted to or stored on BLK's servers. They are only accessible on the device and browser you uploaded them from and will be lost if you clear your browser data.</p>
+
+        <h3>2.6 Third-Party Streaming Data</h3>
+        <p>If you connect Spotify or SoundCloud, we access data such as your streaming library, recently played tracks, and playback state in accordance with the permissions you authorise via OAuth. We do not store your Spotify or SoundCloud credentials. Access tokens are stored locally in your browser session only.</p>
+
+        <h3>2.7 Guest Users</h3>
+        <p>Guest users do not create accounts and no personal data is stored on our servers. Library and playlist data for guests is stored in your browser's local storage on your device only. This data is not accessible by us and is cleared when you clear your browser data.</p>
+
+        <h2>3. How We Use Your Data</h2>
+        <ul>
+            <li>To provide and operate the BLK platform and its features.</li>
+            <li>To calculate and award BLK coins based on verified listening activity.</li>
+            <li>To process track purchases and maintain your library.</li>
+            <li>To detect and prevent fraud, abuse, and unauthorised access.</li>
+            <li>To associate Solana wallet addresses with your account and facilitate Platform BLK to real BLK coin and Solana exchanges.</li>
+            <li>To communicate platform updates or account-related notices.</li>
+            <li>To improve the platform through anonymised usage patterns.</li>
+        </ul>
+
+        <h2>4. Data Storage &amp; Security</h2>
+        <p>Your account data is stored in Google Firebase Firestore, a cloud-hosted database. Audio files you upload are stored locally on your own device and are never sent to our servers. We take reasonable steps to protect your account data, but no system is completely secure and we cannot guarantee absolute security.</p>
+
+        <h2>5. Data Sharing</h2>
+        <p>We do not sell your personal data to third parties. We may share data with:</p>
+        <ul>
+            <li><strong style="color:var(--text);">Google Firebase</strong> — for authentication and database services.</li>
+            <li><strong style="color:var(--text);">Spotify / SoundCloud</strong> — only the data you authorise via OAuth connection.</li>
+            <li><strong style="color:var(--text);">Law enforcement</strong> — if required by law or to protect rights and safety.</li>
+        </ul>
+
+        <h2>6. Data Retention</h2>
+        <p>We retain your account data for as long as your account is active. If you delete your account, your personal data will be removed from our systems within 30 days, except where retention is required by law. IP logs may be retained for up to 12 months for security purposes. Uploaded files are deleted upon account removal unless you delete them earlier.</p>
+
+        <h2>7. Your Rights</h2>
+        <p>Under applicable United States privacy law, you have the right to:</p>
+        <ul>
+            <li>Access the personal data we hold about you.</li>
+            <li>Request correction of inaccurate data.</li>
+            <li>Request deletion of your account and associated data.</li>
+            <li>Withdraw consent for optional data processing at any time.</li>
+        </ul>
+        <p>To exercise any of these rights, contact us using the details below. We will respond within 30 days.</p>
+
+        <h2>8. Cookies &amp; Local Storage</h2>
+        <p>BLK uses browser local storage and session storage to maintain your session, remember guest library data, and store Spotify OAuth tokens. We do not use tracking cookies or third-party advertising cookies. Firebase may set cookies for authentication purposes.</p>
+
+        <h2>9. Children's Privacy</h2>
+        <p>BLK's music platform is available to users aged 13 and over. We do not knowingly collect personal data from children under 13. If we become aware that a user under 13 has provided personal data, we will delete it promptly. All cryptocurrency and wallet-related features are strictly limited to users aged 18 and over regardless of parental consent.</p>
+
+        <h2>10. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. The effective date at the top of this page will reflect the most recent revision. Continued use of BLK after changes are posted constitutes acceptance of the updated policy.</p>
+
+        <h2>11. Contact</h2>
+        <p>For any privacy-related questions, data access requests, or concerns:</p>
+        <div class="contact-grid">
+            <div class="contact-item">
+                <div class="contact-label">Platform</div>
+                <div class="contact-val">blkcoin.lol</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchTab(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.target.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>
