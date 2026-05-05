@@ -13,7 +13,7 @@
     <meta name="twitter:title" content="BLK | Music">
     <meta name="twitter:description" content="Secure your legacy in the soundscape of the future.">
     <meta name="twitter:image" content="https://i.ibb.co/HLXC3bXt/image.png">
-    <link rel="icon" type="image/png" href="https://i.ibb.co/HLXC3bXt/image.png">
+    <link rel="icon" type="image/svg+xml" href="/blk-logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <script type="module">
@@ -31,21 +31,18 @@
             measurementId:     "G-3ENRZMXQP6"
         };
 
-  
-        const SPOTIFY_CLIENT_ID    = '3aa3338a8af249e88ca5fa488cedd32f';
-        const SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
-        const SPOTIFY_SCOPES = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative user-read-recently-played';
-
         const app  = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db   = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
         window._blkFB = { auth, db, googleProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, verifyBeforeUpdateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp, collection, getDocs, deleteDoc, onSnapshot, query };
-        window.SPOTIFY_CLIENT_ID    = SPOTIFY_CLIENT_ID;
-        window.SPOTIFY_REDIRECT_URI = SPOTIFY_REDIRECT_URI;
-        window.SPOTIFY_SCOPES       = SPOTIFY_SCOPES;
+        window.SPOTIFY_CLIENT_ID    = '3aa3338a8af249e88ca5fa488cedd32f';
+        window.SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
+        window.SPOTIFY_SCOPES       = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative user-read-recently-played';
     </script>
+
+    <script type="module" src="/blk-wallet.js"></script>
 
     <style>
         :root {
@@ -1274,6 +1271,9 @@
                 Continue as Guest
             </button>
             <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.15);letter-spacing:1px;text-align:center;margin-top:0.6rem;">Guests cannot earn BLK coins</div>
+            <div style="text-align:center;margin-top:1.2rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);">
+                <a href="blk-legal.html" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1.5px;text-decoration:none;color:var(--accent);text-shadow:0 0 8px var(--accent),0 0 20px var(--accent);transition:all 0.3s;" onmouseover="this.style.textShadow='0 0 12px var(--accent),0 0 30px var(--accent),0 0 50px var(--accent)'" onmouseout="this.style.textShadow='0 0 8px var(--accent),0 0 20px var(--accent)'">Terms &amp; Conditions // Privacy Policy</a>
+            </div>
         </div>
         <div id="auth-register" style="display:none;">
             <div class="auth-field">
@@ -1349,7 +1349,7 @@
         </div>
         <div class="nav-right" style="justify-self:end;">
             <div class="nav-coins" id="coinDisplay">0 BLK</div>
-            <button onclick="void(0)" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.35rem 0.8rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='var(--accent-dim)'" onmouseout="this.style.background='none'">Connect Wallet</button>
+            <button id="walletBtn" onclick="walletButtonClick()" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.35rem 0.8rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='var(--accent-dim)'" onmouseout="this.style.background='none'">Connect Wallet</button>
             <div class="nav-user" id="navUser" onclick="toggleDropdown()">
                 <div class="nav-avatar" id="navAvatar">?</div>
                 <span class="nav-username" id="navUsername">Loading...</span>
@@ -1369,7 +1369,7 @@
             <span style="font-family:'Space Mono',monospace;font-weight:700;font-size:1.3rem;letter-spacing:4px;color:#fff;text-align:center;">BLK.</span>
             <div style="display:flex;align-items:center;justify-content:flex-end;padding-right:1rem;gap:0.5rem;">
                 <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--accent);border:1px solid var(--accent-dim);padding:0.35rem 0.8rem;display:flex;align-items:center;gap:0.4rem;"><span style="font-size:0.85rem;">◈</span><span id="mobCoinDisplay">0 BLK</span></div>
-                <button onclick="void(0)" style="font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.35rem 0.6rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;white-space:nowrap;">Connect Wallet</button>
+                <button id="mobWalletBtn" onclick="walletButtonClick()" style="font-family:'Space Mono',monospace;font-size:0.45rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.35rem 0.6rem;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;white-space:nowrap;">Connect Wallet</button>
             </div>
         </div>
 
@@ -1434,7 +1434,7 @@
                     <button onclick="spotifyAuth()" style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.8rem 2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;">Connect Spotify</button>
                 </div>
                 <div id="spBrowseMain" style="display:none;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:gap:0.5rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.5rem;">
                         <div style="display:flex;align-items:center;gap:0.6rem;">
                             <span style="font-size:1rem;">🎵</span>
                             <span id="spBrowseUser" style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#1ED760;letter-spacing:1px;"></span>
@@ -2665,7 +2665,7 @@
     }
 
     function openAdminPanel() {
-        window.open('blk-admin.html', '_blank');
+        window.open('/blk-admin', '_blank');
         toggleDropdown(true);
     }
 
