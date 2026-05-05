@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,6 +113,86 @@
 
         .ip-box:hover { background: var(--wf-cyan); color: var(--wf-navy); box-shadow: 0 0 25px var(--wf-cyan); }
 
+        /* --- YOUTUBE SECTION --- */
+        .youtube-section {
+            width: 100%;
+        }
+
+        .youtube-player-wrapper {
+            background: rgba(5, 28, 44, 0.7);
+            border: 1px solid rgba(153, 230, 255, 0.15);
+            border-radius: 4px;
+            padding: 30px;
+            box-sizing: border-box;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .youtube-player-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--wf-red), var(--wf-cyan));
+        }
+
+        .youtube-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .youtube-label .live-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--wf-red);
+            box-shadow: 0 0 8px var(--wf-red);
+            animation: pulse 1.8s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .youtube-label span {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--wf-cyan);
+            text-transform: uppercase;
+        }
+
+        .youtube-label a.channel-link {
+            margin-left: auto;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+        .youtube-label a.channel-link:hover { color: var(--wf-cyan); }
+
+        .embed-responsive {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 2px;
+            border: 1px solid rgba(153, 230, 255, 0.1);
+        }
+
+        .embed-responsive iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: 0;
+        }
+
         /* --- OFFERINGS GRID --- */
         .offering-section { width: 100%; text-align: center; }
         .offering-title { 
@@ -202,6 +283,19 @@
             <a href="https://discord.com/invite/thewhyfiles" class="btn">JOIN THE DISCORD</a>
         </main>
 
+        <!-- YOUTUBE LATEST VIDEO -->
+        <section class="youtube-section">
+            <div class="youtube-player-wrapper">
+                <div class="youtube-label">
+                    <span class="live-dot"></span>
+                    <span>Latest Transmission</span>
+                    <a class="channel-link" href="https://www.youtube.com/@TheWhyFiles" target="_blank" rel="noopener">View Channel →</a>
+                </div>
+                <div class="embed-responsive" id="yt-embed-container"></div>
+                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+            </div>
+        </section>
+
         <section class="offering-section">
             <div class="offering-title">Available Operations</div>
             <div class="grid-container">
@@ -234,6 +328,43 @@
     </footer>
 
     <script>
+        // Known latest video ID — used immediately so the player never shows an error.
+        // The RSS fetch below will silently swap it for the true latest if a newer one exists.
+        const FALLBACK_VIDEO_ID = 'ox69c8tXe64';
+
+        function buildIframe(videoId) {
+            return `<iframe
+                style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+                src="https://www.youtube.com/embed/${videoId}?rel=0&color=white"
+                title="The Why Files – Latest Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>`;
+        }
+
+        const container = document.getElementById('yt-embed-container');
+
+        // Show the fallback immediately — no loading spinner, no error
+        container.innerHTML = buildIframe(FALLBACK_VIDEO_ID);
+
+        // Then try to fetch the true latest video from the RSS feed and upgrade if newer
+        (async function tryUpgradeToLatest() {
+            try {
+                const rssUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCIFk2uvCNcEmZ77g0ESKLcQ';
+                const res = await fetch(rssUrl);
+                if (!res.ok) return;
+                const text = await res.text();
+                const xml = new DOMParser().parseFromString(text, 'text/xml');
+                // videoId lives in the <yt:videoId> element (namespace prefix varies by browser)
+                const videoIdEl = xml.querySelector('videoId') || xml.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015', 'videoId')[0];
+                const latestId = videoIdEl?.textContent?.trim();
+                if (latestId && latestId !== FALLBACK_VIDEO_ID) {
+                    container.innerHTML = buildIframe(latestId);
+                }
+            } catch (_) {
+                // Fallback already showing — nothing more to do
+            }
+        })();
+
         function copyIP() {
             const ip = "PLAY.THEWHYFILES.IO";
             navigator.clipboard.writeText(ip);
