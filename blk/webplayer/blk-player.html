@@ -1333,7 +1333,7 @@
                     <span class="auth-tos-box"></span>
                     <span class="auth-tos-text">I have read and agree to the</span>
                 </label>
-                <button class="auth-tos-link" onclick="window.open('https://www.xacanonmusic.com/blk/webplayer/blk-legal.html', '_blank')">Terms of Service ↗</button>
+                <button class="auth-tos-link" onclick="window.open('https://blkmusic.app/terms', '_blank')">Terms of Service ↗</button>
             </div>
             <button class="auth-btn" id="reg-btn" onclick="doRegister()" disabled>Create Account</button>
             <div class="auth-divider">or</div>
@@ -2461,6 +2461,7 @@
         const pass  = document.getElementById('reg-pass').value;
         const btn   = document.getElementById('reg-btn');
         const err   = document.getElementById('reg-error');
+        if (!document.getElementById('reg-tos').checked) { err.textContent = 'You must agree to the Terms of Service.'; return; }
         if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
         if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
         btn.disabled = true; btn.textContent = 'Creating account...';
