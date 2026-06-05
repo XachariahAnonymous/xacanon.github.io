@@ -2131,7 +2131,9 @@
                 purchSnap.forEach(d => { const p = d.data(); if (p.uid === currentUser.uid) ownedIds.add(p.trackId); });
             } catch(e) { console.warn('purchases fetch failed:', e); }
         }
-        ownedIds.forEach(id => purchasedStoreIds.add(id));
+        ownedIds.forEach(id => {
+            purchasedStoreIds.add(id);
+        });
         savePurchasedIds();
 
         try {
@@ -2348,6 +2350,16 @@
                         library.push(track);
                         if (r.source === 'spotify') spotifyTracks.push(track);
                         else if (r.source === 'soundcloud') soundcloudTracks.push(track);
+                        // If this is a purchased store track, register the ownership so the Store
+                        // page shows the correct "Owned" badge across devices/sessions.
+                        else if (r.source === 'store') {
+                            const storeId = r.id.replace(/_lib$/, '');
+                            purchasedStoreIds.add(storeId);
+                            savePurchasedIds();
+                            // Also mark the STORE entry as owned if it's already loaded
+                            const storeEntry = STORE.find(x => x.id === storeId);
+                            if (storeEntry) storeEntry.owned = true;
+                        }
                         if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
                     } else if (change.type === 'modified') {
                         const existing = library.find(t => t.id === r.id);
@@ -3047,6 +3059,13 @@
             + '</div>';
     }
     function renderLibrary(filtered) {
+        // If no explicit filtered list is passed and we have an active filter, honour it.
+        if (filtered === undefined && activeLibFilter && activeLibFilter !== 'all') {
+            const q = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+            let tracks = library.filter(t => t.source === activeLibFilter);
+            if (q) tracks = tracks.filter(t => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+            filtered = tracks;
+        }
         const tracks = filtered ?? library;
         const body = document.getElementById('trackListBody');
         if (!tracks.length) {
@@ -4335,15 +4354,21 @@
         const prevDuration = spCurrentDuration;
         spCurrentDuration = (state.duration || 0) / 1000;
         spCurrentPosition = (state.position || 0) / 1000;
-        isPlaying = !state.paused;
-        updatePlayBtn();
-        document.getElementById('playerArt').classList.toggle('playing', !state.paused);
+
+        // Only update play state from Spotify events if the current track is actually a Spotify track.
+        // Prevents Spotify's "paused" state change from overriding a store/local track that just started.
+        const activeSrc = currentIdx >= 0 && library[currentIdx] ? library[currentIdx].source : null;
+        if (activeSrc === 'spotify' || activeSrc === null) {
+            isPlaying = !state.paused;
+            updatePlayBtn();
+            document.getElementById('playerArt').classList.toggle('playing', !state.paused);
+        }
         if (!state.paused) {
             spTransitioning = false;
-            spStartProgressLoop();
+            if (activeSrc === 'spotify' || activeSrc === null) spStartProgressLoop();
         } else {
             spStopProgressLoop();
-            _earnLastTs = 0;
+            if (activeSrc === 'spotify' || activeSrc === null) _earnLastTs = 0;
         }
     }
     spOnStateChange._lastUri = null;
