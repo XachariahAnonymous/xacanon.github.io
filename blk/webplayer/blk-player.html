@@ -6570,6 +6570,8 @@
         position: relative;
         overflow: hidden;
         transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        font-family: 'Space Mono', monospace;
+        -webkit-font-smoothing: antialiased;
     }
     .wm-btn::after {
         content: '';
@@ -6599,18 +6601,19 @@
     .wm-icon.wc       { background: #3B99FC; }
     .wm-label {
         font-family: 'Space Mono', monospace;
-        font-size: 0.72rem;
+        font-size: 0.75rem;
         font-weight: 700;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         color: #fff;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.25rem;
     }
     .wm-sub {
         font-family: 'Space Mono', monospace;
-        font-size: 0.48rem;
+        font-size: 0.55rem;
         color: var(--sub);
-        letter-spacing: 1.5px;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
+        white-space: nowrap;
     }
     .wm-arrow {
         margin-left: auto;
