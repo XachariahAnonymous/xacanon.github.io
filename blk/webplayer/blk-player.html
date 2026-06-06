@@ -6555,41 +6555,165 @@
 </script>
 
 <!-- Wallet connect modal -->
+<style>
+    .wm-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        padding: 1rem 1.1rem;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: #fff;
+        cursor: pointer;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .wm-btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .wm-btn.phantom::after  { background: radial-gradient(ellipse at left, rgba(171,159,242,0.08) 0%, transparent 70%); }
+    .wm-btn.metamask::after { background: radial-gradient(ellipse at left, rgba(246,133,27,0.08)  0%, transparent 70%); }
+    .wm-btn.wc::after       { background: radial-gradient(ellipse at left, rgba(59,153,252,0.08)  0%, transparent 70%); }
+    .wm-btn:hover::after    { opacity: 1; }
+    .wm-btn.phantom:hover   { border-color: rgba(171,159,242,0.5); box-shadow: 0 0 0 1px rgba(171,159,242,0.12); }
+    .wm-btn.metamask:hover  { border-color: rgba(246,133,27,0.5);  box-shadow: 0 0 0 1px rgba(246,133,27,0.12); }
+    .wm-btn.wc:hover        { border-color: rgba(59,153,252,0.5);  box-shadow: 0 0 0 1px rgba(59,153,252,0.12); }
+    .wm-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .wm-icon.phantom  { background: #AB9FF2; }
+    .wm-icon.metamask { background: #F6851B; }
+    .wm-icon.wc       { background: #3B99FC; }
+    .wm-label {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #fff;
+        margin-bottom: 0.2rem;
+    }
+    .wm-sub {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.48rem;
+        color: var(--sub);
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+    .wm-arrow {
+        margin-left: auto;
+        font-size: 0.9rem;
+        color: var(--sub);
+        transition: transform 0.2s, color 0.2s;
+        flex-shrink: 0;
+    }
+    .wm-btn:hover .wm-arrow { transform: translateX(3px); color: rgba(255,255,255,0.5); }
+    .wm-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin: 1.4rem 0;
+    }
+    .wm-divider::before,
+    .wm-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    .wm-divider span {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.48rem;
+        color: var(--sub);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .wm-status {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.58rem;
+        letter-spacing: 1px;
+        min-height: 1.4rem;
+        text-align: center;
+        padding: 0.5rem 0.8rem;
+        border-radius: 2px;
+        transition: all 0.2s;
+    }
+    .wm-status:not(:empty) {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+    }
+</style>
+
 <div class="modal-bg" id="walletModal" onclick="if(event.target===this)closeWalletModal()">
-    <div class="modal" style="max-width:400px;">
+    <div class="modal" style="max-width:380px;padding:2.2rem 2rem 1.8rem;">
         <button class="modal-close" onclick="closeWalletModal()">✕</button>
         <span class="modal-tag">Account // Wallet</span>
-        <h3 style="margin-bottom:0.4rem;">Connect Wallet</h3>
-        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);letter-spacing:1px;margin-bottom:1.8rem;line-height:1.8;">
-            Link a Solana wallet to display your address and SOL balance.
+        <h3 style="margin-bottom:0.5rem;font-size:1.4rem;">Connect Wallet</h3>
+        <p style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--sub);letter-spacing:0.5px;line-height:1.9;margin-bottom:1.6rem;">
+            Link a Solana wallet to display your address &amp; SOL balance.
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            <button class="wm-btn phantom" onclick="walletConnectPhantom()">
+                <div class="wm-icon phantom">
+                    <svg width="22" height="22" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M110.9 64.5c0 25.7-20.8 46.5-46.5 46.5S17.9 90.2 17.9 64.5 38.7 18 64.4 18s46.5 20.8 46.5 46.5Z" fill="#fff" opacity="0.9"/>
+                        <path d="M80.5 54.3H47.5a2.5 2.5 0 0 0 0 5h33a2.5 2.5 0 0 0 0-5Zm0 12H47.5a2.5 2.5 0 0 0 0 5h33a2.5 2.5 0 0 0 0-5Z" fill="#AB9FF2"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="wm-label">Phantom</div>
+                    <div class="wm-sub">Solana · Browser Extension</div>
+                </div>
+                <span class="wm-arrow">›</span>
+            </button>
+
+            <button class="wm-btn metamask" onclick="walletConnectMetaMask()">
+                <div class="wm-icon metamask">
+                    <svg width="22" height="22" viewBox="0 0 318 318" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#E2761B" stroke="#E2761B" stroke-linecap="round" stroke-linejoin="round" d="M274.1 35.5 174.6 109l19.4-45.9z"/>
+                        <path fill="#E4761B" stroke="#E4761B" stroke-linecap="round" stroke-linejoin="round" d="M44 35.5 142.7 109.7 124.1 63.1zM238.3 206.8l-27.2 41.6 58.2 16 16.7-56.7zm-205.9.9 16.6 56.7 58.2-16-27.2-41.6z"/>
+                        <path fill="#E4761B" stroke="#E4761B" stroke-linecap="round" stroke-linejoin="round" d="M105.3 138.2 88.9 163.8l57.8 2.6-2-62.1zm107.4 0L189 103.9l-1.7 62.5 57.7-2.6zM107.3 248.4l34.7-16.9-30-23.5zm68.7-16.9 34.8 16.9-4.8-40.4z"/>
+                        <path fill="#D7C1B3" stroke="#D7C1B3" stroke-linecap="round" stroke-linejoin="round" d="M210.8 248.4 176 231.5l2.9 23.7-.3 9.6zm-103.5 0 21.4 16.4-.2-9.6 2.8-23.7z"/>
+                        <path fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" d="M129.1 194.5l-28.9-8.5 20.4-9.3zm59.8 0 8.5-17.8 20.5 9.3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="wm-label">MetaMask</div>
+                    <div class="wm-sub">EVM / Solana Snap · Browser Extension</div>
+                </div>
+                <span class="wm-arrow">›</span>
+            </button>
+
+            <button class="wm-btn wc" onclick="walletConnectWalletConnect()">
+                <div class="wm-icon wc">
+                    <svg width="22" height="14" viewBox="0 0 300 185" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M61.4 36.7c48.9-47.9 128.3-47.9 177.2 0l5.9 5.8a6.1 6.1 0 0 1 0 8.7l-20.1 19.7a3.2 3.2 0 0 1-4.4 0l-8.1-7.9c-34.1-33.4-89.4-33.4-123.5 0l-8.7 8.5a3.2 3.2 0 0 1-4.4 0L54.2 51.8a6.1 6.1 0 0 1 0-8.7l7.2-6.4Zm218.8 40.8 17.9 17.5a6.1 6.1 0 0 1 0 8.7L202.5 197a6.3 6.3 0 0 1-8.9 0l-67.4-66a1.6 1.6 0 0 0-2.2 0l-67.4 66a6.3 6.3 0 0 1-8.9 0L3.1 103.7a6.1 6.1 0 0 1 0-8.7l17.9-17.5a6.3 6.3 0 0 1 8.9 0l67.4 66a1.6 1.6 0 0 0 2.2 0l67.4-66a6.3 6.3 0 0 1 8.9 0l67.4 66a1.6 1.6 0 0 0 2.2 0l67.4-66a6.3 6.3 0 0 1 8.9 0Z" fill="#fff"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="wm-label">WalletConnect</div>
+                    <div class="wm-sub">All wallets · QR Code / Deep Link</div>
+                </div>
+                <span class="wm-arrow">›</span>
+            </button>
         </div>
-        <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1.2rem;">
-            <button onclick="walletConnectPhantom()" style="display:flex;align-items:center;gap:0.9rem;width:100%;padding:0.9rem 1rem;background:var(--surface2);border:1px solid var(--border);color:#fff;cursor:pointer;transition:border-color 0.2s,background 0.2s;text-align:left;" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
-                <svg width="28" height="28" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;"><rect width="128" height="128" rx="26" fill="#AB9FF2"/><path d="M110.9 64.5c0 25.7-20.8 46.5-46.5 46.5S17.9 90.2 17.9 64.5 38.7 18 64.4 18s46.5 20.8 46.5 46.5Z" fill="#fff"/><path d="M82.5 55.3H45.5a2.5 2.5 0 0 0 0 5h37a2.5 2.5 0 0 0 0-5Zm0 12H45.5a2.5 2.5 0 0 0 0 5h37a2.5 2.5 0 0 0 0-5Z" fill="#AB9FF2"/></svg>
-                <div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:1px;color:#fff;">Phantom</div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;">Solana · Browser Extension</div>
-                </div>
-                <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);">→</span>
-            </button>
-            <button onclick="walletConnectMetaMask()" style="display:flex;align-items:center;gap:0.9rem;width:100%;padding:0.9rem 1rem;background:var(--surface2);border:1px solid var(--border);color:#fff;cursor:pointer;transition:border-color 0.2s,background 0.2s;text-align:left;" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
-                <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;"><rect width="512" height="512" rx="100" fill="#F6851B"/><path fill="#fff" d="M357 135 256 215l18-85Zm-202 0-17 95 18 85-101-80Zm155 218-27 53-66-19-9 53h98l22-53-18-34Zm-108 87-9-53-66 19-27-53-18 34 22 53h98Z"/></svg>
-                <div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:1px;color:#fff;">MetaMask</div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;">EVM / Solana Snap · Browser Extension</div>
-                </div>
-                <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);">→</span>
-            </button>
-            <button onclick="walletConnectWalletConnect()" style="display:flex;align-items:center;gap:0.9rem;width:100%;padding:0.9rem 1rem;background:var(--surface2);border:1px solid var(--border);color:#fff;cursor:pointer;transition:border-color 0.2s,background 0.2s;text-align:left;" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
-                <svg width="28" height="28" viewBox="0 0 300 185" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;background:#3B99FC;border-radius:6px;padding:3px;"><path d="M61.4 36.7c48.9-47.9 128.3-47.9 177.2 0l5.9 5.8a6.1 6.1 0 0 1 0 8.7l-20.1 19.7a3.2 3.2 0 0 1-4.4 0l-8.1-7.9c-34.1-33.4-89.4-33.4-123.5 0l-8.7 8.5a3.2 3.2 0 0 1-4.4 0L54.2 51.8a6.1 6.1 0 0 1 0-8.7l7.2-6.4Zm218.8 40.8 17.9 17.5a6.1 6.1 0 0 1 0 8.7L202.5 197a6.3 6.3 0 0 1-8.9 0l-67.4-66a1.6 1.6 0 0 0-2.2 0l-67.4 66a6.3 6.3 0 0 1-8.9 0L3.1 103.7a6.1 6.1 0 0 1 0-8.7l17.9-17.5a6.3 6.3 0 0 1 8.9 0l67.4 66a1.6 1.6 0 0 0 2.2 0l67.4-66a6.3 6.3 0 0 1 8.9 0l67.4 66a1.6 1.6 0 0 0 2.2 0l67.4-66a6.3 6.3 0 0 1 8.9 0Z" fill="#fff"/></svg>
-                <div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.7rem;font-weight:700;letter-spacing:1px;color:#fff;">WalletConnect</div>
-                    <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;">All wallets · QR Code / Deep Link</div>
-                </div>
-                <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);">→</span>
-            </button>
-        </div>
-        <div id="walletModalStatus" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:1px;min-height:1.2rem;text-align:center;"></div>
+
+        <div class="wm-divider"><span>Secured · Non-custodial</span></div>
+        <div id="walletModalStatus" class="wm-status"></div>
     </div>
 </div>
 </body>
