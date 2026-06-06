@@ -1535,6 +1535,25 @@
                 </div>
                 <button onclick="openCreatePlaylist()" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.4rem;background:var(--accent);border:none;color:#fff;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#7B27CC'" onmouseout="this.style.background='var(--accent)'">⊕ New Playlist</button>
             </div>
+            <div style="padding:0 2rem 1.2rem;display:flex;flex-direction:column;gap:0.5rem;">
+                <div style="display:flex;gap:0.5rem;align-items:stretch;">
+                    <div style="position:relative;flex:1;">
+                        <span style="position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);font-size:0.85rem;pointer-events:none;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="display:block;opacity:0.5;"><circle cx="12" cy="12" r="10" stroke="#1ED760" stroke-width="2"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="#1ED760" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1.5" fill="#1ED760"/></svg>
+                        </span>
+                        <input id="spPlaylistUrlInput" type="text" placeholder="Paste Spotify playlist URL or URI…"
+                            onkeydown="if(event.key==='Enter')addSpotifyPlaylistByUrl()"
+                            style="width:100%;box-sizing:border-box;padding:0.7rem 0.85rem 0.7rem 2.3rem;background:var(--surface2);border:1px solid var(--border);color:#fff;font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.5px;outline:none;transition:border-color 0.2s;"
+                            onfocus="this.style.borderColor='rgba(30,215,96,0.5)'" onblur="this.style.borderColor='var(--border)'"/>
+                    </div>
+                    <button id="spPlaylistImportBtn" onclick="addSpotifyPlaylistByUrl()"
+                        style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;padding:0.7rem 1.2rem;background:#1ED760;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;transition:background 0.2s;flex-shrink:0;"
+                        onmouseover="this.style.background='#17b550'" onmouseout="this.style.background='#1ED760'">
+                        Import
+                    </button>
+                </div>
+                <div id="spPlaylistImportStatus" style="font-family:'Space Mono',monospace;font-size:0.58rem;letter-spacing:0.5px;min-height:1rem;color:var(--sub);padding-left:0.1rem;"></div>
+            </div>
             <div id="playlistGrid" class="pl-grid"></div>
             </div>
             <div id="playlistDetailOverlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:50;overflow-y:auto;padding-bottom:100px;"></div>
@@ -4864,7 +4883,131 @@
         showToast(added + ' tracks imported · playlist "' + name + '" created', true);
     }
 
-    async function addSpotifyPlaylistByUrl() {}
+    async function addSpotifyPlaylistByUrl() {
+        const input    = document.getElementById('spPlaylistUrlInput');
+        const btn      = document.getElementById('spPlaylistImportBtn');
+        const statusEl = document.getElementById('spPlaylistImportStatus');
+        const url      = (input ? input.value.trim() : '');
+
+        function setStatus(msg, colour) {
+            if (!statusEl) return;
+            statusEl.textContent = msg;
+            statusEl.style.color = colour || 'var(--sub)';
+        }
+
+        if (!url) { setStatus('Paste a Spotify playlist URL first.', 'var(--error)'); input && input.focus(); return; }
+
+        // Parse playlist ID from URL or URI
+        const mUrl = url.match(/spotify\.com\/(?:intl-[a-z]{2,5}\/)?playlist\/([A-Za-z0-9]+)/);
+        const mUri = url.match(/^spotify:playlist:([A-Za-z0-9]+)$/);
+        const playlistId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
+        if (!playlistId) { setStatus('Not a valid Spotify playlist URL or URI.', 'var(--error)'); return; }
+
+        // Require Spotify connection
+        if (!spAccessToken && !await spRefreshIfNeeded()) {
+            setStatus('Connect your Spotify account first (Library → Spotify).', 'var(--warn)');
+            return;
+        }
+
+        if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; btn.style.opacity = '0.6'; }
+        setStatus('Fetching playlist info…', 'var(--sub)');
+
+        try {
+            // Fetch playlist name
+            let playlistName = 'Imported Playlist';
+            const metaR = await fetch('https://api.spotify.com/v1/playlists/' + playlistId + '?fields=name,tracks.total', {
+                headers: { 'Authorization': 'Bearer ' + spAccessToken }
+            });
+            if (!metaR.ok) {
+                const err = await metaR.json().catch(() => ({}));
+                const reason = (err.error && err.error.message) || ('Error ' + metaR.status);
+                setStatus('Could not access playlist: ' + reason, 'var(--error)');
+                if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
+                return;
+            }
+            const meta = await metaR.json();
+            playlistName = meta.name || playlistName;
+            const total  = meta.tracks && meta.tracks.total || '?';
+            setStatus('Loading ' + total + ' tracks from "' + playlistName + '"…', 'rgba(30,215,96,0.7)');
+
+            // Fetch all tracks (paginated)
+            let allTracks = [], offset = 0, pageTotal = null;
+            while (pageTotal === null || offset < pageTotal) {
+                const r = await fetch('https://api.spotify.com/v1/playlists/' + playlistId + '/tracks?limit=50&offset=' + offset, {
+                    headers: { 'Authorization': 'Bearer ' + spAccessToken }
+                });
+                if (!r.ok) {
+                    const err = await r.json().catch(() => ({}));
+                    setStatus('Failed loading tracks: ' + ((err.error && err.error.message) || r.status), 'var(--error)');
+                    if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
+                    return;
+                }
+                const data = await r.json();
+                pageTotal = data.total || 0;
+                const page = (data.items || []).filter(i => i && i.track && i.track.id).map(i => spFromAPI(i.track));
+                allTracks = allTracks.concat(page);
+                offset += 50;
+                if (allTracks.length > 0) setStatus('Loaded ' + allTracks.length + ' of ' + pageTotal + ' tracks…', 'rgba(30,215,96,0.7)');
+                if (!data.next) break;
+            }
+
+            if (!allTracks.length) {
+                setStatus('Playlist appears to be empty or has no playable tracks.', 'var(--warn)');
+                if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
+                return;
+            }
+
+            // Add tracks to library (skip duplicates)
+            let added = 0;
+            const newIds = [];
+            allTracks.forEach(t => {
+                if (!t || library.some(l => l.spUri === t.spUri)) return;
+                const track = {
+                    id: 'sp_lib_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                    spUri: t.spUri, url: t.spUri,
+                    title: t.title, artist: t.artist, album: t.album || playlistName,
+                    albumArt: t.artwork || null,
+                    duration: t.duration || 0,
+                    dateAdded: new Date().toLocaleDateString(),
+                    emoji: '🎵', source: 'spotify',
+                    playlist: playlistName
+                };
+                library.push(track);
+                spotifyTracks.push(track);
+                newIds.push(track.id);
+                if (typeof idbSaveStreaming === 'function') idbSaveStreaming(track);
+                fbSaveStreamingTrack(track);
+                added++;
+            });
+
+            const skipped = allTracks.length - added;
+
+            // Create or update BLK playlist
+            if (added > 0) {
+                const existing = playlists.find(p => p.name === playlistName);
+                if (existing) {
+                    existing.trackIds = Array.from(new Set([...existing.trackIds, ...newIds]));
+                } else {
+                    playlists.push({ id: 'pl_' + Date.now(), name: playlistName, trackIds: newIds, createdAt: new Date().toISOString() });
+                }
+                plSave();
+            }
+
+            renderLibrary(); renderQueue(); renderPlaylists();
+
+            const statusMsg = added + ' tracks imported' + (skipped ? ' · ' + skipped + ' already in library' : '') + ' → "' + playlistName + '"';
+            setStatus('✓ ' + statusMsg, '#1ED760');
+            showToast(statusMsg, true);
+
+            if (input) input.value = '';
+
+        } catch(e) {
+            setStatus('Import failed: ' + (e.message || 'unknown error'), 'var(--error)');
+            console.error('[BLK] Playlist import error', e);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
+        }
+    }
     async function _addSpotifyPlaylistByUrl_disabled() {
         const input  = document.getElementById('spPlaylistInput');
         const btn    = document.getElementById('spPlaylistImportBtn');
@@ -6478,52 +6621,101 @@
     async function walletConnectWalletConnect() {
         const statusEl = document.getElementById('walletModalStatus');
         statusEl.style.color = 'var(--sub)';
-        statusEl.textContent = 'Opening WalletConnect…';
-        try {
-            if (typeof window.WalletConnectModal === 'undefined' && typeof window.EthereumProvider === 'undefined') {
-                statusEl.textContent = 'Loading WalletConnect…';
-                await new Promise((res, rej) => {
-                    const s = document.createElement('script');
-                    s.src = 'https://unpkg.com/@walletconnect/ethereum-provider@2/dist/umd/index.min.js';
-                    s.onload = res; s.onerror = rej;
-                    document.head.appendChild(s);
-                });
-            }
-            const provider = await window.EthereumProvider.init({
-                projectId: 'b6f8ccbf9f4e4c3b7d1a9e2f5c8d0e4b',
-                chains: [1],
-                showQrModal: true,
-                qrModalOptions: { themeMode: 'dark' }
+        statusEl.textContent = 'Loading WalletConnect…';
+
+        // Load the WalletConnect modal SDK (lazy)
+        function _loadScript(src) {
+            return new Promise((res, rej) => {
+                if (document.querySelector('script[src="' + src + '"]')) { res(); return; }
+                const s = document.createElement('script');
+                s.src = src; s.onload = res; s.onerror = rej;
+                document.head.appendChild(s);
             });
-            await provider.connect();
-            const accounts = provider.accounts;
-            if (!accounts || !accounts[0]) throw new Error('No accounts');
-            const address = accounts[0];
-            blkWallet.address  = address;
-            blkWallet.type     = 'walletconnect';
-            blkWallet.provider = provider;
-            blkWallet.balance  = null;
-            provider.on('disconnect', walletDisconnect);
-            provider.on('accountsChanged', (accs) => {
-                if (accs && accs[0]) {
-                    blkWallet.address = accs[0];
-                    _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
-                } else {
-                    walletDisconnect();
+        }
+
+        try {
+            // Use the official WalletConnect modal bundle — exposes window.WalletConnectModal
+            await _loadScript('https://unpkg.com/@walletconnect/modal@2.6.2/dist/index.umd.js');
+
+            // Also load the sign-client
+            await _loadScript('https://unpkg.com/@walletconnect/sign-client@2.11.0/dist/index.umd.js');
+
+            const WCModal    = window.WalletConnectModal?.WalletConnectModal;
+            const SignClient = window.SignClient?.SignClient ?? window.SignClient;
+
+            if (!WCModal || !SignClient) throw new Error('SDK_LOAD_FAIL');
+
+            // You must register a real project ID at https://cloud.walletconnect.com
+            // Replace the placeholder below with your actual project ID
+            const PROJECT_ID = window.BLK_WC_PROJECT_ID || 'YOUR_WALLETCONNECT_PROJECT_ID';
+
+            if (PROJECT_ID === 'YOUR_WALLETCONNECT_PROJECT_ID') {
+                statusEl.style.color = 'var(--warn)';
+                statusEl.textContent = '⚠ Set window.BLK_WC_PROJECT_ID with your WalletConnect project ID from cloud.walletconnect.com';
+                return;
+            }
+
+            statusEl.textContent = 'Opening WalletConnect…';
+
+            const modal = new WCModal({ projectId: PROJECT_ID, themeMode: 'dark' });
+            const client = await SignClient.init({ projectId: PROJECT_ID });
+
+            const { uri, approval } = await client.connect({
+                requiredNamespaces: {
+                    solana: {
+                        methods: ['solana_signTransaction', 'solana_signMessage'],
+                        chains: ['solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ'],
+                        events: ['accountsChanged']
+                    }
                 }
             });
+
+            if (uri) await modal.openModal({ uri });
+
+            const session = await approval();
+            modal.closeModal();
+
+            const accounts = Object.values(session.namespaces)
+                .flatMap(ns => ns.accounts)
+                .map(a => a.split(':')[2]);
+
+            if (!accounts || !accounts[0]) throw new Error('No accounts');
+            const address = accounts[0];
+
+            blkWallet.address  = address;
+            blkWallet.type     = 'walletconnect';
+            blkWallet.provider = client;
+            blkWallet.balance  = await _getSolBalance(address);
+
+            client.on('session_delete', walletDisconnect);
+            client.on('session_update', ({ params }) => {
+                const updated = Object.values(params.namespaces)
+                    .flatMap(ns => ns.accounts)
+                    .map(a => a.split(':')[2]);
+                if (updated[0]) {
+                    blkWallet.address = updated[0];
+                    _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
+                }
+            });
+
             statusEl.style.color = 'var(--success)';
             statusEl.textContent = '✓ Connected: ' + _shortAddr(address);
             _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
             setTimeout(closeWalletModal, 900);
             showToast('WalletConnect wallet linked ✓', true);
+
         } catch(e) {
-            if (e && e.message && e.message.includes('User rejected')) {
+            const msg = e?.message || '';
+            if (msg === 'SDK_LOAD_FAIL') {
                 statusEl.style.color = 'var(--error)';
-                statusEl.textContent = 'Connection rejected by user.';
+                statusEl.textContent = 'Failed to load WalletConnect SDK — check your connection.';
+            } else if (msg.toLowerCase().includes('rejected') || msg.toLowerCase().includes('cancelled') || msg.toLowerCase().includes('closed')) {
+                statusEl.style.color = 'var(--error)';
+                statusEl.textContent = 'Connection cancelled.';
             } else {
                 statusEl.style.color = 'var(--error)';
-                statusEl.textContent = 'WalletConnect failed — try another wallet.';
+                statusEl.textContent = 'WalletConnect failed: ' + (msg || 'unknown error');
+                console.error('[WalletConnect]', e);
             }
         }
     }
