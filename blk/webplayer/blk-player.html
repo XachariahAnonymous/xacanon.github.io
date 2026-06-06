@@ -4903,8 +4903,9 @@
         const playlistId = (mUrl && mUrl[1]) || (mUri && mUri[1]);
         if (!playlistId) { setStatus('Not a valid Spotify playlist URL or URI.', 'var(--error)'); return; }
 
-        // Require Spotify connection
-        if (!spAccessToken && !await spRefreshIfNeeded()) {
+        // Require Spotify connection — force a fresh token refresh
+        try { await spRefreshIfNeeded(); } catch(_) {}
+        if (!spAccessToken) {
             setStatus('Connect your Spotify account first (Library → Spotify).', 'var(--warn)');
             return;
         }
@@ -4912,20 +4913,32 @@
         if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; btn.style.opacity = '0.6'; }
         setStatus('Fetching playlist info…', 'var(--sub)');
 
+        // Helper: surface 403 as a re-auth prompt
+        async function spGet(url) {
+            const r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + spAccessToken } });
+            if (!r.ok) {
+                const err = await r.json().catch(() => ({}));
+                const msg = (err.error && err.error.message) ? err.error.message : ('Error ' + r.status);
+                console.error('[BLK] Spotify API', r.status, url, err);
+                throw new Error(r.status === 403 ? '403:' + msg : msg);
+            }
+            return r.json();
+        }
+
         try {
             // Fetch playlist name
             let playlistName = 'Imported Playlist';
-            const metaR = await fetch('https://api.spotify.com/v1/playlists/' + playlistId + '?fields=name,tracks.total', {
-                headers: { 'Authorization': 'Bearer ' + spAccessToken }
-            });
-            if (!metaR.ok) {
-                const err = await metaR.json().catch(() => ({}));
-                const reason = (err.error && err.error.message) || ('Error ' + metaR.status);
-                setStatus('Could not access playlist: ' + reason, 'var(--error)');
-                if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
-                return;
+            let meta;
+            try {
+                meta = await spGet('https://api.spotify.com/v1/playlists/' + playlistId + '?additional_types=track');
+            } catch(e) {
+                if (e.message.startsWith('403:')) {
+                    setStatus('⚠ Access denied. This playlist may be private. Disconnect and reconnect Spotify, then try again.', 'var(--warn)');
+                    if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
+                    return;
+                }
+                throw e;
             }
-            const meta = await metaR.json();
             playlistName = meta.name || playlistName;
             const total  = meta.tracks && meta.tracks.total || '?';
             setStatus('Loading ' + total + ' tracks from "' + playlistName + '"…', 'rgba(30,215,96,0.7)');
@@ -4933,16 +4946,17 @@
             // Fetch all tracks (paginated)
             let allTracks = [], offset = 0, pageTotal = null;
             while (pageTotal === null || offset < pageTotal) {
-                const r = await fetch('https://api.spotify.com/v1/playlists/' + playlistId + '/tracks?limit=50&offset=' + offset, {
-                    headers: { 'Authorization': 'Bearer ' + spAccessToken }
-                });
-                if (!r.ok) {
-                    const err = await r.json().catch(() => ({}));
-                    setStatus('Failed loading tracks: ' + ((err.error && err.error.message) || r.status), 'var(--error)');
-                    if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
-                    return;
+                let data;
+                try {
+                    data = await spGet('https://api.spotify.com/v1/playlists/' + playlistId + '/tracks?limit=50&offset=' + offset + '&additional_types=track');
+                } catch(e) {
+                    if (e.message.startsWith('403:')) {
+                        setStatus('⚠ Access denied fetching tracks. Disconnect and reconnect Spotify to refresh permissions.', 'var(--warn)');
+                        if (btn) { btn.disabled = false; btn.textContent = 'Import'; btn.style.opacity = '1'; }
+                        return;
+                    }
+                    throw e;
                 }
-                const data = await r.json();
                 pageTotal = data.total || 0;
                 const page = (data.items || []).filter(i => i && i.track && i.track.id).map(i => spFromAPI(i.track));
                 allTracks = allTracks.concat(page);
