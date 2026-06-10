@@ -2218,7 +2218,7 @@
                     const t = d.data();
                     const purchased = ownedIds.has(d.id);
                     const inLibrary = library.some(l => l.id === d.id+'_lib');
-                    STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary, coverUrl: t.coverUrl||null });
+                    STORE.push({ id: d.id, title: t.title||'Untitled', artist: t.artist||'Unknown', genre: t.genre||'Electronic', price: t.price||0.99, url: t.url||'', emoji: t.emoji||'◈', color: t.color||'#0d001a', badge: t.badge||null, owned: inLibrary, coverUrl: t.coverUrl||null, artistUid: t.artistUid||null });
                     if (purchased && !inLibrary) {
                         const _storeTrack = { id: d.id+'_lib', url: t.url||'', title: t.title||'Untitled', artist: t.artist||'Unknown', album: 'BLK Store', duration: 0, dateAdded: new Date().toLocaleDateString(), emoji: t.emoji||'◈', source: 'store', albumArt: t.coverUrl||null };
                         library.push(_storeTrack);
