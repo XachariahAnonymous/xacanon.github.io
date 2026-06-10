@@ -9,7 +9,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyDVpJGk_NOPPWH_IKDJSETVDV-XMc_Zuco",
@@ -25,7 +25,7 @@
         const auth = getAuth(app);
         const db   = getFirestore(app);
 
-        window._adminFB = { auth, db, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp };
+        window._adminFB = { auth, db, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, orderBy, addDoc, serverTimestamp };
     </script>
 
     <style>
@@ -211,6 +211,23 @@
         .store-track-meta { font-size: 0.7rem; color: var(--sub); font-family: 'Space Mono', monospace; }
         .store-track-price { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 0.8rem; }
 
+        /* Public access toggle */
+        .access-control-panel { border: 1px solid var(--border); margin-bottom: 2.5rem; }
+        .access-control-body { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .access-control-info .label { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: #fff; letter-spacing: 1px; margin-bottom: 0.3rem; }
+        .access-control-info .desc  { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); line-height: 1.6; }
+        .access-status { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; padding: 0.25rem 0.7rem; border: 1px solid; display: inline-block; margin-top: 0.5rem; }
+        .access-status.open   { color: var(--success); border-color: var(--success); background: rgba(0,255,102,0.07); }
+        .access-status.closed { color: var(--error);   border-color: var(--error);   background: rgba(255,0,51,0.07); }
+
+        .blk-toggle { position: relative; display: inline-flex; align-items: center; cursor: pointer; gap: 0.8rem; user-select: none; }
+        .blk-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .blk-toggle-track { width: 52px; height: 28px; background: var(--surface2); border: 1px solid var(--border); position: relative; transition: all 0.25s; flex-shrink: 0; }
+        .blk-toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: var(--sub); transition: all 0.25s; }
+        .blk-toggle input:checked + .blk-toggle-track { background: rgba(0,255,102,0.15); border-color: var(--success); }
+        .blk-toggle input:checked + .blk-toggle-track::after { left: 27px; background: var(--success); }
+        .blk-toggle-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 1px; color: var(--sub); }
+
         @media (max-width: 768px) {
             .admin-layout { grid-template-columns: 1fr; }
             .admin-sidebar { display: flex; overflow-x: auto; padding: 0; border-right: none; border-bottom: 1px solid var(--border); }
@@ -256,6 +273,25 @@
                 <div class="page-tag">BLK Admin // Overview</div>
                 <div class="page-title">Dashboard</div>
             </div>
+            <!-- Public access control -->
+            <div class="access-control-panel">
+                <div class="table-toolbar">
+                    <span class="table-toolbar-title">Player Access</span>
+                    <span id="accessStatusBadge" class="access-status closed">Closed</span>
+                </div>
+                <div class="access-control-body">
+                    <div class="access-control-info">
+                        <div class="label">Public Access</div>
+                        <div class="desc">When enabled, all registered users can access the player.<br>When disabled, only admins can sign in.</div>
+                    </div>
+                    <label class="blk-toggle">
+                        <input type="checkbox" id="publicAccessToggle" onchange="setPublicAccess(this.checked)">
+                        <div class="blk-toggle-track"></div>
+                        <span class="blk-toggle-label" id="toggleLabel">Loading…</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="stat-row" id="dashStats">
                 <div class="stat-card"><div class="stat-card-label">Total Users</div><div class="stat-card-val" id="statUsers">—</div></div>
                 <div class="stat-card"><div class="stat-card-label">Admin Accounts</div><div class="stat-card-val" id="statAdmins">—</div></div>
@@ -597,7 +633,7 @@
     }
 
     async function loadAllData() {
-        await Promise.all([loadUsers(), loadPurchases()]);
+        await Promise.all([loadUsers(), loadPurchases(), loadPublicAccess()]);
         updateDashboard();
     }
 
@@ -1132,6 +1168,42 @@
         t.className = 'toast show' + (success?' success':'') + (danger?' danger':'');
         clearTimeout(t._timer); t._timer = setTimeout(()=>t.className='toast', 3000);
     }
+
+    // ── Public access control ────────────────────────────────────────────────
+    async function loadPublicAccess() {
+        try {
+            const snap = await FB.getDoc(FB.doc(FB.db, 'siteSettings', 'config'));
+            const enabled = snap.exists() ? (snap.data().publicAccess === true) : false;
+            applyPublicAccessUI(enabled);
+        } catch(e) {
+            console.warn('loadPublicAccess failed:', e);
+            applyPublicAccessUI(false);
+        }
+    }
+
+    async function setPublicAccess(enabled) {
+        try {
+            const ref = FB.doc(FB.db, 'siteSettings', 'config');
+            await FB.setDoc(ref, { publicAccess: enabled }, { merge: true });
+            applyPublicAccessUI(enabled);
+            showToast(enabled ? 'Player is now public' : 'Player is now admin-only', enabled);
+        } catch(e) {
+            showToast('Failed to save setting', false, true);
+            console.error('setPublicAccess error:', e);
+            // Revert toggle
+            applyPublicAccessUI(!enabled);
+        }
+    }
+
+    function applyPublicAccessUI(enabled) {
+        const toggle = document.getElementById('publicAccessToggle');
+        const badge  = document.getElementById('accessStatusBadge');
+        const label  = document.getElementById('toggleLabel');
+        if (toggle) toggle.checked = enabled;
+        if (badge)  { badge.textContent = enabled ? 'Public' : 'Closed'; badge.className = 'access-status ' + (enabled ? 'open' : 'closed'); }
+        if (label)  label.textContent = enabled ? 'Enabled' : 'Disabled';
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     // ── Artist user selector ─────────────────────────────────────────────────
     let _dropdownCloseTimer = null;
