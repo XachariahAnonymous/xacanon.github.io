@@ -315,6 +315,31 @@
                 <div class="page-title">Store Music</div>
             </div>
 
+            <!-- GitHub PAT settings -->
+            <div class="table-wrap" style="margin-bottom:2rem;">
+                <div class="table-toolbar">
+                    <span class="table-toolbar-title">GitHub Settings</span>
+                    <span style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);">XachariahAnonymous/xacanon.github.io · blk/webplayer/</span>
+                </div>
+                <div style="padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:260px;">
+                        <label class="modal-input-label">Personal Access Token (PAT)</label>
+                        <div style="display:flex;gap:0.6rem;align-items:center;">
+                            <input class="modal-input" id="ghPatInput" type="password"
+                                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                style="flex:1;font-size:0.75rem;"
+                                oninput="saveGHPat()"
+                                value="">
+                            <button class="tbl-btn promote" style="white-space:nowrap;" onclick="togglePatVisibility()">Show</button>
+                        </div>
+                        <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);margin-top:0.4rem;line-height:1.6;">
+                            Needs <strong style="color:#fff;">repo</strong> scope (Contents: read &amp; write). Stored in localStorage only.
+                        </div>
+                    </div>
+                    <div id="ghPatStatus" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:1px;"></div>
+                </div>
+            </div>
+
             <div class="table-wrap" style="margin-bottom:2rem;">
                 <div class="table-toolbar">
                     <span class="table-toolbar-title">Upload New Track</span>
@@ -511,8 +536,15 @@
 
 <script>
 
-    const R2_WORKER_URL    = 'https://blk-r2-worker.xacanonmusic.workers.dev';
-    const R2_UPLOAD_SECRET = 'Ajax2026!';
+    const GH_REPO   = 'XachariahAnonymous/xacanon.github.io';
+    const GH_BRANCH = 'main';
+    const GH_AUDIO_PATH  = 'blk/webplayer/audio';
+    const GH_COVER_PATH  = 'blk/webplayer/covers';
+    const GH_RAW_BASE    = `https://raw.githubusercontent.com/${GH_REPO}/${GH_BRANCH}`;
+
+    function getGHToken() {
+        return (localStorage.getItem('blk_gh_pat') || '').trim();
+    }
     const SUBGENRES = {
         'R&B / Soul':          ['Contemporary R&B','Neo-Soul','Soul','Funk','Motown','Gospel','Quiet Storm'],
         'Jazz':                ['Bebop','Cool Jazz','Fusion','Smooth Jazz','Free Jazz','Acid Jazz','Swing','Latin Jazz'],
@@ -735,27 +767,25 @@
         progressFill.style.width  = '0%';
 
         try {
-            const audioUrl = await xhrUpload(
+            const audioUrl = await githubUpload(
                 uploadedAudioFile,
-                uploadedAudioFile.name,
-                uploadedAudioFile.type || 'audio/mpeg',
+                GH_AUDIO_PATH,
                 (pct) => {
                     progressFill.style.width = pct + '%';
-                    statusEl.textContent = `Uploading audio… ${pct}%`;
+                    statusEl.textContent = `Uploading audio to GitHub… ${pct}%`;
                 }
             );
 
             let coverUrl = null;
             if (uploadedCoverFile) {
-                statusEl.textContent     = 'Uploading cover art…';
+                statusEl.textContent     = 'Uploading cover art to GitHub…';
                 progressFill.style.width = '0%';
-                coverUrl = await xhrUpload(
+                coverUrl = await githubUpload(
                     uploadedCoverFile,
-                    uploadedCoverFile.name,
-                    uploadedCoverFile.type || 'image/jpeg',
+                    GH_COVER_PATH,
                     (pct) => {
                         progressFill.style.width = pct + '%';
-                        statusEl.textContent = `Uploading cover art… ${pct}%`;
+                        statusEl.textContent = `Uploading cover art to GitHub… ${pct}%`;
                     }
                 );
             }
@@ -801,27 +831,67 @@
         }
     }
 
-    function xhrUpload(file, fileName, mimeType, onProgress) {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', R2_WORKER_URL + '/upload');
-            xhr.setRequestHeader('x-upload-secret', R2_UPLOAD_SECRET);
-            xhr.setRequestHeader('x-file-name', encodeURIComponent(fileName));
-            xhr.setRequestHeader('Content-Type', mimeType);
-            xhr.upload.onprogress = e => {
-                if (e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100));
-            };
-            xhr.onload = () => {
-                try {
-                    const res = JSON.parse(xhr.responseText);
-                    if (res.ok) resolve(res.url);
-                    else reject(new Error(res.error || 'Upload failed'));
-                } catch { reject(new Error('Bad response from upload worker')); }
-            };
-            xhr.onerror = () => reject(new Error('Network error during upload'));
-            xhr.send(file);
+    // ── GitHub Contents API uploader ────────────────────────────────────────
+    async function githubUpload(file, folder, onProgress) {
+        const token = getGHToken();
+        if (!token) throw new Error('No GitHub PAT set — enter your token in the Store settings above');
+
+        // Sanitise filename: spaces → underscores, strip unsafe chars
+        const safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._\-]/g, '');
+        const path     = `${folder}/${safeName}`;
+        const apiUrl   = `https://api.github.com/repos/${GH_REPO}/contents/${path}`;
+
+        onProgress(10);
+
+        // Read file as base64
+        const base64 = await new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.onload  = e => res(e.target.result.split(',')[1]);
+            reader.onerror = () => rej(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
         });
+
+        onProgress(40);
+
+        // Check if file already exists (need its SHA to overwrite)
+        let sha = null;
+        try {
+            const check = await fetch(apiUrl, {
+                headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
+            });
+            if (check.ok) {
+                const existing = await check.json();
+                sha = existing.sha;
+            }
+        } catch(_) {}
+
+        onProgress(60);
+
+        const body = { message: `Upload ${safeName} via BLK Admin`, content: base64, branch: GH_BRANCH };
+        if (sha) body.sha = sha;
+
+        const resp = await fetch(apiUrl, {
+            method:  'PUT',
+            headers: {
+                Authorization:  `token ${token}`,
+                Accept:         'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        onProgress(90);
+
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.message || `GitHub API error ${resp.status}`);
+        }
+
+        onProgress(100);
+
+        return `${GH_RAW_BASE}/${path}`;
     }
+    // ────────────────────────────────────────────────────────────────────────
 
     async function loadStoreTracks() {
         document.getElementById('storeTrackList').innerHTML = '<div class="loading">Loading</div>';
@@ -992,8 +1062,43 @@
         document.querySelectorAll('.sidebar-nav-item').forEach((el, i) => {
             el.classList.toggle('active', ['dashboard','users','purchases','store'][i] === v);
         });
-        if (v === 'store') loadStoreTracks();
+        if (v === 'store') { loadGHPatField(); loadStoreTracks(); }
     }
+
+    // ── GitHub PAT helpers ───────────────────────────────────────────────────
+    function loadGHPatField() {
+        const saved = localStorage.getItem('blk_gh_pat') || '';
+        const input = document.getElementById('ghPatInput');
+        if (input) input.value = saved;
+        updatePatStatus(saved);
+    }
+
+    function saveGHPat() {
+        const val = document.getElementById('ghPatInput').value.trim();
+        if (val) localStorage.setItem('blk_gh_pat', val);
+        else     localStorage.removeItem('blk_gh_pat');
+        updatePatStatus(val);
+    }
+
+    function updatePatStatus(val) {
+        const el = document.getElementById('ghPatStatus');
+        if (!el) return;
+        if (!val) {
+            el.textContent = '⚠ No token set'; el.style.color = 'var(--warn)';
+        } else if (val.startsWith('ghp_') || val.startsWith('github_pat_')) {
+            el.textContent = '✓ Token saved'; el.style.color = 'var(--success)';
+        } else {
+            el.textContent = '? Token format unrecognised'; el.style.color = 'var(--warn)';
+        }
+    }
+
+    function togglePatVisibility() {
+        const input = document.getElementById('ghPatInput');
+        const btn   = event.target;
+        if (input.type === 'password') { input.type = 'text';     btn.textContent = 'Hide'; }
+        else                           { input.type = 'password'; btn.textContent = 'Show'; }
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     function showConfirm(title, msg, cb) {
         document.getElementById('confirmTitle').textContent = title;
