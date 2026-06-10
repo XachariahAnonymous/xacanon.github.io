@@ -1834,6 +1834,7 @@
                 </div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;">Member Since</div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.8rem;margin-bottom:2.5rem;" id="profileJoined">—</div>
+                <div id="walletProfileSection"></div>
                 <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;padding-top:1.5rem;border-top:1px solid var(--border);">Account Settings</div>
                 <div class="settings-btn-group">
                     <button class="settings-btn" id="verifyEmailBtn" onclick="sendVerificationEmail()">
@@ -2816,6 +2817,8 @@
             ? new Date(userProfile.joinedAt).toLocaleDateString('en-AU', { year:'numeric', month:'long', day:'numeric' })
             : '—';
         document.getElementById('profileJoined').textContent = joined;
+
+        _updateWalletProfile();
 
         const badge     = document.getElementById('emailVerifiedBadge');
         const verifyBtn = document.getElementById('verifyEmailBtn');
@@ -6350,8 +6353,510 @@
         }
     }
 
+    // ─── WALLET ──────────────────────────────────────────────────────────────
+
+    const BLK_WALLET_KEY = 'blk_wallet';
+
+    let blkWallet = {
+        address:  null,
+        provider: null,
+        balance:  null,
+        type:     null
+    };
+
+    function _shortAddr(addr) {
+        if (!addr) return '';
+        return addr.slice(0, 4) + '…' + addr.slice(-4);
+    }
+
+    function _updateWalletButtons() {
+        const connected = !!blkWallet.address;
+        const label = connected
+            ? _shortAddr(blkWallet.address)
+            : 'Connect Wallet';
+        const desktopBtn = document.getElementById('walletBtn');
+        const mobBtn     = document.getElementById('mobWalletBtn');
+        if (desktopBtn) {
+            desktopBtn.textContent = label;
+            desktopBtn.style.borderColor = connected ? 'var(--success)' : 'var(--accent)';
+            desktopBtn.style.color       = connected ? 'var(--success)' : 'var(--accent)';
+            desktopBtn.onmouseover = () => desktopBtn.style.background = connected ? 'rgba(0,255,102,0.08)' : 'var(--accent-dim)';
+            desktopBtn.onmouseout  = () => desktopBtn.style.background = 'none';
+        }
+        if (mobBtn) {
+            mobBtn.textContent   = connected ? _shortAddr(blkWallet.address) : 'Connect Wallet';
+            mobBtn.style.borderColor = connected ? 'var(--success)' : 'var(--accent)';
+            mobBtn.style.color       = connected ? 'var(--success)' : 'var(--accent)';
+        }
+    }
+
+    function _updateWalletProfile() {
+        const section = document.getElementById('walletProfileSection');
+        if (!section) return;
+        const connected = !!blkWallet.address;
+        if (!connected) {
+            section.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;padding-top:1.5rem;border-top:1px solid var(--border);">Crypto Wallet</div>'
+                + '<button class="settings-btn" onclick="walletButtonClick()">'
+                + '<span class="settings-btn-icon">◎</span>'
+                + '<div><div class="settings-btn-label">Connect Wallet</div><div class="settings-btn-sub">Link Phantom, MetaMask or WalletConnect</div></div>'
+                + '</button>';
+            return;
+        }
+        const typeLabel = blkWallet.type === 'phantom' ? 'Phantom' : blkWallet.type === 'metamask' ? 'MetaMask' : 'WalletConnect';
+        const balText   = blkWallet.balance !== null ? blkWallet.balance.toFixed(4) + ' SOL' : '— SOL';
+        section.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:0.55rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem;padding-top:1.5rem;border-top:1px solid var(--border);">Crypto Wallet</div>'
+            + '<div style="background:var(--surface2);border:1px solid var(--border);padding:1rem 1.2rem;margin-bottom:0.8rem;position:relative;">'
+            + '<div style="position:absolute;top:0;left:0;right:0;height:1px;background:var(--success);opacity:0.6;"></div>'
+            + '<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">'
+            + '<span style="font-family:\'Space Mono\',monospace;font-size:0.45rem;letter-spacing:2px;text-transform:uppercase;color:var(--success);border:1px solid var(--success);padding:0.15rem 0.5rem;">● CONNECTED</span>'
+            + '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:var(--sub);">' + typeLabel + '</span>'
+            + '</div>'
+            + '<div style="font-family:\'Space Mono\',monospace;font-size:0.7rem;color:#fff;word-break:break-all;margin-bottom:0.5rem;">' + blkWallet.address + '</div>'
+            + '<div style="font-family:\'Space Mono\',monospace;font-size:0.8rem;color:var(--accent);font-weight:700;">' + balText + '</div>'
+            + '</div>'
+            + '<div style="display:flex;gap:0.5rem;">'
+            + '<button class="settings-btn" style="flex:1;" onclick="_walletRefreshBalance()">'
+            + '<span class="settings-btn-icon">↻</span>'
+            + '<div><div class="settings-btn-label">Refresh Balance</div><div class="settings-btn-sub">Fetch latest SOL balance</div></div>'
+            + '</button>'
+            + '<button class="settings-btn" style="flex:1;" onclick="walletDisconnect()">'
+            + '<span class="settings-btn-icon">⊗</span>'
+            + '<div><div class="settings-btn-label">Disconnect</div><div class="settings-btn-sub">Unlink this wallet</div></div>'
+            + '</button>'
+            + '</div>';
+    }
+
+    async function _getSolBalance(address) {
+        try {
+            const endpoints = [
+                'https://api.mainnet-beta.solana.com',
+                'https://solana-mainnet.g.alchemy.com/v2/demo',
+                'https://rpc.ankr.com/solana'
+            ];
+            for (const ep of endpoints) {
+                try {
+                    const r = await fetch(ep, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [address] }),
+                        signal: AbortSignal.timeout(5000)
+                    });
+                    if (r.ok) {
+                        const d = await r.json();
+                        if (d.result && typeof d.result.value === 'number') {
+                            return d.result.value / 1e9;
+                        }
+                    }
+                } catch(_) {}
+            }
+        } catch(_) {}
+        return null;
+    }
+
+    async function _walletRefreshBalance() {
+        if (!blkWallet.address) return;
+        const bal = await _getSolBalance(blkWallet.address);
+        blkWallet.balance = bal;
+        _walletPersist();
+        _updateWalletProfile();
+        if (bal !== null) showToast('Balance updated: ' + bal.toFixed(4) + ' SOL', true);
+    }
+
+    function _walletPersist() {
+        try {
+            localStorage.setItem(BLK_WALLET_KEY, JSON.stringify({
+                address: blkWallet.address,
+                type:    blkWallet.type,
+                balance: blkWallet.balance
+            }));
+        } catch(_) {}
+        if (currentUser && FB) {
+            try {
+                FB.updateDoc(FB.doc(FB.db, 'users', currentUser.uid), {
+                    walletAddress: blkWallet.address || null,
+                    walletType:    blkWallet.type    || null
+                }).catch(() => {});
+            } catch(_) {}
+        }
+    }
+
+    function _walletRestore() {
+        try {
+            const raw = localStorage.getItem(BLK_WALLET_KEY);
+            if (!raw) return;
+            const d = JSON.parse(raw);
+            if (d && d.address) {
+                blkWallet.address = d.address;
+                blkWallet.type    = d.type    || null;
+                blkWallet.balance = d.balance !== undefined ? d.balance : null;
+                _updateWalletButtons();
+                _updateWalletProfile();
+                _walletRefreshBalance();
+            }
+        } catch(_) {}
+    }
+
+    function walletButtonClick() {
+        if (blkWallet.address) {
+            switchView('profile');
+        } else {
+            openWalletModal();
+        }
+    }
+
+    function openWalletModal() {
+        document.getElementById('walletModal').classList.add('open');
+        document.getElementById('walletModalStatus').textContent = '';
+    }
+
+    function closeWalletModal() {
+        document.getElementById('walletModal').classList.remove('open');
+        document.getElementById('walletModalStatus').textContent = '';
+    }
+
+    async function walletConnectPhantom() {
+        const statusEl = document.getElementById('walletModalStatus');
+        statusEl.style.color = 'var(--sub)';
+        statusEl.textContent = 'Connecting to Phantom…';
+        try {
+            const phantom = window.phantom?.solana ?? window.solana;
+            if (!phantom || !phantom.isPhantom) {
+                statusEl.style.color = 'var(--warn)';
+                statusEl.textContent = 'Phantom not detected — install the extension first.';
+                setTimeout(() => window.open('https://phantom.app/', '_blank'), 1200);
+                return;
+            }
+            const resp = await phantom.connect();
+            const address = resp.publicKey.toString();
+            blkWallet.address  = address;
+            blkWallet.type     = 'phantom';
+            blkWallet.provider = phantom;
+            phantom.on('disconnect', walletDisconnect);
+            phantom.on('accountChanged', (pk) => {
+                if (pk) {
+                    blkWallet.address = pk.toString();
+                    _walletPersist();
+                    _updateWalletButtons();
+                    _updateWalletProfile();
+                    _walletRefreshBalance();
+                } else {
+                    walletDisconnect();
+                }
+            });
+            statusEl.style.color = 'var(--success)';
+            statusEl.textContent = '✓ Connected: ' + _shortAddr(address);
+            blkWallet.balance = await _getSolBalance(address);
+            _walletPersist();
+            _updateWalletButtons();
+            _updateWalletProfile();
+            setTimeout(closeWalletModal, 900);
+            showToast('Phantom wallet connected ✓', true);
+        } catch(e) {
+            statusEl.style.color = 'var(--error)';
+            statusEl.textContent = e.code === 4001 ? 'Connection rejected by user.' : 'Phantom connection failed.';
+        }
+    }
+
+    async function walletConnectMetaMask() {
+        const statusEl = document.getElementById('walletModalStatus');
+        statusEl.style.color = 'var(--sub)';
+        statusEl.textContent = 'Connecting to MetaMask…';
+        try {
+            const mm = window.ethereum;
+            if (!mm) {
+                statusEl.style.color = 'var(--warn)';
+                statusEl.textContent = 'MetaMask not detected — install the extension first.';
+                setTimeout(() => window.open('https://metamask.io/', '_blank'), 1200);
+                return;
+            }
+            const solana = mm.providers
+                ? mm.providers.find(p => p.isSolana || p.isPhantom)
+                : (mm.isSolana || mm.isPhantom ? mm : null);
+
+            if (solana) {
+                const resp = await solana.connect();
+                const address = resp.publicKey ? resp.publicKey.toString() : null;
+                if (!address) throw new Error('No public key');
+                blkWallet.address  = address;
+                blkWallet.type     = 'metamask';
+                blkWallet.provider = solana;
+                blkWallet.balance  = await _getSolBalance(address);
+            } else {
+                const accounts = await mm.request({ method: 'eth_requestAccounts' });
+                if (!accounts || !accounts[0]) throw new Error('No accounts');
+                const address = accounts[0];
+                blkWallet.address  = address;
+                blkWallet.type     = 'metamask';
+                blkWallet.provider = mm;
+                blkWallet.balance  = null;
+                statusEl.style.color = 'var(--warn)';
+                statusEl.textContent = '⚠ MetaMask connected on EVM — switch to Solana network for SOL balance.';
+                _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
+                setTimeout(closeWalletModal, 1800);
+                showToast('MetaMask wallet connected ✓', true);
+                return;
+            }
+            statusEl.style.color = 'var(--success)';
+            statusEl.textContent = '✓ Connected: ' + _shortAddr(blkWallet.address);
+            _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
+            setTimeout(closeWalletModal, 900);
+            showToast('MetaMask wallet connected ✓', true);
+        } catch(e) {
+            statusEl.style.color = 'var(--error)';
+            statusEl.textContent = e.code === 4001 ? 'Connection rejected by user.' : 'MetaMask connection failed.';
+        }
+    }
+
+    async function walletConnectWalletConnect() {
+        const statusEl = document.getElementById('walletModalStatus');
+        statusEl.style.color = 'var(--sub)';
+        statusEl.textContent = 'Opening WalletConnect…';
+        try {
+            if (typeof window.WalletConnectModal === 'undefined' && typeof window.EthereumProvider === 'undefined') {
+                statusEl.textContent = 'Loading WalletConnect…';
+                await new Promise((res, rej) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://unpkg.com/@walletconnect/ethereum-provider@2/dist/umd/index.min.js';
+                    s.onload = res; s.onerror = rej;
+                    document.head.appendChild(s);
+                });
+            }
+            const provider = await window.EthereumProvider.init({
+                projectId: 'b6f8ccbf9f4e4c3b7d1a9e2f5c8d0e4b',
+                chains: [1],
+                showQrModal: true,
+                qrModalOptions: { themeMode: 'dark' }
+            });
+            await provider.connect();
+            const accounts = provider.accounts;
+            if (!accounts || !accounts[0]) throw new Error('No accounts');
+            const address = accounts[0];
+            blkWallet.address  = address;
+            blkWallet.type     = 'walletconnect';
+            blkWallet.provider = provider;
+            blkWallet.balance  = null;
+            provider.on('disconnect', walletDisconnect);
+            provider.on('accountsChanged', (accs) => {
+                if (accs && accs[0]) {
+                    blkWallet.address = accs[0];
+                    _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
+                } else {
+                    walletDisconnect();
+                }
+            });
+            statusEl.style.color = 'var(--success)';
+            statusEl.textContent = '✓ Connected: ' + _shortAddr(address);
+            _walletPersist(); _updateWalletButtons(); _updateWalletProfile();
+            setTimeout(closeWalletModal, 900);
+            showToast('WalletConnect wallet linked ✓', true);
+        } catch(e) {
+            if (e && e.message && e.message.includes('User rejected')) {
+                statusEl.style.color = 'var(--error)';
+                statusEl.textContent = 'Connection rejected by user.';
+            } else {
+                statusEl.style.color = 'var(--error)';
+                statusEl.textContent = 'WalletConnect failed — try another wallet.';
+            }
+        }
+    }
+
+    function walletDisconnect() {
+        if (blkWallet.provider) {
+            try {
+                if (typeof blkWallet.provider.disconnect === 'function') blkWallet.provider.disconnect();
+            } catch(_) {}
+        }
+        blkWallet.address  = null;
+        blkWallet.provider = null;
+        blkWallet.balance  = null;
+        blkWallet.type     = null;
+        try { localStorage.removeItem(BLK_WALLET_KEY); } catch(_) {}
+        if (currentUser && FB) {
+            try { FB.updateDoc(FB.doc(FB.db, 'users', currentUser.uid), { walletAddress: null, walletType: null }).catch(() => {}); } catch(_) {}
+        }
+        _updateWalletButtons();
+        _updateWalletProfile();
+        showToast('Wallet disconnected');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        _walletRestore();
+    });
+    if (document.readyState !== 'loading') _walletRestore();
+
+</script>
+
 
 
 </script>
+
+<!-- Wallet connect modal -->
+<style>
+    .wm-btn {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+        padding: 1rem 1.1rem;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: #fff;
+        cursor: pointer;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        font-family: 'Space Mono', monospace;
+        -webkit-font-smoothing: antialiased;
+    }
+    .wm-btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .wm-btn.phantom::after  { background: radial-gradient(ellipse at left, rgba(171,159,242,0.08) 0%, transparent 70%); }
+    .wm-btn.metamask::after { background: radial-gradient(ellipse at left, rgba(246,133,27,0.08)  0%, transparent 70%); }
+    .wm-btn.wc::after       { background: radial-gradient(ellipse at left, rgba(59,153,252,0.08)  0%, transparent 70%); }
+    .wm-btn:hover::after    { opacity: 1; }
+    .wm-btn.phantom:hover   { border-color: rgba(171,159,242,0.5); box-shadow: 0 0 0 1px rgba(171,159,242,0.12); }
+    .wm-btn.metamask:hover  { border-color: rgba(246,133,27,0.5);  box-shadow: 0 0 0 1px rgba(246,133,27,0.12); }
+    .wm-btn.wc:hover        { border-color: rgba(59,153,252,0.5);  box-shadow: 0 0 0 1px rgba(59,153,252,0.12); }
+    .wm-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .wm-icon.phantom  { background: #AB9FF2; }
+    .wm-icon.metamask { background: #F6851B; }
+    .wm-icon.wc       { background: #3B99FC; }
+    .wm-label {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #fff;
+        margin-bottom: 0.25rem;
+    }
+    .wm-sub {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.55rem;
+        color: var(--sub);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .wm-arrow {
+        margin-left: auto;
+        font-size: 0.9rem;
+        color: var(--sub);
+        transition: transform 0.2s, color 0.2s;
+        flex-shrink: 0;
+    }
+    .wm-btn:hover .wm-arrow { transform: translateX(3px); color: rgba(255,255,255,0.5); }
+    .wm-divider {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin: 1.4rem 0;
+    }
+    .wm-divider::before,
+    .wm-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    .wm-divider span {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.48rem;
+        color: var(--sub);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .wm-status {
+        font-family: 'Space Mono', monospace;
+        font-size: 0.58rem;
+        letter-spacing: 1px;
+        min-height: 1.4rem;
+        text-align: center;
+        padding: 0.5rem 0.8rem;
+        border-radius: 2px;
+        transition: all 0.2s;
+    }
+    .wm-status:not(:empty) {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+    }
+</style>
+
+<div class="modal-bg" id="walletModal" onclick="if(event.target===this)closeWalletModal()">
+    <div class="modal" style="max-width:380px;padding:2.2rem 2rem 1.8rem;">
+        <button class="modal-close" onclick="closeWalletModal()">✕</button>
+        <span class="modal-tag">Account // Wallet</span>
+        <h3 style="margin-bottom:0.5rem;font-size:1.4rem;color:var(--accent);">Connect Wallet</h3>
+        <p style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--sub);letter-spacing:0.5px;line-height:1.9;margin-bottom:1.6rem;">
+            Link a Solana wallet to display your address &amp; SOL balance.
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            <button class="wm-btn phantom" onclick="walletConnectPhantom()">
+                <div class="wm-icon phantom">
+                    <svg width="22" height="22" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M110.9 64.5c0 25.7-20.8 46.5-46.5 46.5S17.9 90.2 17.9 64.5 38.7 18 64.4 18s46.5 20.8 46.5 46.5Z" fill="#fff" opacity="0.9"/>
+                        <path d="M80.5 54.3H47.5a2.5 2.5 0 0 0 0 5h33a2.5 2.5 0 0 0 0-5Zm0 12H47.5a2.5 2.5 0 0 0 0 5h33a2.5 2.5 0 0 0 0-5Z" fill="#AB9FF2"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="wm-label">Phantom</div>
+                    <div class="wm-sub">Solana · Browser Extension</div>
+                </div>
+                <span class="wm-arrow">›</span>
+            </button>
+
+            <button class="wm-btn metamask" onclick="walletConnectMetaMask()">
+                <div class="wm-icon metamask">
+                    <svg width="22" height="22" viewBox="0 0 318 318" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#E2761B" stroke="#E2761B" stroke-linecap="round" stroke-linejoin="round" d="M274.1 35.5 174.6 109l19.4-45.9z"/>
+                        <path fill="#E4761B" stroke="#E4761B" stroke-linecap="round" stroke-linejoin="round" d="M44 35.5 142.7 109.7 124.1 63.1zM238.3 206.8l-27.2 41.6 58.2 16 16.7-56.7zm-205.9.9 16.6 56.7 58.2-16-27.2-41.6z"/>
+                        <path fill="#E4761B" stroke="#E4761B" stroke-linecap="round" stroke-linejoin="round" d="M105.3 138.2 88.9 163.8l57.8 2.6-2-62.1zm107.4 0L189 103.9l-1.7 62.5 57.7-2.6zM107.3 248.4l34.7-16.9-30-23.5zm68.7-16.9 34.8 16.9-4.8-40.4z"/>
+                        <path fill="#D7C1B3" stroke="#D7C1B3" stroke-linecap="round" stroke-linejoin="round" d="M210.8 248.4 176 231.5l2.9 23.7-.3 9.6zm-103.5 0 21.4 16.4-.2-9.6 2.8-23.7z"/>
+                        <path fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" d="M129.1 194.5l-28.9-8.5 20.4-9.3zm59.8 0 8.5-17.8 20.5 9.3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="wm-label">MetaMask</div>
+                    <div class="wm-sub">EVM / Solana Snap · Browser Extension</div>
+                </div>
+                <span class="wm-arrow">›</span>
+            </button>
+
+            <button class="wm-btn wc" onclick="walletConnectWalletConnect()">
+                <div class="wm-icon wc">
+                    <svg width="22" height="14" viewBox="0 0 300 185" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M61.4 36.7c48.9-47.9 128.3-47.9 177.2 0l5.9 5.8a6.1 6.1 0 0 1 0 8.7l-20.1 19.7a3.2 3.2 0 0 1-4.4 0l-8.1-7.9c-34.1-33.4-89.4-33.4-123.5 0l-8.7 8.5a3.2 3.2 0 0 1-4.4 0L54.2 51.8a6.1 6.1 0 0 1 0-8.7l7.2-6.4Zm218.8 40.8 17.9 17.5a6.1 6.1 0 0 1 0 8.7L202.5 197a6.3 6.3 0 0 1-8.9 0l-67.4-66a1.6 1.6 0 0 0-2.2 0l-67.4 66a6.3 6.3 0 0 1-8.9 0L3.1 103.7a6.1 6.1 0 0 1 0-8.7l17.9-17.5a6.3 6.3 0 0 1 8.9 0l67.4 66a1.6 1.6 0 0 0 2.2 0l67.4-66a6.3 6.3 0 0 1 8.9 0l67.4 66a1.6 1.6 0 0 0 2.2 0l67.4-66a6.3 6.3 0 0 1 8.9 0Z" fill="#fff"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="wm-label">WalletConnect</div>
+                    <div class="wm-sub">All wallets · QR Code / Deep Link</div>
+                </div>
+                <span class="wm-arrow">›</span>
+            </button>
+        </div>
+
+        <div class="wm-divider"><span>Secured · Non-custodial</span></div>
+        <div id="walletModalStatus" class="wm-status"></div>
+    </div>
+</div>
+</body>
+</html>
+
 </body>
 </html>
