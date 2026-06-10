@@ -2198,6 +2198,10 @@
         if (!FB) return;
         if (_storeUnsubscribe) { _storeUnsubscribe(); _storeUnsubscribe = null; }
 
+        // Reset to this user's cached purchases; Firestore will then reconcile
+        if (currentUser) loadPurchasedIds(currentUser.uid);
+        else clearPurchasedIds();
+
         let ownedIds = new Set();
         if (currentUser) {
             try {
@@ -2732,6 +2736,7 @@
             return;
         }
         await FB.signOut(FB.auth);
+        clearPurchasedIds();
         library = []; currentIdx = -1; isPlaying = false; coins = 0;
         spotifyTracks = []; soundcloudTracks = [];
         audio.pause(); audio.src = '';
@@ -4095,10 +4100,22 @@
         document.getElementById('embedIframeWrap').innerHTML = '';
     }
 
-    const purchasedStoreIds = new Set(JSON.parse(localStorage.getItem('blk_purchased_ids') || '[]'));
+    let purchasedStoreIds = new Set(); // keyed per-user, loaded on sign-in
+
+    function _purchasedKey(uid) { return 'blk_purchased_ids_' + (uid || 'guest'); }
+
+    function loadPurchasedIds(uid) {
+        try { purchasedStoreIds = new Set(JSON.parse(localStorage.getItem(_purchasedKey(uid)) || '[]')); }
+        catch(e) { purchasedStoreIds = new Set(); }
+    }
 
     function savePurchasedIds() {
-        try { localStorage.setItem('blk_purchased_ids', JSON.stringify([...purchasedStoreIds])); } catch(e) {}
+        if (!currentUser) return;
+        try { localStorage.setItem(_purchasedKey(currentUser.uid), JSON.stringify([...purchasedStoreIds])); } catch(e) {}
+    }
+
+    function clearPurchasedIds() {
+        purchasedStoreIds = new Set();
     }
 
     function reAddToLibrary(storeId) {
