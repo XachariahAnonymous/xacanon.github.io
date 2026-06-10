@@ -2246,7 +2246,13 @@
                 try {
                     await loadUserProfile(user);
                     const isAdmin = userProfile && userProfile.role === 'admin';
-                    if (!isAdmin) {
+                    // Check public access setting from Firestore
+                    let publicAccess = false;
+                    try {
+                        const settingsSnap = await FB.getDoc(FB.doc(FB.db, 'siteSettings', 'config'));
+                        if (settingsSnap.exists()) publicAccess = settingsSnap.data().publicAccess === true;
+                    } catch(_) {}
+                    if (!isAdmin && !publicAccess) {
                         showNotPublic(user.email);
                         return;
                     }
@@ -2307,17 +2313,24 @@
                     updateProfileView();
                     // Live gate: react if role changes while user is on screen
                     if (resolved) {
-                        const isAdmin = data.role === 'admin';
-                        const appShellVisible = document.getElementById('app-shell').classList.contains('visible');
-                        const notPublicVisible = document.getElementById('not-public-screen').classList.contains('visible');
-                        if (isAdmin && notPublicVisible) {
-                            hideNotPublic();
-                            showApp();
-                            spPreRestoreUI();
-                        } else if (!isAdmin && appShellVisible) {
-                            document.getElementById('app-shell').classList.remove('visible');
-                            showNotPublic(currentUser && currentUser.email);
-                        }
+                        (async () => {
+                            const isAdmin = data.role === 'admin';
+                            const appShellVisible = document.getElementById('app-shell').classList.contains('visible');
+                            const notPublicVisible = document.getElementById('not-public-screen').classList.contains('visible');
+                            let publicAccess = false;
+                            try {
+                                const settingsSnap = await FB.getDoc(FB.doc(FB.db, 'siteSettings', 'config'));
+                                if (settingsSnap.exists()) publicAccess = settingsSnap.data().publicAccess === true;
+                            } catch(_) {}
+                            if ((isAdmin || publicAccess) && notPublicVisible) {
+                                hideNotPublic();
+                                showApp();
+                                spPreRestoreUI();
+                            } else if (!isAdmin && !publicAccess && appShellVisible) {
+                                document.getElementById('app-shell').classList.remove('visible');
+                                showNotPublic(currentUser && currentUser.email);
+                            }
+                        })();
                     }
                     if (data.playlists) {
                         try {
