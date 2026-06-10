@@ -4182,8 +4182,16 @@
             await FB.updateDoc(ref, { purchases: FB.increment(1), coins: FB.increment(-s.price), lastActive: FB.serverTimestamp() });
             await FB.setDoc(FB.doc(FB.db, 'purchases', currentUser.uid + '_' + s.id), {
                 uid: currentUser.uid, trackId: s.id, title: s.title,
-                artist: s.artist, price: s.price, purchasedAt: FB.serverTimestamp()
+                artist: s.artist, price: s.price, purchasedAt: FB.serverTimestamp(),
+                artistUid: s.artistUid || null
             });
+            // Pay out BLK to the artist's account if one is linked
+            if (s.artistUid && s.artistUid !== currentUser.uid) {
+                try {
+                    const artistRef = FB.doc(FB.db, 'users', s.artistUid);
+                    await FB.updateDoc(artistRef, { coins: FB.increment(s.price) });
+                } catch(e) { console.warn('Artist payout failed:', e); }
+            }
             if (userProfile) { userProfile.purchases = (userProfile.purchases || 0) + 1; userProfile.coins = coins; }
         }
         setTimeout(() => {
