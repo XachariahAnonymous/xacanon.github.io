@@ -186,6 +186,23 @@
         .cover-art-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--sub); letter-spacing: 1px; }
         .subgenre-wrap { display: none; }
         .subgenre-wrap.visible { display: block; }
+        /* Artist user selector */
+        .artist-select-wrap { position: relative; }
+        .artist-search-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; font-family: 'Space Mono', monospace; font-size: 0.8rem; padding: 0.8rem 1rem; outline: none; transition: border-color 0.2s; cursor: text; }
+        .artist-search-input:focus { border-color: var(--accent); }
+        .artist-search-input::placeholder { color: var(--sub); }
+        .artist-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface2); border: 1px solid var(--accent); border-top: none; z-index: 200; max-height: 180px; overflow-y: auto; display: none; }
+        .artist-dropdown.open { display: block; }
+        .artist-option { padding: 0.6rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--sub); cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: background 0.15s; border-bottom: 1px solid var(--border); }
+        .artist-option:last-child { border-bottom: none; }
+        .artist-option:hover, .artist-option.highlighted { background: var(--accent-dim); color: #fff; }
+        .artist-option .opt-avatar { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--accent-dim); border: 1px solid var(--accent-dim); font-size: 0.55rem; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+        .artist-option .opt-name { font-weight: 600; color: #fff; }
+        .artist-option .opt-email { font-size: 0.55rem; color: var(--sub); }
+        .artist-selected-pill { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; padding: 0.3rem 0.7rem; background: var(--accent-dim); border: 1px solid var(--accent); font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--accent); letter-spacing: 1px; }
+        .artist-selected-pill .pill-clear { cursor: pointer; color: var(--sub); margin-left: 0.3rem; transition: color 0.2s; }
+        .artist-selected-pill .pill-clear:hover { color: var(--error); }
+
         .store-track-item { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); transition: background 0.15s; }
         .store-track-item:hover { background: rgba(255,255,255,0.02); }
         .store-track-cover { width: 40px; height: 40px; object-fit: cover; border: 1px solid var(--border); display: block; }
@@ -349,6 +366,18 @@
                                 <input class="modal-input" id="metaBadge" type="text" placeholder="e.g. NEW, HOT, EXCLUSIVE">
                             </div>
                             <div class="modal-input-group metadata-full">
+                                <label class="modal-input-label">Artist User Account (for BLK payout)</label>
+                                <input type="hidden" id="metaArtistUid" value="">
+                                <div class="artist-select-wrap">
+                                    <input class="artist-search-input" id="metaArtistSearch" type="text" placeholder="Search users by name or email…" autocomplete="off"
+                                        oninput="filterArtistDropdown('metaArtistSearch','metaArtistDropdown','metaArtistUid','metaArtistPill')"
+                                        onfocus="openArtistDropdown('metaArtistSearch','metaArtistDropdown','metaArtistUid','metaArtistPill')"
+                                        onblur="scheduleCloseDropdown('metaArtistDropdown')">
+                                    <div class="artist-dropdown" id="metaArtistDropdown"></div>
+                                </div>
+                                <div id="metaArtistPill" style="display:none;"></div>
+                            </div>
+                            <div class="modal-input-group metadata-full">
                                 <label class="modal-input-label">Cover Art (optional)</label>
                                 <div class="cover-art-zone" id="coverArtZone"
                                     ondragover="event.preventDefault();this.classList.add('drag-over')"
@@ -446,6 +475,18 @@
             <div class="modal-input-group metadata-full">
                 <label class="modal-input-label">Badge</label>
                 <input class="modal-input" id="editMetaBadge" type="text" placeholder="e.g. NEW, HOT">
+            </div>
+            <div class="modal-input-group metadata-full">
+                <label class="modal-input-label">Artist User Account (BLK payout)</label>
+                <input type="hidden" id="editMetaArtistUid" value="">
+                <div class="artist-select-wrap">
+                    <input class="artist-search-input" id="editMetaArtistSearch" type="text" placeholder="Search users by name or email…" autocomplete="off"
+                        oninput="filterArtistDropdown('editMetaArtistSearch','editMetaArtistDropdown','editMetaArtistUid','editMetaArtistPill')"
+                        onfocus="openArtistDropdown('editMetaArtistSearch','editMetaArtistDropdown','editMetaArtistUid','editMetaArtistPill')"
+                        onblur="scheduleCloseDropdown('editMetaArtistDropdown')">
+                    <div class="artist-dropdown" id="editMetaArtistDropdown"></div>
+                </div>
+                <div id="editMetaArtistPill" style="display:none;"></div>
             </div>
         </div>
         <div class="modal-btns">
@@ -682,6 +723,8 @@
         const subgenre = document.getElementById('metaSubgenre').value || null;
         const price  = parseFloat(document.getElementById('metaPrice').value) || 0.99;
         const badge  = document.getElementById('metaBadge').value.trim() || null;
+        const artistUid = document.getElementById('metaArtistUid').value || null;
+        const artistUserName = artistUid ? (allUsers.find(u => u.id === artistUid)?.displayName || allUsers.find(u => u.id === artistUid)?.email || null) : null;
         if (!title || !artist) { showToast('Title and artist are required', false, true); return; }
 
         const statusEl    = document.getElementById('uploadStatus');
@@ -725,7 +768,9 @@
                 emoji:    emojis[Math.floor(Math.random() * emojis.length)],
                 color:    '#0d001a',
                 createdAt: FB.serverTimestamp(),
-                addedBy:   currentAdminUid
+                addedBy:   currentAdminUid,
+                artistUid: artistUid,
+                artistUserName: artistUserName
             });
 
             showToast(`"${title}" uploaded to store`, true);
@@ -742,6 +787,10 @@
             const lbl = document.getElementById('coverArtLabel');
             if (lbl) lbl.style.display = '';
             document.getElementById('metaGenre').value = '';
+            document.getElementById('metaArtistUid').value = '';
+            document.getElementById('metaArtistSearch').value = '';
+            document.getElementById('metaArtistPill').style.display = 'none';
+            document.getElementById('metaArtistPill').innerHTML = '';
             updateSubgenre('metaGenre','metaSubgenreWrap','metaSubgenre');
 
             loadStoreTracks();
@@ -802,6 +851,7 @@
                 <div>
                     <div class="store-track-title">${esc(t.title)}</div>
                     <div class="store-track-meta">${esc(t.artist)} · ${esc(t.genre||'')}${t.subgenre ? ' / ' + esc(t.subgenre) : ''}${t.badge ? ` · <span style="color:var(--accent);">${esc(t.badge)}</span>` : ''}</div>
+                    ${t.artistUid ? `<div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--success);margin-top:0.2rem;">◈ payout → ${esc(t.artistUserName||t.artistUid)}</div>` : `<div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--sub);margin-top:0.2rem;">no payout account set</div>`}
                 </div>
                 <div class="store-track-price">$${(t.price||0).toFixed(2)}</div>
                 <div>
@@ -822,6 +872,19 @@
         document.getElementById('editMetaBadge').value    = t.badge  || '';
         document.getElementById('editMetaGenre').value    = t.genre  || '';
         updateSubgenre('editMetaGenre', 'editMetaSubgenreWrap', 'editMetaSubgenre', t.subgenre || '');
+        // Restore artist user selection
+        document.getElementById('editMetaArtistUid').value    = t.artistUid || '';
+        document.getElementById('editMetaArtistSearch').value = '';
+        const pill = document.getElementById('editMetaArtistPill');
+        if (t.artistUid) {
+            const u = allUsers.find(x => x.id === t.artistUid);
+            const label = u ? (u.displayName || u.email || t.artistUserName || t.artistUid) : (t.artistUserName || t.artistUid);
+            pill.innerHTML = `<span class="artist-selected-pill">◈ ${esc(label)} <span class="pill-clear" onclick="clearArtistSelection('editMetaArtistUid','editMetaArtistSearch','editMetaArtistPill')">✕</span></span>`;
+            pill.style.display = '';
+        } else {
+            pill.innerHTML = '';
+            pill.style.display = 'none';
+        }
         document.getElementById('editTrackModal').classList.add('open');
     }
 
@@ -835,11 +898,13 @@
         const subgenre = document.getElementById('editMetaSubgenre').value || null;
         const price    = parseFloat(document.getElementById('editMetaPrice').value) || 0.99;
         const badge    = document.getElementById('editMetaBadge').value.trim() || null;
+        const artistUid = document.getElementById('editMetaArtistUid').value || null;
+        const artistUserName = artistUid ? (allUsers.find(u => u.id === artistUid)?.displayName || allUsers.find(u => u.id === artistUid)?.email || null) : null;
         if (!title || !artist) { showToast('Title and artist required', false, true); return; }
         try {
-            await FB.updateDoc(FB.doc(FB.db, 'storeTracks', id), { title, artist, genre, subgenre, price, badge });
+            await FB.updateDoc(FB.doc(FB.db, 'storeTracks', id), { title, artist, genre, subgenre, price, badge, artistUid, artistUserName });
             const t = allStoreTracks.find(x => x.id === id);
-            if (t) Object.assign(t, { title, artist, genre, subgenre, price, badge });
+            if (t) Object.assign(t, { title, artist, genre, subgenre, price, badge, artistUid, artistUserName });
             renderStoreTracks();
             showToast(`"${title}" updated`, true);
             closeEditTrack();
@@ -962,6 +1027,79 @@
         t.className = 'toast show' + (success?' success':'') + (danger?' danger':'');
         clearTimeout(t._timer); t._timer = setTimeout(()=>t.className='toast', 3000);
     }
+
+    // ── Artist user selector ─────────────────────────────────────────────────
+    let _dropdownCloseTimer = null;
+
+    function buildArtistOptions(searchVal) {
+        const q = (searchVal || '').toLowerCase().trim();
+        return allUsers.filter(u =>
+            !q ||
+            (u.displayName || '').toLowerCase().includes(q) ||
+            (u.email || '').toLowerCase().includes(q)
+        ).slice(0, 25);
+    }
+
+    function renderArtistDropdown(dropdownId, uidInputId, pillId, users) {
+        const dd = document.getElementById(dropdownId);
+        if (!users.length) {
+            dd.innerHTML = `<div class="artist-option" style="color:var(--sub);pointer-events:none;">No users found</div>`;
+        } else {
+            dd.innerHTML = users.map(u => {
+                const label = u.displayName || u.email || u.id;
+                return `<div class="artist-option" onmousedown="selectArtistUser('${u.id}','${esc(label)}','${dropdownId}','${uidInputId}','${pillId}')">
+                    <span class="opt-avatar">${initials(label)}</span>
+                    <div><div class="opt-name">${esc(label)}</div><div class="opt-email">${esc(u.email||'')}</div></div>
+                </div>`;
+            }).join('');
+        }
+    }
+
+    function openArtistDropdown(searchId, dropdownId, uidInputId, pillId) {
+        clearTimeout(_dropdownCloseTimer);
+        const dd = document.getElementById(dropdownId);
+        const q  = document.getElementById(searchId).value;
+        renderArtistDropdown(dropdownId, uidInputId, pillId, buildArtistOptions(q));
+        dd.classList.add('open');
+    }
+
+    function filterArtistDropdown(searchId, dropdownId, uidInputId, pillId) {
+        clearTimeout(_dropdownCloseTimer);
+        const q  = document.getElementById(searchId).value;
+        const dd = document.getElementById(dropdownId);
+        renderArtistDropdown(dropdownId, uidInputId, pillId, buildArtistOptions(q));
+        dd.classList.add('open');
+        // Clear selection if user edits the search field
+        document.getElementById(uidInputId).value = '';
+        const pill = document.getElementById(pillId);
+        pill.style.display = 'none'; pill.innerHTML = '';
+    }
+
+    function scheduleCloseDropdown(dropdownId) {
+        _dropdownCloseTimer = setTimeout(() => {
+            document.getElementById(dropdownId)?.classList.remove('open');
+        }, 200);
+    }
+
+    function selectArtistUser(uid, label, dropdownId, uidInputId, pillId) {
+        clearTimeout(_dropdownCloseTimer);
+        document.getElementById(uidInputId).value = uid;
+        document.getElementById(dropdownId).classList.remove('open');
+        const pill = document.getElementById(pillId);
+        pill.innerHTML = `<span class="artist-selected-pill">◈ ${esc(label)} <span class="pill-clear" onclick="clearArtistSelection('${uidInputId}','${dropdownId.replace('Dropdown','Search')}','${pillId}')">✕</span></span>`;
+        pill.style.display = '';
+        // Clear the text search field
+        const searchId = dropdownId.replace('Dropdown', 'Search');
+        document.getElementById(searchId).value = '';
+    }
+
+    function clearArtistSelection(uidInputId, searchId, pillId) {
+        document.getElementById(uidInputId).value = '';
+        document.getElementById(searchId).value   = '';
+        const pill = document.getElementById(pillId);
+        pill.style.display = 'none'; pill.innerHTML = '';
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     init();
 </script>
