@@ -4825,14 +4825,86 @@
     }
 
     async function _tdDoSearch(q, offset, reset) {
-        const data = await tdAPI('/v2/searchresults/' + encodeURIComponent(q) + '?include=tracks&page%5Blimit%5D=' + TD_PAGE + '&page%5Boffset%5D=' + offset + '&countryCode=US');
+        // TIDAL Open API search — try v2 first, fall back to v1
+        let data = null;
+        let tracks = [];
+
+        // v2 endpoint: /v2/searchresults?q=...&include=tracks
+        data = await tdAPIRaw('/v2/searchresults?q=' + encodeURIComponent(q)
+            + '&include=tracks'
+            + '&page%5Blimit%5D=' + TD_PAGE
+            + '&page%5Boffset%5D=' + offset
+            + '&countryCode=US');
+
+        if (data && (data.tracks || data.data)) {
+            // v2 compound-document shape
+            tracks = (data.tracks && data.tracks.data)
+                  || (data.data && data.data.filter(i => i.type === 'tracks'))
+                  || [];
+            _tdSearchTotal = (data.tracks && data.tracks.meta && data.tracks.meta.total)
+                          || (data.meta && data.meta.total)
+                          || tracks.length;
+        } else {
+            // v1 fallback: /v1/search?query=...&types=TRACKS
+            data = await tdAPIRaw('/v1/search?query=' + encodeURIComponent(q)
+                + '&types=TRACKS'
+                + '&limit=' + TD_PAGE
+                + '&offset=' + offset
+                + '&countryCode=US');
+            if (data && data.tracks && data.tracks.items) {
+                tracks = data.tracks.items.map(t => _tdV1TrackToV2(t));
+                _tdSearchTotal = data.tracks.totalNumberOfItems || tracks.length;
+            }
+        }
+
         if (!data) { showToast('Tidal search failed'); return; }
-        const tracks = (data.tracks && data.tracks.data) || [];
-        _tdSearchTotal = (data.tracks && data.tracks.meta && data.tracks.meta.total) || tracks.length;
         _tdSearchOffset = offset + tracks.length;
         _tdRenderTrackRows(tracks, reset, 'search');
         const lmBtn = document.getElementById('tdViewLoadMore');
         if (lmBtn) lmBtn.style.display = (_tdSearchOffset < _tdSearchTotal && tracks.length === TD_PAGE) ? 'block' : 'none';
+    }
+
+    // Raw tdAPI that returns null only on network failure, not on non-OK status
+    async function tdAPIRaw(path) {
+        if (!await tdRefreshIfNeeded()) return null;
+        if (Date.now() < _tdRateLimitedUntil) return null;
+        try {
+            const r = await fetch('https://openapi.tidal.com' + path, {
+                headers: {
+                    'Authorization': 'Bearer ' + tdAccessToken,
+                    'Accept': 'application/vnd.tidal.v1+json',
+                }
+            });
+            if (r.status === 401) { tidalLogout(); return null; }
+            if (r.status === 429) {
+                const ra = parseInt(r.headers.get('Retry-After') || '60', 10);
+                _tdRateLimitedUntil = Date.now() + ra * 1000;
+                return null;
+            }
+            if (!r.ok) {
+                console.warn('[BLK] Tidal API', path, '→', r.status);
+                return null;
+            }
+            return await r.json();
+        } catch(e) { console.warn('[BLK] Tidal fetch error:', e); return null; }
+    }
+
+    // Convert a v1 track object to the v2 shape _tdRenderTrackRows expects
+    function _tdV1TrackToV2(t) {
+        if (!t) return null;
+        return {
+            id: String(t.id),
+            type: 'tracks',
+            attributes: {
+                title: t.title || 'Untitled',
+                artistName: (t.artist && t.artist.name) || (t.artists && t.artists[0] && t.artists[0].name) || 'Unknown',
+                albumTitle: (t.album && t.album.title) || '',
+                duration: t.duration ? t.duration * 1000 : 0, // v1 is seconds, store as ms for _parseTdDuration compat
+                imageLinks: t.album && t.album.cover
+                    ? [{ href: 'https://resources.tidal.com/images/' + t.album.cover.replace(/-/g, '/') + '/320x320.jpg' }]
+                    : []
+            }
+        };
     }
 
     async function tdViewLoadMore() {
@@ -5035,11 +5107,17 @@
         };
     }
 
-    function _parseTdDuration(iso) {
-        // ISO 8601 duration e.g. "PT3M45S"
-        const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:([\d.]+)S)?/);
-        if (!m) return 0;
-        return (parseInt(m[1] || 0) * 3600) + (parseInt(m[2] || 0) * 60) + parseFloat(m[3] || 0);
+    function _parseTdDuration(val) {
+        if (!val) return 0;
+        // Plain number: v1 stores seconds*1000 (ms), v2 sometimes returns raw seconds
+        if (typeof val === 'number') return val > 10000 ? val / 1000 : val;
+        // ISO 8601 string e.g. "PT3M45S"
+        const m = String(val).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:([\d.]+)S)?/);
+        if (m) return (parseInt(m[1] || 0) * 3600) + (parseInt(m[2] || 0) * 60) + parseFloat(m[3] || 0);
+        // Plain numeric string
+        const n = parseFloat(val);
+        if (!isNaN(n)) return n > 10000 ? n / 1000 : n;
+        return 0;
     }
 
     // ── TIDAL: render track rows in view ──────────────────────────────────────
