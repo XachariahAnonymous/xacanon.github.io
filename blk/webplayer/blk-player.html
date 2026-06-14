@@ -378,7 +378,7 @@
         }
         .stream-dd-status { margin-left: auto; color: var(--success); font-size: 0.5rem; }
 
-        #view-spotify, #view-soundcloud {
+        #view-spotify, #view-soundcloud, #view-tidal {
             display: none; flex-direction: column; height: 100%;
         }
         .streaming-view-header {
@@ -1483,6 +1483,7 @@
                             <span id="tidalBtnText">Connect Tidal</span>
                             <span class="stream-status" id="tidalStatus"></span>
                         </button>
+                        <button onclick="openStreamingView('tidal')" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem;background:rgba(0,224,211,0.08);border:1px solid rgba(0,224,211,0.2);color:#00E0D3;cursor:pointer;margin-bottom:0.3rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,224,211,0.18)'" onmouseout="this.style.background='rgba(0,224,211,0.08)'">Open Tidal View →</button>
                     </div>
                     <div class="stream-dd-section" style="border-top:1px solid var(--border);padding-top:1rem;">
                         <div class="stream-dd-label">
@@ -1558,6 +1559,7 @@
                 <button class="lib-filter-tab"         id="filter-local"      onclick="setLibFilter('local')">Local</button>
                 <button class="lib-filter-tab"         id="filter-spotify"    onclick="setLibFilter('spotify')">Spotify</button>
                 <button class="lib-filter-tab"         id="filter-soundcloud" onclick="setLibFilter('soundcloud')">SoundCloud</button>
+                <button class="lib-filter-tab"         id="filter-tidal"      onclick="setLibFilter('tidal')">Tidal</button>
                 <button class="lib-filter-tab blk-filter" id="filter-store"  onclick="setLibFilter('store')">◈ BLK Songs</button>
             </div>
             <div class="track-list">
@@ -1721,6 +1723,58 @@
             </div>
         </div>
 
+        <div id="view-tidal" style="display:none;flex-direction:column;height:100%;">
+            <div class="streaming-view-header">
+                <button class="streaming-return-btn" onclick="switchView('library')">‹ Back to Library</button>
+                <div style="display:flex;align-items:center;gap:0.8rem;flex:1;">
+                    <span style="font-size:1.4rem;">◐</span>
+                    <div>
+                        <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:3px;text-transform:uppercase;margin-bottom:0.2rem;">Streaming</div>
+                        <div style="font-size:1.4rem;font-weight:700;letter-spacing:-0.02em;">Tidal</div>
+                    </div>
+                    <span id="tdViewUser" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:#00E0D3;margin-left:0.5rem;"></span>
+                </div>
+                <button class="stream-connect-btn" id="tidalConnectBtn2" onclick="tidalAuth()" style="flex-shrink:0;display:none;">
+                    <span class="stream-icon">◐</span>
+                    <span id="tidalBtnText2">Connect Tidal</span>
+                </button>
+                <button onclick="tidalLogout()" id="tdViewDisconnectBtn" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.2);cursor:pointer;flex-shrink:0;">Disconnect</button>
+            </div>
+
+            <!-- Search bar -->
+            <div style="padding:0.75rem 2.5rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;flex-shrink:0;background:rgba(0,224,211,0.02);">
+                <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:rgba(0,224,211,0.6);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;">Search Catalog</div>
+                <input class="stream-input-url" id="tdSearchInput" type="text"
+                    placeholder="Search for any artist, album, or track on Tidal..."
+                    onkeydown="if(event.key==='Enter')tdSearch()"
+                    style="flex:1;min-width:180px;border-color:rgba(0,224,211,0.2);">
+                <button onclick="tdSearch()" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.55rem 1rem;background:#00E0D3;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">Search</button>
+                <div id="tdSearchStatus" style="width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;color:rgba(255,255,255,0.3);min-height:0.8rem;"></div>
+            </div>
+
+            <!-- Connect prompt -->
+            <div id="tdViewConnect" style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:4rem;text-align:center;">
+                <div style="font-size:3.5rem;">◐</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;">Connect Tidal</div>
+                <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--sub);line-height:1.8;max-width:360px;">Search the Tidal catalog, import your playlists, and play HiFi audio right in BLK</div>
+                <button onclick="tidalAuth()" style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;padding:0.8rem 2rem;background:#00E0D3;border:none;color:#000;cursor:pointer;font-weight:700;margin-top:0.5rem;">Connect Tidal</button>
+            </div>
+
+            <!-- Main content (shown when connected) -->
+            <div id="tdViewMain" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+                <div style="padding:1rem 2.5rem;border-bottom:1px solid var(--border);display:flex;gap:0.8rem;flex-wrap:wrap;align-items:center;flex-shrink:0;">
+                    <div style="display:flex;border:1px solid var(--border);">
+                        <button id="tdVTab-search" onclick="tdViewSetTab('search')" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:rgba(0,224,211,0.08);border:none;border-right:1px solid var(--border);color:#00E0D3;cursor:pointer;">Search</button>
+                        <button id="tdVTab-playlists" onclick="tdViewSetTab('playlists')" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;border-right:1px solid var(--border);color:var(--sub);cursor:pointer;">My Playlists</button>
+                        <button id="tdVTab-favorites" onclick="tdViewSetTab('favorites')" style="font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem;background:none;border:none;color:var(--sub);cursor:pointer;">Favorites</button>
+                    </div>
+                    <button id="tdImportAllBtn" onclick="tdImportAllFavorites()" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.5rem 1rem;background:rgba(0,224,211,0.1);border:1px solid rgba(0,224,211,0.3);color:#00E0D3;cursor:pointer;">⊕ Import All</button>
+                </div>
+                <div id="tdViewTracks" style="flex:1;overflow-y:auto;padding:0.5rem 2.5rem 2rem;"></div>
+                <div style="padding:0 2.5rem 1rem;"><button id="tdViewLoadMore" onclick="tdViewLoadMore()" style="display:none;width:100%;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.6rem;background:none;border:1px solid var(--border);color:var(--sub);cursor:pointer;">Load More</button></div>
+            </div>
+        </div>
+
         <div id="view-mob-upload" style="display:none;">
             <div class="view-header">
                 <div>
@@ -1804,6 +1858,23 @@
                         </div>
                         <div id="mobScUrlStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:0.4rem;min-height:0.8rem;"></div>
                     </div>
+                </div>
+
+                <div class="mob-stream-card" style="border-color:rgba(0,224,211,0.25);">
+                    <div class="mob-stream-card-header">
+                        <div style="display:flex;align-items:center;gap:0.8rem;">
+                            <span style="font-size:1.6rem;">◐</span>
+                            <div>
+                                <div style="font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:2px;color:#00E0D3;text-transform:uppercase;">Tidal</div>
+                                <div id="mobTdStatus" style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;margin-top:2px;">Not connected</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <button id="mobTdConnectBtn" onclick="tidalAuth()" style="font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:1.5px;padding:0.5rem 1rem;background:#00E0D3;border:none;color:#000;cursor:pointer;font-weight:700;white-space:nowrap;">Connect</button>
+                            <button id="mobTdDisconnectBtn" onclick="tidalLogout()" style="display:none;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:1px;padding:0.4rem 0.8rem;background:none;border:1px solid var(--border);color:rgba(255,255,255,0.3);cursor:pointer;">Disconnect</button>
+                        </div>
+                    </div>
+                    <button onclick="switchView('tidal')" style="width:100%;margin-top:0.8rem;font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem;background:rgba(0,224,211,0.06);border:1px solid rgba(0,224,211,0.2);color:#00E0D3;cursor:pointer;">Open Tidal View →</button>
                 </div>
 
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:0.2rem;">
@@ -2149,6 +2220,7 @@
                 library.push(t);
                 if (t.source === 'spotify') spotifyTracks.push(t);
                 else if (t.source === 'soundcloud') soundcloudTracks.push(t);
+                else if (t.source === 'tidal') tidalTracks.push(t);
             });
         } catch(_) {}
     }
@@ -2421,6 +2493,7 @@
                 soundcloudUrl: track.soundcloudUrl || null,
                 spotifyType: track.spotifyType || null,
                 spotifyTrackId: track.spotifyTrackId || null,
+                tdId: track.tdId || null,
                 playlist: track.playlist || null,
                 url: (track.source === 'store' || track.source === 'local') ? (track.url || '') : null,
                 fileName: track.fileName || null
@@ -2478,6 +2551,8 @@
                         if (spIdx !== -1) spotifyTracks.splice(spIdx, 1);
                         const scIdx = soundcloudTracks.findIndex(t => t.id === removedId);
                         if (scIdx !== -1) soundcloudTracks.splice(scIdx, 1);
+                        const tdIdx = tidalTracks.findIndex(t => t.id === removedId);
+                        if (tdIdx !== -1) tidalTracks.splice(tdIdx, 1);
                         if (typeof idbDeleteTrack === 'function') idbDeleteTrack(removedId);
                         _addTombstone(removedId);
                         return;
@@ -2488,7 +2563,7 @@
                         if (alreadyIn) return;
                         const track = {
                             id: r.id,
-                            url: r.url || r.spUri || r.soundcloudUrl || '',
+                            url: r.url || r.spUri || r.soundcloudUrl || (r.tdId ? 'tidal:track:' + r.tdId : '') || '',
                             title: r.title, artist: r.artist, album: r.album || '',
                             albumArt: r.albumArt || null, duration: r.duration || 0,
                             dateAdded: r.dateAdded || new Date().toLocaleDateString(),
@@ -2497,6 +2572,7 @@
                             soundcloudUrl: r.soundcloudUrl || null,
                             spotifyType: r.spotifyType || null,
                             spotifyTrackId: r.spotifyTrackId || null,
+                            tdId: r.tdId || null,
                             playlist: r.playlist || null,
                             fileName: r.fileName || null,
                             missing: r.source === 'local' ? true : false
@@ -2504,6 +2580,7 @@
                         library.push(track);
                         if (r.source === 'spotify') spotifyTracks.push(track);
                         else if (r.source === 'soundcloud') soundcloudTracks.push(track);
+                        else if (r.source === 'tidal') tidalTracks.push(track);
                         // If this is a purchased store track, register the ownership so the Store
                         // page shows the correct "Owned" badge across devices/sessions.
                         else if (r.source === 'store') {
@@ -2527,6 +2604,7 @@
                 });
                 renderLibrary(); renderQueue();
                 renderSoundcloudTracks();
+                if (tidalTracks.length) tdUpdateAllUI();
                 if (spotifyTracks.length) {
                     document.getElementById('spotifyStatus').textContent = spotifyTracks.length + ' linked';
                     document.getElementById('spotifyConnectBtn').classList.add('connected');
@@ -2944,10 +3022,10 @@
     }
 
     function switchView(v) {
-        ['library','store','playlists','profile','spotify','soundcloud','mob-upload','mob-streaming'].forEach(id => {
+        ['library','store','playlists','profile','spotify','soundcloud','tidal','mob-upload','mob-streaming'].forEach(id => {
             const el = document.getElementById('view-' + id);
             if (!el) return;
-            if (id === 'spotify' || id === 'soundcloud') {
+            if (id === 'spotify' || id === 'soundcloud' || id === 'tidal') {
                 el.style.display = id === v ? 'flex' : 'none';
             } else {
                 el.style.display = id === v ? 'block' : 'none';
@@ -2967,6 +3045,7 @@
         if (v === 'playlists') renderPlaylists();
         if (v === 'spotify') spViewInit();
         if (v === 'soundcloud') renderSoundcloudTracks();
+        if (v === 'tidal') tdViewInit();
         if (v === 'mob-upload') renderMobLocalList();
         if (v === 'mob-streaming') updateMobStreamingView();
         toggleDropdown(true);
@@ -2974,6 +3053,14 @@
 
     function openStreamingView(service) {
         switchView(service);
+    }
+
+    function tdViewInit() {
+        tdUpdateAllUI();
+        // If connected and no content loaded yet, show search tab
+        if (tdAccessToken && _tdCurrentTab === 'search') {
+            tdViewSetTab('search');
+        }
     }
 
     let idb = null;
@@ -3048,6 +3135,7 @@
                 spUri: track.spUri || null,
                 spotifyUrl: track.spotifyUrl || null, spotifyType: track.spotifyType || null,
                 soundcloudUrl: track.soundcloudUrl || null, spotifyTrackId: track.spotifyTrackId || null,
+                tdId: track.tdId || null, playlist: track.playlist || null,
                 fileName: null
             });
             tx.oncomplete = res; tx.onerror = rej;
@@ -3069,19 +3157,21 @@
                         return;
                     }
                     let track;
-                    if (r.source === 'spotify' || r.source === 'soundcloud') {
+                    if (r.source === 'spotify' || r.source === 'soundcloud' || r.source === 'tidal') {
                         track = {
-                            id: r.id, url: r.spUri || r.spotifyUrl || r.soundcloudUrl || '',
+                            id: r.id, url: r.spUri || r.spotifyUrl || r.soundcloudUrl || (r.tdId ? 'tidal:track:' + r.tdId : '') || '',
                             title: r.title, artist: r.artist, album: r.album,
                             albumArt: r.albumArt || null, duration: r.duration,
                             dateAdded: r.dateAdded, emoji: r.emoji, source: r.source,
                             spUri: r.spUri || null,
                             spotifyUrl: r.spotifyUrl, spotifyType: r.spotifyType,
-                            spotifyTrackId: r.spotifyTrackId, soundcloudUrl: r.soundcloudUrl
+                            spotifyTrackId: r.spotifyTrackId, soundcloudUrl: r.soundcloudUrl,
+                            tdId: r.tdId || null, playlist: r.playlist || null
                         };
                         library.push(track);
                         if (r.source === 'spotify') spotifyTracks.push(track);
-                        else soundcloudTracks.push(track);
+                        else if (r.source === 'soundcloud') soundcloudTracks.push(track);
+                        else if (r.source === 'tidal') tidalTracks.push(track);
                     } else if (r.file) {
                         const url = URL.createObjectURL(r.file);
                         track = {
@@ -3103,6 +3193,7 @@
                 if (missingCount > 0) showMissingBanner(missingCount);
                 renderLibrary(); renderQueue();
                 renderSpotifySidebar(); renderSoundcloudTracks();
+                if (tidalTracks.length) { setTimeout(tdUpdateAllUI, 0); }
                 if (spotifyTracks.length) {
                     const _spStatus=document.getElementById('spotifyStatus');if(_spStatus)_spStatus.textContent=spotifyTracks.length+' linked';
                     const _spBtn=document.getElementById('spotifyConnectBtn');if(_spBtn)_spBtn.classList.add('connected');
@@ -3206,10 +3297,10 @@
     }
     function _buildLibraryRow(t, i, tracks) {
         const libIdx   = library.indexOf(t);
-        const isStream = t.source === 'spotify' || t.source === 'soundcloud';
+        const isStream = t.source === 'spotify' || t.source === 'soundcloud' || t.source === 'tidal';
         const isPodcast = t.source === 'spotify' && t.spotifyType === 'episode';
         const sourceTag = isStream
-            ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify' ? (isPodcast ? 'PODCAST' : 'SPOTIFY') : 'SC') + '</span>'
+            ? '<span style="font-family:\'Space Mono\',monospace;font-size:0.5rem;color:' + (t.source==='spotify'?'#1ED760':t.source==='tidal'?'#00E0D3':'#ff5500') + ';letter-spacing:1px;margin-left:4px;">' + (t.source==='spotify' ? (isPodcast ? 'PODCAST' : 'SPOTIFY') : t.source==='tidal' ? 'TIDAL' : 'SC') + '</span>'
             : '';
         const artOk = t.albumArt && _artCache[t.albumArt] !== false;
         const thumbInner = artOk
@@ -3273,6 +3364,10 @@
             const _scStatusEl = document.getElementById('soundcloudStatus'); if (_scStatusEl) _scStatusEl.textContent = soundcloudTracks.length ? soundcloudTracks.length + ' linked' : '';
             if (!soundcloudTracks.length) { const _scBtnR=document.getElementById('soundcloudConnectBtn');if(_scBtnR)_scBtnR.classList.remove('connected'); }
             renderSoundcloudTracks();
+        } else if (t.source === 'tidal') {
+            const ti = tidalTracks.findIndex(s => s.id === t.id);
+            if (ti !== -1) tidalTracks.splice(ti, 1);
+            tdUpdateAllUI();
         }
         idbDeleteTrack(t.id);
         fbDeleteStreamingTrack(t.id);
@@ -3434,6 +3529,7 @@
         if (idx === currentIdx) {
             if (t.source === 'soundcloud') { scTogglePlay(); return; }
             if (t.source === 'spotify')    { spTogglePlay(); return; }
+            if (t.source === 'tidal')      { tdTogglePlay(); return; }
             if (isPlaying) { audio.pause(); } else { audio.play().catch(()=>{}); }
             return;
         }
@@ -3442,7 +3538,9 @@
         _earnReset();
         if (spPlayer) { try { spPlayer.pause(); } catch(e) {} }
         spStopProgressLoop();
-        scDestroyWidget();  
+        scDestroyWidget();
+        // Pause tidal player if running
+        if (tdPlayer) { try { tdPlayer.pause(); } catch(_) {} }
 
         document.getElementById('progressFill').style.width = '0%';
         document.getElementById('timeElapsed').textContent  = '0:00';
@@ -3454,6 +3552,11 @@
         if (t.source === 'soundcloud') {
             isPlaying = false;
             scLoadAndPlay(t.soundcloudUrl || t.url);
+            return;
+        }
+        if (t.source === 'tidal') {
+            isPlaying = false;
+            tdPlayTrack(t);
             return;
         }
         if (t.source === 'spotify') {
@@ -3475,6 +3578,7 @@
         const t = library[currentIdx];
         if (t && t.source === 'soundcloud') { scTogglePlay(); return; }
         if (t && t.source === 'spotify')    { spTogglePlay(); return; }
+        if (t && t.source === 'tidal')      { tdTogglePlay(); return; }
         if (spPlayer && spDeviceId && (!audio.src || audio.readyState === 0)) { spTogglePlay(); return; }
         if (audio.paused) { audio.play().catch(()=>{}); } else { audio.pause(); }
     }
@@ -3491,6 +3595,8 @@
         } else if (t.source === 'soundcloud') {
             scDestroyWidget();
             scLoadAndPlay(t.soundcloudUrl || t.url);
+        } else if (t.source === 'tidal') {
+            tdPlayTrack(t);
         } else {
             const src = audio.src;
             audio.pause();
@@ -3587,6 +3693,7 @@
             const t = currentIdx >= 0 ? library[currentIdx] : null;
             if (t && t.source === 'soundcloud') return scCurrentDur / 1000;
             if (t && t.source === 'spotify')    return spCurrentDuration;
+            if (t && t.source === 'tidal')      return t.duration || 0;
             return isFinite(audio.duration) ? audio.duration : 0;
         }
         function applyPct(pct) {
@@ -3603,6 +3710,8 @@
                 const ms = Math.round(pct * spCurrentDuration * 1000);
                 spCurrentPosition = pct * spCurrentDuration;
                 spPlayer.seek(ms);
+            } else if (t && t.source === 'tidal') {
+                tdSeekTo(pct);
             } else if (isFinite(audio.duration) && audio.duration > 0) {
                 audio.currentTime = pct * audio.duration;
             }
@@ -3630,7 +3739,7 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
         }
-        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; if (pct > 0) volume = pct; audio.volume = pct; audio.muted = pct === 0; muted = pct === 0; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = pct === 0 ? '🔇' : '🔊'; }
+        function applyPct(pct) { fill.style.width = (pct * 100) + '%'; if (pct > 0) volume = pct; audio.volume = pct; audio.muted = pct === 0; muted = pct === 0; if (spPlayer) spPlayer.setVolume(pct); scSetVolume(pct); tdSetVolume(pct); const icon = document.querySelector('.vol-icon'); if (icon) icon.textContent = pct === 0 ? '🔇' : '🔊'; }
         bar.addEventListener('mousedown', e => { dragging = true; bar.classList.add('dragging'); applyPct(getPct(e)); e.preventDefault(); });
         bar.addEventListener('click', e => { applyPct(getPct(e)); });
         document.addEventListener('mousemove', e => { if (!dragging) return; applyPct(getPct(e)); });
@@ -3654,12 +3763,14 @@
             audio.muted = true;
             if (spPlayer) spPlayer.setVolume(0);
             scSetVolume(0);
+            tdSetVolume(0);
             if (fill) fill.style.width = '0%';
             if (icon) icon.textContent = '🔇';
         } else {
             audio.muted = false;
             audio.volume = volume;
             if (spPlayer) spPlayer.setVolume(volume);
+            tdSetVolume(volume);
             scSetVolume(volume);
             if (fill) fill.style.width = (volume * 100) + '%';
             if (icon) icon.textContent = '🔊';
@@ -3688,9 +3799,11 @@
     audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); document.getElementById('playerArt').classList.remove('playing'); _earnLastTs = 0; });
 
     function updatePlayerUI(t) {
-        const isStream = t.source === 'spotify' || t.source === 'soundcloud';
+        const isStream = t.source === 'spotify' || t.source === 'soundcloud' || t.source === 'tidal';
+        const srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'tidal' ? '#00E0D3' : '#ff5500';
+        const srcLabel = t.source === 'spotify' ? 'SPOTIFY' : t.source === 'tidal' ? 'TIDAL' : 'SOUNDCLOUD';
         document.getElementById('playerName').innerHTML = esc(t.title)
-            + (isStream ? '<span style="font-size:0.55rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';font-family:\'Space Mono\',monospace;margin-left:6px;">' + (t.source==='spotify'?'SPOTIFY':'SOUNDCLOUD') + '</span>' : '');
+            + (isStream ? '<span style="font-size:0.55rem;color:' + srcColor + ';font-family:\'Space Mono\',monospace;margin-left:6px;">' + srcLabel + '</span>' : '');
         document.getElementById('playerArtist').textContent = t.artist || '';
         const artEl   = document.getElementById('playerArt');
         const emojiEl = document.getElementById('playerArtEmoji');
@@ -3790,7 +3903,8 @@
             scWidgetReady = true;
             scTransitioning = false;
             scWidget.play();
-            let _durTries = 0;
+            // Restore BLK's current volume — the widget always starts at 100 on init
+            scWidget.setVolume(muted ? 0 : Math.round(volume * 100));
             const _pollDur = setInterval(() => {
                 if (scGeneration !== myGen || !scWidget) { clearInterval(_pollDur); return; }
                 scWidget.getDuration(d => {
@@ -4491,14 +4605,14 @@
             const exp = parseInt(localStorage.getItem(k.exp) || '0');
             const name = localStorage.getItem(k.name) || '';
             if (!at || Date.now() >= exp) return;
-            const btnText = document.getElementById('tidalBtnText');
-            const connectBtn = document.getElementById('tidalConnectBtn');
-            if (btnText) btnText.textContent = 'Tidal Connected';
-            if (connectBtn) connectBtn.classList.add('connected');
+            tdAccessToken = at;
+            tdTokenExpiry = exp;
+            tdRefreshToken = localStorage.getItem(k.rt) || null;
             if (name) {
                 const statusEl = document.getElementById('tidalStatus');
                 if (statusEl) statusEl.textContent = name;
             }
+            tdUpdateAllUI();
         } catch(e) {}
     }
 
@@ -4546,6 +4660,7 @@
                 if (statusEl) statusEl.textContent = displayName;
             }
         } catch(_) {}
+        tdUpdateAllUI();
         showToast('Tidal connected', true);
     }
 
@@ -4566,7 +4681,525 @@
         if (connectBtn) connectBtn.classList.remove('connected');
         if (statusEl) statusEl.textContent = '';
         tidalTracks = [];
+        tdUpdateAllUI();
         showToast('Tidal disconnected');
+    }
+
+    // ── TIDAL: UI helpers ──────────────────────────────────────────────────────
+
+    // Called after connect or logout to update every surface at once.
+    function tdUpdateAllUI() {
+        const connected = !!tdAccessToken;
+        const tCol = '#00E0D3';
+
+        // Sidebar dropdown buttons
+        const btnText   = document.getElementById('tidalBtnText');
+        const connectBtn = document.getElementById('tidalConnectBtn');
+        const statusEl  = document.getElementById('tidalStatus');
+        if (btnText)    btnText.textContent = connected ? 'Tidal Connected' : 'Connect Tidal';
+        if (connectBtn) connectBtn.classList.toggle('connected', connected);
+        if (statusEl && !connected) statusEl.textContent = '';
+        const ddStatus = document.getElementById('tdDDStatus');
+        if (ddStatus) ddStatus.textContent = connected ? (tidalTracks.length ? tidalTracks.length + ' linked' : '●') : '';
+
+        // In-view header buttons
+        const viewConnect = document.getElementById('tdViewConnect');
+        const viewMain    = document.getElementById('tdViewMain');
+        const conn2       = document.getElementById('tidalConnectBtn2');
+        const disc        = document.getElementById('tdViewDisconnectBtn');
+        if (viewConnect) viewConnect.style.display = connected ? 'none' : 'flex';
+        if (viewMain)    viewMain.style.display    = connected ? 'flex' : 'none';
+        if (conn2)       conn2.style.display       = connected ? 'none' : 'flex';
+        if (disc)        disc.style.display        = connected ? 'inline-block' : 'none';
+
+        const viewUserEl = document.getElementById('tdViewUser');
+        if (viewUserEl && connected) {
+            try { const k = _tdKeys(); viewUserEl.textContent = localStorage.getItem(k.name) || ''; } catch(_) {}
+        }
+
+        // Mobile streaming view
+        const mobStatus  = document.getElementById('mobTdStatus');
+        const mobConnBtn = document.getElementById('mobTdConnectBtn');
+        const mobDiscBtn = document.getElementById('mobTdDisconnectBtn');
+        const tdCnt      = document.getElementById('mobTdCount');
+        if (mobStatus)  { mobStatus.textContent = connected ? (tidalTracks.length + ' track' + (tidalTracks.length !== 1 ? 's' : '') + ' linked') : 'Not connected'; mobStatus.style.color = connected ? tCol : 'var(--sub)'; }
+        if (mobConnBtn) mobConnBtn.style.display = connected ? 'none' : 'inline-block';
+        if (mobDiscBtn) mobDiscBtn.style.display = connected ? 'inline-block' : 'none';
+        if (tdCnt)      tdCnt.textContent = tidalTracks.length;
+    }
+
+    // ── TIDAL: search view tab management ─────────────────────────────────────
+
+    let _tdCurrentTab    = 'search';
+    let _tdSearchOffset  = 0;
+    let _tdSearchTotal   = 0;
+    let _tdSearchQuery   = '';
+    let _tdPLOffset      = 0;
+    let _tdFavOffset     = 0;
+    const TD_PAGE = 20;
+
+    function tdViewSetTab(tab) {
+        _tdCurrentTab = tab;
+        const tabs = ['search', 'playlists', 'favorites'];
+        const tCol = 'rgba(0,224,211,0.08)';
+        tabs.forEach(t => {
+            const el = document.getElementById('tdVTab-' + t);
+            if (!el) return;
+            el.style.background = t === tab ? tCol : 'none';
+            el.style.color = t === tab ? '#00E0D3' : 'var(--sub)';
+        });
+        const importBtn = document.getElementById('tdImportAllBtn');
+        if (importBtn) importBtn.style.display = (tab === 'favorites') ? 'inline-block' : 'none';
+        const lmBtn = document.getElementById('tdViewLoadMore');
+        if (lmBtn) lmBtn.style.display = 'none';
+        const tracks = document.getElementById('tdViewTracks');
+        if (tracks) tracks.innerHTML = '';
+        if (tab === 'search') {
+            // show last search results if any
+            if (_tdSearchQuery) tdSearch();
+        } else if (tab === 'playlists') {
+            _tdPLOffset = 0;
+            tdLoadPlaylists();
+        } else if (tab === 'favorites') {
+            _tdFavOffset = 0;
+            tdLoadFavorites();
+        }
+    }
+
+    // ── TIDAL: catalog search ─────────────────────────────────────────────────
+
+    async function tdSearch() {
+        const input = document.getElementById('tdSearchInput');
+        const statusEl = document.getElementById('tdSearchStatus');
+        const q = (input ? input.value.trim() : '');
+        if (!q) return;
+        if (!tdAccessToken) { showToast('Connect Tidal first'); tidalAuth(); return; }
+        _tdSearchQuery  = q;
+        _tdSearchOffset = 0;
+        if (statusEl) { statusEl.textContent = 'Searching…'; statusEl.style.color = 'rgba(0,224,211,0.6)'; }
+        const el = document.getElementById('tdViewTracks');
+        if (el) el.innerHTML = '';
+        const lmBtn = document.getElementById('tdViewLoadMore');
+        if (lmBtn) lmBtn.style.display = 'none';
+        await _tdDoSearch(q, 0, true);
+        if (statusEl) statusEl.textContent = '';
+    }
+
+    async function _tdDoSearch(q, offset, reset) {
+        const data = await tdAPI('/v2/searchresults/' + encodeURIComponent(q) + '?include=tracks&page%5Blimit%5D=' + TD_PAGE + '&page%5Boffset%5D=' + offset + '&countryCode=US');
+        if (!data) { showToast('Tidal search failed'); return; }
+        const tracks = (data.tracks && data.tracks.data) || [];
+        _tdSearchTotal = (data.tracks && data.tracks.meta && data.tracks.meta.total) || tracks.length;
+        _tdSearchOffset = offset + tracks.length;
+        _tdRenderTrackRows(tracks, reset, 'search');
+        const lmBtn = document.getElementById('tdViewLoadMore');
+        if (lmBtn) lmBtn.style.display = (_tdSearchOffset < _tdSearchTotal && tracks.length === TD_PAGE) ? 'block' : 'none';
+    }
+
+    async function tdViewLoadMore() {
+        if (_tdCurrentTab === 'search') await _tdDoSearch(_tdSearchQuery, _tdSearchOffset, false);
+        else if (_tdCurrentTab === 'favorites') await _tdDoLoadFavorites(_tdFavOffset, false);
+    }
+
+    // ── TIDAL: favorites ──────────────────────────────────────────────────────
+
+    async function tdLoadFavorites() {
+        const el = document.getElementById('tdViewTracks');
+        if (el) el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);padding:2rem;text-align:center;letter-spacing:1px;">Loading favorites…</div>';
+        await _tdDoLoadFavorites(0, true);
+    }
+
+    async function _tdDoLoadFavorites(offset, reset) {
+        if (!tdUserId) {
+            // Attempt to fetch userId from the me endpoint
+            const me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) tdUserId = me.data.id || null;
+        }
+        if (!tdUserId) { showToast('Tidal: could not determine user ID'); return; }
+        const data = await tdAPI('/v2/users/' + tdUserId + '/favorites/tracks?include=tracks&page%5Blimit%5D=' + TD_PAGE + '&page%5Boffset%5D=' + offset + '&countryCode=US');
+        if (!data) { showToast('Could not load Tidal favorites'); return; }
+        const items = (data.data || []);
+        const included = (data.included || []);
+        // Favorites endpoint returns relationship items; resolve through included
+        const trackItems = items.map(item => {
+            const rel = item.relationships && item.relationships.track && item.relationships.track.data;
+            if (!rel) return null;
+            return included.find(i => i.type === 'tracks' && i.id === rel.id) || null;
+        }).filter(Boolean);
+        _tdFavOffset = offset + items.length;
+        const hasMore = (data.meta && _tdFavOffset < data.meta.total) || (trackItems.length === TD_PAGE);
+        _tdRenderTrackRows(trackItems, reset, 'favorites');
+        const lmBtn = document.getElementById('tdViewLoadMore');
+        if (lmBtn) lmBtn.style.display = hasMore ? 'block' : 'none';
+    }
+
+    async function tdImportAllFavorites() {
+        if (!tdAccessToken) { showToast('Connect Tidal first'); return; }
+        const btn = document.getElementById('tdImportAllBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; }
+        showToast('Importing Tidal favorites…');
+        if (!tdUserId) {
+            const me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) tdUserId = me.data.id || null;
+        }
+        if (!tdUserId) { showToast('Tidal: could not determine user ID'); if (btn) { btn.disabled = false; btn.textContent = '⊕ Import All'; } return; }
+        let offset = 0, total = null, added = 0, allTracks = [];
+        while (total === null || offset < total) {
+            const data = await tdAPI('/v2/users/' + tdUserId + '/favorites/tracks?include=tracks&page%5Blimit%5D=50&page%5Boffset%5D=' + offset + '&countryCode=US');
+            if (!data) break;
+            const items = data.data || [];
+            const included = data.included || [];
+            total = (data.meta && data.meta.total) || items.length;
+            const trackItems = items.map(item => {
+                const rel = item.relationships && item.relationships.track && item.relationships.track.data;
+                if (!rel) return null;
+                return included.find(i => i.type === 'tracks' && i.id === rel.id) || null;
+            }).filter(Boolean);
+            allTracks = allTracks.concat(trackItems);
+            offset += items.length;
+            if (!data.links || !data.links.next) break;
+        }
+        allTracks.forEach(t => {
+            const converted = tdFromAPI(t);
+            if (!converted || tidalTracks.some(l => l.tdId === converted.tdId)) return;
+            library.push(converted);
+            tidalTracks.push(converted);
+            idbSaveStreaming(converted);
+            fbSaveStreamingTrack(converted);
+            added++;
+        });
+        renderLibrary(); renderQueue(); tdUpdateAllUI();
+        if (btn) { btn.disabled = false; btn.textContent = '⊕ Import All'; }
+        showToast('✓ ' + added + ' Tidal favorites imported', true);
+        if (added > 0) {
+            plLoad();
+            const newIds = tidalTracks.map(t => t.id);
+            if (!playlists.find(p => p.name === 'Tidal Favorites')) {
+                playlists.push({ id: 'pl_td_fav_' + Date.now(), name: 'Tidal Favorites', trackIds: newIds, createdAt: new Date().toISOString() });
+                plSave(); renderPlaylists();
+            }
+        }
+    }
+
+    // ── TIDAL: playlists ──────────────────────────────────────────────────────
+
+    async function tdLoadPlaylists() {
+        const el = document.getElementById('tdViewTracks');
+        if (el) el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);padding:2rem;text-align:center;letter-spacing:1px;">Loading playlists…</div>';
+        if (!tdUserId) {
+            const me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) tdUserId = me.data.id || null;
+        }
+        if (!tdUserId) { if (el) el.innerHTML = ''; showToast('Tidal: could not determine user ID'); return; }
+        const data = await tdAPI('/v2/users/' + tdUserId + '/playlists?page%5Blimit%5D=50&countryCode=US');
+        if (!data || !data.data) { if (el) el.innerHTML = ''; showToast('Could not load Tidal playlists'); return; }
+        const pls = data.data || [];
+        if (!pls.length) { if (el) el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);padding:2rem;text-align:center;letter-spacing:1px;">No playlists found</div>'; return; }
+        if (el) {
+            el.innerHTML = pls.map(pl => {
+                const attrs = pl.attributes || {};
+                const name = attrs.name || 'Untitled Playlist';
+                const count = (attrs.numberOfItems !== undefined ? attrs.numberOfItems : (attrs.numberOfTracks || 0));
+                const art = attrs.images && attrs.images[0] && attrs.images[0].url ? attrs.images[0].url : null;
+                const artHtml = art ? '<img src="' + esc(art) + '" style="width:48px;height:48px;object-fit:cover;flex-shrink:0;" onerror="this.parentNode.innerHTML=\'<div style=&quot;width:48px;height:48px;background:#111;display:flex;align-items:center;justify-content:center;color:#00E0D3;font-family:monospace;font-size:0.7rem;flex-shrink:0;&quot;>◐</div>\'">' : '<div style="width:48px;height:48px;background:#111;display:flex;align-items:center;justify-content:center;color:#00E0D3;font-family:monospace;font-size:0.7rem;flex-shrink:0;">◐</div>';
+                return '<div style="display:flex;align-items:center;gap:0.9rem;padding:0.8rem 0;border-bottom:1px solid var(--border);">'
+                    + artHtml
+                    + '<div style="flex:1;min-width:0;">'
+                    + '<div style="font-family:Space Mono,monospace;font-size:0.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(name) + '</div>'
+                    + '<div style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;margin-top:2px;">' + count + ' tracks</div>'
+                    + '</div>'
+                    + '<button onclick="tdImportPlaylist(\'' + esc(pl.id) + '\',\'' + esc(name).replace(/'/g, "\\'") + '\')" style="font-family:Space Mono,monospace;font-size:0.5rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.4rem 0.8rem;background:rgba(0,224,211,0.1);border:1px solid rgba(0,224,211,0.3);color:#00E0D3;cursor:pointer;flex-shrink:0;white-space:nowrap;">⊕ Import</button>'
+                    + '</div>';
+            }).join('');
+        }
+    }
+
+    async function tdImportPlaylist(plId, plName) {
+        if (!tdAccessToken) return;
+        showToast('Importing "' + plName + '"…');
+        let offset = 0, total = null, allTracks = [], added = 0;
+        while (total === null || offset < total) {
+            const data = await tdAPI('/v2/playlists/' + plId + '/relationships/items?include=tracks&page%5Blimit%5D=50&page%5Boffset%5D=' + offset + '&countryCode=US');
+            if (!data) break;
+            const items = data.data || [];
+            const included = data.included || [];
+            total = (data.meta && data.meta.total) || items.length;
+            const trackItems = items.map(item => {
+                const rel = item.relationships && item.relationships.track && item.relationships.track.data;
+                if (!rel) return null;
+                return included.find(i => i.type === 'tracks' && i.id === rel.id) || null;
+            }).filter(Boolean);
+            allTracks = allTracks.concat(trackItems);
+            offset += items.length;
+            if (!data.links || !data.links.next) break;
+        }
+        allTracks.forEach(t => {
+            const converted = tdFromAPI(t, plName);
+            if (!converted || tidalTracks.some(l => l.tdId === converted.tdId)) return;
+            library.push(converted);
+            tidalTracks.push(converted);
+            idbSaveStreaming(converted);
+            fbSaveStreamingTrack(converted);
+            added++;
+        });
+        renderLibrary(); renderQueue(); tdUpdateAllUI();
+        if (added > 0) {
+            plLoad();
+            const plTrackIds = tidalTracks.filter(t => t.playlist === plName).map(t => t.id);
+            if (!playlists.find(p => p.name === plName)) {
+                playlists.push({ id: 'pl_td_' + Date.now(), name: plName, trackIds: plTrackIds, createdAt: new Date().toISOString() });
+                plSave(); renderPlaylists();
+            }
+        }
+        showToast('✓ ' + added + ' tracks imported from "' + plName + '"', true);
+    }
+
+    // ── TIDAL: track data model ────────────────────────────────────────────────
+
+    function tdFromAPI(t, playlist) {
+        if (!t || !t.id) return null;
+        const attrs = t.attributes || {};
+        const artistRel = t.relationships && t.relationships.artists && t.relationships.artists.data;
+        const artistName = attrs.artistName || (artistRel && artistRel[0] && artistRel[0].id) || 'Unknown';
+        const albumRel = t.relationships && t.relationships.albums && t.relationships.albums.data;
+        const albumName = attrs.albumTitle || attrs.album || '';
+        const imgUrl = attrs.imageLinks && attrs.imageLinks[0] && attrs.imageLinks[0].href ? attrs.imageLinks[0].href : null;
+        const durationSec = attrs.duration ? (typeof attrs.duration === 'string' ? _parseTdDuration(attrs.duration) : attrs.duration / 1000) : 0;
+        return {
+            id: 'td_' + t.id + '_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+            tdId: t.id,
+            url: 'tidal:track:' + t.id,
+            title: attrs.title || 'Untitled',
+            artist: artistName,
+            album: albumName || playlist || 'Tidal',
+            albumArt: imgUrl,
+            duration: durationSec,
+            dateAdded: new Date().toLocaleDateString(),
+            emoji: '◐',
+            source: 'tidal',
+            playlist: playlist || null
+        };
+    }
+
+    function _parseTdDuration(iso) {
+        // ISO 8601 duration e.g. "PT3M45S"
+        const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:([\d.]+)S)?/);
+        if (!m) return 0;
+        return (parseInt(m[1] || 0) * 3600) + (parseInt(m[2] || 0) * 60) + parseFloat(m[3] || 0);
+    }
+
+    // ── TIDAL: render track rows in view ──────────────────────────────────────
+
+    function _tdRenderTrackRows(tracks, reset, context) {
+        const el = document.getElementById('tdViewTracks');
+        if (!el) return;
+        if (reset) el.innerHTML = '';
+        if (!tracks.length && reset) {
+            el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);padding:2rem;text-align:center;letter-spacing:1px;">No results found</div>';
+            return;
+        }
+        const frag = document.createDocumentFragment();
+        tracks.forEach(t => {
+            if (!t || !t.id) return;
+            const attrs = t.attributes || {};
+            const title = attrs.title || 'Untitled';
+            const artist = attrs.artistName || 'Unknown';
+            const album = attrs.albumTitle || '';
+            const imgUrl = attrs.imageLinks && attrs.imageLinks[0] && attrs.imageLinks[0].href ? attrs.imageLinks[0].href : null;
+            const durationSec = attrs.duration ? (typeof attrs.duration === 'string' ? _parseTdDuration(attrs.duration) : attrs.duration / 1000) : 0;
+            const alreadyIn = tidalTracks.some(l => l.tdId === t.id);
+
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:0.8rem;padding:0.65rem 0;border-bottom:1px solid var(--border);cursor:pointer;';
+            row.onmouseenter = () => row.style.background = 'rgba(0,224,211,0.04)';
+            row.onmouseleave = () => row.style.background = '';
+            row.onclick = () => tdPlayOrPreview(t);
+
+            const artHtml = imgUrl
+                ? '<img src="' + imgUrl + '" style="width:42px;height:42px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'">'
+                : '<div style="width:42px;height:42px;background:#111;display:flex;align-items:center;justify-content:center;color:#00E0D3;font-family:monospace;font-size:0.8rem;flex-shrink:0;">◐</div>';
+
+            row.innerHTML = artHtml
+                + '<div style="flex:1;min-width:0;">'
+                + '<div style="font-family:Space Mono,monospace;font-size:0.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(title) + '</div>'
+                + '<div style="font-family:Space Mono,monospace;font-size:0.52rem;color:#00E0D3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(artist) + (album ? ' · ' + esc(album) : '') + '</div>'
+                + '</div>'
+                + '<span style="font-family:Space Mono,monospace;font-size:0.52rem;color:var(--sub);flex-shrink:0;">' + fmt(durationSec) + '</span>'
+                + '<button onclick="event.stopPropagation();tdAddToLibrary(\'' + t.id + '\')" style="font-family:Space Mono,monospace;font-size:0.45rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.35rem 0.7rem;background:' + (alreadyIn ? 'rgba(0,224,211,0.15)' : 'rgba(0,224,211,0.08)') + ';border:1px solid rgba(0,224,211,0.3);color:' + (alreadyIn ? '#00E0D3' : 'rgba(0,224,211,0.6)') + ';cursor:pointer;flex-shrink:0;transition:all 0.2s;" data-tdid="' + t.id + '">'
+                + (alreadyIn ? '✓ Added' : '+ Add') + '</button>';
+            frag.appendChild(row);
+        });
+        el.appendChild(frag);
+    }
+
+    async function tdAddToLibrary(tdId) {
+        // Find the track object from existing search/fav results
+        const btns = document.querySelectorAll('[data-tdid="' + tdId + '"]');
+        if (tidalTracks.some(l => l.tdId === tdId)) {
+            showToast('Already in library');
+            btns.forEach(b => { b.textContent = '✓ Added'; });
+            return;
+        }
+        // We need to fetch the track to get its full data
+        const data = await tdAPI('/v2/tracks/' + tdId + '?countryCode=US');
+        if (!data || !data.data) { showToast('Could not fetch track details'); return; }
+        const converted = tdFromAPI(data.data);
+        if (!converted) return;
+        library.push(converted);
+        tidalTracks.push(converted);
+        idbSaveStreaming(converted);
+        fbSaveStreamingTrack(converted);
+        renderLibrary(); renderQueue(); tdUpdateAllUI();
+        btns.forEach(b => { b.textContent = '✓ Added'; b.style.color = '#00E0D3'; b.style.background = 'rgba(0,224,211,0.15)'; });
+        showToast('"' + converted.title + '" added to library', true);
+    }
+
+    // ── TIDAL: playback via TIDAL Player SDK ──────────────────────────────────
+    // Loads @tidal-music/player from CDN, initialises once, then plays tracks
+    // via track IDs.  Falls back to a TIDAL web deep-link if SDK is unavailable.
+
+    let tdPlayer = null;
+    let _tdPlayerReady = false;
+    let _tdPlayerInitialising = false;
+    let _tdCurrentTrackId = null;
+    let _tdProgressInterval = null;
+
+    async function tdEnsurePlayer() {
+        if (_tdPlayerReady && tdPlayer) return true;
+        if (_tdPlayerInitialising) {
+            // Wait up to 10s for existing init
+            for (let i = 0; i < 100; i++) {
+                await new Promise(r => setTimeout(r, 100));
+                if (_tdPlayerReady) return true;
+            }
+            return false;
+        }
+        _tdPlayerInitialising = true;
+        try {
+            // The TIDAL Player SDK is delivered as an ES module; load it dynamically.
+            const mod = await import('https://cdn.tidal.com/sdk/player/latest/tidal-player.js').catch(() => null);
+            if (!mod || !mod.TIDALPlayer) throw new Error('SDK not available');
+            await tdRefreshIfNeeded();
+            tdPlayer = new mod.TIDALPlayer({
+                clientId: TIDAL_CLIENT_ID || window.TIDAL_CLIENT_ID,
+                getCredentials: async () => {
+                    await tdRefreshIfNeeded();
+                    return { token: tdAccessToken, userId: tdUserId || '' };
+                }
+            });
+            await tdPlayer.init();
+            _tdPlayerReady = true;
+
+            // Wire player events → BLK playback state
+            tdPlayer.on('playbackStateChange', state => {
+                if (!state) return;
+                isPlaying = state.playbackState === 'PLAYING';
+                updatePlayBtn();
+                document.getElementById('playerArt').classList.toggle('playing', isPlaying);
+            });
+            tdPlayer.on('progress', prog => {
+                if (!prog || !prog.position || !prog.duration) return;
+                const pct = prog.position / prog.duration;
+                document.getElementById('progressFill').style.width = (pct * 100) + '%';
+                document.getElementById('timeElapsed').textContent  = fmt(prog.position / 1000);
+                document.getElementById('timeDuration').textContent = fmt(prog.duration / 1000);
+            });
+            tdPlayer.on('ended', () => { nextTrack(); });
+            tdPlayer.on('error', err => { console.warn('[BLK] Tidal player error:', err); showToast('Tidal playback error'); });
+
+            return true;
+        } catch(e) {
+            console.warn('[BLK] TIDAL Player SDK failed to load:', e);
+            _tdPlayerInitialising = false;
+            return false;
+        }
+    }
+
+    function tdOpenDeepLink(tdId) {
+        // Fallback: open TIDAL web player in a new tab
+        window.open('https://tidal.com/browse/track/' + tdId, '_blank');
+    }
+
+    async function tdPlayTrack(track) {
+        if (!track || !track.tdId) return;
+        _tdCurrentTrackId = track.tdId;
+        // If we can get the SDK player going, use it
+        const sdkReady = await tdEnsurePlayer();
+        if (sdkReady && tdPlayer) {
+            try {
+                await tdRefreshIfNeeded();
+                await tdPlayer.load({ id: track.tdId, type: 'TRACK' });
+                await tdPlayer.play();
+                isPlaying = true;
+                updatePlayBtn();
+                document.getElementById('playerArt').classList.add('playing');
+            } catch(e) {
+                console.warn('[BLK] Tidal SDK play failed, falling back to deep link:', e);
+                showToast('Tidal: opening in web player…');
+                tdOpenDeepLink(track.tdId);
+                isPlaying = false;
+                updatePlayBtn();
+            }
+        } else {
+            // SDK not available; open TIDAL web player
+            showToast('Tidal: opening in web player…');
+            tdOpenDeepLink(track.tdId);
+        }
+    }
+
+    function tdTogglePlay() {
+        if (!tdPlayer) { if (_tdCurrentTrackId) tdOpenDeepLink(_tdCurrentTrackId); return; }
+        if (isPlaying) { tdPlayer.pause(); } else { tdPlayer.play(); }
+    }
+
+    function tdSeekTo(pct) {
+        if (!tdPlayer) return;
+        const t = library[currentIdx];
+        if (t && t.duration) tdPlayer.seek(Math.round(pct * t.duration * 1000));
+    }
+
+    function tdSetVolume(vol) {
+        if (tdPlayer) { try { tdPlayer.setVolume(vol); } catch(_) {} }
+    }
+
+    // Quick-preview from the Tidal search view (doesn't add to lib, just plays)
+    async function tdPlayOrPreview(apiTrack) {
+        const attrs = apiTrack.attributes || {};
+        const title = attrs.title || 'Untitled';
+        const artist = attrs.artistName || 'Unknown';
+        const album = attrs.albumTitle || '';
+        const imgUrl = attrs.imageLinks && attrs.imageLinks[0] && attrs.imageLinks[0].href ? attrs.imageLinks[0].href : null;
+        const durationSec = attrs.duration ? (typeof attrs.duration === 'string' ? _parseTdDuration(attrs.duration) : attrs.duration / 1000) : 0;
+
+        // Find in library if already added
+        const existing = tidalTracks.find(l => l.tdId === apiTrack.id);
+        if (existing) {
+            const libIdx = library.indexOf(existing);
+            if (libIdx >= 0) { playTrack(libIdx); return; }
+        }
+
+        // Otherwise build a temporary track object and play it directly
+        const tmpTrack = {
+            id: 'td_preview_' + apiTrack.id,
+            tdId: apiTrack.id,
+            url: 'tidal:track:' + apiTrack.id,
+            title, artist, album: album || 'Tidal',
+            albumArt: imgUrl, duration: durationSec,
+            source: 'tidal', emoji: '◐'
+        };
+        audio.pause(); audio.src = '';
+        _earnReset();
+        if (spPlayer) { try { spPlayer.pause(); } catch(_) {} }
+        spStopProgressLoop();
+        scDestroyWidget();
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('timeElapsed').textContent  = '0:00';
+        document.getElementById('timeDuration').textContent = '0:00';
+
+        // Temporarily set player UI without adding to library
+        updatePlayerUI(tmpTrack);
+        currentIdx = -1; // not in library
+        await tdPlayTrack(tmpTrack);
     }
     // -----------------------------------------------------------------
 
@@ -6174,8 +6807,8 @@
             var artHtml = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:100%;height:34px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
                 : '<div style="width:100%;height:100%;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.65rem;letter-spacing:3px;color:#8A2BE2;">BLK</div>';
-            var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : '';
-            var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : '';
+            var srcColor = t.source === 'spotify' ? '#1ED760' : t.source === 'soundcloud' ? '#ff5500' : t.source === 'tidal' ? '#00E0D3' : '';
+            var srcLabel = t.source === 'spotify' ? 'SP' : t.source === 'soundcloud' ? 'SC' : t.source === 'tidal' ? 'TD' : '';
             var srcTag = srcLabel ? '<span style="font-family:Space Mono,monospace;font-size:0.42rem;color:' + srcColor + ';margin-left:5px;opacity:0.9;">' + srcLabel + '</span>' : '';
             return '<label class="pl-pick-row' + (checked ? ' is-checked' : '') + '" onclick="togglePlRow(this)">'
                 + '<input type="checkbox" data-tid="' + esc(t.id) + '" ' + (checked ? 'checked' : '') + '>'
@@ -6317,8 +6950,8 @@
         overlay.style.display = 'block';
         var rowsHtml = tracks.length ? tracks.map(function(t, i) {
             var libIdx = library.indexOf(t);
-            var isStream = t.source === 'spotify' || t.source === 'soundcloud';
-            var srcTag = isStream ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + (t.source==='spotify'?'#1ED760':'#ff5500') + ';margin-left:4px;">' + (t.source==='spotify'?'SP':'SC') + '</span>' : '';
+            var isStream = t.source === 'spotify' || t.source === 'soundcloud' || t.source === 'tidal';
+            var srcTag = isStream ? '<span style="font-family:Space Mono,monospace;font-size:0.45rem;color:' + (t.source==='spotify'?'#1ED760':t.source==='tidal'?'#00E0D3':'#ff5500') + ';margin-left:4px;">' + (t.source==='spotify'?'SP':t.source==='tidal'?'TD':'SC') + '</span>' : '';
             var thumbInner = t.albumArt
                 ? '<img src="' + esc(t.albumArt) + '" style="width:40px;height:40px;object-fit:cover;display:block;" onerror="_plArtErr(this)">'
                 : '<div style="width:40px;height:40px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-family:monospace;font-weight:700;font-size:0.6rem;letter-spacing:2px;color:#8A2BE2;">BLK</div>';
@@ -6508,6 +7141,7 @@
         var spConnected = !!spAccessToken;
         var spCountEl = document.getElementById('mobSpCount');
         var scCountEl = document.getElementById('mobScCount');
+        var tdCountEl = document.getElementById('mobTdCount');
         var mobSpStatus = document.getElementById('mobSpStatus');
         var mobSpConnectBtn = document.getElementById('mobSpConnectBtn');
         var mobSpDisconnectBtn = document.getElementById('mobSpDisconnectBtn');
@@ -6517,6 +7151,7 @@
 
         if (spCountEl) spCountEl.textContent = spTracks.length;
         if (scCountEl) scCountEl.textContent = scTracks.length;
+        if (tdCountEl) tdCountEl.textContent = tidalTracks.length;
 
         if (mobSpStatus) {
             mobSpStatus.textContent = spConnected
@@ -6533,6 +7168,9 @@
                 ? (scTracks.length + ' track' + (scTracks.length !== 1 ? 's' : '') + ' linked')
                 : 'Add by URL';
         }
+
+        // Tidal mobile status is managed by tdUpdateAllUI
+        tdUpdateAllUI();
     }
 
     function mobAddSpotifyUrl() {
