@@ -4652,7 +4652,7 @@
         if (!await tdRefreshIfNeeded()) return null;
         if (Date.now() < _tdRateLimitedUntil) return null;
         opts = opts || {};
-        const r = await fetch('https://openapi.tidal.com' + path, Object.assign({}, opts, {
+        const r = await fetch('https://api.tidal.com' + path, Object.assign({}, opts, {
             headers: Object.assign({
                 'Authorization': 'Bearer ' + tdAccessToken,
                 'Accept': 'application/vnd.tidal.v1+json',
@@ -4869,7 +4869,7 @@
         if (!await tdRefreshIfNeeded()) return null;
         if (Date.now() < _tdRateLimitedUntil) return null;
         try {
-            const r = await fetch('https://openapi.tidal.com' + path, {
+            const r = await fetch('https://api.tidal.com' + path, {
                 headers: {
                     'Authorization': 'Bearer ' + tdAccessToken,
                     'Accept': 'application/vnd.tidal.v1+json',
