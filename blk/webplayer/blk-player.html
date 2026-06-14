@@ -4580,14 +4580,35 @@
 
     function _tdKeys() {
         const uid = (currentUser && currentUser.uid) ? currentUser.uid : 'anon';
-        return { at: 'td_at_' + uid, rt: 'td_rt_' + uid, exp: 'td_exp_' + uid, name: 'td_name_' + uid };
+        return { at: 'td_at_' + uid, rt: 'td_rt_' + uid, exp: 'td_exp_' + uid, name: 'td_name_' + uid, uid: 'td_uid_' + uid };
     }
 
     function tdSaveTokens(d) {
-        tdAccessToken  = d.access_token;
+        tdAccessToken = d.access_token;
         if (d.refresh_token) tdRefreshToken = d.refresh_token;
-        tdTokenExpiry  = Date.now() + (d.expires_in || 3600) * 1000;
-        try { const k = _tdKeys(); localStorage.setItem(k.at, tdAccessToken); localStorage.setItem(k.rt, tdRefreshToken || ''); localStorage.setItem(k.exp, String(tdTokenExpiry)); } catch(e) {}
+        tdTokenExpiry = Date.now() + (d.expires_in || 3600) * 1000;
+        // TIDAL token response includes user_id directly — grab it before any API call
+        if (d.user_id) tdUserId = String(d.user_id);
+        // Fallback: decode the JWT sub claim (no signature verification needed)
+        if (!tdUserId && tdAccessToken) tdUserId = _tdJwtSub(tdAccessToken);
+        try {
+            const k = _tdKeys();
+            localStorage.setItem(k.at, tdAccessToken);
+            localStorage.setItem(k.rt, tdRefreshToken || '');
+            localStorage.setItem(k.exp, String(tdTokenExpiry));
+            if (tdUserId) localStorage.setItem(k.uid, tdUserId);
+        } catch(e) {}
+    }
+
+    // Decode `sub` claim from a JWT without verifying the signature
+    function _tdJwtSub(token) {
+        try {
+            const payload = token.split('.')[1];
+            if (!payload) return null;
+            const padded = payload.replace(/-/g, '+').replace(/_/g, '/');
+            const json = JSON.parse(atob(padded + '=='.slice((padded.length % 4) || 4)));
+            return String(json.sub || json.userId || json.uid || json.user_id || '') || null;
+        } catch(_) { return null; }
     }
 
     function tdSaveName(name) {
@@ -4595,7 +4616,15 @@
     }
 
     function tdLoadTokens() {
-        try { const k = _tdKeys(); tdAccessToken = localStorage.getItem(k.at) || null; tdRefreshToken = localStorage.getItem(k.rt) || null; tdTokenExpiry = parseInt(localStorage.getItem(k.exp) || '0'); } catch(e) {}
+        try {
+            const k = _tdKeys();
+            tdAccessToken  = localStorage.getItem(k.at)  || null;
+            tdRefreshToken = localStorage.getItem(k.rt)  || null;
+            tdTokenExpiry  = parseInt(localStorage.getItem(k.exp) || '0');
+            tdUserId       = localStorage.getItem(k.uid) || null;
+            // If userId still missing, try JWT decode on the stored access token
+            if (!tdUserId && tdAccessToken) tdUserId = _tdJwtSub(tdAccessToken);
+        } catch(e) {}
     }
 
     function tdPreRestoreUI() {
@@ -4647,19 +4676,29 @@
         const connectBtn = document.getElementById('tidalConnectBtn');
         if (btnText) btnText.textContent = 'Tidal Connected';
         if (connectBtn) connectBtn.classList.add('connected');
+
+        // userId should already be set from the token response; try API only for display name
+        let displayName = tdUserId ? ('Tidal #' + tdUserId) : 'Tidal';
         try {
-            // NOTE: verify this is the correct "current user" path for your
-            // app's API version — adjust if it 404s once you test live.
-            const me = await tdAPI('/v2/users/me', {}, true);
+            // Try the newer /v2/me endpoint first, fall back to /v2/users/me
+            let me = await tdAPI('/v2/me', {}, true);
+            if (!me || !me.data) me = await tdAPI('/v2/users/me', {}, true);
             if (me && me.data) {
-                tdUserId = me.data.id || null;
+                if (!tdUserId) tdUserId = String(me.data.id || '');
                 const attrs = me.data.attributes || {};
-                const displayName = attrs.username || attrs.email || ('Tidal #' + tdUserId);
-                tdSaveName(displayName);
-                const statusEl = document.getElementById('tidalStatus');
-                if (statusEl) statusEl.textContent = displayName;
+                displayName = attrs.username || attrs.email || displayName;
+                // Also store userId from API response if we didn't have it yet
+                if (tdUserId) {
+                    try { localStorage.setItem(_tdKeys().uid, tdUserId); } catch(_) {}
+                }
             }
         } catch(_) {}
+
+        if (displayName) {
+            tdSaveName(displayName);
+            const statusEl = document.getElementById('tidalStatus');
+            if (statusEl) statusEl.textContent = displayName;
+        }
         tdUpdateAllUI();
         showToast('Tidal connected', true);
     }
@@ -4810,10 +4849,15 @@
     }
 
     async function _tdDoLoadFavorites(offset, reset) {
+        if (!tdUserId) tdUserId = _tdJwtSub(tdAccessToken);
         if (!tdUserId) {
-            // Attempt to fetch userId from the me endpoint
-            const me = await tdAPI('/v2/users/me', {}, true);
-            if (me && me.data) tdUserId = me.data.id || null;
+            // Try both known "current user" endpoints
+            let me = await tdAPI('/v2/me', {}, true);
+            if (!me || !me.data) me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) {
+                tdUserId = String(me.data.id || '');
+                try { localStorage.setItem(_tdKeys().uid, tdUserId); } catch(_) {}
+            }
         }
         if (!tdUserId) { showToast('Tidal: could not determine user ID'); return; }
         const data = await tdAPI('/v2/users/' + tdUserId + '/favorites/tracks?include=tracks&page%5Blimit%5D=' + TD_PAGE + '&page%5Boffset%5D=' + offset + '&countryCode=US');
@@ -4838,9 +4882,14 @@
         const btn = document.getElementById('tdImportAllBtn');
         if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; }
         showToast('Importing Tidal favorites…');
+        if (!tdUserId) tdUserId = _tdJwtSub(tdAccessToken);
         if (!tdUserId) {
-            const me = await tdAPI('/v2/users/me', {}, true);
-            if (me && me.data) tdUserId = me.data.id || null;
+            let me = await tdAPI('/v2/me', {}, true);
+            if (!me || !me.data) me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) {
+                tdUserId = String(me.data.id || '');
+                try { localStorage.setItem(_tdKeys().uid, tdUserId); } catch(_) {}
+            }
         }
         if (!tdUserId) { showToast('Tidal: could not determine user ID'); if (btn) { btn.disabled = false; btn.textContent = '⊕ Import All'; } return; }
         let offset = 0, total = null, added = 0, allTracks = [];
@@ -4886,9 +4935,14 @@
     async function tdLoadPlaylists() {
         const el = document.getElementById('tdViewTracks');
         if (el) el.innerHTML = '<div style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--sub);padding:2rem;text-align:center;letter-spacing:1px;">Loading playlists…</div>';
+        if (!tdUserId) tdUserId = _tdJwtSub(tdAccessToken);
         if (!tdUserId) {
-            const me = await tdAPI('/v2/users/me', {}, true);
-            if (me && me.data) tdUserId = me.data.id || null;
+            let me = await tdAPI('/v2/me', {}, true);
+            if (!me || !me.data) me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) {
+                tdUserId = String(me.data.id || '');
+                try { localStorage.setItem(_tdKeys().uid, tdUserId); } catch(_) {}
+            }
         }
         if (!tdUserId) { if (el) el.innerHTML = ''; showToast('Tidal: could not determine user ID'); return; }
         const data = await tdAPI('/v2/users/' + tdUserId + '/playlists?page%5Blimit%5D=50&countryCode=US');
