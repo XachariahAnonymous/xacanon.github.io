@@ -40,6 +40,12 @@
         window.SPOTIFY_CLIENT_ID    = '3aa3338a8af249e88ca5fa488cedd32f';
         window.SPOTIFY_REDIRECT_URI = window.location.origin + window.location.pathname;
         window.SPOTIFY_SCOPES       = 'streaming user-read-email user-read-private user-library-read user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative user-read-recently-played';
+
+        // TIDAL — uses OAuth 2.1 Authorization Code + PKCE. Only the Client ID is
+        // ever needed in the browser; the Client Secret must NEVER be placed here.
+        window.TIDAL_CLIENT_ID    = 'fFvPODHxzZXKtCdw';
+        window.TIDAL_REDIRECT_URI = window.location.origin + window.location.pathname;
+        window.TIDAL_SCOPES       = 'user.read collection.read collection.write search.read search.write playlists.read playlists.write entitlements.read recommendations.read playback';
     </script>
 
     <script type="module" src="/blk-wallet.js"></script>
@@ -1469,6 +1475,17 @@
                     </div>
                     <div class="stream-dd-section" style="border-top:1px solid var(--border);padding-top:1rem;">
                         <div class="stream-dd-label">
+                            <span style="color:#00E0D3;">◐</span> Tidal
+                            <span class="stream-dd-status" id="tdDDStatus"></span>
+                        </div>
+                        <button class="stream-connect-btn" id="tidalConnectBtn" onclick="tidalAuth()" style="margin-bottom:0.5rem;">
+                            <span class="stream-icon">◐</span>
+                            <span id="tidalBtnText">Connect Tidal</span>
+                            <span class="stream-status" id="tidalStatus"></span>
+                        </button>
+                    </div>
+                    <div class="stream-dd-section" style="border-top:1px solid var(--border);padding-top:1rem;">
+                        <div class="stream-dd-label">
                             <span style="color:#ff5500;">☁</span> SoundCloud
                             <span class="stream-dd-status" id="scDDStatus"></span>
                         </div>
@@ -2083,6 +2100,17 @@
         }
     }
 
+    let TIDAL_CLIENT_ID    = '';
+    let TIDAL_REDIRECT_URI = '';
+    let TIDAL_SCOPES       = '';
+    function ensureTidalConfig() {
+        if (!TIDAL_CLIENT_ID) {
+            TIDAL_CLIENT_ID    = window.TIDAL_CLIENT_ID    || '';
+            TIDAL_REDIRECT_URI = window.TIDAL_REDIRECT_URI || '';
+            TIDAL_SCOPES       = window.TIDAL_SCOPES       || '';
+        }
+    }
+
     let library = [], currentIdx = -1, isPlaying = false;
     let shuffle = false, repeat = 0, muted = false, volume = 0.8;
     let shuffleQueue = [];
@@ -2259,6 +2287,7 @@
                     }
                     showApp();
                     spPreRestoreUI();
+                    tdPreRestoreUI();
                 } catch(e) {
                     console.warn('loadUserProfile failed:', e);
                     showNotPublic(user.email);
@@ -2276,6 +2305,7 @@
                 spAccessToken = spRefreshToken = null; spTokenExpiry = 0;
                 if (spPlayer) { try { spPlayer.disconnect(); } catch(_) {} spPlayer = null; }
                 spDeviceId = null;
+                tdAccessToken = tdRefreshToken = null; tdTokenExpiry = 0; tdUserId = null;
                 showAuth();
             }
         });
@@ -2327,6 +2357,7 @@
                                 hideNotPublic();
                                 showApp();
                                 spPreRestoreUI();
+                                tdPreRestoreUI();
                             } else if (!isAdmin && !publicAccess && appShellVisible) {
                                 document.getElementById('app-shell').classList.remove('visible');
                                 showNotPublic(currentUser && currentUser.email);
@@ -2361,6 +2392,16 @@
             spHandleCallback(code, st).catch(() => {});
         } else {
             spRestoreSession().catch(() => {});
+        }
+
+        if (_pendingTdCallback) {
+            _pendingTdCallback = false;
+            const tcode = _pendingTdCode, tst = _pendingTdState;
+            _pendingTdCode = null; _pendingTdState = null;
+            ensureTidalConfig();
+            tdHandleCallback(tcode, tst).catch(() => {});
+        } else {
+            tdRestoreSession().catch(() => {});
         }
     }
 
@@ -2742,7 +2783,7 @@
             isGuest = false;
             sessionStorage.removeItem('blk_guest');
             library = []; currentIdx = -1; isPlaying = false; coins = 0;
-            spotifyTracks = []; soundcloudTracks = [];
+            spotifyTracks = []; soundcloudTracks = []; tidalTracks = [];
             audio.pause(); audio.src = '';
             renderLibrary(); renderQueue(); updateCoins();
             toggleDropdown(true);
@@ -2752,7 +2793,7 @@
         await FB.signOut(FB.auth);
         clearPurchasedIds();
         library = []; currentIdx = -1; isPlaying = false; coins = 0;
-        spotifyTracks = []; soundcloudTracks = [];
+        spotifyTracks = []; soundcloudTracks = []; tidalTracks = [];
         audio.pause(); audio.src = '';
         if (scWidget) { try { scWidget.pause(); } catch(_) {} scWidgetUrl = null; scWidgetReady = false; }
         renderLibrary(); renderQueue(); updateCoins();
@@ -4252,6 +4293,11 @@
     let spTab          = 'url', spOffset = 0, spPlaylistId = null, spListenTick = 0;
     let spUserId       = null;
 
+    let tidalTracks    = [];
+    let tdAccessToken  = null, tdRefreshToken = null, tdTokenExpiry = 0;
+    let tdUserId       = null;
+    let _tdRateLimitedUntil = 0;
+
     function spRandB64(n) {
         return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(n))))
             .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -4348,6 +4394,181 @@
     function spLoadTokens() {
         try { const k = _spKeys(); spAccessToken = localStorage.getItem(k.at) || null; spRefreshToken = localStorage.getItem(k.rt) || null; spTokenExpiry = parseInt(localStorage.getItem(k.exp) || '0'); } catch(e) {}
     }
+
+    // ---- TIDAL ----------------------------------------------------------
+    // OAuth 2.1 Authorization Code + PKCE. TIDAL enforces PKCE for all
+    // clients, so only TIDAL_CLIENT_ID is ever needed here — never a secret.
+    // Endpoints: https://developer.tidal.com/documentation/api-sdk/api-sdk-authorization
+
+    async function tidalAuth() {
+        ensureTidalConfig();
+        if (tdAccessToken && Date.now() < tdTokenExpiry - 30000) {
+            showToast('Tidal already connected');
+            return;
+        }
+        if (!TIDAL_CLIENT_ID) { showToast('Tidal Client ID not configured'); return; }
+        const verifier  = spRandB64(32);
+        const challenge = await spChallenge(verifier);
+        const state     = spRandB64(16);
+        sessionStorage.setItem('td_cv', verifier);
+        sessionStorage.setItem('td_st', state);
+        const params = new URLSearchParams({
+            response_type: 'code', client_id: TIDAL_CLIENT_ID,
+            scope: TIDAL_SCOPES, redirect_uri: TIDAL_REDIRECT_URI,
+            state, code_challenge_method: 'S256', code_challenge: challenge,
+        });
+        window.location.href = 'https://login.tidal.com/authorize?' + params;
+    }
+
+    async function tdHandleCallback(preCode, preSt) {
+        ensureTidalConfig();
+        let code = preCode, st = preSt, err = null;
+        if (!code) {
+            const url = new URL(window.location.href);
+            code = url.searchParams.get('code');
+            st   = url.searchParams.get('state');
+            err  = url.searchParams.get('error');
+            if (!code) return;
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+        if (err) { showToast('Tidal denied: ' + err); return; }
+        if (st !== sessionStorage.getItem('td_st')) { showToast('Tidal state mismatch'); return; }
+        const verifier = sessionStorage.getItem('td_cv');
+        if (!verifier) { showToast('PKCE verifier missing'); return; }
+        showToast('Connecting Tidal...');
+        const resp = await fetch('https://auth.tidal.com/v1/oauth2/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                grant_type: 'authorization_code', code,
+                redirect_uri: TIDAL_REDIRECT_URI, client_id: TIDAL_CLIENT_ID,
+                code_verifier: verifier,
+            })
+        });
+        if (!resp.ok) { showToast('Tidal token exchange failed'); return; }
+        tdSaveTokens(await resp.json());
+        await tdOnConnected();
+    }
+
+    async function tdRefreshIfNeeded() {
+        if (!tdRefreshToken || Date.now() < tdTokenExpiry - 60000) return !!tdAccessToken;
+        ensureTidalConfig();
+        const resp = await fetch('https://auth.tidal.com/v1/oauth2/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                grant_type: 'refresh_token', refresh_token: tdRefreshToken, client_id: TIDAL_CLIENT_ID,
+            })
+        });
+        if (!resp.ok) { tidalLogout(); return false; }
+        tdSaveTokens(await resp.json()); return true;
+    }
+
+    function _tdKeys() {
+        const uid = (currentUser && currentUser.uid) ? currentUser.uid : 'anon';
+        return { at: 'td_at_' + uid, rt: 'td_rt_' + uid, exp: 'td_exp_' + uid, name: 'td_name_' + uid };
+    }
+
+    function tdSaveTokens(d) {
+        tdAccessToken  = d.access_token;
+        if (d.refresh_token) tdRefreshToken = d.refresh_token;
+        tdTokenExpiry  = Date.now() + (d.expires_in || 3600) * 1000;
+        try { const k = _tdKeys(); localStorage.setItem(k.at, tdAccessToken); localStorage.setItem(k.rt, tdRefreshToken || ''); localStorage.setItem(k.exp, String(tdTokenExpiry)); } catch(e) {}
+    }
+
+    function tdSaveName(name) {
+        try { const k = _tdKeys(); if (name) localStorage.setItem(k.name, name); } catch(e) {}
+    }
+
+    function tdLoadTokens() {
+        try { const k = _tdKeys(); tdAccessToken = localStorage.getItem(k.at) || null; tdRefreshToken = localStorage.getItem(k.rt) || null; tdTokenExpiry = parseInt(localStorage.getItem(k.exp) || '0'); } catch(e) {}
+    }
+
+    function tdPreRestoreUI() {
+        try {
+            const k = _tdKeys();
+            const at = localStorage.getItem(k.at);
+            const exp = parseInt(localStorage.getItem(k.exp) || '0');
+            const name = localStorage.getItem(k.name) || '';
+            if (!at || Date.now() >= exp) return;
+            const btnText = document.getElementById('tidalBtnText');
+            const connectBtn = document.getElementById('tidalConnectBtn');
+            if (btnText) btnText.textContent = 'Tidal Connected';
+            if (connectBtn) connectBtn.classList.add('connected');
+            if (name) {
+                const statusEl = document.getElementById('tidalStatus');
+                if (statusEl) statusEl.textContent = name;
+            }
+        } catch(e) {}
+    }
+
+    // Generic TIDAL Open API helper. `quiet` suppresses the error toast for
+    // best-effort calls (e.g. profile lookups whose exact path may need
+    // adjusting once tested against your app's actual entitlements).
+    async function tdAPI(path, opts, quiet) {
+        if (!await tdRefreshIfNeeded()) return null;
+        if (Date.now() < _tdRateLimitedUntil) return null;
+        opts = opts || {};
+        const r = await fetch('https://openapi.tidal.com' + path, Object.assign({}, opts, {
+            headers: Object.assign({
+                'Authorization': 'Bearer ' + tdAccessToken,
+                'Accept': 'application/vnd.tidal.v1+json',
+                'Content-Type': 'application/vnd.tidal.v1+json'
+            }, opts.headers || {})
+        }));
+        if (r.status === 204) return {};
+        if (r.status === 401) { tidalLogout(); return null; }
+        if (r.status === 429) {
+            const retryAfter = parseInt(r.headers.get('Retry-After') || '60', 10);
+            _tdRateLimitedUntil = Date.now() + retryAfter * 1000;
+            console.warn('[BLK] Tidal rate limited — backing off for ' + retryAfter + 's');
+            return null;
+        }
+        if (!r.ok) { if (r.status !== 403 && !quiet) showToast('Tidal API error (' + r.status + ')'); return null; }
+        try { return await r.json(); } catch(_) { return {}; }
+    }
+
+    async function tdOnConnected() {
+        const btnText = document.getElementById('tidalBtnText');
+        const connectBtn = document.getElementById('tidalConnectBtn');
+        if (btnText) btnText.textContent = 'Tidal Connected';
+        if (connectBtn) connectBtn.classList.add('connected');
+        try {
+            // NOTE: verify this is the correct "current user" path for your
+            // app's API version — adjust if it 404s once you test live.
+            const me = await tdAPI('/v2/users/me', {}, true);
+            if (me && me.data) {
+                tdUserId = me.data.id || null;
+                const attrs = me.data.attributes || {};
+                const displayName = attrs.username || attrs.email || ('Tidal #' + tdUserId);
+                tdSaveName(displayName);
+                const statusEl = document.getElementById('tidalStatus');
+                if (statusEl) statusEl.textContent = displayName;
+            }
+        } catch(_) {}
+        showToast('Tidal connected', true);
+    }
+
+    async function tdRestoreSession() {
+        tdLoadTokens();
+        if (!tdAccessToken) return;
+        const ok = await tdRefreshIfNeeded();
+        if (ok) await tdOnConnected();
+    }
+
+    function tidalLogout() {
+        tdAccessToken = tdRefreshToken = null; tdTokenExpiry = 0; tdUserId = null;
+        try { const k = _tdKeys(); localStorage.removeItem(k.at); localStorage.removeItem(k.rt); localStorage.removeItem(k.exp); localStorage.removeItem(k.name); } catch(e) {}
+        const btnText = document.getElementById('tidalBtnText');
+        const connectBtn = document.getElementById('tidalConnectBtn');
+        const statusEl = document.getElementById('tidalStatus');
+        if (btnText) btnText.textContent = 'Connect Tidal';
+        if (connectBtn) connectBtn.classList.remove('connected');
+        if (statusEl) statusEl.textContent = '';
+        tidalTracks = [];
+        showToast('Tidal disconnected');
+    }
+    // -----------------------------------------------------------------
 
     function spPreRestoreUI() {
         try {
@@ -6172,14 +6393,25 @@
 
     let _pendingSpCallback = false;
     let _pendingSpCode = null, _pendingSpState = null;
-    (function detectSpCallback() {
+    let _pendingTdCallback = false;
+    let _pendingTdCode = null, _pendingTdState = null;
+    (function detectAuthCallback() {
         const url  = new URL(window.location.href);
         const code = url.searchParams.get('code');
         if (!code) return;
-        _pendingSpCode  = code;
-        _pendingSpState = url.searchParams.get('state');
+        const state = url.searchParams.get('state');
         window.history.replaceState({}, '', window.location.pathname);
-        _pendingSpCallback = true;
+        // Both Spotify and Tidal redirect back to the same URI with
+        // ?code=&state= — use the stashed PKCE state to tell them apart.
+        if (state && state === sessionStorage.getItem('td_st')) {
+            _pendingTdCode  = code;
+            _pendingTdState = state;
+            _pendingTdCallback = true;
+        } else {
+            _pendingSpCode  = code;
+            _pendingSpState = state;
+            _pendingSpCallback = true;
+        }
     })();
 
     openIDB().then(db => {
