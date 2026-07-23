@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARTRIDGE: Play Your Own ROMs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Halftone texture overlay -->
+<div class="halftone-overlay" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="logo">CARTRIDGE<span class="logo-dot">.</span></div>
+    <nav class="header-nav">
+      <button class="nav-link" data-scroll="#library">LIBRARY</button>
+      <button class="nav-link" data-scroll="#bios">BIOS</button>
+      <button class="nav-link" data-scroll="#legal">LEGAL</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO: the cartridge slot IS the hero -->
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">BRING YOUR OWN CARTRIDGE</p>
+      <h1 class="hero-title">INSERT<br>TO PLAY</h1>
+      <p class="hero-sub">Drop in a ROM you own and play it right here. Nothing uploads anywhere. Your cartridge never leaves this browser tab.</p>
+    </div>
+
+    <div class="slot-wrap">
+      <div id="dropzone" class="cart-slot" tabindex="0" role="button" aria-label="Drop a ROM file here or click to browse">
+        <svg class="slot-teeth" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,0 H400 V10 L390,24 L380,10 V24 L370,10 V24 L360,10 V24 L350,10 V24 L340,10 V24 L330,10 V24 L320,10 V24 L310,10 V24 L300,10 V24 L290,10 V24 L280,10 V24 L270,10 V24 L260,10 V24 L250,10 V24 L240,10 V24 L230,10 V24 L220,10 V24 L210,10 V24 L200,10 V24 L190,10 V24 L180,10 V24 L170,10 V24 L160,10 V24 L150,10 V24 L140,10 V24 L130,10 V24 L120,10 V24 L110,10 V24 L100,10 V24 L90,10 V24 L80,10 V24 L70,10 V24 L60,10 V24 L50,10 V24 L40,10 V24 L30,10 V24 L20,10 V24 L10,10 V24 L0,10 Z" fill="currentColor"/>
+        </svg>
+        <div class="slot-body">
+          <div class="slot-label" id="slotLabel">
+            <span class="slot-title">DRAG ROM HERE</span>
+            <span class="slot-sub">or click to browse your files</span>
+          </div>
+          <div class="slot-formats">15+ SYSTEMS: NES · SNES · GB/GBC · GBA · GENESIS · N64 · ATARI · SEGA · PS1 · PS2 · PSP + MORE</div>
+        </div>
+        <input type="file" id="fileInput" accept=".nes,.sfc,.smc,.gb,.gbc,.gba,.md,.gen,.n64,.z64,.v64,.a26,.a52,.a78,.j64,.jag,.lnx,.sms,.gg,.32x,.col,.vb,.ngp,.ngc,.ws,.wsc,.pce,.pbp,.nds,.iso,.cso,.chd,.bin,.isz,.elf" hidden multiple>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="library" class="library wrap">
+    <div class="section-head">
+      <h2>YOUR LIBRARY</h2>
+      <span class="section-count" id="libCount">0 CARTRIDGES</span>
+    </div>
+
+    <div class="arcade-machine">
+      <div class="arcade-machine-cab">
+        <div class="arcade-machine-marquee"><span>ARCADE</span></div>
+        <div class="arcade-machine-screen">
+          <span class="arcade-machine-screen-text">DRAG A COIN HERE TO PLAY</span>
+        </div>
+        <div id="coinSlot" class="coin-slot" aria-hidden="true">
+          <span class="coin-slot-slit"></span>
+        </div>
+      </div>
+      <p class="arcade-machine-hint">Drag any cartridge coin from your shelf below onto the slot, or just click a coin, to play it instantly.</p>
+    </div>
+
+    <div id="libraryEmpty" class="library-empty">
+      <p>No cartridges loaded yet. Drop a ROM above to start your shelf.</p>
+    </div>
+
+    <div id="libraryGrid" class="library-grid"></div>
+  </section>
+
+  <!-- BIOS FILES -->
+  <section id="bios" class="bios wrap">
+    <div class="section-head">
+      <h2>SYSTEM BIOS FILES</h2>
+      <span class="section-count">YOUR OWN, DUMPED</span>
+    </div>
+    <p class="bios-intro">Some systems need their own console firmware to boot, same as any emulator. Upload your own legally-dumped BIOS file per system below. These stay local too, same as your ROMs.</p>
+    <div id="biosGrid" class="bios-grid"></div>
+  </section>
+
+  <!-- LEGAL -->
+  <section id="legal" class="legal wrap">
+    <div class="legal-card">
+      <h2>THE FINE PRINT</h2>
+      <ul class="legal-list">
+        <li><strong>You bring the cartridge.</strong> This site does not host, link to, or distribute ROM files of any kind.</li>
+        <li><strong>It stays with you.</strong> Every ROM you drop in is stored only in your browser's local IndexedDB. There is no upload, no server, no database on our end.</li>
+        <li><strong>Only dump what you own.</strong> Only use ROMs and BIOS files you've personally backed up from cartridges, discs, or consoles you legally own, where your local law permits it.</li>
+        <li><strong>Emulation is legal.</strong> The emulators themselves (<a href="https://emulatorjs.org" target="_blank" rel="noopener">EmulatorJS</a> and, for PS2, <a href="https://github.com/jpd002/Play-" target="_blank" rel="noopener">Play!</a>, both open source) just run game code, the same principle as any other software interpreter.</li>
+        <li><strong>Clear it whenever.</strong> Use "Remove" on any cartridge or BIOS, or clear your browser's site data, to erase everything instantly.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- DISC SYSTEM PICKER (for ambiguous .chd/.iso files) -->
+<div id="discPickerModal" class="disc-picker-modal" aria-hidden="true">
+  <div class="disc-picker-shell">
+    <h3>WHICH SYSTEM IS THIS FOR?</h3>
+    <p class="disc-picker-file">filename.chd</p>
+    <div id="discPickerOptions" class="disc-picker-options"></div>
+    <button id="discPickerCancel" class="btn btn-ghost disc-pick-cancel">CANCEL</button>
+  </div>
+</div>
+
+<!-- PLAYER MODAL -->
+<div id="playerModal" class="player-modal" aria-hidden="true">
+  <div class="arcade-cabinet">
+    <div class="cabinet-marquee">
+      <div class="marquee-bulbs" aria-hidden="true"></div>
+      <span class="marquee-title" id="playerTitle">GAME TITLE</span>
+      <div class="marquee-bulbs marquee-bulbs-bottom" aria-hidden="true"></div>
+    </div>
+    <div class="cabinet-screen">
+      <div class="screen-inner">
+        <div id="game" class="player-frame"></div>
+        <div class="screen-scanlines" aria-hidden="true"></div>
+        <div class="screen-vignette" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="cabinet-controls">
+      <div class="joystick" aria-hidden="true">
+        <div class="joystick-base"></div>
+        <div class="joystick-shaft"></div>
+        <div class="joystick-ball"></div>
+      </div>
+      <div class="action-buttons" aria-hidden="true">
+        <span class="arcade-btn btn-yellow"></span>
+        <span class="arcade-btn btn-cyan"></span>
+        <span class="arcade-btn btn-red"></span>
+        <span class="arcade-btn btn-cream"></span>
+      </div>
+      <button id="closePlayer" class="exit-btn" aria-label="Close player">
+        <span class="exit-btn-face">EXIT</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>CARTRIDGE: a browser-only emulator front end. Built on <a href="https://emulatorjs.org" target="_blank" rel="noopener">EmulatorJS</a> and <a href="https://github.com/jpd002/Play-" target="_blank" rel="noopener">Play!</a>. No ROMs live here.</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
