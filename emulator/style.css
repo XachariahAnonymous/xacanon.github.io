@@ -367,6 +367,16 @@ a{ color: var(--yellow); }
   color: var(--cyan);
   letter-spacing: 1px;
 }
+.cart-experimental{
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 1px;
+  padding: 3px 6px;
+  border-radius: var(--radius);
+  color: var(--yellow);
+  border: 1px solid var(--yellow);
+  cursor: help;
+}
 .cart-actions{ display:flex; gap: 8px; margin-top: auto; width: 100%; }
 .cart-actions .btn-ghost{ flex: 1 1 auto; }
 .btn{

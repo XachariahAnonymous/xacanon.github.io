@@ -391,6 +391,7 @@
         <div class="cart-body">
           <div class="cart-name" title="${escapeHtml(rom.filename)}">${escapeHtml(rom.name)}</div>
           <div class="cart-meta">${formatSize(rom.size)} · ADDED ${formatDate(rom.addedAt)}</div>
+          ${rom.core === "ps2" ? `<div class="cart-experimental" title="PS2 emulation runs in-browser via WebAssembly, which is inherently much slower than a native emulator. Demanding 3D games may lag regardless of your hardware.">EXPERIMENTAL · MAY RUN SLOW</div>` : ""}
           <div class="cart-actions">
             <button class="btn btn-ghost" data-remove="${rom.id}" aria-label="Remove ${escapeHtml(rom.name)}">✕ REMOVE</button>
           </div>
