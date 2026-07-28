@@ -550,6 +550,20 @@
     const rom = roms.find((r) => r.id === id);
     if (!rom) return;
 
+    // BLK Browser (the native companion app) injects window.cartNative into
+    // this page. When present, PS2 skips the WASM/iframe path entirely and
+    // runs through the real Play! emulator core natively -- BLK Browser
+    // renders it directly inside this tab, so there's nothing for this page
+    // to display; the arcade-cabinet modal below is WASM-path-only.
+    if (rom.core === "ps2" && window.cartNative) {
+      const arrayBuffer = await rom.blob.arrayBuffer();
+      const result = await window.cartNative.launchPS2(arrayBuffer, rom.filename);
+      if (!result || !result.ok) {
+        alert(`Couldn't launch ${rom.name} natively: ${(result && result.error) || "unknown error"}`);
+      }
+      return;
+    }
+
     const requirement = BIOS_REQUIRED[rom.core];
     let biosEntry = null;
     if (requirement) {
