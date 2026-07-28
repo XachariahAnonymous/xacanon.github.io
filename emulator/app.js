@@ -556,8 +556,10 @@
     // renders it directly inside this tab, so there's nothing for this page
     // to display; the arcade-cabinet modal below is WASM-path-only.
     if (rom.core === "ps2" && window.cartNative) {
-      const arrayBuffer = await rom.blob.arrayBuffer();
-      const result = await window.cartNative.launchPS2(arrayBuffer, rom.filename);
+      // Pass the stored File/Blob directly rather than reading it into one
+      // big ArrayBuffer here -- PS2 images routinely exceed 2GB, and
+      // BLK Browser's bridge reads it in safe-sized slices on its own.
+      const result = await window.cartNative.launchPS2(rom.blob, rom.filename);
       if (!result || !result.ok) {
         alert(`Couldn't launch ${rom.name} natively: ${(result && result.error) || "unknown error"}`);
       }
