@@ -2274,7 +2274,7 @@
         if (_userSeeked) return;
         if (isGuest) return;
         const currentTrack = library[currentIdx];
-        if (currentTrack && currentTrack.source === 'spotify' && !spIsPremium) return;
+        if (currentTrack && currentTrack.source === 'spotify') return; // Spotify never earns BLK
         const dur = currentTrack && (currentTrack.duration || 0);
         if (!dur || dur < 60) return;
         listenCount++;
@@ -2669,7 +2669,8 @@
             await FB.signOut(FB.auth);
             document.getElementById('login-error').style.color = 'var(--success)';
             document.getElementById('login-error').textContent = 'Verification email sent! Check your inbox.';
-            btn.style.display = 'none';
+            const resendBtn = document.getElementById('resend-verify-btn');
+            if (resendBtn) resendBtn.style.display = 'none';
         } catch(e) { showToast('Could not resend: ' + friendlyError(e.code)); }
     }
 
@@ -3905,6 +3906,7 @@
             scWidget.play();
             // Restore BLK's current volume — the widget always starts at 100 on init
             scWidget.setVolume(muted ? 0 : Math.round(volume * 100));
+            let _durTries = 0;
             const _pollDur = setInterval(() => {
                 if (scGeneration !== myGen || !scWidget) { clearInterval(_pollDur); return; }
                 scWidget.getDuration(d => {
@@ -5768,7 +5770,7 @@
         const t = _spTrackMap[key]; if (!t) return;
         if (library.some(l => l.spUri === t.spUri)) { showToast('Already in library'); return; }
         const track = {
-            id: 'sp_lib_' + Date.now(),
+            id: 'sp_lib_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             spUri: t.spUri,
             url: t.spUri,
             title: t.title, artist: t.artist, album: t.album,
@@ -5865,7 +5867,7 @@
         }
 
         const track = {
-            id: 'sp_lib_' + Date.now(),
+            id: 'sp_lib_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             spUri, url: spUri,
             title: trackData.title, artist: trackData.artist, album: trackData.album || '',
             albumArt: trackData.artwork || null,
@@ -6252,7 +6254,7 @@
         if (!trackData) trackData = { spUri, title: isEpisode ? 'Podcast Episode' : 'Spotify Track', artist: 'Unknown', album: '', artwork: null, duration: 0 };
 
         const track = {
-            id: 'sp_lib_' + Date.now(),
+            id: 'sp_lib_' + Date.now() + '_' + Math.random().toString(36).slice(2),
             spUri, url: spUri,
             title: trackData.title, artist: trackData.artist, album: trackData.album || '',
             albumArt: trackData.artwork || null,
@@ -6437,8 +6439,7 @@
         const label = embedType === 'episode' ? 'Podcast Episode' : 'Spotify Track';
         document.getElementById('embedTitle').textContent = (title || label) + (artist ? ' — ' + artist : '');
         document.getElementById('embedNote').innerHTML =
-            '🎵 Spotify Embed · ' + (embedType === 'episode' ? 'Full Episode' : '30s Preview · Full Track with Free or Premium')
-            + '<div id="spPremiumWarn" style="margin-top:0.6rem;padding:0.55rem 0.8rem;background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.3);border-left:3px solid var(--warn);font-family:\'Space Mono\',monospace;font-size:0.55rem;color:var(--warn);letter-spacing:0.5px;line-height:1.6;">⚠ To earn BLK through Spotify, please sign into a Spotify Premium account</div>';
+            '🎵 Spotify Embed · ' + (embedType === 'episode' ? 'Full Episode' : '30s Preview · Full Track with Free or Premium');
         document.getElementById('embedIframeWrap').innerHTML =
             '<iframe src="' + embedSrc + '" height="152" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
         document.getElementById('embedOverlay').classList.add('open');
@@ -7199,7 +7200,9 @@
             if (navAvatar) navAvatar.textContent = 'G';
             guestRestoreLibrary();
             guestRestorePlaylists();
-            showNotPublic();
+            showApp();
+            renderLibrary(); renderQueue(); renderPlaylists();
+            waitForFB().then(fb => { FB = fb; loadStoreTracks(); });
             return;
         }
         initAuth();
@@ -7688,10 +7691,6 @@
 
 </script>
 
-
-
-</script>
-
 <!-- Wallet connect modal -->
 <style>
     .wm-btn {
@@ -7857,8 +7856,5 @@
         <div id="walletModalStatus" class="wm-status"></div>
     </div>
 </div>
-</body>
-</html>
-
 </body>
 </html>
