@@ -603,7 +603,6 @@
     let allUsers = [];
     let allPurchases = [];
     let currentAdminUid = null;
-    let _accessDenied = false;
     let confirmCallback = null;
     let uploadedAudioFile = null;
     let uploadedCoverFile = null;      
@@ -618,7 +617,7 @@
     async function init() {
         FB = await waitForFB();
         FB.onAuthStateChanged(FB.auth, async user => {
-            if (!user) { if (_accessDenied) return; window.location.href = 'blk-player.html'; return; }
+            if (!user) { window.location.href = 'blk-player.html'; return; }
             try {
                 currentAdminUid = user.uid;
                 const ref  = FB.doc(FB.db, 'users', user.uid);
@@ -1154,7 +1153,6 @@
     function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); confirmCallback = null; }
 
     function showAccessDenied() {
-        _accessDenied = true;
         try { if (FB && FB.auth) FB.signOut(FB.auth); } catch(_) {}
         const nav    = document.getElementById('admin-nav');
         const layout = document.getElementById('admin-layout');
