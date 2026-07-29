@@ -366,7 +366,7 @@
                                 style="flex:1;font-size:0.75rem;"
                                 oninput="saveGHPat()"
                                 value="">
-                            <button class="tbl-btn promote" style="white-space:nowrap;" onclick="togglePatVisibility()">Show</button>
+                            <button class="tbl-btn promote" style="white-space:nowrap;" onclick="togglePatVisibility(this)">Show</button>
                         </div>
                         <div style="font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--sub);margin-top:0.4rem;line-height:1.6;">
                             Needs <strong style="color:#fff;">repo</strong> scope (Contents: read &amp; write). Stored in localStorage only.
@@ -603,6 +603,7 @@
     let allUsers = [];
     let allPurchases = [];
     let currentAdminUid = null;
+    let _accessDenied = false;
     let confirmCallback = null;
     let uploadedAudioFile = null;
     let uploadedCoverFile = null;      
@@ -617,7 +618,7 @@
     async function init() {
         FB = await waitForFB();
         FB.onAuthStateChanged(FB.auth, async user => {
-            if (!user) { window.location.href = 'blk-player.html'; return; }
+            if (!user) { if (_accessDenied) return; window.location.href = 'blk-player.html'; return; }
             try {
                 currentAdminUid = user.uid;
                 const ref  = FB.doc(FB.db, 'users', user.uid);
@@ -685,11 +686,11 @@
                         ${u.id === currentAdminUid
                             ? '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;">YOU</span>'
                             : u.role === 'admin'
-                                ? `<button class="tbl-btn demote"  onclick="changeRole('${u.id}','user',  '${esc(u.displayName||u.email)}')">Demote</button>`
-                                : `<button class="tbl-btn promote" onclick="changeRole('${u.id}','admin', '${esc(u.displayName||u.email)}')">Promote</button>`
+                                ? `<button class="tbl-btn demote"  onclick="changeRole('${u.id}','user')">Demote</button>`
+                                : `<button class="tbl-btn promote" onclick="changeRole('${u.id}','admin')">Promote</button>`
                         }
-                        ${u.id !== currentAdminUid ? `<button class="tbl-btn promote" onclick="openAddCoins('${u.id}','${esc(u.displayName||u.email)}')">+ BLK</button>` : ''}
-                        ${u.id !== currentAdminUid ? `<button class="tbl-btn delete"  onclick="confirmDelete('${u.id}','${esc(u.displayName||u.email)}')">Delete</button>` : ''}
+                        ${u.id !== currentAdminUid ? `<button class="tbl-btn promote" onclick="openAddCoins('${u.id}')">+ BLK</button>` : ''}
+                        ${u.id !== currentAdminUid ? `<button class="tbl-btn delete"  onclick="confirmDelete('${u.id}')">Delete</button>` : ''}
                     </td>
                 </tr>`).join('')
             : `<tr class="empty-row"><td colspan="7">No users found</td></tr>`;
@@ -698,7 +699,7 @@
     function renderPurchaseTable(purchases) {
         document.getElementById('purchaseTable').innerHTML = purchases.length
             ? purchases.map(p => {
-                const user = allUsers.find(u => u.uid === p.uid);
+                const user = allUsers.find(u => u.id === p.uid || u.uid === p.uid);
                 return `<tr>
                     <td><div class="purchase-track">${esc(p.title||'—')}</div><div class="purchase-artist">${esc(p.artist||'—')}</div></td>
                     <td>${user ? esc(user.displayName||user.email) : '<span style="color:var(--sub)">Unknown</span>'}</td>
@@ -962,7 +963,7 @@
                 <div class="store-track-price">$${(t.price||0).toFixed(2)}</div>
                 <div>
                     <button class="tbl-btn edit"   onclick="openEditTrack('${t.id}')">Edit</button>
-                    <button class="tbl-btn delete" onclick="deleteStoreTrack('${t.id}','${esc(t.title)}')">Delete</button>
+                    <button class="tbl-btn delete" onclick="deleteStoreTrack('${t.id}')">Delete</button>
                 </div>
             </div>
         `).join('');
@@ -1019,7 +1020,9 @@
         }
     }
 
-    async function deleteStoreTrack(id, name) {
+    async function deleteStoreTrack(id) {
+        const t0 = allStoreTracks.find(x => x.id === id);
+        const name = t0 ? (t0.title || '') : '';
         showConfirm('Delete Track', `Remove "${name}" from the store? This cannot be undone.`, async () => {
             await FB.deleteDoc(FB.doc(FB.db, 'storeTracks', id));
             allStoreTracks = allStoreTracks.filter(t => t.id !== id);
@@ -1037,7 +1040,9 @@
             (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)));
     }
 
-    async function changeRole(uid, newRole, name) {
+    async function changeRole(uid, newRole) {
+        const u0 = allUsers.find(x => x.id === uid);
+        const name = u0 ? (u0.displayName || u0.email || uid) : uid;
         const action = newRole === 'admin' ? 'promote' : 'demote';
         showConfirm(
             `${action.charAt(0).toUpperCase()+action.slice(1)} user`,
@@ -1053,7 +1058,9 @@
         );
     }
 
-    function confirmDelete(uid, name) {
+    function confirmDelete(uid) {
+        const u0 = allUsers.find(x => x.id === uid);
+        const name = u0 ? (u0.displayName || u0.email || uid) : uid;
         showConfirm('Delete User', `Permanently delete ${name}? This cannot be undone.`, async () => {
             await FB.deleteDoc(FB.doc(FB.db, 'users', uid));
             allUsers = allUsers.filter(u => u.id !== uid);
@@ -1063,7 +1070,9 @@
         });
     }
 
-    function openAddCoins(uid, name) {
+    function openAddCoins(uid) {
+        const u0 = allUsers.find(x => x.id === uid);
+        const name = u0 ? (u0.displayName || u0.email || uid) : uid;
         addCoinsTargetUid  = uid;
         addCoinsTargetName = name;
         document.getElementById('addCoinsTitle').textContent    = `Add BLK to ${name}`;
@@ -1128,9 +1137,8 @@
         }
     }
 
-    function togglePatVisibility() {
+    function togglePatVisibility(btn) {
         const input = document.getElementById('ghPatInput');
-        const btn   = event.target;
         if (input.type === 'password') { input.type = 'text';     btn.textContent = 'Hide'; }
         else                           { input.type = 'password'; btn.textContent = 'Show'; }
     }
@@ -1146,6 +1154,7 @@
     function closeConfirm() { document.getElementById('confirmModal').classList.remove('open'); confirmCallback = null; }
 
     function showAccessDenied() {
+        _accessDenied = true;
         try { if (FB && FB.auth) FB.signOut(FB.auth); } catch(_) {}
         const nav    = document.getElementById('admin-nav');
         const layout = document.getElementById('admin-layout');
@@ -1157,7 +1166,7 @@
     async function doSignOut() { await FB.signOut(FB.auth); window.location.href = 'blk-player.html'; }
 
     function initials(str) { return (str||'?').split(/[\s@]+/).map(w=>w[0]).join('').toUpperCase().slice(0,2); }
-    function esc(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function esc(str) { if (!str) return ''; return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     function fmtDate(iso) {
         if (!iso) return '—';
         try { return new Date(iso).toLocaleDateString('en-AU', {year:'numeric',month:'short',day:'numeric'}); }
@@ -1224,7 +1233,7 @@
         } else {
             dd.innerHTML = users.map(u => {
                 const label = u.displayName || u.email || u.id;
-                return `<div class="artist-option" onmousedown="selectArtistUser('${u.id}','${esc(label)}','${dropdownId}','${uidInputId}','${pillId}')">
+                return `<div class="artist-option" onmousedown="selectArtistUser('${u.id}','${dropdownId}','${uidInputId}','${pillId}')">
                     <span class="opt-avatar">${initials(label)}</span>
                     <div><div class="opt-name">${esc(label)}</div><div class="opt-email">${esc(u.email||'')}</div></div>
                 </div>`;
@@ -1258,8 +1267,10 @@
         }, 200);
     }
 
-    function selectArtistUser(uid, label, dropdownId, uidInputId, pillId) {
+    function selectArtistUser(uid, dropdownId, uidInputId, pillId) {
         clearTimeout(_dropdownCloseTimer);
+        const u0 = allUsers.find(x => x.id === uid);
+        const label = u0 ? (u0.displayName || u0.email || uid) : uid;
         document.getElementById(uidInputId).value = uid;
         document.getElementById(dropdownId).classList.remove('open');
         const pill = document.getElementById(pillId);
