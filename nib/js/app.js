@@ -27,9 +27,10 @@
     const shiny = ["super_rare", "ultra_rare", "mega_rare", "hidden_rare"].includes(card.rarity);
     el.className = `tcard r-${card.rarity}` + (shiny ? " shiny" : "");
     el.style.setProperty("--ec", matrix.META[card.element].color);
+    if (opts.count > 1) el.classList.add("stacked");
     el.innerHTML = `
       <div class="foil"></div>
-      ${opts.serial ? `<div class="serial">#${opts.serial}</div>` : ""}
+      ${opts.count > 1 ? `<div class="count">×${opts.count}</div>` : (opts.serial ? `<div class="serial">#${opts.serial}</div>` : "")}
       <div class="art">${card.imageUrl
         ? `<img class="art-img" src="${card.imageUrl}" alt="" onerror="this.replaceWith(document.createTextNode('${matrix.META[card.element].glyph}'))">`
         : matrix.META[card.element].glyph}</div>
@@ -76,9 +77,13 @@
     return wrap;
   }
 
-  function openCardModal(card, serial) {
+  function openCardModal(card, serial, owned) {
     const p = matrix.profile(card.element);
     const chip = (e) => `<span class="pill"><span>${e.glyph}</span>${e.label}</span>`;
+    const ownedHtml = owned && owned.count
+      ? `<div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">YOU OWN ${owned.count}</div>
+           <div class="row">${owned.serials.slice().sort((a, b) => a - b).map((s) => `<span class="pill mono">#${s}</span>`).join("")}</div></div>`
+      : "";
     const ov = document.createElement("div");
     ov.className = "overlay";
     ov.innerHTML = `
@@ -112,6 +117,7 @@
           <div class="muted" style="font-size:12px;margin:14px 0 6px">WEAK AGAINST (×${matrix.RESIST_MULTIPLIER})</div>
           <div class="row">${p.weakAgainst.map(chip).join("") || "<span class='muted'>—</span>"}</div>
         </div>
+        ${ownedHtml}
       </div>`;
     ov.onclick = (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); };
     document.body.appendChild(ov);
@@ -364,47 +370,100 @@
 
   // ---- COLLECTION ---------------------------------------------------
   const filters = { element: "", rarity: "", level: "" };
-  function renderCollection() {
-    const col = store.collection();
-    const owned = col.map((n) => ({ ...store.card(n.cardId), serial: n.serial }));
-    const filtered = owned.filter((c) =>
-      (!filters.element || c.element === filters.element) &&
-      (!filters.rarity || c.rarity === filters.rarity) &&
-      (!filters.level || c.level === +filters.level));
+  let colSort = "rarity", colGroup = "rarity";
 
-    const opt = (v, l) => `<option value="${v}">${l}</option>`;
+  // Group owned copies into stacks: one entry per unique card + count.
+  function buildStacks() {
+    const map = {};
+    store.collection().forEach((n) => {
+      const card = store.card(n.cardId);
+      if (!card) return;                              // deleted custom card
+      const st = map[n.cardId] || (map[n.cardId] = { card, count: 0, serials: [] });
+      st.count++; st.serials.push(n.serial);
+    });
+    let stacks = Object.values(map).filter((s) =>
+      (!filters.element || s.card.element === filters.element) &&
+      (!filters.rarity || s.card.rarity === filters.rarity) &&
+      (!filters.level || s.card.level === +filters.level));
+    const order = NIB.engine.RARITY_ORDER;
+    const cmp = {
+      rarity: (a, b) => order.indexOf(b.card.rarity) - order.indexOf(a.card.rarity) || b.card.level - a.card.level,
+      count:  (a, b) => b.count - a.count || order.indexOf(b.card.rarity) - order.indexOf(a.card.rarity),
+      level:  (a, b) => b.card.level - a.card.level,
+      name:   (a, b) => (a.card.name || "").localeCompare(b.card.name || ""),
+      element:(a, b) => a.card.element.localeCompare(b.card.element) || order.indexOf(b.card.rarity) - order.indexOf(a.card.rarity),
+    };
+    stacks.sort(cmp[colSort] || cmp.rarity);
+    return stacks;
+  }
+
+  function renderCollection() {
+    const totalCards = store.collection().length;
+    const stacks = buildStacks();
+    const uniqueOwned = new Set(store.collection().map((n) => n.cardId)).size;
+    const totalDesigns = catalog.count();
+    const pct = (uniqueOwned / totalDesigns * 100).toFixed(1);
+    const opt = (v, l, sel) => `<option value="${v}" ${sel === v ? "selected" : ""}>${l}</option>`;
     return `
       <div class="panel" style="margin-bottom:16px">
-        <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0">Collection <span class="muted" style="font-size:15px">(${owned.length} cards)</span></h2>
-          <div class="row">
-            <select id="fElement"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => opt(e, matrix.META[e].glyph + " " + matrix.META[e].label)).join("")}</select>
-            <select id="fRarity"><option value="">All Rarities</option>${Object.keys(catalog.RARITY_LABEL).map((r) => opt(r, catalog.RARITY_LABEL[r])).join("")}</select>
-            <select id="fLevel"><option value="">All Levels</option>${[...Array(10)].map((_, i) => opt(i + 1, "Lv " + (i + 1))).join("")}</select>
+        <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+          <div>
+            <h2 style="margin:0">Collection</h2>
+            <div class="muted" style="font-size:13px;margin-top:2px">${totalCards} cards · ${uniqueOwned}/${totalDesigns} unique (${pct}%)</div>
+          </div>
+          <div class="row" style="flex-wrap:wrap">
+            <select id="fElement"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => opt(e, matrix.META[e].glyph + " " + matrix.META[e].label, filters.element)).join("")}</select>
+            <select id="fRarity"><option value="">All Rarities</option>${Object.keys(catalog.RARITY_LABEL).map((r) => opt(r, catalog.RARITY_LABEL[r], filters.rarity)).join("")}</select>
+            <select id="fLevel"><option value="">All Levels</option>${[...Array(10)].map((_, i) => opt(String(i + 1), "Lv " + (i + 1), filters.level)).join("")}</select>
+            <select id="cSort">${[["rarity", "Rarity"], ["count", "Most owned"], ["level", "Level"], ["name", "Name"], ["element", "Element"]].map(([v, l]) => opt(v, "Sort: " + l, colSort)).join("")}</select>
+            <select id="cGroup">${[["none", "No grouping"], ["rarity", "By rarity"], ["element", "By element"]].map(([v, l]) => opt(v, "Group: " + l, colGroup)).join("")}</select>
           </div>
         </div>
       </div>
-      ${owned.length === 0
+      ${totalCards === 0
         ? `<div class="gate"><div><h3>No cards yet</h3><p class="muted">Head to the Store and rip your first pack.</p></div></div>`
-        : `<div class="cardgrid" id="colGrid"></div>`}`;
+        : `<div id="colBody"></div>`}`;
   }
+
+  function stackTile(s) {
+    const el = cardEl(s.card, { count: s.count, serial: s.count === 1 ? s.serials[0] : undefined });
+    el.onclick = () => openCardModal(s.card, s.count === 1 ? s.serials[0] : undefined, s);
+    return el;
+  }
+
   function wireCollection() {
     ["Element", "Rarity", "Level"].forEach((k) => {
-      const sel = $("#f" + k);
-      if (!sel) return;
-      sel.value = filters[k.toLowerCase()];
+      const sel = $("#f" + k); if (!sel) return;
       sel.onchange = () => { filters[k.toLowerCase()] = sel.value; render(); };
     });
-    const grid = $("#colGrid");
-    if (!grid) return;
-    const owned = store.collection().map((n) => ({ ...store.card(n.cardId), serial: n.serial }))
-      .filter((c) =>
-        (!filters.element || c.element === filters.element) &&
-        (!filters.rarity || c.rarity === filters.rarity) &&
-        (!filters.level || c.level === +filters.level));
-    const order = NIB.engine.RARITY_ORDER;
-    owned.sort((a, b) => order.indexOf(b.rarity) - order.indexOf(a.rarity) || b.level - a.level);
-    owned.forEach((c) => grid.appendChild(cardEl(c, { serial: c.serial })));
+    $("#cSort") && ($("#cSort").onchange = (e) => { colSort = e.target.value; render(); });
+    $("#cGroup") && ($("#cGroup").onchange = (e) => { colGroup = e.target.value; render(); });
+    const body = $("#colBody");
+    if (!body) return;
+    const stacks = buildStacks();
+    if (colGroup === "none") {
+      const grid = document.createElement("div"); grid.className = "cardgrid";
+      stacks.forEach((s) => grid.appendChild(stackTile(s)));
+      body.appendChild(grid);
+      return;
+    }
+    // grouped: section headers
+    const keyOf = (s) => colGroup === "rarity" ? s.card.rarity : s.card.element;
+    const groupsOrder = colGroup === "rarity" ? NIB.engine.RARITY_ORDER.slice().reverse() : matrix.ELEMENTS;
+    const label = (k) => colGroup === "rarity" ? catalog.RARITY_LABEL[k] : (matrix.META[k].glyph + " " + matrix.META[k].label);
+    groupsOrder.forEach((k) => {
+      const inGroup = stacks.filter((s) => keyOf(s) === k);
+      if (!inGroup.length) return;
+      const owned = inGroup.reduce((n, s) => n + s.count, 0);
+      const sec = document.createElement("div"); sec.style.marginBottom = "20px";
+      sec.innerHTML = `<div class="row" style="justify-content:space-between;margin:6px 2px 10px">
+        <h3 style="margin:0">${colGroup === "rarity" ? `<span class="badge r-${k}">${label(k)}</span>` : label(k)}</h3>
+        <span class="muted" style="font-size:13px">${inGroup.length} designs · ${owned} cards</span></div>
+        <div class="cardgrid"></div>`;
+      const grid = sec.querySelector(".cardgrid");
+      inGroup.forEach((s) => grid.appendChild(stackTile(s)));
+      body.appendChild(sec);
+    });
   }
 
   // ---- CODEX (browse all designs + elemental chart) ----------------

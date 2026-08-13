@@ -247,7 +247,8 @@
           <div class="row">
             <select id="cr"><option value="">All Rarities</option>${Object.keys(catalog.RARITY_LABEL).map((r) => `<option value="${r}">${catalog.RARITY_LABEL[r]}</option>`).join("")}</select>
             <select id="ce"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => `<option value="${e}">${matrix.META[e].label}</option>`).join("")}</select>
-            <button class="btn sm" id="bulkBtn">Change all (filtered)</button>
+            <button class="btn sm" id="newBtn">+ New card</button>
+            <button class="btn sm ghost" id="bulkBtn">Change all (filtered)</button>
           </div>
         </div>
         <div id="cardTable" style="margin-top:12px;max-height:56vh;overflow:auto"></div>
@@ -273,8 +274,17 @@
     const byId = {}; cards.forEach((c) => byId[c.id] = c);
     $$(".ed-btn").forEach((b) => b.onclick = () => openCardEditor(byId[b.dataset.id]));
   }
+  function newCardTemplate() {
+    return {
+      id: "custom-" + Date.now().toString(36) + Math.floor(Math.random() * 100),
+      name: "New Card", element: "fire", rarity: "common", rarityLabel: "Common",
+      level: 1, mintCap: 1000, isActive: true, imageUrl: null, lore: "",
+      stats: { attack: 10, defense: 5, hp: 30 },
+    };
+  }
   function wireCards() {
     $("#cr").onchange = fillCardTable; $("#ce").onchange = fillCardTable; fillCardTable();
+    $("#newBtn").onclick = () => openCardEditor(newCardTemplate(), true);
     $("#bulkBtn").onclick = () => openBulkEditor($("#cr").value, $("#ce").value);
     $("#cbSave").onclick = async () => {
       try { await store.setAppearance({ cardBackUrl: $("#cbUrl").value.trim() || null }); toast("Card back saved"); }
@@ -299,7 +309,7 @@
         <div style="margin-top:6px"><span class="badge r-${c.rarity}">${catalog.RARITY_LABEL[c.rarity]}</span></div>
       </div></div>`;
   }
-  function openCardEditor(card) {
+  function openCardEditor(card, isNew) {
     const ov = document.createElement("div"); ov.className = "overlay";
     const sel = (id, opts, val) => `<select id="${id}">${opts.map((o) => `<option value="${o.v}" ${o.v === val ? "selected" : ""}>${o.l}</option>`).join("")}</select>`;
     const elOpts = matrix.ELEMENTS.map((e) => ({ v: e, l: matrix.META[e].label }));
@@ -307,7 +317,7 @@
     ov.innerHTML = `
       <div class="panel modal" style="max-width:600px;position:relative">
         <span class="close">&times;</span>
-        <h2 style="margin-bottom:2px">Edit Card</h2>
+        <h2 style="margin-bottom:2px">${isNew ? "New Card" : "Edit Card"}</h2>
         <p class="muted mono" style="font-size:12px">${card.id}</p>
         <div class="row" style="gap:18px;align-items:flex-start">
           <div id="edPreview" style="flex:none">${previewCardHTML(card)}</div>
@@ -334,7 +344,10 @@
           <label class="btn ghost sm" style="cursor:pointer">Upload<input id="edFile" type="file" accept="image/*" class="hidden"></label></div>
         <label class="field">Lore</label><textarea id="edLore" rows="2" style="width:100%;background:#0c0e1a;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px">${card.lore || ""}</textarea>
         <div id="edErr" class="muted" style="color:var(--danger);font-size:13px;min-height:16px;margin-top:8px"></div>
-        <div class="row" style="margin-top:8px"><button class="btn gold" id="edSave">Save card</button></div>
+        <div class="row" style="margin-top:8px;justify-content:space-between">
+          <button class="btn gold" id="edSave">${isNew ? "Create card" : "Save card"}</button>
+          ${isNew ? "" : `<button class="btn ghost sm" id="edDelete" style="color:var(--danger)">Delete card</button>`}
+        </div>
       </div>`;
     document.body.appendChild(ov);
 
@@ -359,9 +372,18 @@
     };
     $("#edSave").onclick = async () => {
       $("#edSave").disabled = true;
-      try { await store.updateCard(card.id, collect()); toast("Card saved"); ov.remove(); fillCardTable(); }
-      catch (e) { $("#edSave").disabled = false; $("#edErr").textContent = e.message || "Save failed"; }
+      try {
+        if (isNew) { await store.createCard(Object.assign({ id: card.id }, collect())); toast("Card created"); }
+        else { await store.updateCard(card.id, collect()); toast("Card saved"); }
+        ov.remove(); fillCardTable();
+      } catch (e) { $("#edSave").disabled = false; $("#edErr").textContent = e.message || "Save failed"; }
     };
+    $("#edDelete") && ($("#edDelete").onclick = async () => {
+      if (!window.confirm("Delete this card? It's removed from packs; players who already own copies keep them.")) return;
+      $("#edDelete").disabled = true;
+      try { await store.deleteCard(card.id); toast("Card deleted"); ov.remove(); fillCardTable(); }
+      catch (e) { $("#edDelete").disabled = false; $("#edErr").textContent = e.message || "Delete failed"; }
+    });
     ov.addEventListener("click", (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); });
   }
 

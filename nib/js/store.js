@@ -180,14 +180,23 @@
       persist();
       return { ok: true, opening };
     }
-    G.poolLocal = () => NIB.catalog.all().map((c) => ({ ...c, mintedCount: state.minted[c.id] || 0 }));
+    // built-in catalog + admin overrides + custom (override-only) cards
+    function mergedCatalog() {
+      const base = NIB.catalog.all().map((c) => G.card(c.id));
+      const extra = Object.keys(state.overrides)
+        .filter((id) => !NIB.catalog.byId(id)).map((id) => G.card(id)).filter(Boolean);
+      return base.concat(extra);
+    }
+    G.poolLocal = () => mergedCatalog()
+      .filter((c) => c.isActive !== false)
+      .map((c) => ({ ...c, mintedCount: state.minted[c.id] || 0 }));
 
     function setConfig(patch) { Object.assign(state.config, patch); persist(); }
     function grantTokens(n) { state.balance += n; persist(); }
     async function loadCardStats(rarity, element, limit = 400) {
-      return NIB.catalog.all()
+      return mergedCatalog()
         .filter((c) => (!rarity || c.rarity === rarity) && (!element || c.element === element))
-        .slice(0, limit).map((c) => ({ ...G.card(c.id), mintedCount: state.minted[c.id] || 0 }));
+        .slice(0, limit).map((c) => ({ ...c, mintedCount: state.minted[c.id] || 0 }));
     }
     async function seedCatalog() { return { written: NIB.catalog.count(), note: "LOCAL mode: catalogue is in-memory." }; }
     async function adminGrantTokens(_w, amount) { state.balance += Number(amount); persist(); }
@@ -218,13 +227,22 @@
     async function uploadImage(file) {   // demo: inline as a data URI
       return await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
     }
+    async function createCard(card) {
+      state.overrides[card.id] = Object.assign({ isActive: true }, card);
+      persist(); return { id: card.id };
+    }
+    async function deleteCard(id) {
+      if (NIB.catalog.byId(id)) state.overrides[id] = Object.assign({}, state.overrides[id], { isActive: false });
+      else delete state.overrides[id];
+      persist();
+    }
 
     return {
       init: async () => { load(); }, signUp, signIn, signInGoogle, connectWallet, disconnect,
       sendVerification, reloadUser, setDisplayName,
       buyAndOpenPack, setConfig, grantTokens, loadCardStats,
       seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
-      updateCard, bulkUpdateCards, setAppearance, uploadImage,
+      updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
     };
   })();
 
@@ -532,13 +550,27 @@
       await ref.put(file);
       return await ref.getDownloadURL();
     }
+    // Create a brand-new card: full record (pack logic) + override (display).
+    async function createCard(card) {
+      const full = Object.assign({ mintedCount: 0, soldOut: false, rand: Math.random(), isActive: true }, card);
+      await dbf.doc(`cards/${card.id}`).set(full);
+      await dbf.doc("config/catalogOverrides").set({ [card.id]: card }, { merge: true });
+      return { id: card.id };
+    }
+    // Delete: remove the card doc (drops it from pack pool). Built-in cards
+    // are marked inactive in the overrides; custom cards are fully removed.
+    async function deleteCard(id) {
+      await dbf.doc(`cards/${id}`).delete().catch(() => {});
+      if (NIB.catalog.byId(id)) await dbf.doc("config/catalogOverrides").set({ [id]: { isActive: false } }, { merge: true });
+      else await dbf.doc("config/catalogOverrides").set({ [id]: FV.delete() }, { merge: true });
+    }
 
     return {
       init, signUp, signIn, signInGoogle, resetPassword, connectWallet, disconnect,
       sendVerification, reloadUser, setDisplayName,
       buyAndOpenPack, setConfig, grantTokens,
       loadCardStats, seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
-      updateCard, bulkUpdateCards, setAppearance, uploadImage,
+      updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
     };
   })();
 
@@ -571,5 +603,7 @@
     bulkUpdateCards: (...a) => Backend.bulkUpdateCards(...a),
     setAppearance: (...a) => Backend.setAppearance(...a),
     uploadImage: (...a) => Backend.uploadImage(...a),
+    createCard: (...a) => Backend.createCard(...a),
+    deleteCard: (...a) => Backend.deleteCard(...a),
   });
 })(window.NIB = window.NIB || {});
