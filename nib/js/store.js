@@ -17,6 +17,19 @@
   const LIVE = !!CFG.enabled;
   const KEY = "nibcoin.v1";
   const DAILY_AMOUNT = 100, DAILY_COOLDOWN = 24 * 3600 * 1000, PACK_COIN_REWARD = 20;
+  const SELL_PRICE = 0.1;  // NIB per duplicate card sold
+  const round2 = (n) => Math.round(n * 100) / 100;
+
+  // Extra copies beyond the first of each card, from a collection array.
+  function duplicateCopies(collection) {
+    const byCard = {};
+    collection.forEach((n) => (byCard[n.cardId] = byCard[n.cardId] || []).push(n));
+    const dupes = [];
+    Object.values(byCard).forEach((copies) => {
+      copies.sort((a, b) => (a.serial || 0) - (b.serial || 0)).slice(1).forEach((c) => dupes.push(c));
+    });
+    return dupes;   // the sellable extras (keeps one of each)
+  }
 
   const DEFAULT_CONFIG = () => ({
     packsEnabled: true,
@@ -80,6 +93,9 @@
     battleTeam: () => cache.battleTeam,
     coins: () => cache.coins || 0,
     items: () => cache.items || {},
+    sellPrice: () => SELL_PRICE,
+    duplicateCount: () => duplicateCopies(cache.collection).length,
+    duplicateValue: () => round2(duplicateCopies(cache.collection).length * SELL_PRICE),
     dailyStatus() {
       const rem = DAILY_COOLDOWN - (Date.now() - (cache.lastDaily || 0));
       return { ready: rem <= 0, nextInMs: Math.max(0, rem), amount: DAILY_AMOUNT };
@@ -283,6 +299,21 @@
       state.coins = (state.coins || 0) + DAILY_AMOUNT; state.lastDaily = Date.now(); persist();
       return { amount: DAILY_AMOUNT };
     }
+    // ---- sell duplicates for NIB (demo) ----
+    function sellSet(dupes) {
+      const ids = new Set(dupes);
+      state.collection = state.collection.filter((n) => !ids.has(n));
+      state.balance = round2(state.balance + dupes.length * SELL_PRICE);
+      persist(); return { sold: dupes.length, nib: round2(dupes.length * SELL_PRICE) };
+    }
+    async function sellDuplicates(cardId) {
+      const dupes = duplicateCopies(state.collection).filter((n) => n.cardId === cardId);
+      return dupes.length ? sellSet(dupes) : { sold: 0, nib: 0 };
+    }
+    async function sellAllDuplicates() {
+      const dupes = duplicateCopies(state.collection);
+      return dupes.length ? sellSet(dupes) : { sold: 0, nib: 0 };
+    }
     // Demo: synthesize a few bot opponents so PvP is playable offline.
     async function listOpponents() {
       const names = ["ShadowByte", "PixelKnight", "NovaQueen", "RiftRunner", "AshWarden"];
@@ -301,6 +332,7 @@
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
       earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
+      sellDuplicates, sellAllDuplicates,
     };
   })();
 
@@ -353,7 +385,7 @@
         emit();
       }));
       userUnsub.push(dbf.collection(`users/${u.uid}/collection`).onSnapshot((s) => {
-        cache.collection = s.docs.map((x) => x.data()); emit();
+        cache.collection = s.docs.map((x) => Object.assign({ _id: x.id }, x.data())); emit();
       }));
       userUnsub.push(dbf.doc(`admins/${u.uid}`).onSnapshot((d) => {
         const wasAdmin = cache.adminFlag; cache.adminFlag = d.exists;
@@ -665,6 +697,25 @@
       await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(DAILY_AMOUNT), lastDailyCoins: Date.now() });
       return { amount: DAILY_AMOUNT };
     }
+    // ---- sell duplicates for NIB ----
+    async function sellCopies(dupes) {
+      const uid = cache.uid;
+      for (let i = 0; i < dupes.length; i += 400) {
+        const batch = dbf.batch();
+        dupes.slice(i, i + 400).forEach((n) => batch.delete(dbf.doc(`users/${uid}/collection/${n._id}`)));
+        batch.update(dbf.doc(`users/${uid}`), { tokenBalance: FV.increment(round2(dupes.slice(i, i + 400).length * SELL_PRICE)) });
+        await batch.commit();
+      }
+      return { sold: dupes.length, nib: round2(dupes.length * SELL_PRICE) };
+    }
+    async function sellDuplicates(cardId) {
+      const dupes = duplicateCopies(cache.collection).filter((n) => n.cardId === cardId && n._id);
+      return dupes.length ? sellCopies(dupes) : { sold: 0, nib: 0 };
+    }
+    async function sellAllDuplicates() {
+      const dupes = duplicateCopies(cache.collection).filter((n) => n._id);
+      return dupes.length ? sellCopies(dupes) : { sold: 0, nib: 0 };
+    }
 
     return {
       init, signUp, signIn, signInGoogle, resetPassword, connectWallet, disconnect,
@@ -674,6 +725,7 @@
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
       earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
+      sellDuplicates, sellAllDuplicates,
     };
   })();
 
@@ -716,5 +768,7 @@
     buyItem: (...a) => Backend.buyItem(...a),
     consumeItem: (...a) => Backend.consumeItem(...a),
     claimDaily: (...a) => Backend.claimDaily(...a),
+    sellDuplicates: (...a) => Backend.sellDuplicates(...a),
+    sellAllDuplicates: (...a) => Backend.sellAllDuplicates(...a),
   });
 })(window.NIB = window.NIB || {});

@@ -17,6 +17,7 @@
     const h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
+  const nibFmt = (v) => String(Math.round((+v || 0) * 100) / 100);
   function toast(msg, isErr) {
     const t = document.createElement("div");
     t.className = "toast" + (isErr ? " err" : "");
@@ -84,9 +85,11 @@
   function openCardModal(card, serial, owned) {
     const p = matrix.profile(card.element);
     const chip = (e) => `<span class="pill"><span>${e.glyph}</span>${e.label}</span>`;
+    const dupCount = owned && owned.count ? owned.count - 1 : 0;
     const ownedHtml = owned && owned.count
       ? `<div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">YOU OWN ${owned.count}</div>
-           <div class="row">${owned.serials.slice().sort((a, b) => a - b).map((s) => `<span class="pill mono">#${s}</span>`).join("")}</div></div>`
+           <div class="row">${owned.serials.slice().sort((a, b) => a - b).map((s) => `<span class="pill mono">#${s}</span>`).join("")}</div>
+           ${dupCount > 0 ? `<button class="btn gold sm" id="sellCardDupes" style="margin-top:10px">Sell ${dupCount} duplicate${dupCount > 1 ? "s" : ""} → ${nibFmt(dupCount * store.sellPrice())} NIB</button>` : ""}</div>`
       : "";
     const ab = NIB.battle && NIB.battle.abilityFor(card);
     const abilityHtml = ab
@@ -131,6 +134,11 @@
       </div>`;
     ov.onclick = (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); };
     document.body.appendChild(ov);
+    $("#sellCardDupes", ov)?.addEventListener("click", async () => {
+      if (!window.confirm(`Sell ${dupCount} duplicate${dupCount > 1 ? "s" : ""} of ${card.name} for ${nibFmt(dupCount * store.sellPrice())} NIB?`)) return;
+      try { const r = await store.sellDuplicates(card.id); toast(`Sold ${r.sold} → +${nibFmt(r.nib)} NIB`); ov.remove(); render(); }
+      catch (e) { toast(e.message || "Sell failed", true); }
+    });
   }
 
   // ---- STORE / PACK OPENING ----------------------------------------
@@ -158,7 +166,7 @@
           </div>
           <div class="row" style="justify-content:space-between;margin-top:10px">
             <span class="pill">💰 Cost: <b>${cfg.packPriceTokens} NIB</b></span>
-            <span class="pill">Balance: <b>${bal} NIB</b></span>
+            <span class="pill">Balance: <b>${nibFmt(bal)} NIB</b></span>
           </div>
           <button class="btn gold" id="buyBtn" style="width:100%;margin-top:14px" ${canBuy ? "" : "disabled"}>
             ${!store.isLoggedIn() ? "Log in to buy"
@@ -421,6 +429,7 @@
           <div>
             <h2 style="margin:0">Collection</h2>
             <div class="muted" style="font-size:13px;margin-top:2px">${totalCards} cards · ${uniqueOwned}/${totalDesigns} unique (${pct}%)</div>
+            ${store.duplicateCount() > 0 ? `<button class="btn gold sm" id="sellAllDupes" style="margin-top:8px">Sell ${store.duplicateCount()} duplicate${store.duplicateCount() > 1 ? "s" : ""} → ${nibFmt(store.duplicateValue())} NIB</button>` : ""}
           </div>
           <div class="row" style="flex-wrap:wrap">
             <select id="fElement"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => opt(e, matrix.META[e].glyph + " " + matrix.META[e].label, filters.element)).join("")}</select>
@@ -449,6 +458,12 @@
     });
     $("#cSort") && ($("#cSort").onchange = (e) => { colSort = e.target.value; render(); });
     $("#cGroup") && ($("#cGroup").onchange = (e) => { colGroup = e.target.value; render(); });
+    $("#sellAllDupes") && ($("#sellAllDupes").onclick = async () => {
+      const n = store.duplicateCount();
+      if (!window.confirm(`Sell ${n} duplicate card${n > 1 ? "s" : ""} for ${nibFmt(store.duplicateValue())} NIB? One of each card is always kept.`)) return;
+      try { const r = await store.sellAllDuplicates(); toast(`Sold ${r.sold} → +${nibFmt(r.nib)} NIB`); render(); }
+      catch (e) { toast(e.message || "Sell failed", true); }
+    });
     const body = $("#colBody");
     if (!body) return;
     const stacks = buildStacks();
@@ -526,7 +541,7 @@
             ? `<div class="row" style="gap:8px"><span class="mono" style="user-select:all">${addr}</span></div>`
             : `<button class="btn ghost sm" id="pfLink">Link wallet</button>`}
           <div class="grid cols-3" style="margin-top:16px">
-            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">NIB</div><div class="stat small">${store.balance()}</div></div>
+            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">NIB</div><div class="stat small">${nibFmt(store.balance())}</div></div>
             <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">🪙 Coins</div><div class="stat small">${store.coins()}</div></div>
             <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">Packs</div><div class="stat small">${packs}</div></div>
           </div>
@@ -622,7 +637,7 @@
       <div class="panel" style="margin-top:16px">
         <div class="row" style="justify-content:space-between"><h3 style="margin:0">Shop</h3><span class="pill">🪙 ${store.coins()} coins</span></div>
         ${(() => { const d = store.dailyStatus(); return `<div class="row" style="margin:8px 0"><button class="btn sm ${d.ready ? "gold" : "ghost"}" id="dailyBtn" ${d.ready ? "" : "disabled"}>${d.ready ? `🎁 Claim daily bonus · ${d.amount} 🪙` : `🎁 Daily claimed — back in ${fmtDuration(d.nextInMs)}`}</button></div>`; })()}
-        <div class="muted" style="font-size:13px;margin:8px 0 6px">Buy coins with NIB — ${battle.COIN_PER_NIB} 🪙 per NIB (you have ${store.balance()} NIB)</div>
+        <div class="muted" style="font-size:13px;margin:8px 0 6px">Buy coins with NIB — ${battle.COIN_PER_NIB} 🪙 per NIB (you have ${nibFmt(store.balance())} NIB)</div>
         <div class="row">${[1, 5, 10].map((n) => `<button class="btn ghost sm" data-buycoins="${n}">${n} NIB → ${n * battle.COIN_PER_NIB} 🪙</button>`).join("")}</div>
         <div class="muted" style="font-size:13px;margin:14px 0 6px">Items — used in battle</div>
         <div class="cardgrid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
@@ -896,7 +911,7 @@
     if (store.isLoggedIn()) {
       $("#walletArea").innerHTML = `
         <span class="pill"><span class="dot"></span>${name}</span>
-        <span class="pill">${store.balance()} NIB</span>
+        <span class="pill">${nibFmt(store.balance())} NIB</span>
         ${addr
           ? `<span class="pill" title="${addr}">🔗 ${addr.slice(0, 4)}…${addr.slice(-4)}</span>`
           : `<button class="btn ghost sm" id="linkw">Link wallet</button>`}
