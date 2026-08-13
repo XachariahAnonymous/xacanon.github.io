@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIBCOIN TCG — Solana Trading Card Game</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="flash" id="flash"></div>
+
+  <header class="topbar">
+    <div class="logo">NIB<span>COIN</span> TCG</div>
+    <nav class="nav">
+      <button data-tab="store">Store</button>
+      <button data-tab="collection">Collection</button>
+      <button data-tab="codex">Codex</button>
+      <button data-tab="profile">Profile</button>
+    </nav>
+    <div class="spacer"></div>
+    <div class="row" id="walletArea"></div>
+    <a href="admin.html" class="btn ghost sm" style="margin-left:8px">Admin</a>
+  </header>
+
+  <main class="wrap" id="main"></main>
+
+  <!-- backend config; loads Firebase SDK only when enabled:true -->
+  <script src="js/firebase-config.js"></script>
+  <script>
+    if (window.NIB_CONFIG && window.NIB_CONFIG.enabled) {
+      var _b = "https://www.gstatic.com/firebasejs/10.12.2/";
+      ["firebase-app-compat.js", "firebase-auth-compat.js", "firebase-firestore-compat.js"]
+        .forEach(function (f) { document.write('<script src="' + _b + f + '"><\/script>'); });
+    }
+  </script>
+
+  <!-- shared logic (classic scripts; runs with no build step) -->
+  <script src="js/matrix.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/app.js"></script>
+  <script>window.NIB.app.init();</script>
+</body>
+</html>
