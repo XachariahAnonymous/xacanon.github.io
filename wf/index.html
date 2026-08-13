@@ -291,8 +291,13 @@
                     <span>Latest Transmission</span>
                     <a class="channel-link" href="https://www.youtube.com/@TheWhyFiles" target="_blank" rel="noopener">View Channel →</a>
                 </div>
-                <div class="embed-responsive" id="yt-embed-container"></div>
-                <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                <div class="embed-responsive">
+                    <iframe
+                        src="https://www.youtube.com/embed/videoseries?list=UUIFk2uvCNcEmZ77g0ESKLcQ&rel=0&color=white"
+                        title="The Why Files – Latest Video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+                </div>
             </div>
         </section>
 
@@ -328,43 +333,6 @@
     </footer>
 
     <script>
-        // Known latest video ID — used immediately so the player never shows an error.
-        // The RSS fetch below will silently swap it for the true latest if a newer one exists.
-        const FALLBACK_VIDEO_ID = 'ox69c8tXe64';
-
-        function buildIframe(videoId) {
-            return `<iframe
-                style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
-                src="https://www.youtube.com/embed/${videoId}?rel=0&color=white"
-                title="The Why Files – Latest Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>`;
-        }
-
-        const container = document.getElementById('yt-embed-container');
-
-        // Show the fallback immediately — no loading spinner, no error
-        container.innerHTML = buildIframe(FALLBACK_VIDEO_ID);
-
-        // Then try to fetch the true latest video from the RSS feed and upgrade if newer
-        (async function tryUpgradeToLatest() {
-            try {
-                const rssUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCIFk2uvCNcEmZ77g0ESKLcQ';
-                const res = await fetch(rssUrl);
-                if (!res.ok) return;
-                const text = await res.text();
-                const xml = new DOMParser().parseFromString(text, 'text/xml');
-                // videoId lives in the <yt:videoId> element (namespace prefix varies by browser)
-                const videoIdEl = xml.querySelector('videoId') || xml.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015', 'videoId')[0];
-                const latestId = videoIdEl?.textContent?.trim();
-                if (latestId && latestId !== FALLBACK_VIDEO_ID) {
-                    container.innerHTML = buildIframe(latestId);
-                }
-            } catch (_) {
-                // Fallback already showing — nothing more to do
-            }
-        })();
-
         function copyIP() {
             const ip = "cryptidcraft.net";
             navigator.clipboard.writeText(ip);
