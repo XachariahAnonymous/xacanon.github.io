@@ -38,6 +38,8 @@
     supply: {}, global: {}, minted: {}, admins: [],
     overrides: {},   // cardId -> edited fields (merged over the built-in catalog)
     battleTeam: null, // own battle team + ladder record
+    coins: 0,        // battle-shop currency
+    items: {},       // owned battle items { itemId: count }
   };
 
   const emit = () => window.dispatchEvent(new CustomEvent("nib:change"));
@@ -74,6 +76,8 @@
     },
     cardBack: () => (cache.config.appearance && cache.config.appearance.cardBackUrl) || null,
     battleTeam: () => cache.battleTeam,
+    coins: () => cache.coins || 0,
+    items: () => cache.items || {},
 
     // A player's own pack history, reconstructed from owned copies
     // (grouped by openingId) — no extra reads/permissions needed.
@@ -120,7 +124,8 @@
         state = raw ? JSON.parse(raw) : null;
       } catch (e) { state = null; }
       const base = { loggedIn: false, uid: null, email: null, displayName: null, walletAddress: null,
-        balance: 100, minted: {}, collection: [], openings: [], config: DEFAULT_CONFIG(), admins: [], overrides: {}, battleTeam: null };
+        balance: 100, minted: {}, collection: [], openings: [], config: DEFAULT_CONFIG(), admins: [], overrides: {}, battleTeam: null,
+        coins: 150, items: { potion: 1, bomb: 1 } };
       state = Object.assign(base, state || {});
       if (typeof state.balance !== "number" && typeof state.tokenBalance === "number") state.balance = state.tokenBalance;
       syncCache();
@@ -134,6 +139,7 @@
       cache.openings = state.openings; cache.config = Object.assign(DEFAULT_CONFIG(), state.config);
       cache.overrides = state.overrides || {};
       cache.battleTeam = state.battleTeam;
+      cache.coins = state.coins || 0; cache.items = state.items || {};
       cache.adminFlag = state.loggedIn;   // demo: any logged-in user is an admin
       cache.supply = {};                  // computed in supplyByTier for LOCAL
     }
@@ -251,6 +257,20 @@
       t.rating = Math.max(0, t.rating + (win ? 20 : -15)); t[win ? "wins" : "losses"]++;
       cache.battleTeam = t; persist();
     }
+    // ---- coins & items (demo) ----
+    async function earnCoins(n) { state.coins = (state.coins || 0) + Number(n); persist(); }
+    async function buyCoins(nib) {
+      if (state.balance < nib) throw new Error("Not enough NIB");
+      state.balance -= Number(nib); state.coins = (state.coins || 0) + nib * NIB.battle.COIN_PER_NIB; persist();
+    }
+    async function buyItem(id, price) {
+      if ((state.coins || 0) < price) throw new Error("Not enough coins");
+      state.coins -= price; state.items[id] = (state.items[id] || 0) + 1; persist();
+    }
+    async function consumeItem(id) {
+      if ((state.items[id] || 0) <= 0) return;
+      state.items[id]--; persist();
+    }
     // Demo: synthesize a few bot opponents so PvP is playable offline.
     async function listOpponents() {
       const names = ["ShadowByte", "PixelKnight", "NovaQueen", "RiftRunner", "AshWarden"];
@@ -268,6 +288,7 @@
       seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
+      earnCoins, buyCoins, buyItem, consumeItem,
     };
   })();
 
@@ -315,6 +336,7 @@
         const p = d.data() || {};
         cache.balance = p.tokenBalance || 0;
         cache.walletAddress = p.wallet || null;
+        cache.coins = p.coins || 0; cache.items = p.items || {};
         if (p.displayName) cache.displayName = p.displayName;
         emit();
       }));
@@ -348,7 +370,8 @@
         const d = await tx.get(ref);
         if (!d.exists) tx.set(ref, {
           email: user.email || null, displayName: name || user.displayName || (user.email || "").split("@")[0],
-          wallet: null, tokenBalance: WELCOME, packsOpened: 0, createdAt: FV.serverTimestamp(),
+          wallet: null, tokenBalance: WELCOME, packsOpened: 0,
+          coins: 150, items: { potion: 1, bomb: 1 }, createdAt: FV.serverTimestamp(),
         });
       });
     }
@@ -611,6 +634,21 @@
       return s.docs.map((d) => d.data()).filter((t) => t.uid !== cache.uid && (t.teamCardIds || []).length);
     }
 
+    // ---- coins & items ----
+    async function earnCoins(n) { await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(Number(n)) }); }
+    async function buyCoins(nib) {
+      if ((cache.balance || 0) < nib) throw new Error("Not enough NIB");
+      await dbf.doc(`users/${cache.uid}`).update({ tokenBalance: FV.increment(-nib), coins: FV.increment(nib * NIB.battle.COIN_PER_NIB) });
+    }
+    async function buyItem(id, price) {
+      if ((cache.coins || 0) < price) throw new Error("Not enough coins");
+      await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(-price), ["items." + id]: FV.increment(1) });
+    }
+    async function consumeItem(id) {
+      if ((cache.items[id] || 0) <= 0) return;
+      await dbf.doc(`users/${cache.uid}`).update({ ["items." + id]: FV.increment(-1) });
+    }
+
     return {
       init, signUp, signIn, signInGoogle, resetPassword, connectWallet, disconnect,
       sendVerification, reloadUser, setDisplayName,
@@ -618,6 +656,7 @@
       loadCardStats, seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
+      earnCoins, buyCoins, buyItem, consumeItem,
     };
   })();
 
@@ -655,5 +694,9 @@
     saveBattleTeam: (...a) => Backend.saveBattleTeam(...a),
     recordBattleResult: (...a) => Backend.recordBattleResult(...a),
     listOpponents: (...a) => Backend.listOpponents(...a),
+    earnCoins: (...a) => Backend.earnCoins(...a),
+    buyCoins: (...a) => Backend.buyCoins(...a),
+    buyItem: (...a) => Backend.buyItem(...a),
+    consumeItem: (...a) => Backend.consumeItem(...a),
   });
 })(window.NIB = window.NIB || {});

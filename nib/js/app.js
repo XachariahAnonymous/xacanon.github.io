@@ -592,7 +592,7 @@
       <div class="panel" style="margin-bottom:16px">
         <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
           <div><h2 style="margin:0">Battle Arena</h2><div class="muted" style="font-size:13px;margin-top:2px">${rec}</div></div>
-          <button class="btn ghost sm" id="editTeam">${team.length ? "Edit team" : "Build team"}</button>
+          <div class="row"><span class="pill gold" style="background:#ffd75a22;border:1px solid var(--gold)">🪙 ${store.coins()} coins</span><button class="btn ghost sm" id="editTeam">${team.length ? "Edit team" : "Build team"}</button></div>
         </div>
         <div class="muted" style="font-size:13px;margin:12px 0 6px">Your team (${team.length}/${battle.TEAM_SIZE})</div>
         <div class="cardgrid" id="teamRow">${team.length ? "" : `<p class="muted">Pick ${battle.TEAM_SIZE} cards to battle. You own ${owned} unique.</p>`}</div>
@@ -607,6 +607,20 @@
         <div class="panel">
           <h3>PvP <span class="muted" style="font-size:12px">— challenge other players</span></h3>
           <div id="oppList"><p class="muted">Loading opponents…</p></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="row" style="justify-content:space-between"><h3 style="margin:0">Shop</h3><span class="pill">🪙 ${store.coins()} coins</span></div>
+        <div class="muted" style="font-size:13px;margin:8px 0 6px">Buy coins with NIB — ${battle.COIN_PER_NIB} 🪙 per NIB (you have ${store.balance()} NIB)</div>
+        <div class="row">${[1, 5, 10].map((n) => `<button class="btn ghost sm" data-buycoins="${n}">${n} NIB → ${n * battle.COIN_PER_NIB} 🪙</button>`).join("")}</div>
+        <div class="muted" style="font-size:13px;margin:14px 0 6px">Items — used in battle</div>
+        <div class="cardgrid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
+          ${Object.values(battle.ITEMS).map((it) => `<div class="panel" style="padding:12px;text-align:center">
+            <div style="font-size:30px">${it.glyph}</div><b>${it.name}</b>
+            <div class="muted" style="font-size:11px;min-height:30px;margin:4px 0">${it.desc}</div>
+            <div class="muted" style="font-size:12px">Owned: <b>${store.items()[it.id] || 0}</b></div>
+            <button class="btn sm" data-buyitem="${it.id}" data-price="${it.price}" style="margin-top:6px">Buy · 🪙 ${it.price}</button>
+          </div>`).join("")}
         </div>
       </div>
       <div class="panel" style="margin-top:16px">
@@ -627,7 +641,20 @@
     const row = $("#teamRow");
     if (row && team.length) team.forEach((c) => row.appendChild(miniCard(c)));
     $("#editTeam")?.addEventListener("click", openTeamBuilder);
-    $$("[data-npc]").forEach((b) => b.onclick = () => startBattle(battle.generateNpcTeam(b.dataset.npc, battle.TEAM_SIZE), { name: battle.NPC_TIERS[b.dataset.npc].label + " NPC" }, false));
+    const npcReward = { easy: 30, medium: 50, hard: 80, boss: 120 };
+    $$("[data-npc]").forEach((b) => b.onclick = () => startBattle(
+      battle.generateNpcTeam(b.dataset.npc, battle.TEAM_SIZE),
+      { name: battle.NPC_TIERS[b.dataset.npc].label + " NPC", reward: { win: npcReward[b.dataset.npc], loss: 8 } }, false));
+
+    // shop
+    $$("[data-buycoins]").forEach((b) => b.onclick = async () => {
+      try { await store.buyCoins(+b.dataset.buycoins); toast(`+${b.dataset.buycoins * battle.COIN_PER_NIB} coins`); }
+      catch (e) { toast(e.message || "Purchase failed", true); }
+    });
+    $$("[data-buyitem]").forEach((b) => b.onclick = async () => {
+      try { await store.buyItem(b.dataset.buyitem, +b.dataset.price); toast("Item purchased"); }
+      catch (e) { toast(e.message || "Not enough coins", true); }
+    });
 
     // opponents + leaderboard
     try {
@@ -696,7 +723,8 @@
     if (!mine.length || !foe.length) return toast("Teams not ready", true);
     // phase: 'card' | 'ability' | 'target' | 'itemTarget'
     B = { mine, foe, turn: "me", log: ["⚔️ Battle start!"], over: false, isPvp, opp,
-      phase: "card", sel: null, ability: null, item: null, items: battle.defaultKit() };
+      phase: "card", sel: null, ability: null, item: null,
+      reward: (opp && opp.reward) || (isPvp ? { win: 60, loss: 15 } : { win: 40, loss: 8 }) };
     let ov = $("#battleOverlay");
     if (!ov) { ov = document.createElement("div"); ov.id = "battleOverlay"; ov.className = "overlay"; document.body.appendChild(ov); }
     renderArena();
@@ -736,13 +764,14 @@
       }).join("");
       return `<div class="row" style="justify-content:center;flex-wrap:wrap;gap:8px">${btns}<button class="btn ghost sm" id="abBack">← back</button></div>`;
     }
-    // item bar (phase card)
+    // item bar (phase card) — from owned inventory
     if (B.phase === "card") {
-      const items = Object.entries(B.items).filter(([, n]) => n > 0).map(([id, n]) => {
+      const inv = store.items();
+      const items = Object.entries(inv).filter(([id, n]) => n > 0 && battle.ITEMS[id]).map(([id, n]) => {
         const it = battle.ITEMS[id];
         return `<button class="btn ghost sm" data-item="${id}" title="${it.desc}">${it.glyph} ${it.name} ×${n}</button>`;
       }).join("");
-      return items ? `<div class="row" style="justify-content:center;flex-wrap:wrap;gap:8px"><span class="muted" style="font-size:12px;align-self:center">Items:</span>${items}</div>` : "";
+      return `<div class="row" style="justify-content:center;flex-wrap:wrap;gap:8px"><span class="muted" style="font-size:12px;align-self:center">Items:</span>${items || `<span class="muted" style="font-size:12px">none — buy some in the Shop</span>`}</div>`;
     }
     if (B.phase === "target" || B.phase === "itemTarget") return `<div class="row" style="justify-content:center"><button class="btn ghost sm" id="abBack">← back</button></div>`;
     return "";
@@ -799,7 +828,7 @@
     endPlayerTurn();
   }
   function chooseItem(id) {
-    const it = battle.ITEMS[id]; if (!it || !B.items[id]) return;
+    const it = battle.ITEMS[id]; if (!it || !(store.items()[id] > 0)) return;
     B.item = it;
     if (it.target === "ally") { B.phase = "itemTarget"; renderArena(); }
     else { applyItem(null); }
@@ -809,7 +838,7 @@
     const it = B.item;
     if (it.target === "ally" && (!target || target.hp <= 0)) return;
     battle.applyAbility({ name: it.name }, it, target, ctx(), B.log);
-    B.items[it.id]--; B.item = null;
+    store.consumeItem(it.id); B.item = null;   // deduct from owned inventory
     endPlayerTurn();
   }
   function endPlayerTurn() {
@@ -835,7 +864,12 @@
     B.over = true;
     const win = foeAlive === 0;
     B.log.unshift(win ? "🏆 Victory!" : "☠️ Defeat.");
-    if (B.isPvp) { store.recordBattleResult(win); B.log.unshift(win ? "+20 rating" : "−15 rating"); }
+    if (!B.awarded) {
+      B.awarded = true;
+      const c = win ? B.reward.win : B.reward.loss;
+      if (c) { store.earnCoins(c); B.log.unshift(`🪙 +${c} coins`); }
+      if (B.isPvp) { store.recordBattleResult(win); B.log.unshift(win ? "+20 rating" : "−15 rating"); }
+    }
     renderArena();
     return true;
   }

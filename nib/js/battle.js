@@ -155,13 +155,15 @@
     if (ab.cd && ab.id) { user.cd = user.cd || {}; user.cd[ab.id] = ab.cd; }
   }
 
-  // ---- items --------------------------------------------------------
+  // ---- items (bought in the shop with coins) ------------------------
+  const COIN_PER_NIB = 100;            // exchange rate: 1 NIB -> 100 coins
   const ITEMS = {
-    potion:  { id: "potion",  name: "Potion",  glyph: "🧪", target: "ally",      heal: 70, desc: "Heal an ally 70 HP" },
-    bomb:    { id: "bomb",    name: "Bomb",    glyph: "💣", target: "allEnemies", flat: 50, desc: "50 damage to all enemies" },
-    cleanse: { id: "cleanse", name: "Cleanse", glyph: "✨", target: "allAllies",  cleanse: true, heal: 25, desc: "Cure poison + heal allies 25" },
+    potion:    { id: "potion",    name: "Potion",     glyph: "🧪", target: "ally",       heal: 70,  price: 40,  desc: "Heal an ally 70 HP" },
+    elixir:    { id: "elixir",    name: "Elixir",     glyph: "⚗️", target: "ally",       heal: 160, price: 90,  desc: "Heal an ally 160 HP" },
+    bomb:      { id: "bomb",      name: "Bomb",       glyph: "💣", target: "allEnemies", flat: 50,  price: 90,  desc: "50 damage to all enemies" },
+    cleanse:   { id: "cleanse",   name: "Cleanse",    glyph: "✨", target: "allAllies",  cleanse: true, heal: 25, price: 55, desc: "Cure poison + heal team 25" },
+    shieldkit: { id: "shieldkit", name: "Shield Kit", glyph: "🛡️", target: "allAllies",  armorBuff: 30, price: 80, desc: "All allies +30% armor" },
   };
-  const defaultKit = () => ({ potion: 2, bomb: 1, cleanse: 1 });
 
   // ---- AI: choose a card, ability, and target -----------------------
   function aiTurn(foes, mine) {
@@ -224,5 +226,5 @@
 
   NIB.battle = { TEAM_SIZE, hpOf, damage, battleCard, alive, aiChoose, generateNpcTeam, teamPower, NPC_TIERS,
     ABILITY_META, ELEMENT_ABILITY, abilityFor, resolveAttack, startTurnTicks,
-    abilitiesFor, applyAbility, dealDamage, ready, ITEMS, defaultKit, aiTurn };
+    abilitiesFor, applyAbility, dealDamage, ready, ITEMS, COIN_PER_NIB, aiTurn };
 })(window.NIB = window.NIB || {});
