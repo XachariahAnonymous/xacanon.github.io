@@ -84,6 +84,11 @@
       ? `<div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">YOU OWN ${owned.count}</div>
            <div class="row">${owned.serials.slice().sort((a, b) => a - b).map((s) => `<span class="pill mono">#${s}</span>`).join("")}</div></div>`
       : "";
+    const ab = NIB.battle && NIB.battle.abilityFor(card);
+    const abilityHtml = ab
+      ? `<div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">ABILITY</div>
+           <span class="pill">${ab.glyph} <b>${ab.name}</b></span> <span class="muted" style="font-size:12px">${ab.desc}</span></div>`
+      : "";
     const ov = document.createElement("div");
     ov.className = "overlay";
     ov.innerHTML = `
@@ -117,6 +122,7 @@
           <div class="muted" style="font-size:12px;margin:14px 0 6px">WEAK AGAINST (×${matrix.RESIST_MULTIPLIER})</div>
           <div class="row">${p.weakAgainst.map(chip).join("") || "<span class='muted'>—</span>"}</div>
         </div>
+        ${abilityHtml}
         ${ownedHtml}
       </div>`;
     ov.onclick = (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); };
@@ -701,10 +707,13 @@
   function battleTile(c, clickable) {
     const dead = c.hp <= 0, seld = B.sel && B.sel.uid === c.uid;
     const glyph = c.imageUrl ? `<img class="art-img" src="${c.imageUrl}">` : matrix.META[c.element].glyph;
+    const ab = battle.abilityFor(c);
+    const psn = c.poison && c.poison.turns > 0 ? ` <span title="poisoned">☠️</span>` : "";
     return `<div class="btile r-${c.rarity} ${dead ? "dead" : ""} ${seld ? "sel" : ""} ${clickable && !dead ? "clk" : ""}" data-uid="${c.uid}" style="--ec:${matrix.META[c.element].color}">
       <div class="bart">${glyph}</div>
       <div class="bnm">${c.name}</div>
       <div class="row" style="justify-content:center;gap:6px;font-size:10px"><span>⚔${c.stats.attack}</span><span>🛡${c.stats.defense}</span><span title="${matrix.META[c.element].label}">${matrix.META[c.element].glyph}</span></div>
+      <div class="babil" title="${ab.desc}">${ab.glyph} ${ab.name}${psn}</div>
       ${hpBar(c)}
     </div>`;
   }
@@ -731,25 +740,23 @@
     $("#bLeave") && ($("#bLeave").onclick = () => { $("#battleOverlay").remove(); B = null; render(); });
     ov.querySelector(".close").onclick = () => { $("#battleOverlay").remove(); B = null; render(); };
   }
-  function doAttack(attacker, target) {
-    const d = battle.damage(attacker, target);
-    target.hp = Math.max(0, target.hp - d.amount);
-    const tag = d.mult > 1 ? " (super effective!)" : d.mult < 1 ? " (resisted)" : "";
-    B.log.unshift(`${attacker.name} hits ${target.name} for ${d.amount}${tag}${target.hp === 0 ? " — KO! 💥" : ""}`);
-  }
   function playerAttack(targetUid) {
     if (!B.sel) return;
     const target = B.foe.find((c) => c.uid === targetUid);
     if (!target || target.hp <= 0) return;
-    doAttack(B.sel, target); B.sel = null;
+    battle.resolveAttack(B.sel, target, B.log); B.sel = null;
     if (checkEnd()) return;
     B.turn = "foe"; renderArena();
     setTimeout(foeTurn, 850);
   }
   function foeTurn() {
     if (B.over) return;
+    battle.startTurnTicks(B.foe, B.log);          // foe regen / poison DoT
+    if (checkEnd()) return;
     const move = battle.aiChoose(B.foe, B.mine);
-    if (move) doAttack(move.attacker, move.target);
+    if (move) battle.resolveAttack(move.attacker, move.target, B.log);
+    if (checkEnd()) return;
+    battle.startTurnTicks(B.mine, B.log);          // your regen / poison before your turn
     if (checkEnd()) return;
     B.turn = "me"; renderArena();
   }

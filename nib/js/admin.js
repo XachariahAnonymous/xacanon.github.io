@@ -342,6 +342,13 @@
         <label class="field">Front artwork URL</label>
         <div class="row"><input id="edImg" value="${card.imageUrl || ""}" placeholder="https://…/art.png" style="flex:1">
           <label class="btn ghost sm" style="cursor:pointer">Upload<input id="edFile" type="file" accept="image/*" class="hidden"></label></div>
+        <div class="grid cols-2">
+          <div><label class="field">Ability</label>
+            <select id="edAbility"><option value="">Auto (by element)</option>${Object.entries((NIB.battle && NIB.battle.ABILITY_META) || {}).map(([t, m]) => `<option value="${t}" ${card.ability && card.ability.type === t ? "selected" : ""}>${m.glyph} ${m.name}</option>`).join("")}</select>
+          </div>
+          <div><label class="field">Ability power <span class="muted" style="font-size:11px">(blank = auto)</span></label>
+            <input id="edAbilityVal" type="number" value="${card.ability && card.ability.value != null ? card.ability.value : ""}" placeholder="auto"></div>
+        </div>
         <label class="field">Lore</label><textarea id="edLore" rows="2" style="width:100%;background:#0c0e1a;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px">${card.lore || ""}</textarea>
         <div id="edErr" class="muted" style="color:var(--danger);font-size:13px;min-height:16px;margin-top:8px"></div>
         <div class="row" style="margin-top:8px;justify-content:space-between">
@@ -361,6 +368,7 @@
       isActive: $("#edActive").value === "true",
       imageUrl: $("#edImg").value.trim() || null,
       lore: $("#edLore").value,
+      ability: $("#edAbility").value ? { type: $("#edAbility").value, value: $("#edAbilityVal").value !== "" ? +$("#edAbilityVal").value : null } : null,
       stats: { attack: +$("#edAtk").value || 0, defense: +$("#edDef").value || 0, hp: +$("#edHp").value || 0 },
     });
     const refreshPreview = () => { $("#edPreview").innerHTML = previewCardHTML(Object.assign({}, card, collect())); };
