@@ -37,6 +37,7 @@
     collection: [], openings: [],
     supply: {}, global: {}, minted: {}, admins: [],
     overrides: {},   // cardId -> edited fields (merged over the built-in catalog)
+    battleTeam: null, // own battle team + ladder record
   };
 
   const emit = () => window.dispatchEvent(new CustomEvent("nib:change"));
@@ -72,6 +73,7 @@
       return merged;
     },
     cardBack: () => (cache.config.appearance && cache.config.appearance.cardBackUrl) || null,
+    battleTeam: () => cache.battleTeam,
 
     // A player's own pack history, reconstructed from owned copies
     // (grouped by openingId) — no extra reads/permissions needed.
@@ -118,7 +120,7 @@
         state = raw ? JSON.parse(raw) : null;
       } catch (e) { state = null; }
       const base = { loggedIn: false, uid: null, email: null, displayName: null, walletAddress: null,
-        balance: 100, minted: {}, collection: [], openings: [], config: DEFAULT_CONFIG(), admins: [], overrides: {} };
+        balance: 100, minted: {}, collection: [], openings: [], config: DEFAULT_CONFIG(), admins: [], overrides: {}, battleTeam: null };
       state = Object.assign(base, state || {});
       if (typeof state.balance !== "number" && typeof state.tokenBalance === "number") state.balance = state.tokenBalance;
       syncCache();
@@ -131,6 +133,7 @@
       cache.minted = state.minted; cache.collection = state.collection;
       cache.openings = state.openings; cache.config = Object.assign(DEFAULT_CONFIG(), state.config);
       cache.overrides = state.overrides || {};
+      cache.battleTeam = state.battleTeam;
       cache.adminFlag = state.loggedIn;   // demo: any logged-in user is an admin
       cache.supply = {};                  // computed in supplyByTier for LOCAL
     }
@@ -237,12 +240,34 @@
       persist();
     }
 
+    // ---- battle (demo) ----
+    async function saveBattleTeam(cardIds) {
+      const cur = state.battleTeam || { rating: 1000, wins: 0, losses: 0 };
+      state.battleTeam = Object.assign(cur, { uid: state.uid, name: state.displayName, teamCardIds: cardIds });
+      cache.battleTeam = state.battleTeam; persist();
+    }
+    async function recordBattleResult(win) {
+      const t = state.battleTeam || (state.battleTeam = { rating: 1000, wins: 0, losses: 0, teamCardIds: [] });
+      t.rating = Math.max(0, t.rating + (win ? 20 : -15)); t[win ? "wins" : "losses"]++;
+      cache.battleTeam = t; persist();
+    }
+    // Demo: synthesize a few bot opponents so PvP is playable offline.
+    async function listOpponents() {
+      const names = ["ShadowByte", "PixelKnight", "NovaQueen", "RiftRunner", "AshWarden"];
+      const diffs = ["easy", "medium", "hard", "medium", "hard"];
+      return names.map((name, i) => ({
+        uid: "bot-" + i, name, rating: 900 + i * 90, wins: 5 + i * 3, losses: 2 + i,
+        teamCardIds: NIB.battle.generateNpcTeam(diffs[i], 3).map((c) => c.id), bot: true,
+      }));
+    }
+
     return {
       init: async () => { load(); }, signUp, signIn, signInGoogle, connectWallet, disconnect,
       sendVerification, reloadUser, setDisplayName,
       buyAndOpenPack, setConfig, grantTokens, loadCardStats,
       seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
+      saveBattleTeam, recordBattleResult, listOpponents,
     };
   })();
 
@@ -301,6 +326,7 @@
         if (cache.adminFlag && !wasAdmin) subscribeAdmin();
         emit();
       }));
+      userUnsub.push(dbf.doc(`battleTeams/${u.uid}`).onSnapshot((d) => { cache.battleTeam = d.exists ? d.data() : null; emit(); }));
       emit();
     }
     function subscribeAdmin() {
@@ -565,12 +591,33 @@
       else await dbf.doc("config/catalogOverrides").set({ [id]: FV.delete() }, { merge: true });
     }
 
+    // ---- battle (public battleTeams collection = PvP snapshots + ladder) ----
+    async function saveBattleTeam(cardIds) {
+      const cur = cache.battleTeam || {};
+      await dbf.doc(`battleTeams/${cache.uid}`).set({
+        uid: cache.uid, name: cache.displayName || cache.email || "Player",
+        teamCardIds: cardIds, rating: cur.rating || 1000,
+        wins: cur.wins || 0, losses: cur.losses || 0, updatedAt: FV.serverTimestamp(),
+      }, { merge: true });
+    }
+    async function recordBattleResult(win) {
+      await dbf.doc(`battleTeams/${cache.uid}`).set({
+        rating: FV.increment(win ? 20 : -15),
+        wins: FV.increment(win ? 1 : 0), losses: FV.increment(win ? 0 : 1),
+      }, { merge: true });
+    }
+    async function listOpponents(limit = 50) {
+      const s = await dbf.collection("battleTeams").orderBy("rating", "desc").limit(limit).get();
+      return s.docs.map((d) => d.data()).filter((t) => t.uid !== cache.uid && (t.teamCardIds || []).length);
+    }
+
     return {
       init, signUp, signIn, signInGoogle, resetPassword, connectWallet, disconnect,
       sendVerification, reloadUser, setDisplayName,
       buyAndOpenPack, setConfig, grantTokens,
       loadCardStats, seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
+      saveBattleTeam, recordBattleResult, listOpponents,
     };
   })();
 
@@ -605,5 +652,8 @@
     uploadImage: (...a) => Backend.uploadImage(...a),
     createCard: (...a) => Backend.createCard(...a),
     deleteCard: (...a) => Backend.deleteCard(...a),
+    saveBattleTeam: (...a) => Backend.saveBattleTeam(...a),
+    recordBattleResult: (...a) => Backend.recordBattleResult(...a),
+    listOpponents: (...a) => Backend.listOpponents(...a),
   });
 })(window.NIB = window.NIB || {});

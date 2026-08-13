@@ -558,6 +558,212 @@
     $("#pfLogout")?.addEventListener("click", () => store.disconnect());
   }
 
+  // ---- BATTLE -------------------------------------------------------
+  const battle = NIB.battle;
+  let teamPick = null;          // ids being chosen in the team builder
+  let B = null;                 // active battle state
+
+  function myTeamCards() {
+    const t = store.battleTeam();
+    const ids = (t && t.teamCardIds) || [];
+    return ids.map((id) => store.card(id)).filter(Boolean);
+  }
+  function uniqueOwnedCards() {
+    const map = {};
+    store.collection().forEach((n) => { if (!map[n.cardId]) { const c = store.card(n.cardId); if (c) map[n.cardId] = c; } });
+    return Object.values(map);
+  }
+
+  function renderBattle() {
+    if (!store.isLoggedIn()) return `<div class="gate"><div><h3>Log in to battle</h3><button class="btn" id="loginCta3" style="margin-top:10px">Log in / Sign up</button></div></div>`;
+    const t = store.battleTeam();
+    const team = myTeamCards();
+    const owned = uniqueOwnedCards().length;
+    const rec = t ? `${t.rating || 1000} rating · ${t.wins || 0}W ${t.losses || 0}L` : "unranked";
+    const tierBtns = Object.entries(battle.NPC_TIERS).map(([k, v]) =>
+      `<button class="btn sm" data-npc="${k}" ${team.length < battle.TEAM_SIZE ? "disabled" : ""}>${v.label}</button>`).join("");
+    return `
+      <div class="panel" style="margin-bottom:16px">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+          <div><h2 style="margin:0">Battle Arena</h2><div class="muted" style="font-size:13px;margin-top:2px">${rec}</div></div>
+          <button class="btn ghost sm" id="editTeam">${team.length ? "Edit team" : "Build team"}</button>
+        </div>
+        <div class="muted" style="font-size:13px;margin:12px 0 6px">Your team (${team.length}/${battle.TEAM_SIZE})</div>
+        <div class="cardgrid" id="teamRow">${team.length ? "" : `<p class="muted">Pick ${battle.TEAM_SIZE} cards to battle. You own ${owned} unique.</p>`}</div>
+      </div>
+      <div class="grid cols-2" style="align-items:start">
+        <div class="panel">
+          <h3>Fight NPC</h3>
+          <p class="muted" style="font-size:13px">Battle an AI team. Harder tiers = rarer monsters.</p>
+          <div class="row">${tierBtns}</div>
+          ${team.length < battle.TEAM_SIZE ? `<p class="muted" style="font-size:12px;margin-top:8px">Build a full team first.</p>` : ""}
+        </div>
+        <div class="panel">
+          <h3>PvP <span class="muted" style="font-size:12px">— challenge other players</span></h3>
+          <div id="oppList"><p class="muted">Loading opponents…</p></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h3>Leaderboard</h3>
+        <div id="ladder"><p class="muted">Loading…</p></div>
+      </div>`;
+  }
+
+  function miniCard(card) {
+    const el = cardEl(card, { noClick: true });
+    el.style.width = "110px"; el.onclick = () => openCardModal(card);
+    return el;
+  }
+  async function wireBattle() {
+    $("#loginCta3")?.addEventListener("click", () => openAuthModal());
+    if (!store.isLoggedIn()) return;
+    const team = myTeamCards();
+    const row = $("#teamRow");
+    if (row && team.length) team.forEach((c) => row.appendChild(miniCard(c)));
+    $("#editTeam")?.addEventListener("click", openTeamBuilder);
+    $$("[data-npc]").forEach((b) => b.onclick = () => startBattle(battle.generateNpcTeam(b.dataset.npc, battle.TEAM_SIZE), { name: battle.NPC_TIERS[b.dataset.npc].label + " NPC" }, false));
+
+    // opponents + leaderboard
+    try {
+      const opps = await store.listOpponents(50);
+      const oppList = $("#oppList");
+      if (oppList) oppList.innerHTML = opps.length
+        ? opps.slice(0, 8).map((o, i) => `<div class="row" style="justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
+            <span>${o.name || "Player"} <span class="muted" style="font-size:12px">· ${o.rating || 1000}</span></span>
+            <button class="btn sm ${team.length < battle.TEAM_SIZE ? "ghost" : ""}" data-opp="${i}" ${team.length < battle.TEAM_SIZE ? "disabled" : ""}>Fight</button></div>`).join("")
+        : `<p class="muted">No other players yet — set your team to appear here for others.</p>`;
+      $$("[data-opp]").forEach((b) => b.onclick = () => {
+        const o = opps[+b.dataset.opp];
+        const foe = (o.teamCardIds || []).map((id) => store.card(id)).filter(Boolean);
+        if (foe.length) startBattle(foe, o, true);
+        else toast("Opponent has no valid team", true);
+      });
+      const ladder = $("#ladder");
+      if (ladder) ladder.innerHTML = `<table><tr><th>#</th><th>Player</th><th>Rating</th><th>W/L</th></tr>${
+        opps.concat(store.battleTeam() ? [store.battleTeam()] : []).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 10)
+          .map((o, i) => `<tr><td>${i + 1}</td><td>${o.name || "You"}</td><td>${o.rating || 1000}</td><td class="muted">${o.wins || 0}/${o.losses || 0}</td></tr>`).join("")}</table>`;
+    } catch (e) { const ol = $("#oppList"); if (ol) ol.innerHTML = `<p class="muted">Couldn't load opponents.</p>`; }
+  }
+
+  function openTeamBuilder() {
+    teamPick = (store.battleTeam() && store.battleTeam().teamCardIds || []).slice();
+    const cards = uniqueOwnedCards();
+    const ov = document.createElement("div"); ov.className = "overlay";
+    ov.innerHTML = `<div class="panel modal" style="max-width:640px;position:relative">
+      <span class="close">&times;</span>
+      <h2>Build your team</h2>
+      <p class="muted" id="tbCount" style="font-size:13px"></p>
+      ${cards.length < battle.TEAM_SIZE ? `<p class="muted">You need at least ${battle.TEAM_SIZE} cards — open more packs.</p>` : ""}
+      <div class="cardgrid" id="tbGrid" style="max-height:52vh;overflow:auto"></div>
+      <div class="row" style="margin-top:12px"><button class="btn gold" id="tbSave">Save team</button></div>
+    </div>`;
+    document.body.appendChild(ov);
+    const grid = $("#tbGrid");
+    const paint = () => {
+      $("#tbCount").textContent = `${teamPick.length}/${battle.TEAM_SIZE} selected`;
+      grid.innerHTML = "";
+      cards.forEach((c) => {
+        const el = cardEl(c, { noClick: true });
+        if (teamPick.includes(c.id)) el.style.outline = "3px solid var(--accent2)";
+        el.onclick = () => {
+          if (teamPick.includes(c.id)) teamPick = teamPick.filter((x) => x !== c.id);
+          else if (teamPick.length < battle.TEAM_SIZE) teamPick.push(c.id);
+          else return toast(`Max ${battle.TEAM_SIZE} cards`, true);
+          paint();
+        };
+        grid.appendChild(el);
+      });
+    };
+    paint();
+    $("#tbSave").onclick = async () => {
+      if (teamPick.length !== battle.TEAM_SIZE) return toast(`Pick exactly ${battle.TEAM_SIZE}`, true);
+      try { await store.saveBattleTeam(teamPick); toast("Team saved"); ov.remove(); render(); }
+      catch (e) { toast(e.message || "Save failed", true); }
+    };
+    ov.addEventListener("click", (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); });
+  }
+
+  // ---- battle arena ----
+  function startBattle(foeRaw, opp, isPvp) {
+    const mine = myTeamCards().map((c, i) => battle.battleCard(c, "me", i));
+    const foe = foeRaw.slice(0, battle.TEAM_SIZE).map((c, i) => battle.battleCard(c, "foe", i));
+    if (!mine.length || !foe.length) return toast("Teams not ready", true);
+    B = { mine, foe, turn: "me", log: ["⚔️ Battle start!"], over: false, isPvp, opp, sel: null };
+    let ov = $("#battleOverlay");
+    if (!ov) { ov = document.createElement("div"); ov.id = "battleOverlay"; ov.className = "overlay"; document.body.appendChild(ov); }
+    renderArena();
+  }
+  function hpBar(c) {
+    const pct = Math.max(0, c.hp / c.maxHp * 100);
+    const col = pct > 50 ? "var(--ok)" : pct > 20 ? "var(--gold)" : "var(--danger)";
+    return `<div class="bar" style="height:7px"><i style="width:${pct}%;background:${col}"></i></div><div class="muted" style="font-size:10px;text-align:center">${c.hp}/${c.maxHp}</div>`;
+  }
+  function battleTile(c, clickable) {
+    const dead = c.hp <= 0, seld = B.sel && B.sel.uid === c.uid;
+    const glyph = c.imageUrl ? `<img class="art-img" src="${c.imageUrl}">` : matrix.META[c.element].glyph;
+    return `<div class="btile r-${c.rarity} ${dead ? "dead" : ""} ${seld ? "sel" : ""} ${clickable && !dead ? "clk" : ""}" data-uid="${c.uid}" style="--ec:${matrix.META[c.element].color}">
+      <div class="bart">${glyph}</div>
+      <div class="bnm">${c.name}</div>
+      <div class="row" style="justify-content:center;gap:6px;font-size:10px"><span>⚔${c.stats.attack}</span><span>🛡${c.stats.defense}</span><span title="${matrix.META[c.element].label}">${matrix.META[c.element].glyph}</span></div>
+      ${hpBar(c)}
+    </div>`;
+  }
+  function renderArena() {
+    const ov = $("#battleOverlay"); if (!ov) return;
+    const yourTurn = B.turn === "me" && !B.over;
+    ov.innerHTML = `<div class="panel modal battle-modal" style="max-width:760px;position:relative">
+      <span class="close">&times;</span>
+      <div class="row" style="justify-content:space-between"><h3 style="margin:0">Enemy — ${B.opp && B.opp.name || "Opponent"}</h3><span class="muted" style="font-size:12px">${B.isPvp ? "PvP" : "NPC"}</span></div>
+      <div class="brow" id="foeRow">${B.foe.map((c) => battleTile(c, yourTurn && B.sel)).join("")}</div>
+      <div style="text-align:center;margin:12px 0"><span class="pill">${B.over ? "Battle over" : yourTurn ? (B.sel ? "Pick a target ▶" : "Pick your attacker") : "Enemy turn…"}</span></div>
+      <div class="brow" id="myRow">${B.mine.map((c) => battleTile(c, yourTurn && !B.sel)).join("")}</div>
+      <h3 style="margin:14px 0 6px">Your team</h3>
+      <div class="blog" id="blog">${B.log.slice(0, 6).map((l) => `<div>${l}</div>`).join("")}</div>
+      ${B.over ? `<div class="row" style="margin-top:12px;justify-content:center;gap:10px">
+          <button class="btn gold" id="bAgain">Battle again</button><button class="btn ghost" id="bLeave">Leave</button></div>` : ""}
+    </div>`;
+    // wire tiles
+    if (yourTurn) {
+      if (!B.sel) $$("#myRow .btile.clk").forEach((t) => t.onclick = () => { B.sel = B.mine.find((c) => c.uid === t.dataset.uid); renderArena(); });
+      else $$("#foeRow .btile.clk").forEach((t) => t.onclick = () => playerAttack(t.dataset.uid));
+    }
+    $("#bAgain") && ($("#bAgain").onclick = () => { $("#battleOverlay").remove(); render(); });
+    $("#bLeave") && ($("#bLeave").onclick = () => { $("#battleOverlay").remove(); B = null; render(); });
+    ov.querySelector(".close").onclick = () => { $("#battleOverlay").remove(); B = null; render(); };
+  }
+  function doAttack(attacker, target) {
+    const d = battle.damage(attacker, target);
+    target.hp = Math.max(0, target.hp - d.amount);
+    const tag = d.mult > 1 ? " (super effective!)" : d.mult < 1 ? " (resisted)" : "";
+    B.log.unshift(`${attacker.name} hits ${target.name} for ${d.amount}${tag}${target.hp === 0 ? " — KO! 💥" : ""}`);
+  }
+  function playerAttack(targetUid) {
+    if (!B.sel) return;
+    const target = B.foe.find((c) => c.uid === targetUid);
+    if (!target || target.hp <= 0) return;
+    doAttack(B.sel, target); B.sel = null;
+    if (checkEnd()) return;
+    B.turn = "foe"; renderArena();
+    setTimeout(foeTurn, 850);
+  }
+  function foeTurn() {
+    if (B.over) return;
+    const move = battle.aiChoose(B.foe, B.mine);
+    if (move) doAttack(move.attacker, move.target);
+    if (checkEnd()) return;
+    B.turn = "me"; renderArena();
+  }
+  function checkEnd() {
+    const meAlive = battle.alive(B.mine).length, foeAlive = battle.alive(B.foe).length;
+    if (meAlive && foeAlive) return false;
+    B.over = true;
+    const win = foeAlive === 0;
+    B.log.unshift(win ? "🏆 Victory!" : "☠️ Defeat.");
+    if (B.isPvp) { store.recordBattleResult(win); B.log.unshift(win ? "+20 rating" : "−15 rating"); }
+    renderArena();
+    return true;
+  }
+
   // ---- shell / routing ---------------------------------------------
   function renderTopbar() {
     const name = store.wallet();          // display label (name/email/wallet)
@@ -588,6 +794,7 @@
     if (currentTab === "store") { main.innerHTML = renderStore(); wireStore(); }
     else if (currentTab === "collection") { main.innerHTML = renderCollection(); wireCollection(); }
     else if (currentTab === "codex") { main.innerHTML = renderCodex(); }
+    else if (currentTab === "battle") { main.innerHTML = renderBattle(); wireBattle(); }
     else if (currentTab === "profile") { main.innerHTML = renderProfile(); wireProfile(); }
   }
 
