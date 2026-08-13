@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>The Why Files | New Recruit Orientation</title>
+
+    <link rel="icon" type="image/png" href="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
+
+    <meta name="title" content="The Why Files | New Recruit Orientation">
+    <meta name="description" content="Brand new to Minecraft? Start here. Controls, your first day, crafting, survival, and how to get started on CryptidCraft.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://xacanon.github.io/wf/tutorial.html">
+    <meta property="og:title" content="Why Files | New Recruit Orientation">
+    <meta property="og:description" content="Never played Minecraft? This field manual gets you from zero to surviving your first night.">
+    <meta property="og:image" content="https://cdn.shopify.com/s/files/1/0657/4689/5093/files/youtube_icon_avatar_800x800_trans_v02.png?v=1660268953&format=webp">
+
+    <meta name="theme-color" content="#99E6FF">
+
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --wf-navy: #051C2C;
+            --wf-red: #C30010;
+            --wf-cyan: #99E6FF;
+            --wf-white: #FFFFFF;
+            --wf-dark-bg: #030f18;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at center, #0a2e47 0%, var(--wf-navy) 100%);
+            color: var(--wf-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Navigation --- */
+        .navbar { width: 100%; display: flex; justify-content: space-between; padding: 20px 40px; position: fixed; top: 0; z-index: 100; box-sizing: border-box; }
+        .nav-btn { color: var(--wf-white); text-decoration: none; font-weight: 900; letter-spacing: 2px; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; transition: 0.3s; background: rgba(5, 28, 44, 0.5); backdrop-filter: blur(5px); font-size: 0.9rem; text-transform: uppercase; }
+        .nav-btn:hover { background: var(--wf-white); color: var(--wf-navy); box-shadow: 0 0 15px var(--wf-white); }
+
+        /* --- Hamburger Menu --- */
+        .menu-wrap { position: fixed; top: 20px; right: 40px; z-index: 200; }
+        .menu-wrap .toggler { position: absolute; top: 0; right: 0; z-index: 202; cursor: pointer; width: 50px; height: 50px; opacity: 0; }
+        .menu-wrap .hamburger { width: 50px; height: 50px; padding: 10px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 201; }
+        .menu-wrap .hamburger > div { position: relative; width: 100%; height: 3px; background: var(--wf-cyan); transition: all 0.4s ease; }
+        .menu-wrap .hamburger > div::before, .menu-wrap .hamburger > div::after { content: ''; position: absolute; top: -10px; width: 100%; height: 3px; background: inherit; }
+        .menu-wrap .hamburger > div::after { top: 10px; }
+        .menu-wrap .toggler:checked + .hamburger > div { transform: rotate(135deg); background: var(--wf-red); }
+        .menu-wrap .toggler:checked + .hamburger > div::before, .menu-wrap .toggler:checked + .hamburger > div::after { top: 0; transform: rotate(90deg); }
+        .menu-wrap .menu { position: fixed; top: 0; right: 0; width: 100%; height: 100%; visibility: hidden; display: flex; align-items: center; justify-content: flex-end; z-index: 150; }
+        .menu-wrap .menu > div { background: rgba(5, 28, 44, 0.98); border-left: 4px solid var(--wf-red); width: 300px; height: 100%; display: flex; align-items: center; justify-content: center; transform: translateX(100%); transition: all 0.4s ease; }
+        .menu-wrap .toggler:checked ~ .menu { visibility: visible; }
+        .menu-wrap .toggler:checked ~ .menu > div { transform: translateX(0); }
+        .menu-wrap .menu ul { list-style: none; padding: 0; text-align: right; }
+        .menu-wrap .menu ul li { padding: 1.2rem 2rem; }
+        .menu-wrap .menu ul li a { color: var(--wf-white); text-decoration: none; font-size: 1.6rem; font-weight: 900; text-transform: uppercase; }
+
+        /* --- Tutorial Content --- */
+        .tut-container {
+            margin-top: 120px;
+            max-width: 850px;
+            width: 90%;
+            background: var(--wf-dark-bg);
+            border: 1px solid rgba(153, 230, 255, 0.1);
+            padding: 50px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            margin-bottom: 60px;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            border: 4px double var(--wf-cyan);
+            color: var(--wf-cyan);
+            padding: 10px 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            transform: rotate(15deg);
+            opacity: 0.6;
+            user-select: none;
+            font-size: 1.2rem;
+        }
+
+        .tut-header {
+            border-bottom: 2px solid var(--wf-cyan);
+            margin-bottom: 40px;
+            padding-bottom: 15px;
+        }
+
+        .tut-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-family: 'Archivo Black', sans-serif;
+        }
+
+        .section-label {
+            display: block;
+            background: var(--wf-red);
+            color: white;
+            padding: 5px 15px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            width: fit-content;
+            margin: 45px 0 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .step {
+            margin-bottom: 30px;
+            border-left: 3px solid var(--wf-cyan);
+            padding-left: 20px;
+        }
+
+        .step-title {
+            color: var(--wf-cyan);
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .step-text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            opacity: 0.85;
+            margin: 0;
+        }
+
+        .step-text + .step-text { margin-top: 10px; }
+
+        /* Inline command / key styling */
+        .cmd {
+            font-family: 'Courier New', monospace;
+            background: rgba(153, 230, 255, 0.1);
+            border: 1px solid rgba(153, 230, 255, 0.25);
+            color: var(--wf-cyan);
+            padding: 1px 7px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        /* --- Controls grid --- */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .control {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(153, 230, 255, 0.1);
+            padding: 12px 15px;
+        }
+
+        .keycap {
+            flex-shrink: 0;
+            min-width: 44px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background: #0a2233;
+            color: var(--wf-cyan);
+            border: 1px solid var(--wf-cyan);
+            border-bottom-width: 3px;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .control span { font-size: 0.88rem; opacity: 0.85; line-height: 1.3; }
+
+        /* --- Mob warning cards --- */
+        .mob-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .mob-card {
+            background: rgba(195, 0, 16, 0.06);
+            border: 1px solid rgba(195, 0, 16, 0.3);
+            border-left: 4px solid var(--wf-red);
+            padding: 15px;
+        }
+
+        .mob-card h4 {
+            margin: 0 0 6px;
+            color: var(--wf-white);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.95rem;
+        }
+
+        .mob-card p { margin: 0; font-size: 0.82rem; opacity: 0.8; line-height: 1.5; }
+
+        /* --- Quickstart / server box --- */
+        .server-box {
+            background: rgba(153, 230, 255, 0.05);
+            border: 1px dashed var(--wf-cyan);
+            padding: 25px 30px;
+            margin-top: 10px;
+        }
+
+        .server-box ol { margin: 0; padding-left: 20px; }
+        .server-box li { line-height: 1.9; font-size: 0.95rem; opacity: 0.9; }
+
+        .warning-footer {
+            background: rgba(153, 230, 255, 0.05);
+            border: 1px dashed var(--wf-cyan);
+            padding: 25px;
+            text-align: center;
+            font-weight: 900;
+            color: var(--wf-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            margin-top: 45px;
+        }
+
+        .cta-row { text-align: center; margin-top: 30px; }
+        .btn { display: inline-block; padding: 14px 32px; background: var(--wf-red); color: white; text-decoration: none; font-weight: bold; text-transform: uppercase; transition: 0.2s; letter-spacing: 1px; border-radius: 2px; }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--wf-red); }
+
+        footer { margin-top: auto; padding: 40px; font-size: 0.9rem; opacity: 0.6; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+
+        @media (max-width: 600px) {
+            .tut-container { padding: 30px 20px; }
+            .stamp { display: none; }
+            .tut-header h1 { font-size: 1.6rem; letter-spacing: 3px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">HOME</a>
+    </nav>
+
+    <div class="menu-wrap">
+        <input type="checkbox" class="toggler">
+        <div class="hamburger"><div></div></div>
+        <div class="menu">
+            <div>
+                <ul>
+                    <li><a href="https://store.cryptidcraft.net">STORE</a></li>
+                    <li><a href="vote.html">VOTE</a></li>
+                    <li><a href="rules.html">RULES</a></li>
+                    <li><a href="tutorial.html">TUTORIAL</a></li>
+                    <li><a href="staff.html">STAFF LIST</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="tut-container">
+        <div class="stamp">Recruit</div>
+
+        <div class="tut-header">
+            <h1>New Recruit Orientation</h1>
+            <p style="color: var(--wf-cyan); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px;">NEVER PLAYED MINECRAFT? START HERE. NO EXPERIENCE REQUIRED.</p>
+        </div>
+
+        <p class="step-text" style="opacity: 0.9; margin-bottom: 10px;">
+            Minecraft is a game about surviving in a world made of blocks. You break blocks to gather materials, combine those materials to craft tools and shelter, and stay alive — especially at night, when things come looking for you. This guide takes you from your very first click to surviving your first night and joining us on <span class="cmd">cryptidcraft.net</span>.
+        </p>
+
+        <!-- SECTION I: CONTROLS -->
+        <div class="section-label">Section I: The Basic Controls</div>
+        <p class="step-text">These are for the <strong>Java Edition</strong> on PC (keyboard + mouse). Learn these five and you can do almost everything:</p>
+
+        <div class="controls-grid">
+            <div class="control"><span class="keycap">W A S D</span><span>Walk forward, left, back, right</span></div>
+            <div class="control"><span class="keycap">Mouse</span><span>Look around / aim</span></div>
+            <div class="control"><span class="keycap">Space</span><span>Jump (double-tap to fly in creative)</span></div>
+            <div class="control"><span class="keycap">Shift</span><span>Sneak — won't fall off edges</span></div>
+            <div class="control"><span class="keycap">L-Click</span><span>Break blocks / attack (hold to mine)</span></div>
+            <div class="control"><span class="keycap">R-Click</span><span>Place blocks / use / open doors</span></div>
+            <div class="control"><span class="keycap">E</span><span>Open your inventory &amp; crafting</span></div>
+            <div class="control"><span class="keycap">1-9</span><span>Pick an item from your hotbar</span></div>
+            <div class="control"><span class="keycap">Q</span><span>Drop the item you're holding</span></div>
+            <div class="control"><span class="keycap">T</span><span>Open chat (type commands here)</span></div>
+        </div>
+
+        <!-- SECTION II: FIRST DAY -->
+        <div class="section-label">Section II: Your First Day (Do This In Order)</div>
+
+        <div class="step">
+            <span class="step-title">Step 1 — Punch Trees</span>
+            <p class="step-text">Walk up to a tree, hold <span class="cmd">Left-Click</span> on the wood until it pops out, then walk over the dropped item to pick it up. Grab enough for <strong>at least 4 wood blocks</strong>. Everything in Minecraft starts with wood.</p>
+        </div>
+
+        <div class="step">
+            <span class="step-title">Step 2 — Make Planks &amp; a Crafting Table</span>
+            <p class="step-text">Press <span class="cmd">E</span> to open your inventory. Put 1 wood block into the small 2×2 crafting grid — it becomes 4 <strong>planks</strong>. Fill all 4 squares with planks to make a <strong>Crafting Table</strong>. Place it on the ground with <span class="cmd">Right-Click</span>; opening it gives you a bigger 3×3 grid for real recipes.</p>
+        </div>
+
+        <div class="step">
+            <span class="step-title">Step 3 — Craft Tools</span>
+            <p class="step-text">Make <strong>sticks</strong> (stack 2 planks vertically). Then, on the crafting table, build a <strong>Wooden Pickaxe</strong> (3 planks across the top row, 2 sticks down the middle). A pickaxe lets you mine stone. Also craft a <strong>Sword</strong> and an <strong>Axe</strong> if you have spare wood.</p>
+        </div>
+
+        <div class="step">
+            <span class="step-title">Step 4 — Mine Stone &amp; Coal</span>
+            <p class="step-text">Use your wooden pickaxe on grey <strong>stone</strong> to collect cobblestone. Upgrade your tools to <strong>stone</strong> versions (swap planks for cobblestone in the recipe). Look for black-speckled blocks — that's <strong>coal</strong>, which you'll need for torches.</p>
+        </div>
+
+        <div class="step">
+            <span class="step-title">Step 5 — Make Torches &amp; a Shelter</span>
+            <p class="step-text">Combine 1 coal on top of 1 stick to make <strong>torches</strong> — these are your light source and keep monsters from spawning. Before the sun sets, wall yourself into a small dirt or stone box (or dig into a hillside) and light it up inside. Congratulations — you survived day one.</p>
+        </div>
+
+        <!-- SECTION III: STAYING ALIVE -->
+        <div class="section-label">Section III: Staying Alive</div>
+
+        <div class="step">
+            <span class="step-title">Health &amp; Hunger</span>
+            <p class="step-text">The <strong>hearts</strong> (top-left of the hotbar) are your health; the <strong>drumsticks</strong> are your hunger. When hunger drops you stop healing, and if it empties you take damage. Kill animals (cows, pigs, chickens) for meat, then cook it in a <strong>Furnace</strong> (8 cobblestone in a ring) before eating. Hold <span class="cmd">Right-Click</span> with food to eat it.</p>
+        </div>
+
+        <div class="step">
+            <span class="step-title">Don't Dig Straight Down</span>
+            <p class="step-text">It's the classic rookie mistake — you can drop into lava or a deep cave and die. Dig in a staircase pattern instead, and never mine the single block directly under your feet.</p>
+        </div>
+
+        <!-- SECTION IV: MOBS -->
+        <div class="section-label">Section IV: Know Your Threats (Night Mobs)</div>
+        <p class="step-text">When it gets dark, hostile mobs spawn. Stay near light and keep your sword handy.</p>
+
+        <div class="mob-grid">
+            <div class="mob-card">
+                <h4>Creeper</h4>
+                <p>Silent green mob that hisses, then explodes — destroying your builds. Hit it and back away, or just run. Never let one get close.</p>
+            </div>
+            <div class="mob-card">
+                <h4>Zombie</h4>
+                <p>Slow, groans, comes at you in groups. Easy to fight with a sword. Burns in daylight.</p>
+            </div>
+            <div class="mob-card">
+                <h4>Skeleton</h4>
+                <p>Shoots arrows from a distance. Use cover, close the gap, and strike. Also burns in the sun.</p>
+            </div>
+            <div class="mob-card">
+                <h4>Spider</h4>
+                <p>Climbs walls and moves fast. Neutral in daylight, hostile at night. Watch your back.</p>
+            </div>
+        </div>
+
+        <!-- SECTION V: JOIN THE SERVER -->
+        <div class="section-label">Section V: Get Started on CryptidCraft</div>
+
+        <div class="server-box">
+            <ol>
+                <li>Open Minecraft <strong>Java Edition</strong> and set your version to <span class="cmd">1.21.4</span>.</li>
+                <li>Click <strong>Multiplayer → Add Server</strong>.</li>
+                <li>Enter the address: <span class="cmd">cryptidcraft.net</span></li>
+                <li>Join, then claim your land with <span class="cmd">/claim</span> (or just place a chest) so nobody can grief your builds.</li>
+                <li>PvP is off by default — it only turns on if you use <span class="cmd">/pvptoggle</span>. You're safe while you learn.</li>
+                <li>Read the <a href="rules.html" style="color: var(--wf-cyan);">Server Rules</a> and say hi in chat with <span class="cmd">T</span>. Stuck? Ask a <a href="staff.html" style="color: var(--wf-cyan);">staff member</a>.</li>
+            </ol>
+        </div>
+
+        <div class="warning-footer">
+            Everyone was a new recruit once.<br>Take your time, ask questions, and enjoy the mystery.
+        </div>
+
+        <div class="cta-row">
+            <a href="index.html" class="btn">Back to Base</a>
+        </div>
+    </div>
+
+    <footer>
+        Another mystery solved... or is it?
+    </footer>
+
+</body>
+</html>
