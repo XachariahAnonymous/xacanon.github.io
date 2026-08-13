@@ -13,6 +13,10 @@
   let lastOpening = null;     // most recent pull, for repainting on re-render
   let flippedSlots = new Set(); // which pull cards the player has flipped face-up
 
+  function fmtDuration(ms) {
+    const h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  }
   function toast(msg, isErr) {
     const t = document.createElement("div");
     t.className = "toast" + (isErr ? " err" : "");
@@ -361,6 +365,7 @@
       paintReveal(opening, true);
       $("#revealArea").scrollIntoView({ behavior: "smooth", block: "nearest" });
       if (["mega_rare", "hidden_rare"].includes(best)) toast("🌟 " + catalog.RARITY_LABEL[best] + " pulled!");
+      if (opening.coinsEarned) toast(`🪙 +${opening.coinsEarned} coins`);
       renderTopbar();
       // Keep `ripping` true during the flip so incidental snapshots don't
       // wipe it; once it finishes, re-render the store so the buy button
@@ -520,9 +525,14 @@
           ${addr
             ? `<div class="row" style="gap:8px"><span class="mono" style="user-select:all">${addr}</span></div>`
             : `<button class="btn ghost sm" id="pfLink">Link wallet</button>`}
-          <div class="grid cols-2" style="margin-top:16px">
-            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">NIB Balance</div><div class="stat small">${store.balance()}</div></div>
-            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">Packs Opened</div><div class="stat small">${packs}</div></div>
+          <div class="grid cols-3" style="margin-top:16px">
+            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">NIB</div><div class="stat small">${store.balance()}</div></div>
+            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">🪙 Coins</div><div class="stat small">${store.coins()}</div></div>
+            <div class="panel" style="padding:12px;text-align:center"><div class="muted" style="font-size:12px">Packs</div><div class="stat small">${packs}</div></div>
+          </div>
+          <label class="field">Items <span class="muted" style="font-size:11px">(used in battle)</span></label>
+          <div class="row" style="flex-wrap:wrap">
+            ${Object.entries(store.items()).filter(([id, n]) => n > 0 && battle.ITEMS[id]).map(([id, n]) => { const it = battle.ITEMS[id]; return `<span class="pill" title="${it.desc}">${it.glyph} ${it.name} ×${n}</span>`; }).join("") || `<span class="muted" style="font-size:13px">No items — buy some in the Battle shop.</span>`}
           </div>
           <div class="row" style="margin-top:14px"><button class="btn ghost sm" id="pfLogout">Log out</button></div>
         </div>
@@ -611,6 +621,7 @@
       </div>
       <div class="panel" style="margin-top:16px">
         <div class="row" style="justify-content:space-between"><h3 style="margin:0">Shop</h3><span class="pill">🪙 ${store.coins()} coins</span></div>
+        ${(() => { const d = store.dailyStatus(); return `<div class="row" style="margin:8px 0"><button class="btn sm ${d.ready ? "gold" : "ghost"}" id="dailyBtn" ${d.ready ? "" : "disabled"}>${d.ready ? `🎁 Claim daily bonus · ${d.amount} 🪙` : `🎁 Daily claimed — back in ${fmtDuration(d.nextInMs)}`}</button></div>`; })()}
         <div class="muted" style="font-size:13px;margin:8px 0 6px">Buy coins with NIB — ${battle.COIN_PER_NIB} 🪙 per NIB (you have ${store.balance()} NIB)</div>
         <div class="row">${[1, 5, 10].map((n) => `<button class="btn ghost sm" data-buycoins="${n}">${n} NIB → ${n * battle.COIN_PER_NIB} 🪙</button>`).join("")}</div>
         <div class="muted" style="font-size:13px;margin:14px 0 6px">Items — used in battle</div>
@@ -654,6 +665,10 @@
     $$("[data-buyitem]").forEach((b) => b.onclick = async () => {
       try { await store.buyItem(b.dataset.buyitem, +b.dataset.price); toast("Item purchased"); }
       catch (e) { toast(e.message || "Not enough coins", true); }
+    });
+    $("#dailyBtn")?.addEventListener("click", async () => {
+      try { const r = await store.claimDaily(); toast(`🎁 +${r.amount} coins!`); render(); }
+      catch (e) { toast(e.message || "Not ready", true); }
     });
 
     // opponents + leaderboard

@@ -16,6 +16,7 @@
   const CFG = window.NIB_CONFIG || { enabled: false };
   const LIVE = !!CFG.enabled;
   const KEY = "nibcoin.v1";
+  const DAILY_AMOUNT = 100, DAILY_COOLDOWN = 24 * 3600 * 1000, PACK_COIN_REWARD = 20;
 
   const DEFAULT_CONFIG = () => ({
     packsEnabled: true,
@@ -40,6 +41,7 @@
     battleTeam: null, // own battle team + ladder record
     coins: 0,        // battle-shop currency
     items: {},       // owned battle items { itemId: count }
+    lastDaily: 0,    // last daily-bonus claim (ms)
   };
 
   const emit = () => window.dispatchEvent(new CustomEvent("nib:change"));
@@ -78,6 +80,10 @@
     battleTeam: () => cache.battleTeam,
     coins: () => cache.coins || 0,
     items: () => cache.items || {},
+    dailyStatus() {
+      const rem = DAILY_COOLDOWN - (Date.now() - (cache.lastDaily || 0));
+      return { ready: rem <= 0, nextInMs: Math.max(0, rem), amount: DAILY_AMOUNT };
+    },
 
     // A player's own pack history, reconstructed from owned copies
     // (grouped by openingId) — no extra reads/permissions needed.
@@ -125,7 +131,7 @@
       } catch (e) { state = null; }
       const base = { loggedIn: false, uid: null, email: null, displayName: null, walletAddress: null,
         balance: 100, minted: {}, collection: [], openings: [], config: DEFAULT_CONFIG(), admins: [], overrides: {}, battleTeam: null,
-        coins: 150, items: { potion: 1, bomb: 1 } };
+        coins: 150, items: { potion: 1, bomb: 1 }, lastDaily: 0 };
       state = Object.assign(base, state || {});
       if (typeof state.balance !== "number" && typeof state.tokenBalance === "number") state.balance = state.tokenBalance;
       syncCache();
@@ -139,7 +145,7 @@
       cache.openings = state.openings; cache.config = Object.assign(DEFAULT_CONFIG(), state.config);
       cache.overrides = state.overrides || {};
       cache.battleTeam = state.battleTeam;
-      cache.coins = state.coins || 0; cache.items = state.items || {};
+      cache.coins = state.coins || 0; cache.items = state.items || {}; cache.lastDaily = state.lastDaily || 0;
       cache.adminFlag = state.loggedIn;   // demo: any logged-in user is an admin
       cache.supply = {};                  // computed in supplyByTier for LOCAL
     }
@@ -183,7 +189,8 @@
       if (cfg.dropRateOverrides) ecfg.chaseTable = cfg.dropRateOverrides;
       const slots = NIB.engine.openPack(G.poolLocal(), reserve, ecfg);
       const serials = slots.map((s) => state.minted[s.cardId]);
-      const opening = { id: "pk_" + Date.now().toString(36), wallet: state.walletAddress || state.email, cost: cfg.packPriceTokens, slots, serials, at: new Date().toISOString() };
+      state.coins = (state.coins || 0) + PACK_COIN_REWARD;
+      const opening = { id: "pk_" + Date.now().toString(36), wallet: state.walletAddress || state.email, cost: cfg.packPriceTokens, slots, serials, coinsEarned: PACK_COIN_REWARD, at: new Date().toISOString() };
       slots.forEach((s, i) => state.collection.push({ cardId: s.cardId, rarity: s.rarity, serial: serials[i], openingId: opening.id, mintedAt: opening.at }));
       state.openings.push(opening);
       persist();
@@ -271,6 +278,11 @@
       if ((state.items[id] || 0) <= 0) return;
       state.items[id]--; persist();
     }
+    async function claimDaily() {
+      if (!G.dailyStatus().ready) throw new Error("Daily bonus not ready yet");
+      state.coins = (state.coins || 0) + DAILY_AMOUNT; state.lastDaily = Date.now(); persist();
+      return { amount: DAILY_AMOUNT };
+    }
     // Demo: synthesize a few bot opponents so PvP is playable offline.
     async function listOpponents() {
       const names = ["ShadowByte", "PixelKnight", "NovaQueen", "RiftRunner", "AshWarden"];
@@ -288,7 +300,7 @@
       seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
-      earnCoins, buyCoins, buyItem, consumeItem,
+      earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
     };
   })();
 
@@ -336,7 +348,7 @@
         const p = d.data() || {};
         cache.balance = p.tokenBalance || 0;
         cache.walletAddress = p.wallet || null;
-        cache.coins = p.coins || 0; cache.items = p.items || {};
+        cache.coins = p.coins || 0; cache.items = p.items || {}; cache.lastDaily = p.lastDailyCoins || 0;
         if (p.displayName) cache.displayName = p.displayName;
         emit();
       }));
@@ -480,7 +492,7 @@
           batch.set(copyRef, { cardId: c.id, rarity: c.rarity, serial, mintAddress: null, openingId: openRef.id, mintedAt: FV.serverTimestamp() });
           slots.push({ cardId: c.id, rarity: c.rarity, serial });
         });
-        batch.update(dbf.doc(`users/${uid}`), { tokenBalance: FV.increment(-price), packsOpened: FV.increment(1) });
+        batch.update(dbf.doc(`users/${uid}`), { tokenBalance: FV.increment(-price), packsOpened: FV.increment(1), coins: FV.increment(PACK_COIN_REWARD) });
         batch.set(openRef, { uid, wallet: label, cost: price, slots, at: FV.serverTimestamp() });
         batch.set(dbf.doc("stats/global"), { packsOpened: FV.increment(1), tokensCollected: FV.increment(price), cardsMinted: FV.increment(slots.length) }, { merge: true });
         const supply = {}; slots.forEach((s) => supply[s.rarity] = FV.increment(1));
@@ -509,7 +521,7 @@
       }
 
       const { openRef, slots } = built;
-      const opening = { id: openRef.id, wallet: label, cost: price, slots, serials: slots.map((s) => s.serial), at: new Date().toISOString() };
+      const opening = { id: openRef.id, wallet: label, cost: price, slots, serials: slots.map((s) => s.serial), coinsEarned: PACK_COIN_REWARD, at: new Date().toISOString() };
       return { ok: true, opening };
     }
     const isPermError = (e) => e && (e.code === "permission-denied" || /permission/i.test(e.message || ""));
@@ -648,6 +660,11 @@
       if ((cache.items[id] || 0) <= 0) return;
       await dbf.doc(`users/${cache.uid}`).update({ ["items." + id]: FV.increment(-1) });
     }
+    async function claimDaily() {
+      if (!G.dailyStatus().ready) throw new Error("Daily bonus not ready yet");
+      await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(DAILY_AMOUNT), lastDailyCoins: Date.now() });
+      return { amount: DAILY_AMOUNT };
+    }
 
     return {
       init, signUp, signIn, signInGoogle, resetPassword, connectWallet, disconnect,
@@ -656,7 +673,7 @@
       loadCardStats, seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
-      earnCoins, buyCoins, buyItem, consumeItem,
+      earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
     };
   })();
 
@@ -698,5 +715,6 @@
     buyCoins: (...a) => Backend.buyCoins(...a),
     buyItem: (...a) => Backend.buyItem(...a),
     consumeItem: (...a) => Backend.consumeItem(...a),
+    claimDaily: (...a) => Backend.claimDaily(...a),
   });
 })(window.NIB = window.NIB || {});
