@@ -689,12 +689,14 @@
     ov.addEventListener("click", (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); });
   }
 
-  // ---- battle arena ----
+  // ---- battle arena (phase-based: pick card -> ability -> target) ----
   function startBattle(foeRaw, opp, isPvp) {
     const mine = myTeamCards().map((c, i) => battle.battleCard(c, "me", i));
     const foe = foeRaw.slice(0, battle.TEAM_SIZE).map((c, i) => battle.battleCard(c, "foe", i));
     if (!mine.length || !foe.length) return toast("Teams not ready", true);
-    B = { mine, foe, turn: "me", log: ["⚔️ Battle start!"], over: false, isPvp, opp, sel: null };
+    // phase: 'card' | 'ability' | 'target' | 'itemTarget'
+    B = { mine, foe, turn: "me", log: ["⚔️ Battle start!"], over: false, isPvp, opp,
+      phase: "card", sel: null, ability: null, item: null, items: battle.defaultKit() };
     let ov = $("#battleOverlay");
     if (!ov) { ov = document.createElement("div"); ov.id = "battleOverlay"; ov.className = "overlay"; document.body.appendChild(ov); }
     renderArena();
@@ -707,58 +709,125 @@
   function battleTile(c, clickable) {
     const dead = c.hp <= 0, seld = B.sel && B.sel.uid === c.uid;
     const glyph = c.imageUrl ? `<img class="art-img" src="${c.imageUrl}">` : matrix.META[c.element].glyph;
-    const ab = battle.abilityFor(c);
     const psn = c.poison && c.poison.turns > 0 ? ` <span title="poisoned">☠️</span>` : "";
+    const arm = c.armorBuff ? ` <span title="armor +${c.armorBuff}%">🛡️</span>` : "";
     return `<div class="btile r-${c.rarity} ${dead ? "dead" : ""} ${seld ? "sel" : ""} ${clickable && !dead ? "clk" : ""}" data-uid="${c.uid}" style="--ec:${matrix.META[c.element].color}">
       <div class="bart">${glyph}</div>
-      <div class="bnm">${c.name}</div>
+      <div class="bnm">${c.name}${psn}${arm}</div>
       <div class="row" style="justify-content:center;gap:6px;font-size:10px"><span>⚔${c.stats.attack}</span><span>🛡${c.stats.defense}</span><span title="${matrix.META[c.element].label}">${matrix.META[c.element].glyph}</span></div>
-      <div class="babil" title="${ab.desc}">${ab.glyph} ${ab.name}${psn}</div>
       ${hpBar(c)}
     </div>`;
+  }
+  function statusText() {
+    if (B.over) return "Battle over";
+    if (B.turn !== "me") return "Enemy turn…";
+    if (B.phase === "card") return "Pick a card to act — or use an item";
+    if (B.phase === "ability") return `${B.sel.name}: choose an ability`;
+    if (B.phase === "target") return `${B.ability.glyph} ${B.ability.name} — pick a target`;
+    if (B.phase === "itemTarget") return `${B.item.glyph} ${B.item.name} — pick an ally`;
+    return "";
+  }
+  function abilityBar() {
+    if (B.turn !== "me" || B.over) return "";
+    if (B.phase === "ability" && B.sel) {
+      const btns = battle.abilitiesFor(B.sel).map((a) => {
+        const cd = B.sel.cd && B.sel.cd[a.id] || 0;
+        return `<button class="btn sm ${cd ? "ghost" : ""}" data-ab="${a.id}" ${cd ? "disabled" : ""} title="${a.desc}">${a.glyph} ${a.name}${cd ? " (" + cd + ")" : ""}</button>`;
+      }).join("");
+      return `<div class="row" style="justify-content:center;flex-wrap:wrap;gap:8px">${btns}<button class="btn ghost sm" id="abBack">← back</button></div>`;
+    }
+    // item bar (phase card)
+    if (B.phase === "card") {
+      const items = Object.entries(B.items).filter(([, n]) => n > 0).map(([id, n]) => {
+        const it = battle.ITEMS[id];
+        return `<button class="btn ghost sm" data-item="${id}" title="${it.desc}">${it.glyph} ${it.name} ×${n}</button>`;
+      }).join("");
+      return items ? `<div class="row" style="justify-content:center;flex-wrap:wrap;gap:8px"><span class="muted" style="font-size:12px;align-self:center">Items:</span>${items}</div>` : "";
+    }
+    if (B.phase === "target" || B.phase === "itemTarget") return `<div class="row" style="justify-content:center"><button class="btn ghost sm" id="abBack">← back</button></div>`;
+    return "";
   }
   function renderArena() {
     const ov = $("#battleOverlay"); if (!ov) return;
     const yourTurn = B.turn === "me" && !B.over;
-    ov.innerHTML = `<div class="panel modal battle-modal" style="max-width:760px;position:relative">
+    const foeClk = yourTurn && (B.phase === "target") && (B.ability.target === "enemy");
+    const myClk = yourTurn && (B.phase === "card" || (B.phase === "target" && B.ability.target === "ally") || B.phase === "itemTarget");
+    ov.innerHTML = `<div class="panel modal battle-modal" style="max-width:780px;position:relative">
       <span class="close">&times;</span>
       <div class="row" style="justify-content:space-between"><h3 style="margin:0">Enemy — ${B.opp && B.opp.name || "Opponent"}</h3><span class="muted" style="font-size:12px">${B.isPvp ? "PvP" : "NPC"}</span></div>
-      <div class="brow" id="foeRow">${B.foe.map((c) => battleTile(c, yourTurn && B.sel)).join("")}</div>
-      <div style="text-align:center;margin:12px 0"><span class="pill">${B.over ? "Battle over" : yourTurn ? (B.sel ? "Pick a target ▶" : "Pick your attacker") : "Enemy turn…"}</span></div>
-      <div class="brow" id="myRow">${B.mine.map((c) => battleTile(c, yourTurn && !B.sel)).join("")}</div>
-      <h3 style="margin:14px 0 6px">Your team</h3>
-      <div class="blog" id="blog">${B.log.slice(0, 6).map((l) => `<div>${l}</div>`).join("")}</div>
+      <div class="brow" id="foeRow">${B.foe.map((c) => battleTile(c, foeClk)).join("")}</div>
+      <div style="text-align:center;margin:10px 0"><span class="pill">${statusText()}</span></div>
+      <div id="actionBar" style="margin-bottom:8px">${abilityBar()}</div>
+      <div class="brow" id="myRow">${B.mine.map((c) => battleTile(c, myClk)).join("")}</div>
+      <div class="blog" id="blog" style="margin-top:12px">${B.log.slice(0, 7).map((l) => `<div>${l}</div>`).join("")}</div>
       ${B.over ? `<div class="row" style="margin-top:12px;justify-content:center;gap:10px">
           <button class="btn gold" id="bAgain">Battle again</button><button class="btn ghost" id="bLeave">Leave</button></div>` : ""}
     </div>`;
-    // wire tiles
+
     if (yourTurn) {
-      if (!B.sel) $$("#myRow .btile.clk").forEach((t) => t.onclick = () => { B.sel = B.mine.find((c) => c.uid === t.dataset.uid); renderArena(); });
-      else $$("#foeRow .btile.clk").forEach((t) => t.onclick = () => playerAttack(t.dataset.uid));
+      if (B.phase === "card") {
+        $$("#myRow .btile.clk").forEach((t) => t.onclick = () => { B.sel = B.mine.find((c) => c.uid === t.dataset.uid); B.phase = "ability"; renderArena(); });
+        $$("[data-item]").forEach((b) => b.onclick = () => chooseItem(b.dataset.item));
+      } else if (B.phase === "ability") {
+        $$("[data-ab]").forEach((b) => b.onclick = () => chooseAbility(b.dataset.ab));
+      } else if (B.phase === "target") {
+        const row = B.ability.target === "enemy" ? "#foeRow" : "#myRow";
+        $$(`${row} .btile.clk`).forEach((t) => t.onclick = () => resolvePlayer(t.dataset.uid));
+      } else if (B.phase === "itemTarget") {
+        $$("#myRow .btile.clk").forEach((t) => t.onclick = () => useItemOn(t.dataset.uid));
+      }
+      $("#abBack") && ($("#abBack").onclick = () => { B.phase = "card"; B.sel = null; B.ability = null; B.item = null; renderArena(); });
     }
     $("#bAgain") && ($("#bAgain").onclick = () => { $("#battleOverlay").remove(); render(); });
     $("#bLeave") && ($("#bLeave").onclick = () => { $("#battleOverlay").remove(); B = null; render(); });
     ov.querySelector(".close").onclick = () => { $("#battleOverlay").remove(); B = null; render(); };
   }
-  function playerAttack(targetUid) {
-    if (!B.sel) return;
-    const target = B.foe.find((c) => c.uid === targetUid);
-    if (!target || target.hp <= 0) return;
-    battle.resolveAttack(B.sel, target, B.log); B.sel = null;
+  const ctx = () => ({ allies: B.mine, foes: B.foe });
+
+  function chooseAbility(abId) {
+    const ab = battle.abilitiesFor(B.sel).find((a) => a.id === abId);
+    if (!ab || (B.sel.cd && B.sel.cd[ab.id] > 0)) return;
+    B.ability = ab;
+    if (ab.target === "self" || ab.target === "allEnemies" || ab.target === "allAllies") { resolvePlayer(null); return; }
+    B.phase = "target"; renderArena();
+  }
+  function resolvePlayer(targetUid) {
+    const ab = B.ability;
+    const target = targetUid ? [...B.foe, ...B.mine].find((c) => c.uid === targetUid) : null;
+    if ((ab.target === "enemy" || ab.target === "ally") && (!target || target.hp <= 0)) return;
+    battle.applyAbility(B.sel, ab, target, ctx(), B.log);
+    endPlayerTurn();
+  }
+  function chooseItem(id) {
+    const it = battle.ITEMS[id]; if (!it || !B.items[id]) return;
+    B.item = it;
+    if (it.target === "ally") { B.phase = "itemTarget"; renderArena(); }
+    else { applyItem(null); }
+  }
+  function useItemOn(targetUid) { applyItem(B.mine.find((c) => c.uid === targetUid)); }
+  function applyItem(target) {
+    const it = B.item;
+    if (it.target === "ally" && (!target || target.hp <= 0)) return;
+    battle.applyAbility({ name: it.name }, it, target, ctx(), B.log);
+    B.items[it.id]--; B.item = null;
+    endPlayerTurn();
+  }
+  function endPlayerTurn() {
+    B.sel = null; B.ability = null; B.phase = "card";
     if (checkEnd()) return;
     B.turn = "foe"; renderArena();
     setTimeout(foeTurn, 850);
   }
   function foeTurn() {
     if (B.over) return;
-    battle.startTurnTicks(B.foe, B.log);          // foe regen / poison DoT
+    battle.startTurnTicks(B.foe, B.log);
     if (checkEnd()) return;
-    const move = battle.aiChoose(B.foe, B.mine);
-    if (move) battle.resolveAttack(move.attacker, move.target, B.log);
+    const move = battle.aiTurn(B.foe, B.mine);
+    if (move) battle.applyAbility(move.actor, move.ab, move.target, { allies: B.foe, foes: B.mine }, B.log);
     if (checkEnd()) return;
-    battle.startTurnTicks(B.mine, B.log);          // your regen / poison before your turn
+    battle.startTurnTicks(B.mine, B.log);          // your regen / poison / cooldowns
     if (checkEnd()) return;
-    B.turn = "me"; renderArena();
+    B.turn = "me"; B.phase = "card"; renderArena();
   }
   function checkEnd() {
     const meAlive = battle.alive(B.mine).length, foeAlive = battle.alive(B.foe).length;
