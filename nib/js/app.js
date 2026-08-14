@@ -708,38 +708,94 @@
     } catch (e) { const ol = $("#oppList"); if (ol) ol.innerHTML = `<p class="muted">Couldn't load opponents.</p>`; }
   }
 
+  let tbSort = "power", tbFilterEl = "", tbFilterRar = "";
   function openTeamBuilder() {
     teamPick = (store.battleTeam() && store.battleTeam().teamCardIds || []).slice();
-    const cards = uniqueOwnedCards();
+    const all = uniqueOwnedCards();
+    const order = NIB.engine.RARITY_ORDER;
+    const power = (c) => battle.teamPower([c]);
+    const cmp = {
+      power: (a, b) => power(b) - power(a),
+      rarity: (a, b) => order.indexOf(b.rarity) - order.indexOf(a.rarity) || b.level - a.level,
+      level: (a, b) => b.level - a.level || power(b) - power(a),
+      name: (a, b) => (a.name || "").localeCompare(b.name || ""),
+      element: (a, b) => a.element.localeCompare(b.element) || order.indexOf(b.rarity) - order.indexOf(a.rarity),
+    };
+    const opt = (v, l, sel) => `<option value="${v}" ${sel === v ? "selected" : ""}>${l}</option>`;
     const ov = document.createElement("div"); ov.className = "overlay";
-    ov.innerHTML = `<div class="panel modal" style="max-width:640px;position:relative">
+    ov.innerHTML = `<div class="panel modal" style="max-width:740px;position:relative">
       <span class="close">&times;</span>
-      <h2>Build your team</h2>
+      <h2 style="margin-bottom:2px">Build your team</h2>
       <p class="muted" id="tbCount" style="font-size:13px"></p>
-      ${cards.length < battle.TEAM_SIZE ? `<p class="muted">You need at least ${battle.TEAM_SIZE} cards — open more packs.</p>` : ""}
-      <div class="cardgrid" id="tbGrid" style="max-height:52vh;overflow:auto"></div>
-      <div class="row" style="margin-top:12px"><button class="btn gold" id="tbSave">Save team</button></div>
+      ${all.length < battle.TEAM_SIZE ? `<p class="muted">You need at least ${battle.TEAM_SIZE} cards — open more packs.</p>` : ""}
+      <div class="muted" style="font-size:12px;margin:8px 0 5px;letter-spacing:.4px">YOUR TEAM</div>
+      <div class="brow" id="tbTeam"></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin:16px 0 8px">
+        <span class="muted" style="font-size:12px;align-self:center">YOUR CARDS (${all.length})</span>
+        <div class="row">
+          <select id="tbEl"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => opt(e, matrix.META[e].glyph + " " + matrix.META[e].label, tbFilterEl)).join("")}</select>
+          <select id="tbRar"><option value="">All Rarities</option>${Object.keys(catalog.RARITY_LABEL).map((r) => opt(r, catalog.RARITY_LABEL[r], tbFilterRar)).join("")}</select>
+          <select id="tbSort">${[["power", "Power"], ["rarity", "Rarity"], ["level", "Level"], ["element", "Element"], ["name", "Name"]].map(([v, l]) => opt(v, "Sort: " + l, tbSort)).join("")}</select>
+        </div>
+      </div>
+      <div class="cardgrid" id="tbGrid" style="max-height:44vh;overflow:auto"></div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <button class="btn gold" id="tbSave">Save team</button>
+        <button class="btn ghost sm" id="tbClear">Clear team</button>
+      </div>
     </div>`;
     document.body.appendChild(ov);
-    const grid = $("#tbGrid");
-    const paint = () => {
-      $("#tbCount").textContent = `${teamPick.length}/${battle.TEAM_SIZE} selected`;
-      grid.innerHTML = "";
+
+    const paintTeam = () => {
+      const row = $("#tbTeam"); row.innerHTML = "";
+      for (let i = 0; i < battle.TEAM_SIZE; i++) {
+        const id = teamPick[i];
+        const slot = document.createElement("div");
+        if (id) {
+          const c = store.card(id);
+          slot.className = `tbslot filled r-${c.rarity}`;
+          slot.style.setProperty("--ec", matrix.META[c.element].color);
+          slot.innerHTML = `<div class="tbx" title="remove">×</div>
+            <div class="bart">${c.imageUrl ? `<img class="art-img" src="${c.imageUrl}">` : matrix.META[c.element].glyph}</div>
+            <div class="bnm">${c.name}</div>
+            <div class="muted" style="font-size:10px">Lv ${c.level} · ⚡${power(c)}</div>`;
+          slot.onclick = () => { teamPick = teamPick.filter((x) => x !== id); paint(); };
+        } else {
+          slot.className = "tbslot empty";
+          slot.innerHTML = `<div class="muted">+ empty slot</div>`;
+        }
+        row.appendChild(slot);
+      }
+    };
+    const paintPool = () => {
+      const grid = $("#tbGrid"); grid.innerHTML = "";
+      const cards = all.filter((c) => (!tbFilterEl || c.element === tbFilterEl) && (!tbFilterRar || c.rarity === tbFilterRar)).sort(cmp[tbSort] || cmp.power);
+      if (!cards.length) { grid.innerHTML = `<p class="muted">No cards match.</p>`; return; }
       cards.forEach((c) => {
         const el = cardEl(c, { noClick: true });
-        if (teamPick.includes(c.id)) el.style.outline = "3px solid var(--accent2)";
+        if (teamPick.includes(c.id)) { el.classList.add("picked"); const b = document.createElement("div"); b.className = "pickbadge"; b.textContent = "✓ In team"; el.appendChild(b); }
         el.onclick = () => {
           if (teamPick.includes(c.id)) teamPick = teamPick.filter((x) => x !== c.id);
           else if (teamPick.length < battle.TEAM_SIZE) teamPick.push(c.id);
-          else return toast(`Max ${battle.TEAM_SIZE} cards`, true);
+          else return toast(`Team is full (${battle.TEAM_SIZE}) — remove one first`, true);
           paint();
         };
         grid.appendChild(el);
       });
     };
+    const paint = () => {
+      const tp = teamPick.reduce((s, id) => s + (store.card(id) ? power(store.card(id)) : 0), 0);
+      $("#tbCount").textContent = `${teamPick.length}/${battle.TEAM_SIZE} selected${teamPick.length ? " · team power ⚡" + tp : ""}`;
+      paintTeam(); paintPool();
+    };
+
+    $("#tbEl").onchange = (e) => { tbFilterEl = e.target.value; paintPool(); };
+    $("#tbRar").onchange = (e) => { tbFilterRar = e.target.value; paintPool(); };
+    $("#tbSort").onchange = (e) => { tbSort = e.target.value; paintPool(); };
+    $("#tbClear").onclick = () => { teamPick = []; paint(); };
     paint();
     $("#tbSave").onclick = async () => {
-      if (teamPick.length !== battle.TEAM_SIZE) return toast(`Pick exactly ${battle.TEAM_SIZE}`, true);
+      if (teamPick.length !== battle.TEAM_SIZE) return toast(`Pick exactly ${battle.TEAM_SIZE} cards`, true);
       try { await store.saveBattleTeam(teamPick); toast("Team saved"); ov.remove(); render(); }
       catch (e) { toast(e.message || "Save failed", true); }
     };
