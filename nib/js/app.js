@@ -42,7 +42,7 @@
       <div class="info">
         <div class="nm">${card.name}</div>
         <div class="meta">
-          <span class="lvl">Lv ${card.level}</span>
+          <span class="lvl">Lv ${card.level}${card.upgradeTier ? ` <span style="color:var(--gold)">★${card.upgradeTier}</span>` : ""}</span>
           <span class="elem" title="${matrix.META[card.element].label}">${matrix.META[card.element].glyph}</span>
         </div>
         <div style="margin-top:6px"><span class="badge">${card.rarityLabel}</span></div>
@@ -96,6 +96,14 @@
       ? `<div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">ABILITY</div>
            <span class="pill">${ab.glyph} <b>${ab.name}</b></span> <span class="muted" style="font-size:12px">${ab.desc}</span></div>`
       : "";
+    const owns = store.isLoggedIn() && store.collection().some((n) => n.cardId === card.id);
+    const upTier = store.cardTier(card.id), upCost = store.upgradeCost(card.id);
+    const upgradeHtml = owns
+      ? `<div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">LEVEL UP ${upTier > 0 ? `· <span style="color:var(--gold)">★${upTier}</span> / ${store.upgradeMax}` : `· 0 / ${store.upgradeMax}`}</div>
+           ${upCost != null
+             ? `<button class="btn gold sm" id="upBtn">Level up → 🪙 ${upCost}</button> <span class="muted" style="font-size:12px">+8% stats, +1 level</span>`
+             : `<span class="badge" style="background:var(--gold)">MAX LEVEL</span>`}</div>`
+      : "";
     const ov = document.createElement("div");
     ov.className = "overlay";
     ov.innerHTML = `
@@ -130,10 +138,15 @@
           <div class="row">${p.weakAgainst.map(chip).join("") || "<span class='muted'>—</span>"}</div>
         </div>
         ${abilityHtml}
+        ${upgradeHtml}
         ${ownedHtml}
       </div>`;
     ov.onclick = (e) => { if (e.target === ov || e.target.classList.contains("close")) ov.remove(); };
     document.body.appendChild(ov);
+    $("#upBtn", ov)?.addEventListener("click", async () => {
+      try { const r = await store.upgradeCard(card.id); toast(`Leveled up to ★${r.tier}!`); ov.remove(); openCardModal(store.card(card.id), serial, owned); }
+      catch (e) { toast(e.message || "Upgrade failed", true); }
+    });
     $("#sellCardDupes", ov)?.addEventListener("click", async () => {
       if (!window.confirm(`Sell ${dupCount} duplicate${dupCount > 1 ? "s" : ""} of ${card.name} for ${nibFmt(dupCount * store.sellPrice())} NIB?`)) return;
       try { const r = await store.sellDuplicates(card.id); toast(`Sold ${r.sold} → +${nibFmt(r.nib)} NIB`); ov.remove(); render(); }

@@ -18,7 +18,9 @@
   const KEY = "nibcoin.v1";
   const DAILY_AMOUNT = 100, DAILY_COOLDOWN = 24 * 3600 * 1000, PACK_COIN_REWARD = 20;
   const SELL_PRICE = 0.1;  // NIB per duplicate card sold
+  const UPGRADE_MAX = 10, UPGRADE_BASE = 30, UPGRADE_STAT = 0.08; // level-up tuning
   const round2 = (n) => Math.round(n * 100) / 100;
+  const upgradeCostFor = (tier) => tier < UPGRADE_MAX ? UPGRADE_BASE * (tier + 1) : null;
 
   // Extra copies beyond the first of each card, from a collection array.
   function duplicateCopies(collection) {
@@ -55,6 +57,7 @@
     coins: 0,        // battle-shop currency
     items: {},       // owned battle items { itemId: count }
     lastDaily: 0,    // last daily-bonus claim (ms)
+    cardLevels: {},  // per-player upgrade tiers { cardId: tier }
   };
 
   const emit = () => window.dispatchEvent(new CustomEvent("nib:change"));
@@ -80,15 +83,27 @@
     isAdmin: () => cache.adminFlag,
     admins: () => cache.admins.slice(),
 
-    // Card metadata as the player sees it: built-in catalog + admin edits.
+    // Card metadata as the player sees it: built-in catalog + admin edits
+    // + this player's upgrade tier (higher stats & effective level).
     card(id) {
       const base = NIB.catalog.byId(id);
       const ov = cache.overrides[id];
       if (!base && !ov) return null;
       const merged = Object.assign({}, base, ov);
       if (ov && ov.stats) merged.stats = Object.assign({}, base && base.stats, ov.stats);
+      const tier = cache.cardLevels[id] || 0;
+      if (tier > 0) {
+        const s = merged.stats || { attack: 0, defense: 0, hp: 0 };
+        const m = 1 + UPGRADE_STAT * tier;
+        merged.stats = { attack: Math.round(s.attack * m), defense: Math.round(s.defense * m), hp: Math.round(s.hp * m) };
+        merged.level = (merged.level || 1) + tier;
+        merged.upgradeTier = tier;
+      }
       return merged;
     },
+    cardTier: (id) => cache.cardLevels[id] || 0,
+    upgradeCost: (id) => upgradeCostFor(cache.cardLevels[id] || 0),
+    upgradeMax: UPGRADE_MAX,
     cardBack: () => (cache.config.appearance && cache.config.appearance.cardBackUrl) || null,
     battleTeam: () => cache.battleTeam,
     coins: () => cache.coins || 0,
@@ -147,7 +162,7 @@
       } catch (e) { state = null; }
       const base = { loggedIn: false, uid: null, email: null, displayName: null, walletAddress: null,
         balance: 100, minted: {}, collection: [], openings: [], config: DEFAULT_CONFIG(), admins: [], overrides: {}, battleTeam: null,
-        coins: 150, items: { potion: 1, bomb: 1 }, lastDaily: 0 };
+        coins: 150, items: { potion: 1, bomb: 1 }, lastDaily: 0, cardLevels: {} };
       state = Object.assign(base, state || {});
       if (typeof state.balance !== "number" && typeof state.tokenBalance === "number") state.balance = state.tokenBalance;
       syncCache();
@@ -162,6 +177,7 @@
       cache.overrides = state.overrides || {};
       cache.battleTeam = state.battleTeam;
       cache.coins = state.coins || 0; cache.items = state.items || {}; cache.lastDaily = state.lastDaily || 0;
+      cache.cardLevels = state.cardLevels || {};
       cache.adminFlag = state.loggedIn;   // demo: any logged-in user is an admin
       cache.supply = {};                  // computed in supplyByTier for LOCAL
     }
@@ -314,6 +330,15 @@
       const dupes = duplicateCopies(state.collection);
       return dupes.length ? sellSet(dupes) : { sold: 0, nib: 0 };
     }
+    async function upgradeCard(cardId) {
+      if (!state.collection.some((n) => n.cardId === cardId)) throw new Error("You don't own this card");
+      const tier = state.cardLevels[cardId] || 0;
+      const cost = upgradeCostFor(tier);
+      if (cost == null) throw new Error("Already at max level");
+      if ((state.coins || 0) < cost) throw new Error("Not enough coins");
+      state.coins -= cost; state.cardLevels[cardId] = tier + 1; persist();
+      return { tier: tier + 1, cost };
+    }
     // Demo: synthesize a few bot opponents so PvP is playable offline.
     async function listOpponents() {
       const names = ["ShadowByte", "PixelKnight", "NovaQueen", "RiftRunner", "AshWarden"];
@@ -332,7 +357,7 @@
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
       earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
-      sellDuplicates, sellAllDuplicates,
+      sellDuplicates, sellAllDuplicates, upgradeCard,
     };
   })();
 
@@ -381,6 +406,7 @@
         cache.balance = p.tokenBalance || 0;
         cache.walletAddress = p.wallet || null;
         cache.coins = p.coins || 0; cache.items = p.items || {}; cache.lastDaily = p.lastDailyCoins || 0;
+        cache.cardLevels = p.cardLevels || {};
         if (p.displayName) cache.displayName = p.displayName;
         emit();
       }));
@@ -716,6 +742,15 @@
       const dupes = duplicateCopies(cache.collection).filter((n) => n._id);
       return dupes.length ? sellCopies(dupes) : { sold: 0, nib: 0 };
     }
+    async function upgradeCard(cardId) {
+      if (!cache.collection.some((n) => n.cardId === cardId)) throw new Error("You don't own this card");
+      const tier = cache.cardLevels[cardId] || 0;
+      const cost = upgradeCostFor(tier);
+      if (cost == null) throw new Error("Already at max level");
+      if ((cache.coins || 0) < cost) throw new Error("Not enough coins");
+      await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(-cost), ["cardLevels." + cardId]: tier + 1 });
+      return { tier: tier + 1, cost };
+    }
 
     return {
       init, signUp, signIn, signInGoogle, resetPassword, connectWallet, disconnect,
@@ -725,7 +760,7 @@
       updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
       earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
-      sellDuplicates, sellAllDuplicates,
+      sellDuplicates, sellAllDuplicates, upgradeCard,
     };
   })();
 
@@ -770,5 +805,6 @@
     claimDaily: (...a) => Backend.claimDaily(...a),
     sellDuplicates: (...a) => Backend.sellDuplicates(...a),
     sellAllDuplicates: (...a) => Backend.sellAllDuplicates(...a),
+    upgradeCard: (...a) => Backend.upgradeCard(...a),
   });
 })(window.NIB = window.NIB || {});
