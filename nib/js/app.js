@@ -708,19 +708,11 @@
     } catch (e) { const ol = $("#oppList"); if (ol) ol.innerHTML = `<p class="muted">Couldn't load opponents.</p>`; }
   }
 
-  let tbSort = "power", tbFilterEl = "", tbFilterRar = "";
+  let tbFilterEl = "";
   function openTeamBuilder() {
     teamPick = (store.battleTeam() && store.battleTeam().teamCardIds || []).slice();
     const all = uniqueOwnedCards();
-    const order = NIB.engine.RARITY_ORDER;
     const power = (c) => battle.teamPower([c]);
-    const cmp = {
-      power: (a, b) => power(b) - power(a),
-      rarity: (a, b) => order.indexOf(b.rarity) - order.indexOf(a.rarity) || b.level - a.level,
-      level: (a, b) => b.level - a.level || power(b) - power(a),
-      name: (a, b) => (a.name || "").localeCompare(b.name || ""),
-      element: (a, b) => a.element.localeCompare(b.element) || order.indexOf(b.rarity) - order.indexOf(a.rarity),
-    };
     const opt = (v, l, sel) => `<option value="${v}" ${sel === v ? "selected" : ""}>${l}</option>`;
     const ov = document.createElement("div"); ov.className = "overlay";
     ov.innerHTML = `<div class="panel modal" style="max-width:740px;position:relative">
@@ -728,17 +720,15 @@
       <h2 style="margin-bottom:2px">Build your team</h2>
       <p class="muted" id="tbCount" style="font-size:13px"></p>
       ${all.length < battle.TEAM_SIZE ? `<p class="muted">You need at least ${battle.TEAM_SIZE} cards — open more packs.</p>` : ""}
-      <div class="muted" style="font-size:12px;margin:8px 0 5px;letter-spacing:.4px">YOUR TEAM</div>
-      <div class="brow" id="tbTeam"></div>
-      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin:16px 0 8px">
-        <span class="muted" style="font-size:12px;align-self:center">YOUR CARDS (${all.length})</span>
-        <div class="row">
-          <select id="tbEl"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => opt(e, matrix.META[e].glyph + " " + matrix.META[e].label, tbFilterEl)).join("")}</select>
-          <select id="tbRar"><option value="">All Rarities</option>${Object.keys(catalog.RARITY_LABEL).map((r) => opt(r, catalog.RARITY_LABEL[r], tbFilterRar)).join("")}</select>
-          <select id="tbSort">${[["power", "Power"], ["rarity", "Rarity"], ["level", "Level"], ["element", "Element"], ["name", "Name"]].map(([v, l]) => opt(v, "Sort: " + l, tbSort)).join("")}</select>
-        </div>
+      <div class="panel" id="tbTeamPanel" style="border-color:var(--accent2);padding:12px;margin:8px 0 18px">
+        <div class="muted" style="font-size:12px;margin-bottom:8px;letter-spacing:.4px">⭐ YOUR TEAM — ${battle.TEAM_SIZE} slots (tap a slot to remove)</div>
+        <div class="brow" id="tbTeam"></div>
       </div>
-      <div class="cardgrid" id="tbGrid" style="max-height:44vh;overflow:auto"></div>
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin:0 0 6px">
+        <span class="muted" style="font-size:12px;align-self:center">YOUR CARDS (${all.length}) — organised by rarity</span>
+        <select id="tbEl"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => opt(e, matrix.META[e].glyph + " " + matrix.META[e].label, tbFilterEl)).join("")}</select>
+      </div>
+      <div id="tbPool" style="max-height:44vh;overflow:auto"></div>
       <div class="row" style="margin-top:14px;justify-content:space-between">
         <button class="btn gold" id="tbSave">Save team</button>
         <button class="btn ghost sm" id="tbClear">Clear team</button>
@@ -767,20 +757,32 @@
         row.appendChild(slot);
       }
     };
+    const toggle = (id) => {
+      if (teamPick.includes(id)) teamPick = teamPick.filter((x) => x !== id);
+      else if (teamPick.length < battle.TEAM_SIZE) teamPick.push(id);
+      else return toast(`Team is full (${battle.TEAM_SIZE}) — remove one first`, true);
+      paint();
+    };
+    // Pool grouped into rarity sections (Hidden Rare -> Common).
     const paintPool = () => {
-      const grid = $("#tbGrid"); grid.innerHTML = "";
-      const cards = all.filter((c) => (!tbFilterEl || c.element === tbFilterEl) && (!tbFilterRar || c.rarity === tbFilterRar)).sort(cmp[tbSort] || cmp.power);
-      if (!cards.length) { grid.innerHTML = `<p class="muted">No cards match.</p>`; return; }
-      cards.forEach((c) => {
-        const el = cardEl(c, { noClick: true });
-        if (teamPick.includes(c.id)) { el.classList.add("picked"); const b = document.createElement("div"); b.className = "pickbadge"; b.textContent = "✓ In team"; el.appendChild(b); }
-        el.onclick = () => {
-          if (teamPick.includes(c.id)) teamPick = teamPick.filter((x) => x !== c.id);
-          else if (teamPick.length < battle.TEAM_SIZE) teamPick.push(c.id);
-          else return toast(`Team is full (${battle.TEAM_SIZE}) — remove one first`, true);
-          paint();
-        };
-        grid.appendChild(el);
+      const pool = $("#tbPool"); pool.innerHTML = "";
+      const cards = all.filter((c) => !tbFilterEl || c.element === tbFilterEl);
+      if (!cards.length) { pool.innerHTML = `<p class="muted">No cards match.</p>`; return; }
+      NIB.engine.RARITY_ORDER.slice().reverse().forEach((rar) => {
+        const group = cards.filter((c) => c.rarity === rar).sort((a, b) => power(b) - power(a));
+        if (!group.length) return;
+        const sec = document.createElement("div"); sec.style.marginBottom = "16px";
+        sec.innerHTML = `<div class="row" style="justify-content:space-between;margin:4px 2px 8px">
+          <span class="badge r-${rar}">${catalog.RARITY_LABEL[rar]}</span><span class="muted" style="font-size:12px">${group.length} card${group.length > 1 ? "s" : ""}</span></div>
+          <div class="cardgrid"></div>`;
+        const grid = sec.querySelector(".cardgrid");
+        group.forEach((c) => {
+          const el = cardEl(c, { noClick: true });
+          if (teamPick.includes(c.id)) { el.classList.add("picked"); const b = document.createElement("div"); b.className = "pickbadge"; b.textContent = "✓ In team"; el.appendChild(b); }
+          el.onclick = () => toggle(c.id);
+          grid.appendChild(el);
+        });
+        pool.appendChild(sec);
       });
     };
     const paint = () => {
@@ -790,8 +792,6 @@
     };
 
     $("#tbEl").onchange = (e) => { tbFilterEl = e.target.value; paintPool(); };
-    $("#tbRar").onchange = (e) => { tbFilterRar = e.target.value; paintPool(); };
-    $("#tbSort").onchange = (e) => { tbSort = e.target.value; paintPool(); };
     $("#tbClear").onclick = () => { teamPick = []; paint(); };
     paint();
     $("#tbSave").onclick = async () => {
