@@ -99,6 +99,8 @@
     display:flex; flex-direction:column; gap:5px; position:relative; overflow:hidden}
   .thead .colorbar{position:absolute; left:0; top:0; bottom:0; width:5px}
   .thead.sel{background:var(--panel2)}
+  .thead.loading .colorbar{animation:sfpulse .9s ease-in-out infinite}
+  @keyframes sfpulse{0%,100%{opacity:1}50%{opacity:.25}}
   .trow1{display:flex; align-items:center; gap:6px}
   .tname{background:transparent; border:none; color:var(--text); font-weight:600;
     font-size:12px; flex:1; min-width:0; padding:2px 3px; border-radius:4px}
@@ -716,11 +718,23 @@ const INSTRUMENTS={
   'Pluck'     :{osc1:'triangle',osc2:'square',detune:4,a:.002,d:.25,s:0,r:.12,cutoff:1200,reso:3,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.4,filterEnv:.85,filterDecay:.14},
   'Bells'     :{osc1:'sine',osc2:'sine',detune:14,a:.002,d:1.2,s:.1,r:1,cutoff:3000,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:.5,filterDecay:1},
 };
-const DEFAULT_INSTRUMENT='Saw Lead';
+const DEFAULT_INSTRUMENT='Grand Piano';
+const clone=o=>JSON.parse(JSON.stringify(o));
+// full instrument list: real sampled instruments first, then the synth presets
+function allInstrumentNames(){ return [...Object.keys(SAMPLED), ...SYNTH_PRESETS]; }
 function applyInstrument(t,name){
-  if(!INSTRUMENTS[name]) return;
-  t.instrument=name; Object.assign(t.synth, JSON.parse(JSON.stringify(INSTRUMENTS[name])));
-  renderSynthPanel(); toast('Instrument: '+name);
+  t.instrument=name;
+  if(SAMPLED[name]){                        // real recorded instrument
+    t.engine='sampler'; t.sample=SAMPLED[name];
+    if(INSTRUMENTS[name]) Object.assign(t.synth, clone(INSTRUMENTS[name])); // fallback tone while loading
+    t.loading=true; renderTracks(); renderSynthPanel();
+    toast('Loading '+name+'…');
+    Sampler.ensure(t.sample, ()=>{ t.loading=false; renderTracks();
+      if(Sampler.ready(t.sample)) toast(name+' ready'); });
+  } else if(INSTRUMENTS[name]){             // synth preset
+    t.engine='synth'; t.sample=null; Object.assign(t.synth, clone(INSTRUMENTS[name]));
+    renderSynthPanel(); toast('Instrument: '+name);
+  }
 }
 
 /* =====================================================================
@@ -739,12 +753,13 @@ function addTrack(type='midi',opts={}){
     volume:0.85, pan:0, mute:false, solo:false, arm:false,
     fx, showFx:false, showAuto:false,
     automation:[], // volume automation points {beat,value}
-    instrument: type==='midi'?inst:null,
-    synth: type==='midi' ? JSON.parse(JSON.stringify(INSTRUMENTS[inst])) : JSON.parse(JSON.stringify(State.synth)),
+    instrument: type==='midi'?inst:null, engine:'synth', sample:null, loading:false,
+    synth: type==='midi' ? clone(INSTRUMENTS[inst]||INSTRUMENTS['Saw Lead']) : clone(State.synth),
   };
   State.tracks.push(t);
   selectTrack(t.id);
   renderTracks(); layout();
+  if(type==='midi' && SAMPLED[inst]) applyInstrument(t, inst); // load the real sample
   return t;
 }
 function getTrack(id){return State.tracks.find(t=>t.id===id);}
@@ -785,7 +800,7 @@ function renderTracks(){
   const host=$("#headersInner"); host.innerHTML='';
   State.tracks.forEach(t=>{
     const el=document.createElement('div');
-    el.className='thead'+(t.id===State.selectedTrack?' sel':'');
+    el.className='thead'+(t.id===State.selectedTrack?' sel':'')+(t.loading?' loading':'');
     el.dataset.id=t.id;
     el.innerHTML=`
       <div class="colorbar" style="background:${t.color}"></div>
@@ -835,8 +850,7 @@ function trackHeaderMenu(t, x, y){
   items.push({icon:'✎',label:'Rename',action:()=>{ const el=[...document.querySelectorAll('.thead')].find(e=>e.dataset.id===t.id);
     const inp=el&&$(".tname",el); if(inp){ inp.focus(); inp.select(); } }});
   if(t.type==='midi') items.push({icon:'🎹',label:'Change Instrument…',action:()=>{
-    const insts=Object.keys(INSTRUMENTS).map(name=>({icon:'🎹',label:name,action:()=>applyInstrument(t,name)}));
-    showContextMenu(x,y,insts);
+    showContextMenu(x,y, instrumentMenuItems(name=>applyInstrument(t,name)));
   }});
   items.push({icon:'⧉',label:'Duplicate Track',action:()=>duplicateTrack(t.id)});
   items.push({icon:'🎛',label:'Open FX Rack',action:()=>{ selectTrack(t.id); setDrawerPane('fx'); openDrawer(); }});
@@ -1190,19 +1204,89 @@ function spawnVoice(ctx,dest,params,freq,when,vel=0.9,dur=null){
   return voice;
 }
 
+/* =====================================================================
+   SAMPLER — real recorded instruments (General MIDI soundfonts, loaded on demand
+   from gleitz.github.io/midi-js-soundfonts). Pitch-shifts the nearest sample.
+   ===================================================================== */
+const SAMPLED={
+  'Grand Piano':'acoustic_grand_piano','Bright Piano':'bright_acoustic_piano','Electric Piano':'electric_piano_1',
+  'Harpsichord':'harpsichord','Clavinet':'clavinet','Church Organ':'church_organ','Drawbar Organ':'drawbar_organ','Accordion':'accordion',
+  'Nylon Guitar':'acoustic_guitar_nylon','Steel Guitar':'acoustic_guitar_steel','Clean Guitar':'electric_guitar_clean',
+  'Overdrive Guitar':'overdriven_guitar','Distortion Guitar':'distortion_guitar',
+  'Acoustic Bass':'acoustic_bass','Finger Bass':'electric_bass_finger','Slap Bass':'slap_bass_1',
+  'Violin':'violin','Cello':'cello','Contrabass':'contrabass','String Ensemble':'string_ensemble_1','Pizzicato':'pizzicato_strings',
+  'Harp':'orchestral_harp','Trumpet':'trumpet','Trombone':'trombone','Tuba':'tuba','French Horn':'french_horn','Brass Section':'brass_section',
+  'Soprano Sax':'soprano_sax','Alto Sax':'alto_sax','Tenor Sax':'tenor_sax','Oboe':'oboe','Clarinet':'clarinet','Flute':'flute','Pan Flute':'pan_flute',
+  'Choir':'choir_aahs','Vibraphone':'vibraphone','Marimba':'marimba','Xylophone':'xylophone','Glockenspiel':'glockenspiel',
+  'Music Box':'music_box','Kalimba':'kalimba','Steel Drums':'steel_drums','Banjo':'banjo','Sitar':'sitar',
+};
+const SYNTH_PRESETS=['Saw Lead','Square Lead','Synth Bass','Sub Bass','Warm Pad','Pluck'];
+const SF_BASE='https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/';
+const NOTE_IDX={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+function noteNameToMidi(n){ const m=n.match(/^([A-G][#b]?)(-?\d)$/); if(!m) return 60; return (parseInt(m[2])+1)*12 + (NOTE_IDX[m[1]]||0); }
+const Sampler={
+  cache:{}, loading:{},
+  ready(gm){ return !!(this.cache[gm] && this.cache[gm].length); },
+  ensure(gm, onReady){
+    if(!gm){ onReady&&onReady(); return; }
+    if(this.ready(gm)){ onReady&&onReady(); return; }
+    if(this.loading[gm]){ if(onReady) this.loading[gm].push(onReady); return; }
+    this.loading[gm]=onReady?[onReady]:[];
+    Audio.init();
+    const done=()=>{ (this.loading[gm]||[]).forEach(cb=>cb&&cb()); delete this.loading[gm]; };
+    window.MIDI=window.MIDI||{}; window.MIDI.Soundfont=window.MIDI.Soundfont||{};
+    const s=document.createElement('script'); s.src=SF_BASE+gm+'-mp3.js';
+    s.onload=async ()=>{
+      const map=window.MIDI.Soundfont[gm];
+      if(!map){ toast('Could not read '+gm); done(); return; }
+      const notes=[];
+      await Promise.all(Object.entries(map).map(async ([name,uri])=>{
+        try{ const ab=base64ToArrayBuffer(uri.split(',')[1]); const buf=await Audio.ctx.decodeAudioData(ab);
+          notes.push({midi:noteNameToMidi(name), buf}); }catch(e){}
+      }));
+      notes.sort((a,b)=>a.midi-b.midi);
+      this.cache[gm]=notes; done();
+    };
+    s.onerror=()=>{ toast('Offline? Could not load '+gm); done(); };
+    document.head.appendChild(s);
+  },
+  nearest(gm,pitch){ const a=this.cache[gm]; if(!a||!a.length) return null;
+    let best=a[0]; for(const n of a){ if(Math.abs(n.midi-pitch)<Math.abs(best.midi-pitch)) best=n; } return best; },
+  play(gm, ctx, dest, pitch, when, vel=0.9, dur=null){
+    const s=this.nearest(gm,pitch); if(!s) return null;
+    const src=ctx.createBufferSource(); src.buffer=s.buf; src.playbackRate.value=Math.pow(2,(pitch-s.midi)/12);
+    const g=ctx.createGain(); src.connect(g); g.connect(dest);
+    const t0=Math.max(when, ctx.currentTime);
+    g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vel, t0+0.005);
+    if(dur!=null){ const rel=0.35, holdEnd=t0+Math.max(0.02,dur);
+      g.gain.setValueAtTime(vel, holdEnd); g.gain.linearRampToValueAtTime(0.0001, holdEnd+rel);
+      try{src.start(t0); src.stop(holdEnd+rel+0.05);}catch(e){}
+    } else { try{src.start(t0);}catch(e){} }
+    return { src, o1:src, release(rt){ const now=rt??ctx.currentTime; g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value,now); g.gain.linearRampToValueAtTime(0.0001, now+0.35); try{src.stop(now+0.4);}catch(e){} } };
+  }
+};
+// route a note through the track's active engine (real sample if loaded, else the synth)
+function playTrackNote(track, ctx, dest, pitch, when, vel, dur){
+  if(track.engine==='sampler' && Sampler.ready(track.sample))
+    return Sampler.play(track.sample, ctx, dest, pitch, when, vel, dur);
+  return spawnVoice(ctx, dest, track.synth, midiToFreq(pitch), when, vel, dur);
+}
+
 const Synth={
   live:{}, // pitch -> voice (for currently held keys)
   // One-shot audition on a SPECIFIC track (used by the piano roll so it plays the clip's own instrument)
   audition(pitch,vel=0.9,track){
     Audio.init(); Audio.resume();
     const t=track||getTrack(State.selectedTrack); if(!t) return;
-    spawnVoice(Audio.ctx,t.fx.input,t.synth,midiToFreq(pitch),Audio.now(),vel,0.3);
+    playTrackNote(t, Audio.ctx, t.fx.input, pitch, Audio.now(), vel, 0.4);
   },
   noteOn(pitch,vel=0.9,track){
     Audio.init(); Audio.resume();
     const t=track||getTrack(State.selectedTrack); if(!t) return;
     if(this.live[pitch]) return;
-    const v=spawnVoice(Audio.ctx,t.fx.input,t.synth,midiToFreq(pitch),Audio.now(),vel);
+    const v=playTrackNote(t, Audio.ctx, t.fx.input, pitch, Audio.now(), vel, null);
+    if(!v) return;
     this.live[pitch]=v;
     // record into armed midi region
     if(Transport.recording && t.arm && t.type!=='audio') Recorder.midiNoteOn(t,pitch,vel);
@@ -1340,8 +1424,8 @@ const Transport={
         if(nStart+ (0) < r.start+skip) return; // skip already-passed
         const nWhen=this.ctxTimeFor(nStart);
         if(nStart < this.songTimeNow()-0.001) return;
-        const v=spawnVoice(Audio.ctx,t.fx.input,t.synth,midiToFreq(n.pitch),Math.max(nWhen,Audio.now()),n.vel||0.85,n.dur);
-        this.activeSources.push(v.o1,v.o2);
+        const v=playTrackNote(t,Audio.ctx,t.fx.input,n.pitch,Math.max(nWhen,Audio.now()),n.vel||0.85,n.dur);
+        if(v){ if(v.o1)this.activeSources.push(v.o1); if(v.o2)this.activeSources.push(v.o2); }
       });
     }
   },
@@ -2038,7 +2122,7 @@ function renderSynthPanel(){
   if(!t){host.innerHTML='<div class="fxhdr">Select an instrument track</div>';return;}
   const sy=t.synth;
   const pre=fxCard('Instrument');
-  pre.body.appendChild(selectRow('Preset',Object.keys(INSTRUMENTS),t.instrument||'',v=>applyInstrument(t,v)));
+  pre.body.appendChild(selectRow('Preset',allInstrumentNames(),t.instrument||'',v=>applyInstrument(t,v)));
   pre.body.appendChild(hintRow('Pick a preset, then tweak the engine below. Play with A–L / W E T Y U keys.'));
   host.appendChild(pre.card);
   const osc=fxCard('Oscillators',null);
@@ -2099,7 +2183,7 @@ async function exportWav(){
   if(State.loop.on) end=Math.max(end,beatToSec(State.loop.end));
   end=Math.max(end,4)+1;
   toast('Rendering '+end.toFixed(1)+'s…');
-  const rate=44100;
+  const rate=(Audio.ctx&&Audio.ctx.sampleRate)||44100;
   const off=new OfflineAudioContext(2, Math.ceil(end*rate), rate);
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
   // rebuild per-track fx offline from the live chain (same modules, order, params)
@@ -2125,7 +2209,10 @@ async function exportWav(){
         if(fout>0){g.gain.setValueAtTime(1,w+Math.max(0,dur-fout));g.gain.linearRampToValueAtTime(0,w+dur);}
         src.start(r.start,r.offset||0,r.duration);
       } else if(r.type==='midi'){
-        (r.notes||[]).forEach(n=>{spawnVoice(off,fx.input,t.synth,midiToFreq(n.pitch),r.start+n.start,n.vel||0.85,n.dur);});
+        (r.notes||[]).forEach(n=>{
+          if(t.engine==='sampler' && Sampler.ready(t.sample)) Sampler.play(t.sample, off, fx.input, n.pitch, r.start+n.start, n.vel||0.85, n.dur);
+          else spawnVoice(off,fx.input,t.synth,midiToFreq(n.pitch),r.start+n.start,n.vel||0.85,n.dur);
+        });
       }
     });
   });
@@ -2185,7 +2272,7 @@ function saveProject(){
     bpm:State.bpm, timesig:State.timesig, snap:State.snap, loop:State.loop, metro:State.metro,
     drumPattern:State.drumPattern,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
-      mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,instrument:t.instrument,automation:t.automation,fxModules:fxToSpecs(t.fx)})),
+      mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,instrument:t.instrument,engine:t.engine,sample:t.sample,automation:t.automation,fxModules:fxToSpecs(t.fx)})),
     regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
       offset:r.offset,duration:r.duration,notes:r.notes,fadeIn:r.fadeIn,fadeOut:r.fadeOut,
       audioData:r.buffer?arrayBufferToBase64(encodeWav(r.buffer)):null})),
@@ -2211,6 +2298,7 @@ function loadProject(d){
     const t=addTrack(td.type,{name:td.name,color:td.color});
     t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
     t.synth=td.synth||t.synth; t.instrument=td.instrument||t.instrument; t.automation=td.automation||[];
+    t.engine=td.engine||'synth'; t.sample=td.sample||null; if(t.engine==='sampler'&&t.sample) Sampler.ensure(t.sample,()=>renderTracks());
     if(td.fxModules){ try{t.fx.output.disconnect();}catch(e){}
       t.fx=buildFX(Audio.ctx, td.fxModules); t.fx.output.connect(Audio.masterGain); }
     applyTrackGain(t);
@@ -2274,6 +2362,16 @@ $("#snap").addEventListener('change',e=>{State.snap=parseFloat(e.target.value);}
 $("#zoom").addEventListener('input',e=>{State.pxPerBeat=parseInt(e.target.value);layout();PianoRoll.draw();});
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
+// instrument picker rows: real sampled instruments, then synth presets
+function instrumentMenuItems(onPick){
+  const items=[];
+  items.push({header:'Instruments (real samples)'});
+  Object.keys(SAMPLED).forEach(name=>items.push({icon:'🎻',label:name,action:()=>onPick(name)}));
+  items.push({separator:true});
+  items.push({header:'Synth'});
+  SYNTH_PRESETS.forEach(name=>items.push({icon:'🎹',label:name,action:()=>onPick(name)}));
+  return items;
+}
 // Unified "Add Track" menu (used by the button in the track headers)
 function addTrackMenu(x,y){
   const items=[];
@@ -2282,9 +2380,7 @@ function addTrackMenu(x,y){
   items.push({icon:'🥁',label:'Drum Track',action:()=>{ addTrack('drum',{name:'Drums'}); setDrawerPane('drum'); openDrawer(); }});
   items.push({icon:'⭳',label:'Import Audio Clip…',action:()=>{ importTargetTrack=null; importTargetBeat=0; $("#fileInput").click(); }});
   items.push({separator:true});
-  items.push({header:'Instrument'});
-  Object.keys(INSTRUMENTS).forEach(name=>items.push({icon:'🎹',label:name,
-    action:()=>{ addTrack('midi',{instrument:name}); setDrawerPane('synth'); openDrawer(); }}));
+  instrumentMenuItems(name=>{ addTrack('midi',{instrument:name}); setDrawerPane('synth'); openDrawer(); }).forEach(i=>items.push(i));
   showContextMenu(x,y,items);
 }
 $("#btnExport").addEventListener('click',()=>exportWav().catch(err=>{console.error(err);toast('Export failed');}));
@@ -2460,10 +2556,10 @@ function loadTemplate(key){
   Audio.init(); Audio.resume();
   resetProject();
   if(key==='blank'){
-    addTrack('midi',{instrument:'Saw Lead'});
+    addTrack('midi',{instrument:'Grand Piano'});
   } else if(key==='beat'){
     addTrack('midi',{instrument:'Saw Lead'});
-    addTrack('midi',{instrument:'Synth Bass'});
+    addTrack('midi',{instrument:'Finger Bass'});
     addTrack('drum',{name:'Drums'});
     State.drumPattern[0]=[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0];
     State.drumPattern[1]=[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0];
@@ -2473,8 +2569,8 @@ function loadTemplate(key){
     addTrack('midi',{instrument:'Grand Piano'});
   } else if(key==='band'){
     addTrack('midi',{instrument:'Grand Piano'});
-    addTrack('midi',{instrument:'Synth Bass'});
-    addTrack('midi',{instrument:'Strings'});
+    addTrack('midi',{instrument:'Acoustic Bass'});
+    addTrack('midi',{instrument:'String Ensemble'});
     addTrack('drum',{name:'Drums'});
     State.drumPattern[0]=[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0];
     State.drumPattern[1]=[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0];
