@@ -1183,10 +1183,16 @@ function spawnVoice(ctx,dest,params,freq,when,vel=0.9,dur=null){
 }
 
 const Synth={
-  live:{}, // pitch -> voice (for currently held keys) on selected track
-  noteOn(pitch,vel=0.9){
+  live:{}, // pitch -> voice (for currently held keys)
+  // One-shot audition on a SPECIFIC track (used by the piano roll so it plays the clip's own instrument)
+  audition(pitch,vel=0.9,track){
     Audio.init(); Audio.resume();
-    const t=getTrack(State.selectedTrack); if(!t) return;
+    const t=track||getTrack(State.selectedTrack); if(!t) return;
+    spawnVoice(Audio.ctx,t.fx.input,t.synth,midiToFreq(pitch),Audio.now(),vel,0.3);
+  },
+  noteOn(pitch,vel=0.9,track){
+    Audio.init(); Audio.resume();
+    const t=track||getTrack(State.selectedTrack); if(!t) return;
     if(this.live[pitch]) return;
     const v=spawnVoice(Audio.ctx,t.fx.input,t.synth,midiToFreq(pitch),Audio.now(),vel);
     this.live[pitch]=v;
@@ -1745,7 +1751,8 @@ $("#prScroll").addEventListener('scroll',()=>{
 $("#prKeys").addEventListener('mousedown',e=>{
   const rect=$("#prKeys").getBoundingClientRect();
   const pitch=PianoRoll.yToPitch(e.clientY-rect.top);
-  Synth.noteOn(pitch);
+  const track=(PianoRoll.region&&getTrack(PianoRoll.region.trackId))||getTrack(State.selectedTrack);
+  Synth.noteOn(pitch, 0.9, track);
   const up=()=>{ Synth.noteOff(pitch); document.removeEventListener('mouseup',up); };
   document.addEventListener('mouseup',up);
 });
@@ -1775,7 +1782,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       drag={note:hit,mode:edge?'resize':'move',origStart:hit.start,origDur:hit.dur,startBeat:beat};
     } else {
       const note={pitch,vel:0.9,start:beatToSec(beat),dur:beatToSec(PianoRoll.cellBeat)};
-      r.notes.push(note); Synth.noteOn(pitch); setTimeout(()=>Synth.noteOff(pitch),150);
+      r.notes.push(note); Synth.audition(pitch, note.vel, getTrack(r.trackId));
       drag={note,mode:'resize',origStart:note.start,origDur:note.dur,startBeat:beat};
     }
     PianoRoll.draw();
@@ -1809,7 +1816,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       items.push({header:`Note ${noteName(note.pitch)} · vel ${Math.round((note.vel==null?0.9:note.vel)*100)}%`});
       items.push({icon:'⧉',label:'Duplicate',action:()=>{ r.notes.push({...note,start:note.start+note.dur});
         extendRegionToNotes(r); PianoRoll.draw(); drawRegions(); }});
-      items.push({icon:'♪',label:'Audition',action:()=>{ Synth.noteOn(note.pitch,note.vel||0.9); setTimeout(()=>Synth.noteOff(note.pitch),300); }});
+      items.push({icon:'♪',label:'Audition',action:()=>Synth.audition(note.pitch, note.vel||0.9, getTrack(r.trackId))});
       items.push({header:'Velocity'});
       items.push({icon:'▁',label:'Soft (40%)',action:()=>{ note.vel=0.4; PianoRoll.draw(); drawRegions(); }});
       items.push({icon:'▄',label:'Medium (70%)',action:()=>{ note.vel=0.7; PianoRoll.draw(); drawRegions(); }});
