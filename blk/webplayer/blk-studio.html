@@ -1241,11 +1241,35 @@ const Recorder={
    ===================================================================== */
 const Mic={
   stream:null, source:null, analyser:null, monitorGain:null, monitoring:false,
-  deviceId:null, buf:null, metering:false,
+  deviceId:null, buf:null, metering:false, autoDetected:false, _devWatch:false,
 
   async getStream(){
     if(this.stream && this.stream.active) return this.stream;
     return this.enable(this.deviceId);
+  },
+  // Automatically find and enable a microphone (called when the Vocals panel opens)
+  async autoDetect(){
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ toast('Mic not available in this browser/context'); return; }
+    await this.listDevices();
+    this._watchDevices();
+    if((!this.stream || !this.stream.active) && !this.autoDetected){
+      this.autoDetected=true;
+      try{ await this.enable(this.deviceId); toast('Microphone detected'); }
+      catch(e){ this._setStatus(false); /* denied / none — user can retry */ }
+    }
+  },
+  _watchDevices(){
+    if(this._devWatch || !navigator.mediaDevices || !navigator.mediaDevices.addEventListener) return;
+    this._devWatch=true;
+    navigator.mediaDevices.addEventListener('devicechange', async ()=>{
+      await this.listDevices();
+      // if the active mic vanished, fall back to the default input
+      if(this.stream){
+        const live=this.stream.getAudioTracks()[0];
+        const stillThere=(await navigator.mediaDevices.enumerateDevices()).some(d=>d.kind==='audioinput' && d.label===(live&&live.label));
+        if(!stillThere){ try{ await this.enable(null); toast('Switched to available microphone'); }catch(e){} }
+      }
+    });
   },
   async enable(deviceId){
     Audio.init(); Audio.resume();
@@ -1375,7 +1399,7 @@ const BLACK_KEYS=[1,3,6,8,10];
 const isBlackKey=p=>BLACK_KEYS.includes(((p%12)+12)%12);
 
 const PianoRoll={
-  region:null, cellBeat:0.25, noteH:15, octaves:7, lowNote:12, beatW:96, // C0..B6
+  region:null, cellBeat:0.25, noteH:15, octaves:8, lowNote:12, beatW:96, minBars:16, // C0..B7
   grid:$("#prGrid"), keys:$("#prKeys"), ruler:$("#prRuler"),
   get rows(){return this.octaves*12;},
   load(r){
@@ -1395,7 +1419,8 @@ const PianoRoll={
   draw(){
     const r=this.region;
     const bpb=beatsPerBar();
-    const beats=Math.ceil((r?secToBeat(r.duration):8)/bpb)*bpb + bpb; // whole bars + 1 spare
+    const regionBars=Math.ceil((r?secToBeat(r.duration):8)/bpb);
+    const beats=(Math.max(regionBars, this.minBars)+2)*bpb; // extend well past the clip so you can scroll/add
     const pxBeat=this.beatW, W=Math.max(360, beats*pxBeat), H=this.rows*this.noteH;
     this._pxBeat=pxBeat;
     this.grid.width=W; this.grid.height=H;
@@ -1467,8 +1492,16 @@ const PianoRoll={
   zoomV(d){ this.noteH=clamp(this.noteH+d,9,26); this.draw(); },
   yToPitch(y){ const row=Math.floor(y/this.noteH); return this.lowNote+(this.rows-1-row); },
   xToBeat(x){ return snapPRBeat(x/this._pxBeat); },
+  noteAt(x,y){ const r=this.region; if(!r) return null;
+    const beat=x/this._pxBeat, pitch=this.yToPitch(y); let hit=null;
+    (r.notes||[]).forEach(n=>{ const nb=secToBeat(n.start), nd=secToBeat(n.dur);
+      if(n.pitch===pitch && beat>=nb-0.01 && beat<=nb+nd+0.01) hit=n; });
+    return hit; },
   highlight(pitch,on){/* optional visual */},
 };
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function noteName(p){ return NOTE_NAMES[((p%12)+12)%12]+(Math.floor(p/12)-1); }
+function extendRegionToNotes(r){ let end=r.duration||0; (r.notes||[]).forEach(n=>end=Math.max(end,n.start+n.dur)); r.duration=Math.max(end, secPerBeat()*beatsPerBar()); }
 // keep keys/ruler aligned with the grid scroll
 $("#prScroll").addEventListener('scroll',()=>{
   const sc=$("#prScroll");
@@ -1484,6 +1517,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
 (function(){
   const grid=$("#prGrid"); let drag=null;
   grid.addEventListener('mousedown',e=>{
+    if(e.button!==0) return; // right-click opens the note context menu
     const r=PianoRoll.ensureRegion();
     const rect=grid.getBoundingClientRect();
     const x=e.clientX-rect.left, y=e.clientY-rect.top;
@@ -1512,7 +1546,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       PianoRoll.draw();
     };
     const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);
-      if(drag.region)r.duration=Math.max(r.duration, drag.note.start+drag.note.dur); drawRegions();};
+      extendRegionToNotes(r); PianoRoll.draw(); drawRegions();};
     document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
   });
   grid.addEventListener('dblclick',e=>{
@@ -1521,6 +1555,38 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
     const pitch=PianoRoll.yToPitch(y), beat=PianoRoll.xToBeat(x);
     r.notes=r.notes.filter(n=>!(n.pitch===pitch && beat>=secToBeat(n.start)-0.05 && beat<=secToBeat(n.start)+secToBeat(n.dur)+0.05));
     PianoRoll.draw(); drawRegions();
+  });
+  // custom right-click menu on notes / empty grid
+  grid.addEventListener('contextmenu',e=>{
+    e.preventDefault(); e.stopPropagation();
+    const rect=grid.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top;
+    const pitch=PianoRoll.yToPitch(y), beat=snapPRBeat(x/PianoRoll._pxBeat);
+    const r=PianoRoll.region;
+    const note=PianoRoll.noteAt(x,y);
+    const items=[];
+    if(note){
+      items.push({header:`Note ${noteName(note.pitch)} · vel ${Math.round((note.vel==null?0.9:note.vel)*100)}%`});
+      items.push({icon:'⧉',label:'Duplicate',action:()=>{ r.notes.push({...note,start:note.start+note.dur});
+        extendRegionToNotes(r); PianoRoll.draw(); drawRegions(); }});
+      items.push({icon:'♪',label:'Audition',action:()=>{ Synth.noteOn(note.pitch,note.vel||0.9); setTimeout(()=>Synth.noteOff(note.pitch),300); }});
+      items.push({header:'Velocity'});
+      items.push({icon:'▁',label:'Soft (40%)',action:()=>{ note.vel=0.4; PianoRoll.draw(); drawRegions(); }});
+      items.push({icon:'▄',label:'Medium (70%)',action:()=>{ note.vel=0.7; PianoRoll.draw(); drawRegions(); }});
+      items.push({icon:'█',label:'Loud (100%)',action:()=>{ note.vel=1.0; PianoRoll.draw(); drawRegions(); }});
+      items.push({separator:true});
+      items.push({icon:'🗑',label:'Delete Note',danger:true,action:()=>{ r.notes=r.notes.filter(n=>n!==note); PianoRoll.draw(); drawRegions(); }});
+    } else {
+      items.push({header:`${noteName(pitch)} · bar ${Math.floor(beat/beatsPerBar())+1}`});
+      items.push({icon:'＋',label:'Add Note Here',action:()=>{ const rr=PianoRoll.ensureRegion();
+        rr.notes.push({pitch,vel:0.9,start:beatToSec(beat),dur:beatToSec(PianoRoll.cellBeat)});
+        extendRegionToNotes(rr); PianoRoll.draw(); drawRegions(); }});
+    }
+    if(r && r.notes && r.notes.length){
+      items.push({separator:true});
+      items.push({icon:'⋔',label:'Quantize All (1/16)',action:()=>{ r.notes.forEach(n=>n.start=beatToSec(Math.round(secToBeat(n.start)/0.25)*0.25)); PianoRoll.draw(); drawRegions(); toast('Quantized'); }});
+      items.push({icon:'🗑',label:'Clear All Notes',danger:true,action:()=>{ r.notes=[]; PianoRoll.draw(); drawRegions(); }});
+    }
+    showContextMenu(e.clientX, e.clientY, items);
   });
 })();
 $("#prQuantize").addEventListener('click',()=>{
@@ -1970,7 +2036,7 @@ function setDrawerPane(name){
   $$(".dtab[data-pane]").forEach(b=>b.classList.toggle('on',b.dataset.pane===name));
   $$(".dpane").forEach(p=>p.classList.toggle('on',p.id==='pane-'+name));
   if(name==='piano')PianoRoll.draw(); if(name==='fx')renderFX(); if(name==='mixer')renderMixer(); if(name==='synth')renderSynthPanel();
-  if(name==='mic')Mic.listDevices();
+  if(name==='mic')Mic.autoDetect();
 }
 $$(".dtab[data-pane]").forEach(b=>b.addEventListener('click',()=>{openDrawer();setDrawerPane(b.dataset.pane);}));
 function openDrawer(){$("#drawer").classList.remove('collapsed');$("#drawerToggle").textContent='▾ Collapse';}
