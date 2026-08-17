@@ -134,9 +134,13 @@
   .autolane canvas{display:block}
 
   /* ---------- Bottom drawer ---------- */
-  .drawer{height:264px; border-top:1px solid var(--line); background:var(--panel);
-    display:flex; flex-direction:column; transition:height .15s}
+  .drawer{height:var(--drawer-h,300px); border-top:1px solid var(--line); background:var(--panel);
+    display:flex; flex-direction:column; position:relative}
   .drawer.collapsed{height:34px}
+  .drawer-resize{position:absolute; top:-3px; left:0; right:0; height:8px; cursor:ns-resize; z-index:20}
+  .drawer-resize::after{content:''; position:absolute; top:3px; left:0; right:0; height:2px;
+    background:transparent; transition:background .15s}
+  .drawer-resize:hover::after, .drawer-resize.drag::after{background:var(--accent)}
   .drawer-tabs{display:flex; align-items:center; gap:4px; padding:5px 8px;
     border-bottom:1px solid var(--line); background:var(--panel2)}
   .dtab{background:transparent; border:1px solid transparent; border-radius:6px;
@@ -147,12 +151,24 @@
   .dpane.on{display:block}
 
   /* Piano roll */
-  .pr-wrap{display:flex; height:100%}
-  #prKeys{background:var(--panel2); border-right:1px solid var(--line)}
-  .pr-scroll{flex:1; overflow:auto; position:relative}
-  #prGrid{display:block; background:#10131b}
-  .pr-toolbar{display:flex; gap:8px; align-items:center; padding:6px 10px;
+  #pane-piano.on{display:flex; flex-direction:column}
+  .pr-toolbar{display:flex; gap:10px; align-items:center; padding:6px 10px; flex:0 0 auto;
     border-bottom:1px solid var(--line); font-size:11px; color:var(--muted); background:var(--panel2)}
+  .pr-toolbar b{color:var(--text); font-weight:700}
+  .pr-tip{color:var(--muted); font-size:10px}
+  .pr-zoom{margin-left:auto; display:flex; gap:4px}
+  .prz{width:26px; height:22px; border:1px solid var(--line2); background:var(--panel3); color:var(--text);
+    border-radius:4px; font-size:12px; line-height:1; cursor:pointer; padding:0}
+  .prz:hover{border-color:var(--accent); color:var(--accent)}
+  .pr-body{flex:1; min-height:0; display:grid; grid-template-columns:56px 1fr; grid-template-rows:22px 1fr}
+  .pr-corner{background:var(--panel2); border-right:1px solid var(--line); border-bottom:1px solid var(--line)}
+  .pr-ruler-wrap{overflow:hidden; position:relative; background:var(--panel); border-bottom:1px solid var(--line)}
+  .pr-keys-wrap{overflow:hidden; position:relative; background:var(--panel2); border-right:1px solid var(--line)}
+  .pr-ruler-wrap canvas, .pr-keys-wrap canvas{position:absolute; top:0; left:0; display:block}
+  .pr-scroll{overflow:auto; position:relative; background:#08090e}
+  #prGrid{display:block}
+  #prPlayhead{position:absolute; top:0; width:2px; background:var(--accent2); z-index:5;
+    box-shadow:0 0 6px var(--accent2); pointer-events:none; display:none}
 
   /* Mixer */
   .mixer{display:flex; gap:10px; padding:12px; height:100%; overflow-x:auto}
@@ -312,6 +328,7 @@
 
   <!-- ============ BOTTOM DRAWER ============ -->
   <div class="drawer" id="drawer">
+    <div class="drawer-resize" id="drawerResize" title="Drag to resize"></div>
     <div class="drawer-tabs">
       <button class="dtab on" data-pane="piano">🎹 Piano Roll</button>
       <button class="dtab" data-pane="drum">🥁 Drum Machine</button>
@@ -325,13 +342,24 @@
       <!-- Piano roll -->
       <div class="dpane on" id="pane-piano">
         <div class="pr-toolbar">
-          <span>Editing MIDI region:</span> <b id="prRegionName">— select/create a MIDI region —</b>
-          <span style="margin-left:14px">Draw notes with mouse · drag to move · edge to resize · dbl-click to delete</span>
-          <button class="dtab" id="prQuantize" style="margin-left:auto">Quantize 1/16</button>
+          <b id="prRegionName">— select or create a MIDI clip —</b>
+          <span class="pr-tip">draw · drag to move · edge to resize · dbl-click deletes</span>
+          <span class="pr-zoom">
+            <button class="prz" id="prZoomOut" title="Zoom out (horizontal)">−</button>
+            <button class="prz" id="prZoomIn" title="Zoom in (horizontal)">+</button>
+            <button class="prz" id="prVZoomOut" title="Shorter rows">▁</button>
+            <button class="prz" id="prVZoomIn" title="Taller rows">▔</button>
+          </span>
+          <button class="dtab" id="prQuantize">Quantize 1/16</button>
         </div>
-        <div class="pr-wrap">
-          <canvas id="prKeys" width="60"></canvas>
-          <div class="pr-scroll" id="prScroll"><canvas id="prGrid"></canvas></div>
+        <div class="pr-body">
+          <div class="pr-corner"></div>
+          <div class="pr-ruler-wrap"><canvas id="prRuler"></canvas></div>
+          <div class="pr-keys-wrap"><canvas id="prKeys"></canvas></div>
+          <div class="pr-scroll" id="prScroll">
+            <canvas id="prGrid"></canvas>
+            <div id="prPlayhead"></div>
+          </div>
         </div>
       </div>
       <!-- Drum -->
@@ -374,6 +402,10 @@
             <div class="fxmod">
               <h4><span>Take</span></h4>
               <label class="micchk"><input type="checkbox" id="micCountIn" checked> 1-bar count-in</label>
+              <div class="prm" style="margin-top:12px"><label>Latency</label>
+                <input type="range" id="micLatency" min="0" max="400" step="5" value="0" style="flex:1">
+                <span class="val" id="micLatencyVal">0 ms</span></div>
+              <div class="hint" style="margin:2px 0 4px">Shifts recorded takes earlier to compensate for input delay. Raise it if your vocals land late against the beat.</div>
               <button id="btnRecVocals" class="rec-vocals">● &nbsp;Record Vocals</button>
               <div class="hint" style="margin-top:8px">Arms an audio track and records from the playhead. Click again (or Stop) to finish — a waveform clip drops onto the track.</div>
             </div>
@@ -408,6 +440,7 @@ const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
   tracks:[], regions:[], selectedTrack:null, selectedRegion:null,
+  recLatencyMs:0,
   drumPattern:Array.from({length:8},()=>new Array(16).fill(false)),
   synth:{osc1:'sawtooth',osc2:'square',detune:8,a:.01,d:.15,s:.6,r:.25,
          cutoff:4000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
@@ -1121,6 +1154,7 @@ function updatePlayhead(){
   const view=lanes.scrollLeft, vw=lanes.clientWidth;
   if(x<view||x>view+vw-60) lanes.scrollLeft=Math.max(0,x-vw*0.3);
   drawRuler();
+  if(typeof PianoRoll!=='undefined') PianoRoll.updatePlayhead();
 }
 function updatePosDisplay(){
   const beat=secToBeat(Transport.position);
@@ -1185,11 +1219,12 @@ const Recorder={
     if(!this.chunks.length){ return; }
     const blob=new Blob(this.chunks,{type:'audio/webm'});
     const track=this.recTrack, startSong=this.recStartSong;
+    const comp=(State.recLatencyMs||0)/1000; // latency compensation: pull the take earlier
     blob.arrayBuffer().then(ab=>Audio.ctx.decodeAudioData(ab)).then(buf=>{
       const reg={id:uid(),trackId:track.id,type:'audio',name:track.name+' take',
-        start:startSong,offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0};
+        start:Math.max(0,startSong-comp),offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0};
       State.regions.push(reg); State.selectedRegion=reg.id; drawRegions();
-      toast('✓ Recorded '+buf.duration.toFixed(1)+'s onto '+track.name);
+      toast('✓ Recorded '+buf.duration.toFixed(1)+'s onto '+track.name+(comp?` (−${State.recLatencyMs}ms)`:''));
     }).catch(()=>toast('Could not decode recording'));
   },
   finishAll(){
@@ -1333,14 +1368,20 @@ lanes.addEventListener('drop',e=>{
 /* =====================================================================
    PIANO ROLL
    ===================================================================== */
+function roundRect(ctx,x,y,w,h,r){ r=Math.max(0,Math.min(r,w/2,h/2));
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+const BLACK_KEYS=[1,3,6,8,10];
+const isBlackKey=p=>BLACK_KEYS.includes(((p%12)+12)%12);
+
 const PianoRoll={
-  region:null, cellBeat:0.25, noteH:12, octaves:5, lowNote:36, // C2
-  grid:$("#prGrid"), keys:$("#prKeys"),
+  region:null, cellBeat:0.25, noteH:15, octaves:7, lowNote:12, beatW:96, // C0..B6
+  grid:$("#prGrid"), keys:$("#prKeys"), ruler:$("#prRuler"),
   get rows(){return this.octaves*12;},
   load(r){
     if(!r||r.type!=='midi') return;
     this.region=r; $("#prRegionName").textContent=r.name;
-    this.draw();
+    this.draw(); this.scrollToContent();
   },
   ensureRegion(){
     if(this.region) return this.region;
@@ -1353,47 +1394,91 @@ const PianoRoll={
   },
   draw(){
     const r=this.region;
-    const beats=r?secToBeat(r.duration):8;
-    const w=beats/this.cellBeat* (this.cellBeat*beatToPx(1)); // px
-    const pxBeat=beatToPx(1);
-    const W=Math.max(600, beats*pxBeat), H=this.rows*this.noteH;
-    this.grid.width=W; this.grid.height=H; this.keys.width=60; this.keys.height=H;
+    const bpb=beatsPerBar();
+    const beats=Math.ceil((r?secToBeat(r.duration):8)/bpb)*bpb + bpb; // whole bars + 1 spare
+    const pxBeat=this.beatW, W=Math.max(360, beats*pxBeat), H=this.rows*this.noteH;
+    this._pxBeat=pxBeat;
+    this.grid.width=W; this.grid.height=H;
+    this.keys.width=56; this.keys.height=H;
+    this.ruler.width=W; this.ruler.height=22;
+    // ---- grid rows ----
     const g=this.grid.getContext('2d'); g.clearRect(0,0,W,H);
-    // rows
     for(let row=0;row<this.rows;row++){
-      const pitch=this.lowNote+(this.rows-1-row);
-      const isBlack=[1,3,6,8,10].includes(pitch%12);
-      g.fillStyle=isBlack?'#0c0f16':'#12151d'; g.fillRect(0,row*this.noteH,W,this.noteH);
-      g.strokeStyle='#1b2130'; g.beginPath(); g.moveTo(0,row*this.noteH+.5); g.lineTo(W,row*this.noteH+.5); g.stroke();
+      const pitch=this.lowNote+(this.rows-1-row), y=row*this.noteH;
+      g.fillStyle=isBlackKey(pitch)?'#0b0c11':'#0f1119'; g.fillRect(0,y,W,this.noteH);
+      if(pitch%12===0){ g.fillStyle='rgba(138,43,226,0.07)'; g.fillRect(0,y,W,this.noteH); } // C-row tint
+      g.strokeStyle='#171a24'; g.beginPath(); g.moveTo(0,y+.5); g.lineTo(W,y+.5); g.stroke();
     }
-    // vertical grid
-    for(let b=0;b<=beats;b+=this.cellBeat){
-      const x=b*pxBeat; const isBeat=Math.abs(b%1)<1e-6; const isBar=Math.abs(b%beatsPerBar())<1e-6;
-      g.strokeStyle=isBar?'#39445a':isBeat?'#2a3244':'#1b2130';
+    // ---- vertical grid ----
+    for(let b=0;b<=beats+1e-6;b+=this.cellBeat){
+      const x=b*pxBeat, isBeat=Math.abs(b%1)<1e-6, isBar=Math.abs(b%bpb)<1e-6;
+      g.strokeStyle=isBar?'#39445a':isBeat?'#232b3a':'#161b26'; g.lineWidth=isBar?1.4:1;
       g.beginPath(); g.moveTo(x+.5,0); g.lineTo(x+.5,H); g.stroke();
     }
-    // notes
+    g.lineWidth=1;
+    // clip-end marker (region duration)
+    if(r){ const endX=secToBeat(r.duration)*pxBeat;
+      g.fillStyle='rgba(0,0,0,0.28)'; g.fillRect(endX,0,W-endX,H);
+      g.strokeStyle='rgba(138,43,226,0.5)'; g.beginPath(); g.moveTo(endX+.5,0); g.lineTo(endX+.5,H); g.stroke(); }
+    // ---- notes ----
     if(r) (r.notes||[]).forEach(n=>{
-      const x=secToBeat(n.start)*pxBeat, wN=Math.max(3,secToBeat(n.dur)*pxBeat);
-      const row=this.rows-1-(n.pitch-this.lowNote);
-      if(row<0||row>=this.rows) return;
-      g.fillStyle='#5b8cff'; g.strokeStyle='#a9c3ff';
-      g.fillRect(x,row*this.noteH+1,wN,this.noteH-2); g.strokeRect(x+.5,row*this.noteH+1.5,wN-1,this.noteH-3);
+      const x=secToBeat(n.start)*pxBeat, wN=Math.max(4,secToBeat(n.dur)*pxBeat);
+      const row=this.rows-1-(n.pitch-this.lowNote); if(row<0||row>=this.rows) return;
+      const y=row*this.noteH, vel=clamp(n.vel==null?0.9:n.vel,0.05,1);
+      g.fillStyle=`rgba(138,43,226,${0.4+0.55*vel})`;
+      roundRect(g,x+1,y+1.5,wN-2,this.noteH-3,3); g.fill();
+      g.strokeStyle='rgba(200,155,255,0.95)'; roundRect(g,x+1,y+1.5,wN-2,this.noteH-3,3); g.stroke();
     });
-    // keys
-    const k=this.keys.getContext('2d'); k.clearRect(0,0,60,H);
-    for(let row=0;row<this.rows;row++){
-      const pitch=this.lowNote+(this.rows-1-row);
-      const isBlack=[1,3,6,8,10].includes(pitch%12);
-      k.fillStyle=isBlack?'#171b25':'#e8ecf5'; k.fillRect(0,row*this.noteH,60,this.noteH-1);
-      if(pitch%12===0){k.fillStyle='#5b8cff'; k.font='9px monospace'; k.fillText('C'+(Math.floor(pitch/12)-1),34,row*this.noteH+9);}
+    // ---- ruler ----
+    const rc=this.ruler.getContext('2d'); rc.clearRect(0,0,W,22);
+    rc.font='9px "Space Mono",monospace';
+    for(let b=0;b<=beats;b++){
+      const x=b*pxBeat, isBar=b%bpb===0;
+      rc.strokeStyle=isBar?'#3a445a':'#242c3a'; rc.beginPath(); rc.moveTo(x+.5,isBar?4:13); rc.lineTo(x+.5,22); rc.stroke();
+      if(isBar){ rc.fillStyle='#9aa4b8'; rc.fillText(String(b/bpb+1), x+3, 10); }
     }
-    this._pxBeat=pxBeat;
+    // ---- keys ----
+    const k=this.keys.getContext('2d'); k.clearRect(0,0,56,H);
+    for(let row=0;row<this.rows;row++){
+      const pitch=this.lowNote+(this.rows-1-row), y=row*this.noteH, black=isBlackKey(pitch);
+      k.fillStyle=black?'#14171e':'#e9edf5'; k.fillRect(0,y,56,this.noteH);
+      k.strokeStyle='#090a0f'; k.beginPath(); k.moveTo(0,y+this.noteH-.5); k.lineTo(56,y+this.noteH-.5); k.stroke();
+      if(pitch%12===0){ k.fillStyle='#8A2BE2'; k.font='bold 9px "Space Mono",monospace';
+        k.fillText('C'+(Math.floor(pitch/12)-1), 30, y+this.noteH/2+3.5); }
+    }
+    this.updatePlayhead();
   },
+  updatePlayhead(){
+    const ph=$("#prPlayhead"); if(!ph) return;
+    const r=this.region;
+    const rel=r?secToBeat(Transport.position-r.start):-1;
+    if(!r || rel<0){ ph.style.display='none'; return; }
+    ph.style.display='block'; ph.style.left=(rel*this.beatW)+'px'; ph.style.height=(this.rows*this.noteH)+'px';
+  },
+  scrollToContent(){
+    const sc=$("#prScroll"); if(!sc) return;
+    let pitch=60; const ns=this.region&&this.region.notes;
+    if(ns&&ns.length) pitch=Math.round(ns.reduce((a,n)=>a+n.pitch,0)/ns.length);
+    const row=this.rows-1-(pitch-this.lowNote);
+    sc.scrollTop=Math.max(0, row*this.noteH - sc.clientHeight/2);
+    $("#prKeys").style.transform=`translateY(${-sc.scrollTop}px)`;
+  },
+  zoomH(f){ this.beatW=clamp(Math.round(this.beatW*f),34,320); this.draw(); },
+  zoomV(d){ this.noteH=clamp(this.noteH+d,9,26); this.draw(); },
   yToPitch(y){ const row=Math.floor(y/this.noteH); return this.lowNote+(this.rows-1-row); },
   xToBeat(x){ return snapPRBeat(x/this._pxBeat); },
-  highlight(pitch,on){/* optional visual - redraw light */},
+  highlight(pitch,on){/* optional visual */},
 };
+// keep keys/ruler aligned with the grid scroll
+$("#prScroll").addEventListener('scroll',()=>{
+  const sc=$("#prScroll");
+  $("#prRuler").style.transform=`translateX(${-sc.scrollLeft}px)`;
+  $("#prKeys").style.transform=`translateY(${-sc.scrollTop}px)`;
+});
+$("#prZoomIn").addEventListener('click',()=>PianoRoll.zoomH(1.25));
+$("#prZoomOut").addEventListener('click',()=>PianoRoll.zoomH(0.8));
+$("#prVZoomIn").addEventListener('click',()=>PianoRoll.zoomV(2));
+$("#prVZoomOut").addEventListener('click',()=>PianoRoll.zoomV(-2));
 function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/s)*s);}
 // piano roll mouse
 (function(){
@@ -1891,6 +1976,28 @@ $$(".dtab[data-pane]").forEach(b=>b.addEventListener('click',()=>{openDrawer();s
 function openDrawer(){$("#drawer").classList.remove('collapsed');$("#drawerToggle").textContent='▾ Collapse';}
 $("#drawerToggle").addEventListener('click',()=>{const d=$("#drawer");d.classList.toggle('collapsed');
   $("#drawerToggle").textContent=d.classList.contains('collapsed')?'▴ Expand':'▾ Collapse';layout();});
+
+/* Resizable drawer (drag its top edge) — resizes the piano roll and all panes */
+(function(){
+  const handle=$("#drawerResize"), drawer=$("#drawer");
+  handle.addEventListener('mousedown',e=>{
+    e.preventDefault(); drawer.classList.remove('collapsed');
+    $("#drawerToggle").textContent='▾ Collapse'; handle.classList.add('drag');
+    const startY=e.clientY, startH=drawer.getBoundingClientRect().height;
+    const move=ev=>{
+      const h=clamp(startH+(startY-ev.clientY), 120, window.innerHeight-160);
+      drawer.style.setProperty('--drawer-h', h+'px');
+      layout(); PianoRoll.updatePlayhead();
+    };
+    const up=()=>{ handle.classList.remove('drag'); PianoRoll.draw();
+      document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+  });
+})();
+
+/* Latency compensation slider */
+$("#micLatency").addEventListener('input',e=>{ State.recLatencyMs=parseInt(e.target.value)||0;
+  $("#micLatencyVal").textContent=State.recLatencyMs+' ms'; });
 
 /* click empty lane -> create region (midi draw start) */
 lanes.addEventListener('dblclick',e=>{
