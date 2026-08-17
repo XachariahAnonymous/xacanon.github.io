@@ -703,18 +703,18 @@ function removeFX(t, idx){
    INSTRUMENTS — presets for the 2-osc subtractive synth engine
    ===================================================================== */
 const INSTRUMENTS={
-  'Saw Lead'  :{osc1:'sawtooth',osc2:'sawtooth',detune:12,a:.01,d:.1,s:.8,r:.2,cutoff:8000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
-  'Square Lead':{osc1:'square',osc2:'square',detune:8,a:.01,d:.1,s:.8,r:.2,cutoff:6000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5},
-  'Grand Piano':{osc1:'triangle',osc2:'sine',detune:3,a:.005,d:.8,s:.2,r:.3,cutoff:6000,reso:.5,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.4},
-  'Electric Piano':{osc1:'sine',osc2:'triangle',detune:5,a:.005,d:.6,s:.3,r:.4,cutoff:4000,reso:1,lfoRate:4,lfoAmt:.1,lfoTarget:'cutoff',mix:.5},
-  'Synth Bass':{osc1:'sawtooth',osc2:'square',detune:6,a:.005,d:.2,s:.7,r:.15,cutoff:1200,reso:4,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5},
-  'Sub Bass'  :{osc1:'sine',osc2:'sine',detune:0,a:.01,d:.2,s:.9,r:.2,cutoff:500,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.2},
-  'Warm Pad'  :{osc1:'sawtooth',osc2:'triangle',detune:15,a:.6,d:.5,s:.8,r:1.2,cutoff:3000,reso:1,lfoRate:1,lfoAmt:.2,lfoTarget:'cutoff',mix:.6},
-  'Strings'   :{osc1:'sawtooth',osc2:'sawtooth',detune:10,a:.3,d:.3,s:.9,r:.8,cutoff:5000,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
-  'Brass'     :{osc1:'sawtooth',osc2:'sawtooth',detune:6,a:.05,d:.2,s:.8,r:.2,cutoff:4000,reso:2,lfoRate:5,lfoAmt:.05,lfoTarget:'cutoff',mix:.6},
-  'Organ'     :{osc1:'sine',osc2:'square',detune:0,a:.01,d:.05,s:1,r:.1,cutoff:7000,reso:.5,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5},
-  'Pluck'     :{osc1:'triangle',osc2:'square',detune:4,a:.002,d:.25,s:0,r:.15,cutoff:5000,reso:3,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.4},
-  'Bells'     :{osc1:'sine',osc2:'sine',detune:14,a:.002,d:1.2,s:.1,r:1,cutoff:9000,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5},
+  'Saw Lead'  :{osc1:'sawtooth',osc2:'sawtooth',detune:12,a:.01,d:.1,s:.8,r:.2,cutoff:7000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6,filterEnv:.2,filterDecay:.3},
+  'Square Lead':{osc1:'square',osc2:'square',detune:8,a:.01,d:.1,s:.8,r:.2,cutoff:5000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:.2,filterDecay:.3},
+  'Grand Piano':{osc1:'triangle',osc2:'sine',detune:3,a:.004,d:.9,s:.15,r:.35,cutoff:1400,reso:.7,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:.78,filterDecay:.5},
+  'Electric Piano':{osc1:'sine',osc2:'triangle',detune:5,a:.005,d:.6,s:.3,r:.4,cutoff:1800,reso:1,lfoRate:4,lfoAmt:.08,lfoTarget:'cutoff',mix:.5,filterEnv:.6,filterDecay:.4},
+  'Synth Bass':{osc1:'sawtooth',osc2:'square',detune:6,a:.004,d:.2,s:.7,r:.12,cutoff:900,reso:5,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:.55,filterDecay:.18},
+  'Sub Bass'  :{osc1:'sine',osc2:'sine',detune:0,a:.01,d:.2,s:.9,r:.2,cutoff:450,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.2,filterEnv:.2,filterDecay:.15},
+  'Warm Pad'  :{osc1:'sawtooth',osc2:'triangle',detune:15,a:.6,d:.5,s:.8,r:1.2,cutoff:2200,reso:1,lfoRate:1,lfoAmt:.2,lfoTarget:'cutoff',mix:.6,filterEnv:.3,filterDecay:1.2},
+  'Strings'   :{osc1:'sawtooth',osc2:'sawtooth',detune:10,a:.3,d:.3,s:.9,r:.8,cutoff:3500,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6,filterEnv:.25,filterDecay:.6},
+  'Brass'     :{osc1:'sawtooth',osc2:'sawtooth',detune:6,a:.05,d:.2,s:.8,r:.2,cutoff:1500,reso:2,lfoRate:5,lfoAmt:.05,lfoTarget:'cutoff',mix:.6,filterEnv:.6,filterDecay:.25},
+  'Organ'     :{osc1:'sine',osc2:'square',detune:0,a:.01,d:.05,s:1,r:.1,cutoff:6000,reso:.5,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:0,filterDecay:.3},
+  'Pluck'     :{osc1:'triangle',osc2:'square',detune:4,a:.002,d:.25,s:0,r:.12,cutoff:1200,reso:3,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.4,filterEnv:.85,filterDecay:.14},
+  'Bells'     :{osc1:'sine',osc2:'sine',detune:14,a:.002,d:1.2,s:.1,r:1,cutoff:3000,reso:1,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:.5,filterDecay:1},
 };
 const DEFAULT_INSTRUMENT='Saw Lead';
 function applyInstrument(t,name){
@@ -1149,8 +1149,16 @@ function spawnVoice(ctx,dest,params,freq,when,vel=0.9,dur=null){
   const o1=ctx.createOscillator(); o1.type=params.osc1; o1.frequency.value=freq;
   const o2=ctx.createOscillator(); o2.type=params.osc2; o2.frequency.value=freq; o2.detune.value=params.detune;
   const g1=ctx.createGain(); g1.gain.value=1; const g2=ctx.createGain(); g2.gain.value=params.mix;
-  const filter=ctx.createBiquadFilter(); filter.type='lowpass';
-  filter.frequency.value=params.cutoff; filter.Q.value=params.reso;
+  const filter=ctx.createBiquadFilter(); filter.type='lowpass'; filter.Q.value=params.reso;
+  // filter envelope: open bright on attack, decay down to the base cutoff (gives pianos/plucks/bells their shape)
+  const baseCut=params.cutoff, envAmt=params.filterEnv||0;
+  if(envAmt>0){
+    const peak=Math.min(18000, baseCut + envAmt*11000);
+    filter.frequency.setValueAtTime(peak, when);
+    filter.frequency.exponentialRampToValueAtTime(Math.max(60,baseCut), when+(params.filterDecay||0.3));
+  } else {
+    filter.frequency.setValueAtTime(baseCut, when);
+  }
   const amp=ctx.createGain(); amp.gain.value=0;
   o1.connect(g1); o2.connect(g2); g1.connect(filter); g2.connect(filter);
   filter.connect(amp); amp.connect(dest);
@@ -2048,6 +2056,8 @@ function renderSynthPanel(){
   const flt=fxCard('Filter',null);
   flt.body.appendChild(param('Cutoff',80,12000,10,sy.cutoff,v=>Math.round(v)+'Hz',v=>sy.cutoff=v));
   flt.body.appendChild(param('Reso',0.1,20,0.1,sy.reso,v=>v.toFixed(1),v=>sy.reso=v));
+  flt.body.appendChild(param('Env Amt',0,1,0.01,sy.filterEnv||0,v=>v.toFixed(2),v=>sy.filterEnv=v));
+  flt.body.appendChild(param('Env Decay',0.02,2,0.01,sy.filterDecay||0.3,v=>(v*1000).toFixed(0)+'ms',v=>sy.filterDecay=v));
   host.appendChild(flt.card);
   const lfo=fxCard('LFO',null);
   lfo.body.appendChild(selectRow('Target',['off','cutoff','pitch'],sy.lfoTarget,v=>sy.lfoTarget=v));
