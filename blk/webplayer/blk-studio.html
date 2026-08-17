@@ -223,6 +223,20 @@
     font-family:'Space Mono',monospace}
   .ctxitem:hover .ctxhint{color:rgba(255,255,255,.85)}
   .ctxsep{height:1px; background:var(--line); margin:4px 6px}
+
+  /* Mic / vocals panel */
+  .hmeter{flex:1; height:14px; background:#05070c; border:1px solid var(--line2); border-radius:3px; overflow:hidden}
+  .hmeter i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--good),var(--warn) 78%,var(--rec)); transition:width .05s}
+  .micchk{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:var(--muted); cursor:pointer}
+  .micchk input{width:15px; height:15px; accent-color:var(--accent); cursor:pointer}
+  .fxmod h4 .tg#micStatusTag.on{background:var(--good); color:#000; border-color:var(--good)}
+  button.rec-vocals{width:100%; margin-top:10px; padding:11px; border-radius:6px; border:1px solid var(--rec);
+    background:rgba(255,0,51,.12); color:var(--rec); font-family:'Space Mono',monospace; font-weight:700;
+    letter-spacing:1px; font-size:13px; cursor:pointer; transition:.15s}
+  button.rec-vocals:hover{background:var(--rec); color:#fff}
+  button.rec-vocals.armed{background:var(--rec); color:#fff; animation:recpulse 1s infinite}
+  @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .tbtn.mic-on{background:var(--rec); border-color:var(--rec); color:#fff}
 </style>
 </head>
 <body>
@@ -239,6 +253,7 @@
       <button class="tbtn rec" id="btnRec" title="Record (armed tracks)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
       <button class="tbtn" id="btnLoop" title="Loop"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
       <button class="tbtn" id="btnMetro" title="Metronome"><svg viewBox="0 0 24 24"><path d="M12 2l4 18H8L12 2zm0 6l-2 9h4l-2-9z"/></svg></button>
+      <button class="tbtn" id="btnMic" title="Record vocals (mic)"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button>
     </div>
 
     <div class="tgroup">
@@ -303,6 +318,7 @@
       <button class="dtab" data-pane="fx">🎛 FX Rack</button>
       <button class="dtab" data-pane="mixer">🎚 Mixer</button>
       <button class="dtab" data-pane="synth">⚙ Synth</button>
+      <button class="dtab" data-pane="mic">🎤 Vocals</button>
       <div style="margin-left:auto"><button class="dtab" id="drawerToggle">▾ Collapse</button></div>
     </div>
     <div class="drawer-body">
@@ -335,6 +351,33 @@
         <div class="fxrack">
           <div class="fxhdr">Polyphonic synth — plays the selected instrument track. Play with computer keyboard (A–L = white keys, W E T Y U = black), Z/X octave.</div>
           <div class="fxgrid" id="synthPanel"></div>
+        </div>
+      </div>
+      <!-- Vocals / Mic -->
+      <div class="dpane" id="pane-mic">
+        <div class="fxrack">
+          <div class="fxhdr">🎤 Record vocals or any mic / line input. Tip: wear headphones when monitoring to avoid feedback.</div>
+          <div class="fxgrid">
+            <div class="fxmod">
+              <h4><span>Microphone</span><span class="tg" id="micStatusTag">Off</span></h4>
+              <div class="prm"><label>Device</label>
+                <select id="micDevice" style="flex:1;background:var(--panel3);color:var(--text);border:1px solid var(--line2);border-radius:4px;padding:4px">
+                  <option value="">Default input</option>
+                </select>
+              </div>
+              <button class="dtab" id="micEnableBtn" style="width:100%;margin:6px 0">Enable Microphone</button>
+              <div class="prm"><label>Input</label>
+                <div class="hmeter"><i id="micMeter"></i></div>
+              </div>
+              <label class="micchk"><input type="checkbox" id="micMonitor"> Monitor input (hear yourself)</label>
+            </div>
+            <div class="fxmod">
+              <h4><span>Take</span></h4>
+              <label class="micchk"><input type="checkbox" id="micCountIn" checked> 1-bar count-in</label>
+              <button id="btnRecVocals" class="rec-vocals">● &nbsp;Record Vocals</button>
+              <div class="hint" style="margin-top:8px">Arms an audio track and records from the playhead. Click again (or Stop) to finish — a waveform clip drops onto the track.</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1098,20 +1141,24 @@ const Recorder={
 
   async armStart(){
     // MIDI recording regions created lazily on first note.
-    // Audio recording: start mic for first armed audio track.
+    // Audio recording: capture the mic into the first armed audio track.
     const audioTrack=State.tracks.find(t=>t.arm && t.type==='audio');
     if(audioTrack){
       try{
-        if(!this.micStream) this.micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+        const stream = await Mic.getStream();
         this.recTrack=audioTrack;
         this.recStartSong=Transport.position;
         this.chunks=[];
-        this.mediaRec=new MediaRecorder(this.micStream);
+        this.mediaRec=new MediaRecorder(stream);
         this.mediaRec.ondataavailable=e=>{if(e.data.size)this.chunks.push(e.data);};
         this.mediaRec.onstop=()=>this.commitAudio();
         this.mediaRec.start();
-        toast('Recording mic → '+audioTrack.name);
-      }catch(err){toast('Mic access denied');}
+        $("#btnRecVocals")?.classList.add('armed');
+        toast('● Recording → '+audioTrack.name);
+      }catch(err){
+        toast('Mic access denied — allow the microphone and try again');
+        Transport.recording=false; $("#btnRec").classList.remove('on');
+      }
     } else {
       toast('Recording MIDI — play the keyboard');
     }
@@ -1134,11 +1181,15 @@ const Recorder={
     delete this.activeNotes[key]; drawRegions();
   },
   commitAudio(){
+    $("#btnRecVocals")?.classList.remove('armed');
+    if(!this.chunks.length){ return; }
     const blob=new Blob(this.chunks,{type:'audio/webm'});
+    const track=this.recTrack, startSong=this.recStartSong;
     blob.arrayBuffer().then(ab=>Audio.ctx.decodeAudioData(ab)).then(buf=>{
-      const reg={id:uid(),trackId:this.recTrack.id,type:'audio',name:'Rec Audio',
-        start:this.recStartSong,offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0};
-      State.regions.push(reg); drawRegions(); toast('Audio recorded');
+      const reg={id:uid(),trackId:track.id,type:'audio',name:track.name+' take',
+        start:startSong,offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0};
+      State.regions.push(reg); State.selectedRegion=reg.id; drawRegions();
+      toast('✓ Recorded '+buf.duration.toFixed(1)+'s onto '+track.name);
     }).catch(()=>toast('Could not decode recording'));
   },
   finishAll(){
@@ -1149,6 +1200,99 @@ const Recorder={
     drawRegions();
   }
 };
+
+/* =====================================================================
+   MIC / VOCALS — device select, input meter, monitoring, count-in
+   ===================================================================== */
+const Mic={
+  stream:null, source:null, analyser:null, monitorGain:null, monitoring:false,
+  deviceId:null, buf:null, metering:false,
+
+  async getStream(){
+    if(this.stream && this.stream.active) return this.stream;
+    return this.enable(this.deviceId);
+  },
+  async enable(deviceId){
+    Audio.init(); Audio.resume();
+    const audio = deviceId ? {deviceId:{exact:deviceId}} : {echoCancellation:true,noiseSuppression:true,autoGainControl:true};
+    if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); }
+    this.stream = await navigator.mediaDevices.getUserMedia({audio});
+    this.deviceId = deviceId || null;
+    // build monitor + analyser graph
+    this.source = Audio.ctx.createMediaStreamSource(this.stream);
+    this.analyser = Audio.ctx.createAnalyser(); this.analyser.fftSize=1024;
+    this.buf = new Float32Array(this.analyser.fftSize);
+    this.monitorGain = Audio.ctx.createGain(); this.monitorGain.gain.value = this.monitoring ? 1 : 0;
+    this.source.connect(this.analyser);
+    this.source.connect(this.monitorGain); this.monitorGain.connect(Audio.masterGain);
+    Recorder.micStream = this.stream;
+    this._setStatus(true);
+    await this.listDevices();
+    this.startMeter();
+    return this.stream;
+  },
+  setMonitoring(on){
+    this.monitoring = on;
+    if(this.monitorGain) this.monitorGain.gain.setTargetAtTime(on?1:0, Audio.now(), 0.01);
+    if(on) toast('Monitoring on — use headphones to avoid feedback');
+  },
+  async listDevices(){
+    try{
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      const ins = devs.filter(d=>d.kind==='audioinput');
+      const sel = $("#micDevice"); if(!sel) return;
+      const cur = this.deviceId || '';
+      sel.innerHTML = '<option value="">Default input</option>' +
+        ins.map((d,i)=>`<option value="${d.deviceId}" ${d.deviceId===cur?'selected':''}>${(d.label||('Microphone '+(i+1))).replace(/</g,'')}</option>`).join('');
+    }catch(e){}
+  },
+  startMeter(){
+    if(this.metering) return; this.metering=true;
+    const loop=()=>{
+      const el=$("#micMeter");
+      if(this.analyser && el){
+        this.analyser.getFloatTimeDomainData(this.buf);
+        let s=0; for(let i=0;i<this.buf.length;i++) s+=this.buf[i]*this.buf[i];
+        const rms=Math.sqrt(s/this.buf.length);
+        el.style.width=Math.min(100, rms*140)+'%';
+      }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  },
+  _setStatus(on){
+    const tag=$("#micStatusTag"); if(tag){ tag.textContent=on?'Live':'Off'; tag.classList.toggle('on',on); }
+    const btn=$("#micEnableBtn"); if(btn) btn.textContent = on ? 'Re-scan / Switch Device' : 'Enable Microphone';
+    $("#btnMic")?.classList.toggle('mic-on', on);
+  }
+};
+
+// One-click vocal recording: ensure mic + an armed audio track, optional count-in, then roll.
+async function recordVocals(){
+  if(Transport.recording){ Transport.stop(); return; }
+  Audio.init(); Audio.resume();
+  try{ await Mic.getStream(); }
+  catch(e){ toast('Mic access denied — allow the microphone and try again'); return; }
+  // ensure an armed audio track
+  let track = State.tracks.find(t=>t.arm && t.type==='audio')
+           || State.tracks.find(t=>t.type==='audio');
+  if(!track){ track = addTrack('audio',{name:'Vocals'}); }
+  State.tracks.forEach(t=>{ if(t.type==='audio') t.arm=false; });
+  track.arm = true; renderTracks(); selectTrack(track.id);
+  if(Mic.monitoring) toast('Recording — monitoring on (use headphones)');
+  if($("#micCountIn")?.checked && !Transport.isPlaying){
+    startCountIn(()=>Transport.toggleRecord());
+  } else {
+    Transport.toggleRecord();
+  }
+}
+function startCountIn(cb){
+  Audio.init(); Audio.resume();
+  const beats=beatsPerBar(), spb=secPerBeat(), start=Audio.now()+0.12;
+  for(let i=0;i<beats;i++) Transport.click(start+i*spb, i===0);
+  toast('Count-in… '+beats+' beats');
+  setTimeout(cb, beats*spb*1000 + 120);
+}
 
 /* =====================================================================
    FILE IMPORT (upload + drag/drop)
@@ -1706,6 +1850,12 @@ function onMidi(e){
 $("#btnPlay").addEventListener('click',()=>Transport.toggle());
 $("#btnStop").addEventListener('click',()=>{Transport.stop();Transport.position=0;updatePlayhead();updatePosDisplay();});
 $("#btnRec").addEventListener('click',()=>Transport.toggleRecord());
+// Vocals / mic
+$("#btnMic").addEventListener('click',()=>{ setDrawerPane('mic'); openDrawer(); });
+$("#micEnableBtn").addEventListener('click',()=>Mic.enable($("#micDevice").value||null).catch(()=>toast('Mic access denied')));
+$("#micDevice").addEventListener('change',e=>{ if(Mic.stream) Mic.enable(e.target.value||null).catch(()=>{}); else Mic.deviceId=e.target.value||null; });
+$("#micMonitor").addEventListener('change',e=>Mic.setMonitoring(e.target.checked));
+$("#btnRecVocals").addEventListener('click',()=>recordVocals());
 function toggleLoop(){State.loop.on=!State.loop.on;$("#btnLoop").classList.toggle('on',State.loop.on);drawGrid();drawRuler();}
 $("#btnLoop").addEventListener('click',toggleLoop);
 $("#btnMetro").addEventListener('click',()=>{State.metro=!State.metro;$("#btnMetro").classList.toggle('on',State.metro);});
@@ -1735,6 +1885,7 @@ function setDrawerPane(name){
   $$(".dtab[data-pane]").forEach(b=>b.classList.toggle('on',b.dataset.pane===name));
   $$(".dpane").forEach(p=>p.classList.toggle('on',p.id==='pane-'+name));
   if(name==='piano')PianoRoll.draw(); if(name==='fx')renderFX(); if(name==='mixer')renderMixer(); if(name==='synth')renderSynthPanel();
+  if(name==='mic')Mic.listDevices();
 }
 $$(".dtab[data-pane]").forEach(b=>b.addEventListener('click',()=>{openDrawer();setDrawerPane(b.dataset.pane);}));
 function openDrawer(){$("#drawer").classList.remove('collapsed');$("#drawerToggle").textContent='▾ Collapse';}
