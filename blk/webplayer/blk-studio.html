@@ -189,6 +189,15 @@
   .fxmod h4 .tg{font-size:10px; padding:2px 7px; border-radius:10px; background:var(--panel3);
     border:1px solid var(--line2)}
   .fxmod h4 .tg.on{background:var(--good); color:#000; border-color:var(--good)}
+  .fxmod h4 .tg{cursor:pointer}
+  .fxmod.off{opacity:.62}
+  .fxmod.off .prm{opacity:.5}
+  .fxctrls{display:flex; align-items:center; gap:4px}
+  .fxmini{width:22px; height:20px; border:1px solid var(--line2); background:var(--panel3); color:var(--text);
+    border-radius:4px; font-size:11px; line-height:1; cursor:pointer; padding:0}
+  .fxmini.wide{width:auto; height:22px; padding:0 8px; margin-top:6px}
+  .fxmini:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
+  .fxmini:disabled{opacity:.3; cursor:default}
   .prm{display:flex; align-items:center; gap:6px; margin:5px 0; font-size:10px; color:var(--muted)}
   .prm label{width:58px} .prm input[type=range]{flex:1}
   .prm .val{width:42px; text-align:right; color:var(--text); font-family:monospace}
@@ -200,6 +209,7 @@
   .pad{aspect-ratio:1.6; background:var(--panel2); border:1px solid var(--line2); border-radius:8px;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:10px}
   .pad:active,.pad.hit{background:var(--accent); color:#000}
+  .pad.sel{outline:1px solid var(--accent); outline-offset:-1px}
   .pad .num{font-weight:700; font-size:13px}
   .seq{display:grid; grid-template-columns:70px repeat(16,1fr); gap:3px; align-items:center}
   .seq .rlbl{font-size:10px; color:var(--muted)}
@@ -214,8 +224,10 @@
     background:var(--panel3); border:1px solid var(--line2); padding:8px 16px; border-radius:8px;
     z-index:99; opacity:0; transition:.25s; pointer-events:none; font-size:12px}
   .toast.show{opacity:1}
-  .kbdhint{position:fixed; bottom:12px; right:14px; font-size:10px; color:var(--muted);
-    background:rgba(0,0,0,.4); padding:6px 10px; border-radius:6px; z-index:40}
+  .kbdhint{position:fixed; bottom:46px; right:14px; font-size:10px; color:var(--muted);
+    background:rgba(0,0,0,.72); border:1px solid var(--line2); padding:8px 12px; border-radius:6px;
+    z-index:60; display:none; max-width:340px; line-height:1.7}
+  .kbdhint.show{display:block}
   ::-webkit-scrollbar{width:11px;height:11px}
   ::-webkit-scrollbar-thumb{background:var(--line2); border-radius:6px}
   ::-webkit-scrollbar-track{background:transparent}
@@ -336,7 +348,10 @@
       <button class="dtab" data-pane="mixer">🎚 Mixer</button>
       <button class="dtab" data-pane="synth">⚙ Synth</button>
       <button class="dtab" data-pane="mic">🎤 Vocals</button>
-      <div style="margin-left:auto"><button class="dtab" id="drawerToggle">▾ Collapse</button></div>
+      <div style="margin-left:auto; display:flex; gap:4px">
+        <button class="dtab" id="keysToggle" title="Show/hide keyboard shortcuts">⌨ Keys</button>
+        <button class="dtab" id="drawerToggle">▾ Collapse</button>
+      </div>
     </div>
     <div class="drawer-body">
       <!-- Piano roll -->
@@ -365,9 +380,14 @@
       <!-- Drum -->
       <div class="dpane" id="pane-drum">
         <div class="drum">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
+            <span style="font-size:11px; color:var(--muted)">8-pad kit · 16-step sequencer</span>
+            <button class="dtab" id="drumClearRow" title="Clear the selected pad's row">Clear Row</button>
+            <button class="dtab" id="drumClear" style="margin-left:auto">Clear Pattern</button>
+          </div>
           <div class="pads" id="drumPads"></div>
           <div class="seq" id="drumSeq"></div>
-          <div class="hint" style="margin-top:8px">Click steps to program a 16-step pattern (plays on the armed drum track / transport). Click a pad to audition.</div>
+          <div class="hint" style="margin-top:8px">Click steps to program a 16-step pattern (plays on the armed drum track / transport). Click a pad to audition · right-click a pad to load a sample.</div>
         </div>
       </div>
       <!-- FX -->
@@ -490,47 +510,99 @@ function makeImpulse(ctx,seconds,decay){
    FX CHAIN — per track: EQ(3band) -> Delay -> Reverb -> Compressor -> gain -> pan
    Returned object exposes .input and .output plus param nodes.
    ===================================================================== */
-function buildFX(ctx){
-  const input=ctx.createGain();
-  // 3-band EQ
-  const low=ctx.createBiquadFilter(); low.type='lowshelf'; low.frequency.value=200; low.gain.value=0;
-  const mid=ctx.createBiquadFilter(); mid.type='peaking'; mid.frequency.value=1000; mid.Q.value=1; mid.gain.value=0;
-  const high=ctx.createBiquadFilter(); high.type='highshelf'; high.frequency.value=4000; high.gain.value=0;
-  // Delay (ping-pong-ish with feedback)
-  const delaySend=ctx.createGain(); delaySend.gain.value=0;
-  const delay=ctx.createDelay(2.0); delay.delayTime.value=60/120*0.5;
-  const fb=ctx.createGain(); fb.gain.value=0.35;
-  const delayWet=ctx.createGain(); delayWet.gain.value=1;
-  delay.connect(fb); fb.connect(delay); delay.connect(delayWet);
-  // Reverb
-  const revSend=ctx.createGain(); revSend.gain.value=0;
-  const conv=ctx.createConvolver(); conv.buffer=makeImpulse(ctx,2.0,2.5);
-  const revWet=ctx.createGain(); revWet.gain.value=1;
-  conv.connect(revWet);
-  // Compressor
-  const comp=ctx.createDynamicsCompressor();
-  comp.threshold.value=-24; comp.ratio.value=3; comp.attack.value=.01; comp.release.value=.25; comp.knee.value=8;
-  const compBypass=ctx.createGain(); // dry alternative path handled via flag
-  // track fader + pan
-  const gain=ctx.createGain(); gain.gain.value=0.85;
-  const pan=ctx.createStereoPanner(); pan.pan.value=0;
-
-  // routing: input -> low->mid->high (=eqOut)
-  input.connect(low); low.connect(mid); mid.connect(high);
-  const eqOut=high;
-  // eqOut -> comp -> gain -> pan
-  eqOut.connect(comp); comp.connect(gain); gain.connect(pan);
-  // sends tap off eqOut
-  eqOut.connect(delaySend); delaySend.connect(delay); delayWet.connect(gain);
-  eqOut.connect(revSend); revSend.connect(conv); revWet.connect(gain);
-
-  return {input,output:pan, low,mid,high, delay,delaySend,fb, conv,revSend, comp, gain,pan,
-    params:{
-      eqLow:0,eqMid:0,eqHigh:0,
-      delayOn:false,delayTime:0.25,delayFb:0.35,delayMix:0,
-      reverbOn:false,reverbSize:2.0,reverbDecay:2.5,reverbMix:0,
-      compOn:true,compThresh:-24,compRatio:3,compAtt:.01,compRel:.25}
+const FX_LABEL={eq:'3-Band EQ',compressor:'Compressor',distortion:'Distortion',delay:'Delay',reverb:'Reverb'};
+const FX_DEFAULT_PARAMS={
+  eq:{low:0,mid:0,high:0,midFreq:1000},
+  compressor:{thresh:-24,ratio:3,att:.01,rel:.25},
+  distortion:{amount:20,mix:.5},
+  delay:{time:.3,feedback:.35,mix:.35},
+  reverb:{size:2,decay:2.5,mix:.3},
+};
+const FX_DEFAULT_ON={eq:true,compressor:true,distortion:false,delay:false,reverb:false};
+const FX_SPEC={
+  eq:[ {k:'low',label:'Low dB',min:-18,max:18,step:.5,fmt:v=>v.toFixed(1)},
+       {k:'mid',label:'Mid dB',min:-18,max:18,step:.5,fmt:v=>v.toFixed(1)},
+       {k:'high',label:'High dB',min:-18,max:18,step:.5,fmt:v=>v.toFixed(1)},
+       {k:'midFreq',label:'Mid Hz',min:200,max:6000,step:10,fmt:v=>Math.round(v)+''} ],
+  compressor:[ {k:'thresh',label:'Thresh',min:-60,max:0,step:1,fmt:v=>v+'dB'},
+       {k:'ratio',label:'Ratio',min:1,max:20,step:.5,fmt:v=>v+':1'},
+       {k:'att',label:'Attack',min:.001,max:.1,step:.001,fmt:v=>Math.round(v*1000)+'ms'},
+       {k:'rel',label:'Release',min:.05,max:1,step:.01,fmt:v=>Math.round(v*1000)+'ms'} ],
+  distortion:[ {k:'amount',label:'Drive',min:0,max:100,step:1,fmt:v=>Math.round(v)+''},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  delay:[ {k:'time',label:'Time',min:.05,max:1,step:.01,fmt:v=>v.toFixed(2)+'s'},
+       {k:'feedback',label:'Feedback',min:0,max:.9,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  reverb:[ {k:'size',label:'Size',min:.3,max:5,step:.1,fmt:v=>v.toFixed(1)+'s',rebuild:true},
+       {k:'decay',label:'Decay',min:.5,max:6,step:.1,fmt:v=>v.toFixed(1),rebuild:true},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+};
+function makeDistCurve(amount){
+  const k=+amount||0, n=1024, curve=new Float32Array(n);
+  for(let i=0;i<n;i++){ const x=i*2/n-1; curve[i]=(3+k)*x*20*(Math.PI/180)/(Math.PI+k*Math.abs(x)); }
+  return curve;
+}
+// One effect: self-contained in->out graph with wet/dry so it can sit anywhere in the chain.
+function makeFXModule(ctx,type,params){
+  const input=ctx.createGain(), output=ctx.createGain(), N={};
+  const m={type, enabled:FX_DEFAULT_ON[type]!==false, in:input, out:output,
+    params:Object.assign({}, FX_DEFAULT_PARAMS[type], params||{}), nodes:N};
+  if(type==='eq'){
+    N.low=ctx.createBiquadFilter(); N.low.type='lowshelf'; N.low.frequency.value=200;
+    N.mid=ctx.createBiquadFilter(); N.mid.type='peaking'; N.mid.Q.value=1;
+    N.high=ctx.createBiquadFilter(); N.high.type='highshelf'; N.high.frequency.value=4000;
+    input.connect(N.low); N.low.connect(N.mid); N.mid.connect(N.high); N.high.connect(output);
+  } else if(type==='compressor'){
+    N.comp=ctx.createDynamicsCompressor(); N.comp.knee.value=8;
+    input.connect(N.comp); N.comp.connect(output);
+  } else if(type==='distortion'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.shaper=ctx.createWaveShaper(); N.shaper.oversample='2x';
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.shaper); N.shaper.connect(N.wet); N.wet.connect(output);
+  } else if(type==='delay'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.delay=ctx.createDelay(2); N.fb=ctx.createGain();
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.delay); N.delay.connect(N.fb); N.fb.connect(N.delay); N.delay.connect(N.wet); N.wet.connect(output);
+  } else if(type==='reverb'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.conv=ctx.createConvolver();
+    N.conv.buffer=makeImpulse(ctx,m.params.size,m.params.decay);
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.conv); N.conv.connect(N.wet); N.wet.connect(output);
+  }
+  m.update=function(){
+    const P=m.params;
+    if(type==='eq'){ N.low.gain.value=P.low; N.mid.gain.value=P.mid; N.high.gain.value=P.high; N.mid.frequency.value=P.midFreq; }
+    else if(type==='compressor'){ N.comp.threshold.value=P.thresh; N.comp.ratio.value=P.ratio; N.comp.attack.value=P.att; N.comp.release.value=P.rel; }
+    else if(type==='distortion'){ N.shaper.curve=makeDistCurve(P.amount); N.wet.gain.value=P.mix; N.dry.gain.value=1-Math.min(1,P.mix); }
+    else if(type==='delay'){ N.delay.delayTime.value=P.time; N.fb.gain.value=P.feedback; N.wet.gain.value=P.mix; N.dry.gain.value=1; }
+    else if(type==='reverb'){ N.wet.gain.value=P.mix; N.dry.gain.value=1; }
   };
+  m.rebuildImpulse=function(){ if(type==='reverb') N.conv.buffer=makeImpulse(ctx,m.params.size,m.params.decay); };
+  m.update();
+  return m;
+}
+// Track FX: input -> [enabled modules, in order] -> gain(volume) -> pan -> output(master)
+function buildFX(ctx, specs){
+  const input=ctx.createGain(), gain=ctx.createGain(); gain.gain.value=0.85;
+  const pan=ctx.createStereoPanner();
+  specs = specs || [{type:'eq'},{type:'compressor'},{type:'distortion'},{type:'delay'},{type:'reverb'}];
+  const modules = specs.map(s=>{ const m=makeFXModule(ctx,s.type,s.params); if(s.enabled!=null) m.enabled=s.enabled; return m; });
+  const fx={ctx, input, gain, pan, output:pan, modules};
+  fx.rebuild=function(){
+    try{input.disconnect();}catch(e){}
+    modules.forEach(mm=>{ try{mm.out.disconnect();}catch(e){} });
+    let prev=input;
+    modules.forEach(mm=>{ if(mm.enabled){ prev.connect(mm.in); prev=mm.out; } });
+    prev.connect(gain);
+  };
+  gain.connect(pan);
+  fx.rebuild();
+  return fx;
+}
+function fxToSpecs(fx){ return fx.modules.map(m=>({type:m.type, enabled:m.enabled, params:Object.assign({},m.params)})); }
+function moveFX(t, idx, dir){
+  const a=t.fx.modules, j=idx+dir; if(j<0||j>=a.length) return;
+  const tmp=a[idx]; a[idx]=a[j]; a[j]=tmp; t.fx.rebuild(); renderFX();
 }
 
 /* =====================================================================
@@ -1646,12 +1718,14 @@ function noiseBuffer(){ if(_noise)return _noise; const ctx=Audio.ctx;
   const b=ctx.createBuffer(1,ctx.sampleRate*0.4,ctx.sampleRate); const d=b.getChannelData(0);
   for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1; _noise=b; return b;}
 function anyDrumActive(){return State.drumPattern.some(row=>row.some(Boolean));}
+let drumSelPad=0;
 function buildDrumUI(){
   const pads=$("#drumPads"); pads.innerHTML='';
   DRUM_NAMES.forEach((nm,i)=>{
-    const p=document.createElement('button'); p.className='pad';
+    const p=document.createElement('button'); p.className='pad'+(i===drumSelPad?' sel':'');
     p.innerHTML=`<span class="num">${i+1}</span>${nm}`;
-    p.addEventListener('mousedown',()=>{Drum.trigger(i); p.classList.add('hit'); setTimeout(()=>p.classList.remove('hit'),90);});
+    p.addEventListener('mousedown',()=>{ drumSelPad=i; $$('.pad',pads).forEach((el,j)=>el.classList.toggle('sel',j===i));
+      Drum.trigger(i); p.classList.add('hit'); setTimeout(()=>p.classList.remove('hit'),90);});
     p.addEventListener('contextmenu',e=>{e.preventDefault(); loadDrumSample(i);});
     pads.appendChild(p);
   });
@@ -1675,6 +1749,14 @@ function loadDrumSample(idx){
     toast('Sample loaded to pad '+(idx+1));};
   inp.click();
 }
+function clearDrumPattern(){
+  State.drumPattern=Array.from({length:8},()=>new Array(16).fill(false));
+  buildDrumUI(); drawRegions(); toast('Drum pattern cleared');
+}
+function clearDrumRow(){
+  State.drumPattern[drumSelPad]=new Array(16).fill(false);
+  buildDrumUI(); drawRegions(); toast('Cleared '+DRUM_NAMES[drumSelPad]+' row');
+}
 
 /* =====================================================================
    FX PANEL UI
@@ -1687,58 +1769,50 @@ function param(label,min,max,step,val,fmt,onInput){
   return row;
 }
 function renderFX(){
-  const host=$("#fxRack"); host.innerHTML='';
-  const t=getTrack(State.selectedTrack);
+  const host=$("#fxRack"); const t=getTrack(State.selectedTrack);
   if(!t){host.innerHTML='<div class="fxhdr">No track selected</div>';return;}
-  $("#fxRack").innerHTML=`<div class="fxhdr">FX Rack — <b>${t.name}</b>. Signal: EQ → Delay → Reverb → Compressor</div>`;
+  host.innerHTML=`<div class="fxhdr">FX Rack — <b>${t.name}</b> · signal flows top → bottom · reorder with ↑ ↓ · toggle each ON/OFF</div>`;
   const grid=document.createElement('div'); grid.className='fxgrid'; host.appendChild(grid);
-  const fx=t.fx, P=fx.params;
-  // EQ
-  const eq=fxCard('3-Band EQ',null);
-  eq.body.appendChild(param('Low dB',-18,18,0.5,P.eqLow,v=>v.toFixed(1),v=>{P.eqLow=v; fx.low.gain.value=v; drawEQ(eq.canvas,fx);}));
-  eq.body.appendChild(param('Mid dB',-18,18,0.5,P.eqMid,v=>v.toFixed(1),v=>{P.eqMid=v; fx.mid.gain.value=v; drawEQ(eq.canvas,fx);}));
-  eq.body.appendChild(param('High dB',-18,18,0.5,P.eqHigh,v=>v.toFixed(1),v=>{P.eqHigh=v; fx.high.gain.value=v; drawEQ(eq.canvas,fx);}));
-  eq.body.appendChild(param('Mid Freq',200,6000,10,fx.mid.frequency.value,v=>Math.round(v)+'Hz',v=>{fx.mid.frequency.value=v; drawEQ(eq.canvas,fx);}));
-  const cv=document.createElement('canvas'); cv.className='eqgraph'; cv.width=190; cv.height=56; eq.body.appendChild(cv); eq.canvas=cv;
-  grid.appendChild(eq.card); drawEQ(cv,fx);
-  // Delay
-  const dl=fxCard('Ping-Pong Delay',{on:P.delayOn,toggle:v=>{P.delayOn=v; fx.delaySend.gain.value=v?P.delayMix:0;}});
-  dl.body.appendChild(param('Time',0.05,1,0.01,P.delayTime,v=>v.toFixed(2)+'s',v=>{P.delayTime=v; fx.delay.delayTime.value=v;}));
-  dl.body.appendChild(param('Feedback',0,0.9,0.01,P.delayFb,v=>v.toFixed(2),v=>{P.delayFb=v; fx.fb.gain.value=v;}));
-  dl.body.appendChild(param('Mix',0,1,0.01,P.delayMix,v=>v.toFixed(2),v=>{P.delayMix=v; if(P.delayOn)fx.delaySend.gain.value=v;}));
-  dl.body.appendChild(syncBtn('Sync 1/4',()=>{const v=secPerBeat();P.delayTime=v;fx.delay.delayTime.value=v;renderFX();}));
-  grid.appendChild(dl.card);
-  // Reverb
-  const rv=fxCard('Reverb',{on:P.reverbOn,toggle:v=>{P.reverbOn=v; fx.revSend.gain.value=v?P.reverbMix:0;}});
-  rv.body.appendChild(param('Size',0.3,5,0.1,P.reverbSize,v=>v.toFixed(1)+'s',v=>{P.reverbSize=v; fx.conv.buffer=makeImpulse(Audio.ctx,v,P.reverbDecay);}));
-  rv.body.appendChild(param('Decay',0.5,6,0.1,P.reverbDecay,v=>v.toFixed(1),v=>{P.reverbDecay=v; fx.conv.buffer=makeImpulse(Audio.ctx,P.reverbSize,v);}));
-  rv.body.appendChild(param('Mix',0,1,0.01,P.reverbMix,v=>v.toFixed(2),v=>{P.reverbMix=v; if(P.reverbOn)fx.revSend.gain.value=v;}));
-  grid.appendChild(rv.card);
-  // Compressor
-  const cp=fxCard('Compressor',{on:P.compOn,toggle:v=>{P.compOn=v; fx.comp.threshold.value=v?P.compThresh:0; fx.comp.ratio.value=v?P.compRatio:1;}});
-  cp.body.appendChild(param('Threshold',-60,0,1,P.compThresh,v=>v+'dB',v=>{P.compThresh=v; if(P.compOn)fx.comp.threshold.value=v;}));
-  cp.body.appendChild(param('Ratio',1,20,0.5,P.compRatio,v=>v+':1',v=>{P.compRatio=v; if(P.compOn)fx.comp.ratio.value=v;}));
-  cp.body.appendChild(param('Attack',0.001,0.1,0.001,P.compAtt,v=>(v*1000).toFixed(0)+'ms',v=>{P.compAtt=v; fx.comp.attack.value=v;}));
-  cp.body.appendChild(param('Release',0.05,1,0.01,P.compRel,v=>(v*1000).toFixed(0)+'ms',v=>{P.compRel=v; fx.comp.release.value=v;}));
-  grid.appendChild(cp.card);
+  t.fx.modules.forEach((m,idx)=>{
+    const card=document.createElement('div'); card.className='fxmod'+(m.enabled?'':' off');
+    const h=document.createElement('h4');
+    const title=document.createElement('span'); title.textContent=`${idx+1}. ${FX_LABEL[m.type]}`;
+    const ctrls=document.createElement('span'); ctrls.className='fxctrls';
+    const up=document.createElement('button'); up.className='fxmini'; up.textContent='↑'; up.title='Move up'; up.disabled=idx===0; up.onclick=()=>moveFX(t,idx,-1);
+    const dn=document.createElement('button'); dn.className='fxmini'; dn.textContent='↓'; dn.title='Move down'; dn.disabled=idx===t.fx.modules.length-1; dn.onclick=()=>moveFX(t,idx,1);
+    const tg=document.createElement('span'); tg.className='tg'+(m.enabled?' on':''); tg.textContent=m.enabled?'ON':'OFF';
+    tg.onclick=()=>{ m.enabled=!m.enabled; t.fx.rebuild(); renderFX(); };
+    ctrls.append(up,dn,tg); h.append(title,ctrls); card.appendChild(h);
+    const body=document.createElement('div'); card.appendChild(body);
+    let eqCanvas=null;
+    FX_SPEC[m.type].forEach(sp=>{
+      body.appendChild(param(sp.label,sp.min,sp.max,sp.step,m.params[sp.k],sp.fmt,v=>{
+        m.params[sp.k]=v;
+        if(m.type==='reverb'&&sp.rebuild) m.rebuildImpulse(); else m.update();
+        if(m.type==='eq'&&eqCanvas) drawEQ(eqCanvas,m.nodes);
+      }));
+    });
+    if(m.type==='delay'){ const b=document.createElement('button'); b.className='fxmini wide'; b.textContent='Sync ¼ note';
+      b.onclick=()=>{ m.params.time=Math.min(1,secPerBeat()); m.update(); renderFX(); }; body.appendChild(b); }
+    if(m.type==='eq'){ eqCanvas=document.createElement('canvas'); eqCanvas.className='eqgraph'; eqCanvas.width=190; eqCanvas.height=56;
+      body.appendChild(eqCanvas); drawEQ(eqCanvas,m.nodes); }
+    grid.appendChild(card);
+  });
 }
-function fxCard(title,toggle){
+// simple titled card (used by the Synth panel)
+function fxCard(title){
   const card=document.createElement('div'); card.className='fxmod';
   const h=document.createElement('h4'); h.innerHTML=`<span>${title}</span>`;
-  if(toggle){const tg=document.createElement('span'); tg.className='tg'+(toggle.on?' on':''); tg.textContent=toggle.on?'ON':'OFF';
-    tg.onclick=()=>{const now=!tg.classList.contains('on'); tg.classList.toggle('on',now); tg.textContent=now?'ON':'OFF'; toggle.toggle(now);};
-    h.appendChild(tg);}
   card.appendChild(h); const body=document.createElement('div'); card.appendChild(body);
   return {card,body,h};
 }
-function syncBtn(label,fn){const b=document.createElement('button');b.className='dtab';b.style.marginTop='6px';b.textContent=label;b.onclick=fn;return b;}
-function drawEQ(cv,fx){
+function drawEQ(cv,nodes){
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
-  ctx.strokeStyle='#5b8cff'; ctx.lineWidth=1.5; ctx.beginPath();
+  ctx.strokeStyle='#8A2BE2'; ctx.lineWidth=1.5; ctx.beginPath();
   const freqs=new Float32Array(W); for(let i=0;i<W;i++)freqs[i]=20*Math.pow(1000,i/W);
-  const m=new Float32Array(W),p=new Float32Array(W); let tot=new Float32Array(W).fill(1);
-  [fx.low,fx.mid,fx.high].forEach(f=>{f.getFrequencyResponse(freqs,m,p); for(let i=0;i<W;i++)tot[i]*=m[i];});
-  for(let i=0;i<W;i++){const db=20*Math.log10(tot[i]); const y=H/2-db*1.6; i?ctx.lineTo(i,y):ctx.moveTo(i,y);}
+  const mag=new Float32Array(W),ph=new Float32Array(W); let tot=new Float32Array(W).fill(1);
+  [nodes.low,nodes.mid,nodes.high].forEach(f=>{f.getFrequencyResponse(freqs,mag,ph); for(let i=0;i<W;i++)tot[i]*=mag[i];});
+  for(let i=0;i<W;i++){const db=20*Math.log10(tot[i]||1e-6); const y=H/2-db*1.6; i?ctx.lineTo(i,y):ctx.moveTo(i,y);}
   ctx.stroke(); ctx.strokeStyle='#2a3244'; ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
 }
 
@@ -1830,18 +1904,9 @@ async function exportWav(){
   const rate=44100;
   const off=new OfflineAudioContext(2, Math.ceil(end*rate), rate);
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
-  // rebuild per-track fx (simplified: eq+comp+gain+pan; delay/reverb sends)
+  // rebuild per-track fx offline from the live chain (same modules, order, params)
   State.tracks.forEach(t=>{
-    const fx=buildFX(off);
-    // copy params
-    fx.low.gain.value=t.fx.params.eqLow; fx.mid.gain.value=t.fx.params.eqMid; fx.high.gain.value=t.fx.params.eqHigh;
-    fx.mid.frequency.value=t.fx.mid.frequency.value;
-    fx.delay.delayTime.value=t.fx.params.delayTime; fx.fb.gain.value=t.fx.params.delayFb;
-    fx.delaySend.gain.value=t.fx.params.delayOn?t.fx.params.delayMix:0;
-    fx.conv.buffer=makeImpulse(off,t.fx.params.reverbSize,t.fx.params.reverbDecay);
-    fx.revSend.gain.value=t.fx.params.reverbOn?t.fx.params.reverbMix:0;
-    fx.comp.threshold.value=t.fx.params.compOn?t.fx.params.compThresh:0;
-    fx.comp.ratio.value=t.fx.params.compOn?t.fx.params.compRatio:1;
+    const fx=buildFX(off, fxToSpecs(t.fx));
     fx.pan.pan.value=t.pan;
     // volume automation (or static)
     if(trackAudible(t) && t.automation.length){
@@ -1922,7 +1987,7 @@ function saveProject(){
     bpm:State.bpm, timesig:State.timesig, snap:State.snap, loop:State.loop, metro:State.metro,
     drumPattern:State.drumPattern,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
-      mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,automation:t.automation,fxParams:t.fx.params})),
+      mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,automation:t.automation,fxModules:fxToSpecs(t.fx)})),
     regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
       offset:r.offset,duration:r.duration,notes:r.notes,fadeIn:r.fadeIn,fadeOut:r.fadeOut,
       audioData:r.buffer?arrayBufferToBase64(encodeWav(r.buffer)):null})),
@@ -1948,8 +2013,8 @@ function loadProject(d){
     const t=addTrack(td.type,{name:td.name,color:td.color});
     t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
     t.synth=td.synth||t.synth; t.automation=td.automation||[];
-    if(td.fxParams) Object.assign(t.fx.params,td.fxParams);
-    applyFXParams(t);
+    if(td.fxModules){ try{t.fx.output.disconnect();}catch(e){}
+      t.fx=buildFX(Audio.ctx, td.fxModules); t.fx.output.connect(Audio.masterGain); }
     applyTrackGain(t);
   });
   const pending=[];
@@ -1973,11 +2038,6 @@ function loadProject(d){
     toast('Project loaded');
   }
 }
-function applyFXParams(t){const fx=t.fx,P=fx.params;
-  fx.low.gain.value=P.eqLow;fx.mid.gain.value=P.eqMid;fx.high.gain.value=P.eqHigh;
-  fx.delay.delayTime.value=P.delayTime;fx.fb.gain.value=P.delayFb;fx.delaySend.gain.value=P.delayOn?P.delayMix:0;
-  fx.conv.buffer=makeImpulse(Audio.ctx,P.reverbSize,P.reverbDecay);fx.revSend.gain.value=P.reverbOn?P.reverbMix:0;
-  fx.comp.threshold.value=P.compOn?P.compThresh:0;fx.comp.ratio.value=P.compOn?P.compRatio:1;}
 
 /* =====================================================================
    WEB MIDI
@@ -2042,6 +2102,10 @@ $$(".dtab[data-pane]").forEach(b=>b.addEventListener('click',()=>{openDrawer();s
 function openDrawer(){$("#drawer").classList.remove('collapsed');$("#drawerToggle").textContent='▾ Collapse';}
 $("#drawerToggle").addEventListener('click',()=>{const d=$("#drawer");d.classList.toggle('collapsed');
   $("#drawerToggle").textContent=d.classList.contains('collapsed')?'▴ Expand':'▾ Collapse';layout();});
+$("#keysToggle").addEventListener('click',function(){ const on=$(".kbdhint").classList.toggle('show');
+  this.classList.toggle('on',on); });
+$("#drumClear").addEventListener('click',clearDrumPattern);
+$("#drumClearRow").addEventListener('click',clearDrumRow);
 
 /* Resizable drawer (drag its top edge) — resizes the piano roll and all panes */
 (function(){
@@ -2149,7 +2213,8 @@ lanes.addEventListener('contextmenu',e=>{
     items.push({header:`${track.name} · bar ${Math.floor(beat/beatsPerBar())+1}`});
     if(track.type!=='audio' && track.type!=='drum') items.push({icon:'＋',label:'New MIDI Clip Here',action:()=>createMidiRegionAt(track,beat)});
     if(track.type==='audio') items.push({icon:'⭳',label:'Import Audio Here…',action:()=>{ importTargetTrack=track.id; importTargetBeat=beat; $("#fileInput").click(); }});
-    if(track.type==='drum')  items.push({icon:'🥁',label:'Open Drum Machine',action:()=>{ selectTrack(track.id); setDrawerPane('drum'); openDrawer(); }});
+    if(track.type==='drum'){ items.push({icon:'🥁',label:'Open Drum Machine',action:()=>{ selectTrack(track.id); setDrawerPane('drum'); openDrawer(); }});
+      if(anyDrumActive()) items.push({icon:'🗑',label:'Clear Drum Pattern',danger:true,action:()=>clearDrumPattern()}); }
     items.push({icon:'▸',label:'Move Playhead Here',action:()=>Transport.setPosition(beatToSec(beat))});
     items.push({separator:true});
     items.push({icon:'⟦',label:'Set Loop Start Here',action:()=>{ State.loop.start=beat; State.loop.end=Math.max(State.loop.end,beat+beatsPerBar());
