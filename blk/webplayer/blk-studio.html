@@ -1461,7 +1461,7 @@ const Transport={
       this.scheduledUntil=this.position; this.killSources(); this.primeAt(this.position);
       this.scheduleAutomation(this.position);
       this.metroNext=Math.ceil(secToBeat(this.position)-1e-6)*secPerBeat();}
-    updatePlayhead();
+    updatePlayhead(); updatePosDisplay();
   },
   toggleRecord(){
     Audio.init(); Audio.resume();
@@ -1903,6 +1903,14 @@ const PianoRoll={
       if(pitch%12===0){ k.fillStyle='#8A2BE2'; k.font='bold 9px "Space Mono",monospace';
         k.fillText('C'+(Math.floor(pitch/12)-1), 30, y+this.noteH/2+3.5); }
     }
+    // restore scroll + keep ruler/keybed aligned (a pane switch can reset the scroll to 0
+    // while the transforms stay stale, which made the piano-roll timeline vanish)
+    const sc=$("#prScroll");
+    if(sc){
+      if(this._scroll){ sc.scrollLeft=this._scroll.left; sc.scrollTop=this._scroll.top; }
+      this.ruler.style.transform=`translateX(${-sc.scrollLeft}px)`;
+      this.keys.style.transform=`translateY(${-sc.scrollTop}px)`;
+    }
     this.updatePlayhead();
   },
   updatePlayhead(){
@@ -1917,7 +1925,8 @@ const PianoRoll={
     let pitch=60; const ns=this.region&&this.region.notes;
     if(ns&&ns.length) pitch=Math.round(ns.reduce((a,n)=>a+n.pitch,0)/ns.length);
     const row=this.rows-1-(pitch-this.lowNote);
-    sc.scrollTop=Math.max(0, row*this.noteH - sc.clientHeight/2);
+    sc.scrollTop=Math.max(0, row*this.noteH - (sc.clientHeight||260)/2);
+    this._scroll={left:sc.scrollLeft, top:sc.scrollTop};
     $("#prKeys").style.transform=`translateY(${-sc.scrollTop}px)`;
   },
   zoomH(f){ this.beatW=clamp(Math.round(this.beatW*f),34,320); this.draw(); },
@@ -1934,9 +1943,10 @@ const PianoRoll={
 const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function noteName(p){ return NOTE_NAMES[((p%12)+12)%12]+(Math.floor(p/12)-1); }
 function extendRegionToNotes(r){ let end=r.duration||0; (r.notes||[]).forEach(n=>end=Math.max(end,n.start+n.dur)); r.duration=Math.max(end, secPerBeat()*beatsPerBar()); }
-// keep keys/ruler aligned with the grid scroll
+// keep keys/ruler aligned with the grid scroll, and remember the scroll position
 $("#prScroll").addEventListener('scroll',()=>{
   const sc=$("#prScroll");
+  PianoRoll._scroll={left:sc.scrollLeft, top:sc.scrollTop};
   $("#prRuler").style.transform=`translateX(${-sc.scrollLeft}px)`;
   $("#prKeys").style.transform=`translateY(${-sc.scrollTop}px)`;
 });
@@ -2657,7 +2667,7 @@ lanes.addEventListener('contextmenu',e=>{
   showContextMenu(e.clientX, e.clientY, items);
 });
 
-window.addEventListener('resize',layout);
+window.addEventListener('resize',()=>{ layout(); if(PianoRoll.region!==undefined) PianoRoll.draw(); });
 
 /* =====================================================================
    TEMPLATES / BOOT
