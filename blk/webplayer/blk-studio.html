@@ -199,8 +199,11 @@
   .fxmini:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
   .fxmini.rm:hover{border-color:var(--rec); color:var(--rec)}
   .fxmini:disabled{opacity:.3; cursor:default}
-  .fxadd{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:11px; color:var(--muted)}
-  .fxadd select{background:var(--panel3); color:var(--text); border:1px solid var(--line2); border-radius:4px; padding:5px 8px; font-size:12px}
+  .fxadd{display:flex; align-items:center; gap:8px; margin-top:14px}
+  .fxaddbtn{width:100%; padding:11px; border-radius:7px; border:1px dashed var(--accent);
+    background:var(--accent-dim,rgba(138,43,226,.14)); color:var(--accent); font-family:'Space Mono',monospace;
+    font-weight:700; letter-spacing:1px; font-size:13px; cursor:pointer; transition:.15s}
+  .fxaddbtn:hover{background:var(--accent); color:#fff; border-style:solid}
 
   /* Template picker overlay */
   .tpl-overlay{position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,.9); backdrop-filter:blur(6px);
@@ -1917,13 +1920,15 @@ function renderFX(){
       body.appendChild(eqCanvas); drawEQ(eqCanvas,m.nodes); }
     grid.appendChild(card);
   });
-  // Add-effect bar
+  // Add-effect button → opens a menu of every effect type
   const bar=document.createElement('div'); bar.className='fxadd';
-  bar.innerHTML=`<span>Add effect:</span>
-    <select id="fxAddSel">${FX_ALL.map(ty=>`<option value="${ty}">${FX_LABEL[ty]}</option>`).join('')}</select>
-    <button class="fxmini wide" id="fxAddBtn">＋ Add to chain</button>`;
-  host.appendChild(bar);
-  $("#fxAddBtn",host).onclick=()=>addFX(t, $("#fxAddSel",host).value);
+  const addBtn=document.createElement('button'); addBtn.className='fxaddbtn'; addBtn.textContent='＋ Add Effect';
+  addBtn.onclick=e=>{
+    const items=FX_ALL.map(ty=>({icon:'🎛',label:FX_LABEL[ty],action:()=>addFX(t,ty)}));
+    const r=e.currentTarget.getBoundingClientRect();
+    showContextMenu(r.left, r.bottom+4, items);
+  };
+  bar.appendChild(addBtn); host.appendChild(bar);
 }
 // simple titled card (used by the Synth panel)
 function fxCard(title){
