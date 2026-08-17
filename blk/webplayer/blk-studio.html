@@ -321,7 +321,7 @@
     <div class="tgroup">
       <button class="tbtn" id="btnPlay" title="Play (Space)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
       <button class="tbtn" id="btnStop" title="Stop"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></button>
-      <button class="tbtn" id="btnReturn" title="Return to play-start on pause"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg></button>
+      <button class="tbtn on" id="btnReturn" title="When ON: pausing jumps the playhead back to where you pressed Play"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg></button>
       <button class="tbtn rec" id="btnRec" title="Record (armed tracks)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
       <button class="tbtn" id="btnLoop" title="Loop"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
       <button class="tbtn" id="btnMetro" title="Metronome"><svg viewBox="0 0 24 24"><path d="M12 2l4 18H8L12 2zm0 6l-2 9h4l-2-9z"/></svg></button>
@@ -513,7 +513,7 @@ const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
   tracks:[], regions:[], selectedTrack:null, selectedRegion:null,
-  recLatencyMs:0, returnToStart:false,
+  recLatencyMs:0, returnToStart:true,
   drumPattern:Array.from({length:8},()=>new Array(16).fill(false)),
   synth:{osc1:'sawtooth',osc2:'square',detune:8,a:.01,d:.15,s:.6,r:.25,
          cutoff:4000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
