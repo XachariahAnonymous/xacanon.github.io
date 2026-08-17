@@ -72,6 +72,21 @@
   /* ---------- Main ---------- */
   .main{flex:1; display:flex; min-height:0}
   .arranger{flex:1; display:flex; flex-direction:column; min-width:0}
+  /* Loop bar */
+  .loopbar-row{display:flex; height:20px; border-bottom:1px solid var(--line); background:var(--panel2)}
+  .loopbar-corner{width:var(--hdr); min-width:var(--hdr); border-right:1px solid var(--line);
+    display:flex; align-items:center; padding:0 8px}
+  .loopbar-toggle{font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; padding:2px 8px;
+    background:var(--panel3); border:1px solid var(--line2); color:var(--muted); border-radius:4px; cursor:pointer}
+  .loopbar-toggle.on{background:var(--accent2); border-color:var(--accent2); color:#000}
+  .loopbar-scroll{flex:1; overflow:hidden; position:relative; cursor:ew-resize}
+  .loopbar-track{position:absolute; top:0; left:0; height:20px; will-change:transform}
+  .loop-region{position:absolute; top:2px; height:16px; border-radius:3px; display:none;
+    background:rgba(34,211,238,.2); border:1px solid var(--accent2)}
+  .loop-region.on{display:block}
+  .loop-region.off{display:block; background:rgba(255,255,255,.05); border-color:var(--line2)}
+  .loop-region .lh{position:absolute; top:0; bottom:0; width:6px; cursor:ew-resize}
+  .loop-region .lh.l{left:-1px} .loop-region .lh.r{right:-1px}
   .ruler-row{display:flex; height:26px; border-bottom:1px solid var(--line);
     background:var(--panel)}
   .ruler-corner{width:var(--hdr); min-width:var(--hdr); border-right:1px solid var(--line);
@@ -306,6 +321,7 @@
     <div class="tgroup">
       <button class="tbtn" id="btnPlay" title="Play (Space)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
       <button class="tbtn" id="btnStop" title="Stop"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></button>
+      <button class="tbtn" id="btnReturn" title="Return to play-start on pause"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg></button>
       <button class="tbtn rec" id="btnRec" title="Record (armed tracks)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
       <button class="tbtn" id="btnLoop" title="Loop"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
       <button class="tbtn" id="btnMetro" title="Metronome"><svg viewBox="0 0 24 24"><path d="M12 2l4 18H8L12 2zm0 6l-2 9h4l-2-9z"/></svg></button>
@@ -347,6 +363,12 @@
   <!-- ============ MAIN ============ -->
   <div class="main">
     <div class="arranger">
+      <div class="loopbar-row">
+        <div class="loopbar-corner"><button id="btnLoopBar" class="loopbar-toggle" title="Toggle looping">LOOP</button></div>
+        <div class="loopbar-scroll" id="loopbarScroll">
+          <div class="loopbar-track" id="loopbarTrack"><div class="loop-region" id="loopRegion"></div></div>
+        </div>
+      </div>
       <div class="ruler-row">
         <div class="ruler-corner"><span id="selTrackName">No track</span></div>
         <div class="ruler-scroll" id="rulerScroll"><canvas id="rulerCanvas"></canvas></div>
@@ -491,7 +513,7 @@ const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
   tracks:[], regions:[], selectedTrack:null, selectedRegion:null,
-  recLatencyMs:0,
+  recLatencyMs:0, returnToStart:false,
   drumPattern:Array.from({length:8},()=>new Array(16).fill(false)),
   synth:{osc1:'sawtooth',osc2:'square',detune:8,a:.01,d:.15,s:.6,r:.25,
          cutoff:4000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
@@ -836,7 +858,6 @@ function renderTracks(){
     $(".pan",el).addEventListener('input',e=>{t.pan=parseFloat(e.target.value); applyTrackGain(t);});
     $(".autoBtn",el).addEventListener('click',()=>{t.showAuto=!t.showAuto; renderTracks(); drawRegions();});
     $(".delBtn",el).addEventListener('click',()=>{deleteTrack(t.id);});
-    el.addEventListener('contextmenu',e=>{ e.preventDefault(); selectTrack(t.id); trackHeaderMenu(t, e.clientX, e.clientY); });
     host.appendChild(el);
   });
   // "Add Track" button at the bottom of the track list
@@ -844,13 +865,24 @@ function renderTracks(){
   add.addEventListener('click',e=>{ const r=e.currentTarget.getBoundingClientRect(); addTrackMenu(r.left, r.bottom+4); });
   host.appendChild(add);
 }
+// Whole track-selector column gets the custom menu (no native menu anywhere)
+$("#headers").addEventListener('contextmenu',e=>{
+  e.preventDefault(); e.stopPropagation();
+  const el=e.target.closest('.thead');
+  if(el){ const t=getTrack(el.dataset.id); if(t){ selectTrack(t.id); trackHeaderMenu(t, e.clientX, e.clientY); } }
+  else { addTrackMenu(e.clientX, e.clientY); }   // empty area → add a track
+});
 function trackHeaderMenu(t, x, y){
   const items=[];
-  items.push({header:t.name});
+  items.push({header:(t.type==='midi'?'🎹 ':t.type==='drum'?'🥁 ':'🎤 ')+t.name});
   items.push({icon:'✎',label:'Rename',action:()=>{ const el=[...document.querySelectorAll('.thead')].find(e=>e.dataset.id===t.id);
     const inp=el&&$(".tname",el); if(inp){ inp.focus(); inp.select(); } }});
   if(t.type==='midi') items.push({icon:'🎹',label:'Change Instrument…',action:()=>{
     showContextMenu(x,y, instrumentMenuItems(name=>applyInstrument(t,name)));
+  }});
+  items.push({icon:'🎨',label:'Change Color…',action:()=>{
+    const sw=COLORS.map(c=>({icon:'●',label:c, action:()=>{ t.color=c; renderTracks(); drawRegions(); }}));
+    showContextMenu(x,y,sw);
   }});
   items.push({icon:'⧉',label:'Duplicate Track',action:()=>duplicateTrack(t.id)});
   items.push({icon:'🎛',label:'Open FX Rack',action:()=>{ selectTrack(t.id); setDrawerPane('fx'); openDrawer(); }});
@@ -898,7 +930,25 @@ function layout(){
   regionsLayer.style.width=w+'px'; regionsLayer.style.height=h+'px';
   $("#playhead").style.height=h+'px';
   rulerCanvas.width=$("#rulerScroll").clientWidth; rulerCanvas.height=26;
-  drawGrid(); drawRuler(); drawRegions();
+  drawGrid(); drawRuler(); drawRegions(); renderLoopBar();
+}
+/* ---------- Loop bar (select/enable the loop range on the time area) ---------- */
+function renderLoopBar(){
+  const track=$("#loopbarTrack"); if(!track) return;
+  track.style.width=beatToPx(totalBeats())+'px';
+  const lr=$("#loopRegion");
+  lr.className='loop-region '+(State.loop.on?'on':'off');
+  lr.style.left=beatToPx(State.loop.start)+'px';
+  lr.style.width=Math.max(2,beatToPx(State.loop.end-State.loop.start))+'px';
+  lr.innerHTML='<div class="lh l"></div><div class="lh r"></div>';
+  syncLoopBarScroll();
+}
+function syncLoopBarScroll(){ const t=$("#loopbarTrack"); if(t) t.style.transform=`translateX(${-lanes.scrollLeft}px)`; }
+function updateLoopUI(){
+  renderLoopBar();
+  $("#btnLoop").classList.toggle('on',State.loop.on);
+  $("#btnLoopBar").classList.toggle('on',State.loop.on);
+  drawGrid(); drawRuler();
 }
 function drawGrid(){
   const ctx=laneCtx, w=laneCanvas.width, h=laneCanvas.height;
@@ -943,15 +993,39 @@ function drawRuler(){
   ctx.fillStyle='#22d3ee'; ctx.beginPath();
   ctx.moveTo(px-4,0);ctx.lineTo(px+4,0);ctx.lineTo(px,6);ctx.fill();
 }
-lanes.addEventListener('scroll',()=>{drawRuler(); syncHeadersScroll();});
+lanes.addEventListener('scroll',()=>{drawRuler(); syncHeadersScroll(); syncLoopBarScroll();});
 function syncHeadersScroll(){$("#headers").scrollTop=lanes.scrollTop;}
+
+/* Loop bar interaction: drag to select the loop range, click to toggle, edge handles to resize */
+(function(){
+  const bar=$("#loopbarScroll"); if(!bar) return;
+  bar.addEventListener('mousedown',e=>{
+    if(e.button!==0) return; e.preventDefault();
+    const rect=$("#loopbarTrack").getBoundingClientRect();
+    const handle=e.target.classList.contains('lh')?(e.target.classList.contains('l')?'l':'r'):null;
+    const startBeat=snapBeat(pxToBeat(e.clientX-rect.left));
+    const oStart=State.loop.start, oEnd=State.loop.end, minLen=State.snap||0.25;
+    let moved=false;
+    const move=ev=>{
+      const b=snapBeat(pxToBeat(ev.clientX-rect.left)); moved=true; State.loop.on=true;
+      if(handle==='l')      State.loop.start=clamp(b,0,oEnd-minLen);
+      else if(handle==='r') State.loop.end=Math.max(oStart+minLen,b);
+      else { State.loop.start=Math.max(0,Math.min(startBeat,b)); State.loop.end=Math.max(startBeat+minLen,b); }
+      updateLoopUI();
+    };
+    const up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+      if(!moved && !handle){ State.loop.on=!State.loop.on; updateLoopUI(); } };
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+  });
+})();
+$("#btnLoopBar").addEventListener('click',()=>{ State.loop.on=!State.loop.on; updateLoopUI(); });
 
 /* click ruler to move playhead / set loop */
 $("#rulerScroll").addEventListener('mousedown',e=>{
   const rect=$("#rulerScroll").getBoundingClientRect();
   const beat=snapBeat(pxToBeat(e.clientX-rect.left+lanes.scrollLeft));
   if(e.shiftKey){ // set loop start
-    State.loop.start=beat; State.loop.on=true; $("#btnLoop").classList.add('on');
+    State.loop.start=beat; State.loop.on=true; updateLoopUI();
   } else {
     Transport.setPosition(beatToSec(beat));
   }
@@ -1338,6 +1412,7 @@ const Transport={
   play(){
     Audio.init(); Audio.resume();
     if(this.isPlaying) return;
+    this.playAnchor=this.position;               // remember where we pressed play
     this.isPlaying=true; $("#btnPlay").classList.add('on');
     this.startCtx=Audio.now(); this.startSong=this.position;
     this.scheduledUntil=this.position;
@@ -1356,8 +1431,14 @@ const Transport={
     Recorder.finishAll();
     applyAllGains(); // restore static (non-automated) gains
   },
-  toggle(){ this.isPlaying?this.stopToStart():this.play(); },
-  stopToStart(){ const wasRec=this.recording; this.stop(); if(!wasRec){} },
+  toggle(){ this.isPlaying?this.pause():this.play(); },
+  pause(){
+    const anchor=this.playAnchor;
+    this.stop();
+    // when "return to start" is on, jump back to where playback began
+    if(State.returnToStart && anchor!=null){ this.position=anchor; updatePlayhead(); updatePosDisplay(); }
+  },
+  stopToStart(){ this.stop(); },
   setPosition(sec){
     this.position=clamp(sec,0,beatToSec(totalBeats()));
     if(this.isPlaying){ this.startCtx=Audio.now(); this.startSong=this.position;
@@ -2353,7 +2434,9 @@ $("#micEnableBtn").addEventListener('click',()=>Mic.enable($("#micDevice").value
 $("#micDevice").addEventListener('change',e=>{ if(Mic.stream) Mic.enable(e.target.value||null).catch(()=>{}); else Mic.deviceId=e.target.value||null; });
 $("#micMonitor").addEventListener('change',e=>Mic.setMonitoring(e.target.checked));
 $("#btnRecVocals").addEventListener('click',()=>recordVocals());
-function toggleLoop(){State.loop.on=!State.loop.on;$("#btnLoop").classList.toggle('on',State.loop.on);drawGrid();drawRuler();}
+function toggleLoop(){State.loop.on=!State.loop.on; updateLoopUI();}
+$("#btnReturn").addEventListener('click',function(){ State.returnToStart=!State.returnToStart; this.classList.toggle('on',State.returnToStart);
+  toast(State.returnToStart?'Pause returns to play-start':'Pause stays where you paused'); });
 $("#btnLoop").addEventListener('click',toggleLoop);
 $("#btnMetro").addEventListener('click',()=>{State.metro=!State.metro;$("#btnMetro").classList.toggle('on',State.metro);});
 $("#bpm").addEventListener('input',e=>{State.bpm=clamp(parseInt(e.target.value)||120,40,300);layout();});
