@@ -105,6 +105,8 @@
   .regions-layer{position:absolute; top:0; left:0; z-index:2}
   #playhead{position:absolute; top:0; width:2px; background:var(--accent2);
     z-index:5; pointer-events:none; box-shadow:0 0 8px var(--accent2)}
+  .marquee{position:absolute; z-index:6; pointer-events:none; border:1px solid var(--accent2);
+    background:rgba(34,211,238,.12)}
 
   .add-track-row{display:block; width:100%; padding:12px; background:var(--panel2); border:none;
     border-top:1px dashed var(--line2); color:var(--accent); font-family:'Space Mono',monospace; font-weight:700;
@@ -330,6 +332,7 @@
 
     <div class="tgroup">
       <div class="lcd"><div class="lbl">BARS · BEATS · TICKS</div><b id="posDisplay">1 . 1 . 000</b></div>
+      <div class="lcd"><div class="lbl">TIME</div><b id="timeDisplay">0:00.000</b></div>
     </div>
 
     <div class="tgroup">
@@ -512,7 +515,7 @@ function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show"
 const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
-  tracks:[], regions:[], selectedTrack:null, selectedRegion:null,
+  tracks:[], regions:[], selectedTrack:null, selectedRegion:null, selection:[],
   recLatencyMs:0, returnToStart:true,
   drumPattern:Array.from({length:8},()=>new Array(16).fill(false)),
   synth:{osc1:'sawtooth',osc2:'square',detune:8,a:.01,d:.15,s:.6,r:.25,
@@ -1020,16 +1023,15 @@ function syncHeadersScroll(){$("#headers").scrollTop=lanes.scrollTop;}
 })();
 $("#btnLoopBar").addEventListener('click',()=>{ State.loop.on=!State.loop.on; updateLoopUI(); });
 
-/* click ruler to move playhead / set loop */
+/* click + drag on the ruler to scrub the playhead (shift = set loop start) */
 $("#rulerScroll").addEventListener('mousedown',e=>{
-  const rect=$("#rulerScroll").getBoundingClientRect();
-  const beat=snapBeat(pxToBeat(e.clientX-rect.left+lanes.scrollLeft));
-  if(e.shiftKey){ // set loop start
-    State.loop.start=beat; State.loop.on=true; updateLoopUI();
-  } else {
-    Transport.setPosition(beatToSec(beat));
-  }
-  drawGrid(); drawRuler();
+  if(e.button!==0) return;
+  const toBeat=cx=>snapBeat(pxToBeat(cx-$("#rulerScroll").getBoundingClientRect().left+lanes.scrollLeft));
+  if(e.shiftKey){ State.loop.start=toBeat(e.clientX); State.loop.on=true; updateLoopUI(); return; }
+  Transport.setPosition(beatToSec(toBeat(e.clientX))); drawGrid(); drawRuler();
+  const move=ev=>{ Transport.setPosition(beatToSec(toBeat(ev.clientX))); drawRuler(); };
+  const up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); };
+  document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
 });
 
 /* ---------- Region rendering ---------- */
@@ -1052,7 +1054,7 @@ function drawRegions(){
     if(ti<0) return;
     const t=State.tracks[ti];
     const el=document.createElement('div');
-    el.className='region'+(r.type==='midi'?' midi':'')+(r.id===State.selectedRegion?' sel':'');
+    el.className='region'+(r.type==='midi'?' midi':'')+(isRegionSelected(r)?' sel':'');
     const x=beatToPx(secToBeat(r.start));
     const w=beatToPx(secToBeat(r.duration));
     el.style.left=x+'px'; el.style.top=(ti*ROWH+7)+'px'; el.style.width=w+'px';
@@ -1155,21 +1157,27 @@ function attachRegionEvents(el,r){
   el.addEventListener('mousedown',e=>{
     if(e.button!==0) return; // right-click is the context menu, not a drag
     if(e.target.classList.contains('handle')) return; // handled below
-    State.selectedRegion=r.id; selectTrack(r.trackId);
-    drawRegions();
-    if(r.type==='midi'){ PianoRoll.load(r); setDrawerPane('piano'); }
-    const startX=e.clientX, origStart=r.start;
-    const origTrackIdx=State.tracks.findIndex(t=>t.id===r.trackId);
+    // shift/ctrl-click toggles this region in the multi-selection
+    if(e.shiftKey||e.ctrlKey||e.metaKey){ toggleInSelection(r.id); selectTrack(r.trackId); drawRegions(); return; }
+    if(!State.selection.includes(r.id)) setSelection([r.id]);
+    selectTrack(r.trackId); drawRegions();
+    if(r.type==='midi' && State.selection.length<=1){ PianoRoll.load(r); setDrawerPane('piano'); }
+    // drag every selected region together (same beat + track offset)
+    const startX=e.clientX;
+    const group=State.regions.filter(x=>State.selection.includes(x.id))
+      .map(x=>({r:x, start:x.start, ti:State.tracks.findIndex(t=>t.id===x.trackId)}));
+    const primTi=(group.find(o=>o.r.id===r.id)||{ti:0}).ti;
     const move=ev=>{
       const dBeat=pxToBeat(ev.clientX-startX);
-      let nb=secToBeat(origStart)+dBeat; nb=snapBeat(nb);
-      r.start=beatToSec(Math.max(0,nb));
-      // vertical track move
       const rect=lanes.getBoundingClientRect();
       const y=ev.clientY-rect.top+lanes.scrollTop;
-      const ti=clamp(Math.floor(y/ROWH),0,State.tracks.length-1);
-      if(State.tracks[ti] && State.tracks[ti].type!=='audio'===(r.type!=='audio')){}
-      r.trackId=State.tracks[ti].id;
+      const targetTi=clamp(Math.floor(y/ROWH),0,State.tracks.length-1);
+      const dTrack=targetTi-primTi;
+      group.forEach(o=>{
+        o.r.start=beatToSec(Math.max(0,snapBeat(secToBeat(o.start)+dBeat)));
+        const nti=clamp(o.ti+dTrack,0,State.tracks.length-1);
+        o.r.trackId=State.tracks[nti].id;
+      });
       drawRegions();
     };
     const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);};
@@ -1203,16 +1211,24 @@ function attachRegionEvents(el,r){
   });
 }
 
+function setSelection(ids){ State.selection=[...new Set(ids)]; State.selectedRegion=State.selection[State.selection.length-1]||null; }
+function toggleInSelection(id){ const i=State.selection.indexOf(id); if(i>=0) State.selection.splice(i,1); else State.selection.push(id);
+  State.selectedRegion=State.selection[State.selection.length-1]||null; }
+function clearSelection(){ State.selection=[]; State.selectedRegion=null; }
+function isRegionSelected(r){ return State.selection.includes(r.id) || r.id===State.selectedRegion; }
+function selectedRegionIds(){ return State.selection.length?State.selection.slice():(State.selectedRegion?[State.selectedRegion]:[]); }
 function duplicateRegion(){
-  const r=State.regions.find(x=>x.id===State.selectedRegion); if(!r) return;
-  const copy=JSON.parse(JSON.stringify({...r,buffer:null}));
-  copy.id=uid(); copy.buffer=r.buffer; copy.start=r.start+r.duration;
-  State.regions.push(copy); State.selectedRegion=copy.id; drawRegions(); toast('Region duplicated');
+  const ids=selectedRegionIds(); if(!ids.length) return;
+  const newIds=[];
+  ids.forEach(id=>{ const r=State.regions.find(x=>x.id===id); if(!r) return;
+    const copy=JSON.parse(JSON.stringify({...r,buffer:null})); copy.id=uid(); copy.buffer=r.buffer; copy.start=r.start+r.duration;
+    State.regions.push(copy); newIds.push(copy.id); });
+  setSelection(newIds); drawRegions(); toast(newIds.length>1?newIds.length+' regions duplicated':'Region duplicated');
 }
 function deleteRegion(){
-  if(!State.selectedRegion) return;
-  State.regions=State.regions.filter(r=>r.id!==State.selectedRegion);
-  State.selectedRegion=null; drawRegions(); toast('Region deleted');
+  const ids=selectedRegionIds(); if(!ids.length) return;
+  State.regions=State.regions.filter(r=>!ids.includes(r.id));
+  clearSelection(); drawRegions(); toast(ids.length>1?ids.length+' regions deleted':'Region deleted');
 }
 function splitRegion(){
   const r=State.regions.find(x=>x.id===State.selectedRegion); if(!r) return;
@@ -1577,6 +1593,10 @@ function updatePosDisplay(){
   const bt=Math.floor(beat%bpb)+1;
   const ticks=Math.floor((beat%1)*480);
   $("#posDisplay").textContent=`${bar} . ${bt} . ${String(ticks).padStart(3,'0')}`;
+  // actual elapsed time of the song (mm:ss.mmm)
+  const sec=Math.max(0,Transport.position);
+  const m=Math.floor(sec/60), s=Math.floor(sec%60), ms=Math.floor((sec%1)*1000);
+  $("#timeDisplay").textContent=`${m}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
 }
 
 /* =====================================================================
@@ -2370,7 +2390,7 @@ function loadProject(d){
   Audio.init();
   // clear
   State.tracks.forEach(t=>{try{t.fx.output.disconnect();}catch(e){}});
-  State.tracks=[]; State.regions=[]; State.selectedTrack=null; State.selectedRegion=null;
+  State.tracks=[]; State.regions=[]; State.selectedTrack=null; State.selectedRegion=null; State.selection=[];
   State.bpm=d.bpm||120; $("#bpm").value=State.bpm;
   State.timesig=d.timesig||[4,4]; State.snap=d.snap??0.25; State.loop=d.loop||State.loop;
   State.metro=d.metro||false; $("#btnMetro").classList.toggle('on',State.metro);
@@ -2532,14 +2552,34 @@ lanes.addEventListener('dblclick',e=>{
   drawRegions(); PianoRoll.load(reg); setDrawerPane('piano'); openDrawer();
 });
 
-/* deselect on empty click (left button only — right-click opens the context menu) */
-lanes.addEventListener('mousedown',e=>{ if(e.button===0 && (e.target===lanes||e.target===laneCanvas||e.target===regionsLayer)){
-  State.selectedRegion=null; drawRegions();
-  // scrub playhead
+/* empty timeline: click = move playhead + clear selection; drag = marquee-select multiple regions */
+lanes.addEventListener('mousedown',e=>{
+  if(e.button!==0) return;
+  if(!(e.target===lanes||e.target===laneCanvas||e.target===regionsLayer)) return;
   const rect=lanes.getBoundingClientRect();
-  const beat=snapBeat(pxToBeat(e.clientX-rect.left+lanes.scrollLeft));
-  Transport.setPosition(beatToSec(beat));
-}});
+  const x0=e.clientX-rect.left+lanes.scrollLeft, y0=e.clientY-rect.top+lanes.scrollTop;
+  const cx=e.clientX, cy=e.clientY;
+  let marquee=null;
+  const move=ev=>{
+    if(!marquee && Math.abs(ev.clientX-cx)<4 && Math.abs(ev.clientY-cy)<4) return;
+    if(!marquee){ marquee=document.createElement('div'); marquee.className='marquee'; lanes.appendChild(marquee); }
+    const x1=ev.clientX-rect.left+lanes.scrollLeft, y1=ev.clientY-rect.top+lanes.scrollTop;
+    const L=Math.min(x0,x1), T=Math.min(y0,y1), W=Math.abs(x1-x0), H=Math.abs(y1-y0);
+    marquee.style.left=L+'px'; marquee.style.top=T+'px'; marquee.style.width=W+'px'; marquee.style.height=H+'px';
+    const bL=pxToBeat(L), bR=pxToBeat(L+W), tiT=Math.floor(T/ROWH), tiB=Math.floor((T+H)/ROWH);
+    const ids=[];
+    State.regions.forEach(rg=>{ const ti=State.tracks.findIndex(t=>t.id===rg.trackId); if(ti<0) return;
+      const rL=secToBeat(rg.start), rR=secToBeat(rg.start+rg.duration);
+      if(ti>=tiT && ti<=tiB && rR>=bL && rL<=bR) ids.push(rg.id); });
+    setSelection(ids); drawRegions();
+  };
+  const up=()=>{
+    document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
+    if(marquee){ marquee.remove(); toast(State.selection.length?State.selection.length+' selected':'None selected'); drawRegions(); }
+    else { clearSelection(); drawRegions(); Transport.setPosition(beatToSec(snapBeat(pxToBeat(x0)))); }
+  };
+  document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+});
 
 /* =====================================================================
    TIMELINE CONTEXT MENU (custom right-click)
@@ -2631,7 +2671,7 @@ const TEMPLATES=[
 function resetProject(){
   Transport.stop(); Transport.position=0;
   State.tracks.forEach(t=>{try{t.fx.output.disconnect();}catch(e){}});
-  State.tracks=[]; State.regions=[]; State.selectedTrack=null; State.selectedRegion=null;
+  State.tracks=[]; State.regions=[]; State.selectedTrack=null; State.selectedRegion=null; State.selection=[];
   State.drumPattern=Array.from({length:8},()=>new Array(16).fill(false));
   trackSeq=0;
 }
