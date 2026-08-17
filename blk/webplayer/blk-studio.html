@@ -461,7 +461,10 @@ function addTrack(type='midi',opts={}){
   return t;
 }
 function getTrack(id){return State.tracks.find(t=>t.id===id);}
-function selectTrack(id){State.selectedTrack=id; renderTracks(); renderMixer(); renderFX(); renderSynthPanel();
+function selectTrack(id){State.selectedTrack=id;
+  // lightweight highlight — don't rebuild headers (would steal focus from a clicked input)
+  $$('.thead').forEach(el=>el.classList.toggle('sel', el.dataset.id===id));
+  renderMixer(); renderFX(); renderSynthPanel();
   const t=getTrack(id); $("#selTrackName").textContent=t?t.name:'No track';}
 function anySolo(){return State.tracks.some(t=>t.solo);}
 function trackAudible(t){ if(t.mute) return false; if(anySolo()&&!t.solo) return false; return true; }
@@ -518,7 +521,9 @@ function renderTracks(){
         <div class="kv"><button class="delBtn" style="font-size:9px;background:var(--panel2);color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:2px 6px">✕</button></div>
       </div>`;
     // events
-    el.addEventListener('mousedown',e=>{if(!e.target.closest('input,button')) selectTrack(t.id);});
+    // Select on ANY interaction with the header (name, knobs, buttons all select the track too)
+    el.addEventListener('mousedown',()=>{ if(State.selectedTrack!==t.id){ selectTrack(t.id);
+      if(t.type==='drum'){ setDrawerPane('drum'); openDrawer(); } } });
     $(".tcolor",el).addEventListener('input',e=>{t.color=e.target.value; renderTracks(); drawRegions();});
     $(".tname",el).addEventListener('input',e=>{t.name=e.target.value; if(t.id===State.selectedTrack)$("#selTrackName").textContent=t.name; renderMixer();});
     $(".m",el).addEventListener('click',()=>{t.mute=!t.mute; renderTracks(); applyAllGains();});
@@ -666,6 +671,32 @@ function drawRegions(){
     // automation lane
     if(t.showAuto){ drawAutomation(t,ti); }
   });
+  // drum tracks show their step pattern as a lane strip (they play a pattern, not a clip)
+  State.tracks.forEach((t,ti)=>{ if(t.type==='drum') drawDrumLane(t,ti); });
+}
+function drawDrumLane(t,ti){
+  if(!anyDrumActive()) return;
+  const W=beatToPx(totalBeats()), H=ROWH-14, bpb=beatsPerBar(), stepPx=beatToPx(0.25);
+  const el=document.createElement('div');
+  el.className='region'; el.style.cursor='pointer';
+  el.style.left='0px'; el.style.top=(ti*ROWH+7)+'px'; el.style.width=W+'px';
+  el.style.background=hexA(t.color,.14); el.style.borderColor=hexA(t.color,.5);
+  const lanes=DRUM_NAMES.filter((n,i)=>State.drumPattern[i].some(Boolean)).length;
+  el.innerHTML=`<div class="rlabel">🥁 Drum Pattern · ${lanes} lane${lanes!==1?'s':''}</div>`;
+  const c=document.createElement('canvas'); c.width=Math.max(1,W); c.height=H;
+  c.style.position='absolute'; c.style.top='0'; c.style.left='0'; c.style.opacity='.9';
+  const ctx=c.getContext('2d'); ctx.fillStyle=hexA(t.color,.95);
+  for(let bar=0; bar*bpb<totalBeats(); bar++){
+    for(let s=0;s<16;s++){
+      const beat=bar*bpb+s*0.25; if(beat>=totalBeats()) break;
+      const x=beatToPx(beat);
+      for(let p=0;p<8;p++){ if(State.drumPattern[p][s]){
+        const y=(p/8)*H; ctx.fillRect(x+1,y+1,Math.max(2,stepPx-2),Math.max(2,H/8-1)); } }
+    }
+  }
+  el.appendChild(c);
+  el.addEventListener('mousedown',()=>{ selectTrack(t.id); setDrawerPane('drum'); openDrawer(); });
+  regionsLayer.appendChild(el);
 }
 function hexA(hex,a){const h=hex.replace('#','');const n=parseInt(h,16);
   const r=(n>>16)&255,g=(n>>8)&255,b=n&255;return `rgba(${r},${g},${b},${a})`;}
@@ -1313,7 +1344,7 @@ function buildDrumUI(){
       cell.className='step'+(s%4===0?' beat':'')+(State.drumPattern[row][s]?' on':'');
       cell.dataset.row=row; cell.dataset.step=s;
       cell.addEventListener('click',()=>{State.drumPattern[row][s]=!State.drumPattern[row][s];
-        cell.classList.toggle('on'); });
+        cell.classList.toggle('on'); drawRegions(); });
       seq.appendChild(cell);
     }
   });
