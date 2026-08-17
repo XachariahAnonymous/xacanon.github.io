@@ -108,8 +108,21 @@
             font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase;
             padding: 0.2rem 0.6rem; border: 1px solid;
         }
-        .role-badge.admin { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
-        .role-badge.user  { color: var(--sub);    border-color: var(--border); }
+        .role-badge.admin  { color: var(--accent);  border-color: var(--accent);  background: var(--accent-dim); }
+        .role-badge.artist { color: var(--success); border-color: var(--success); background: rgba(0,255,102,0.08); }
+        .role-badge.user   { color: var(--sub);     border-color: var(--border); }
+        .role-badge + .role-badge { margin-left: 0.3rem; }
+
+        /* Role checkmarks in the user actions cell */
+        .role-check {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 1px; text-transform: uppercase;
+            color: var(--sub); cursor: pointer; margin-right: 0.7rem; user-select: none; vertical-align: middle;
+        }
+        .role-check input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+        .role-check.artist input { accent-color: var(--success); }
+        .role-check input:disabled { cursor: not-allowed; opacity: 0.5; }
+        .role-check:hover { color: #fff; }
 
         .tbl-btn {
             font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 1px; text-transform: uppercase;
@@ -658,13 +671,21 @@
         document.getElementById('statCoins').textContent     = totalCoins.toFixed(2);
     }
 
+    function roleBadges(u) {
+        const badges = [];
+        if (u.role === 'admin') badges.push('<span class="role-badge admin">admin</span>');
+        if (u.artist)           badges.push('<span class="role-badge artist">artist</span>');
+        if (!badges.length)     badges.push('<span class="role-badge user">user</span>');
+        return badges.join('');
+    }
+
     function renderDashUserList(users) {
         document.getElementById('dashUserList').innerHTML = users.length
             ? users.map(u => `
                 <tr>
                     <td><span class="user-avatar">${initials(u.displayName||u.email)}</span>${esc(u.displayName || '—')}</td>
                     <td style="color:var(--sub);font-size:0.75rem;">${esc(u.email||'—')}</td>
-                    <td><span class="role-badge ${u.role||'user'}">${u.role||'user'}</span></td>
+                    <td>${roleBadges(u)}</td>
                     <td style="font-family:'Space Mono',monospace;color:var(--accent);">${(u.coins||0).toFixed(2)}</td>
                     <td style="font-size:0.75rem;color:var(--sub);">${fmtDate(u.joinedAt)}</td>
                 </tr>`).join('')
@@ -677,19 +698,23 @@
                 <tr>
                     <td><span class="user-avatar">${initials(u.displayName||u.email)}</span>${esc(u.displayName || '—')}</td>
                     <td style="color:var(--sub);font-size:0.75rem;">${esc(u.email||'—')}</td>
-                    <td><span class="role-badge ${u.role||'user'}">${u.role||'user'}</span></td>
+                    <td>${roleBadges(u)}</td>
                     <td style="font-family:'Space Mono',monospace;color:var(--accent);">${(u.coins||0).toFixed(2)}</td>
                     <td style="font-family:'Space Mono',monospace;">${u.listenCount||0}</td>
                     <td style="font-family:'Space Mono',monospace;">${u.purchases||0}</td>
                     <td>
+                        <label class="role-check" title="Grant admin access">
+                            <input type="checkbox" ${u.role === 'admin' ? 'checked' : ''} ${u.id === currentAdminUid ? 'disabled' : ''}
+                                   onchange="setAdmin('${u.id}', this.checked)"> Admin
+                        </label>
+                        <label class="role-check artist" title="Grant artist role (BLK Studio access)">
+                            <input type="checkbox" ${u.artist ? 'checked' : ''}
+                                   onchange="setArtist('${u.id}', this.checked)"> Artist
+                        </label>
                         ${u.id === currentAdminUid
-                            ? '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;">YOU</span>'
-                            : u.role === 'admin'
-                                ? `<button class="tbl-btn demote"  onclick="changeRole('${u.id}','user')">Demote</button>`
-                                : `<button class="tbl-btn promote" onclick="changeRole('${u.id}','admin')">Promote</button>`
+                            ? '<span style="font-family:Space Mono,monospace;font-size:0.5rem;color:var(--sub);letter-spacing:1px;margin-left:0.3rem;">YOU</span>'
+                            : `<button class="tbl-btn promote" onclick="openAddCoins('${u.id}')">+ BLK</button><button class="tbl-btn delete"  onclick="confirmDelete('${u.id}')">Delete</button>`
                         }
-                        ${u.id !== currentAdminUid ? `<button class="tbl-btn promote" onclick="openAddCoins('${u.id}')">+ BLK</button>` : ''}
-                        ${u.id !== currentAdminUid ? `<button class="tbl-btn delete"  onclick="confirmDelete('${u.id}')">Delete</button>` : ''}
                     </td>
                 </tr>`).join('')
             : `<tr class="empty-row"><td colspan="7">No users found</td></tr>`;
@@ -1037,6 +1062,42 @@
         if (!q) { renderUserTable(allUsers); return; }
         renderUserTable(allUsers.filter(u =>
             (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)));
+    }
+
+    // Toggle the admin role via checkmark (role: 'admin' | 'user')
+    async function setAdmin(uid, isAdmin) {
+        const u = allUsers.find(x => x.id === uid);
+        if (!u) return;
+        const name = u.displayName || u.email || uid;
+        const newRole = isAdmin ? 'admin' : 'user';
+        try {
+            await FB.updateDoc(FB.doc(FB.db, 'users', uid), { role: newRole });
+            u.role = newRole;
+            renderUserTable(allUsers);
+            renderDashUserList(allUsers.slice(0, 5));
+            updateDashboard();
+            showToast(`${name} ${isAdmin ? 'is now an admin' : 'is no longer an admin'}`, isAdmin);
+        } catch (e) {
+            showToast('Failed to update admin role', false, true);
+            renderUserTable(allUsers); // revert checkbox to stored state
+        }
+    }
+
+    // Toggle the artist role via checkmark (artist: boolean) — grants BLK Studio access
+    async function setArtist(uid, isArtist) {
+        const u = allUsers.find(x => x.id === uid);
+        if (!u) return;
+        const name = u.displayName || u.email || uid;
+        try {
+            await FB.updateDoc(FB.doc(FB.db, 'users', uid), { artist: isArtist });
+            u.artist = isArtist;
+            renderUserTable(allUsers);
+            renderDashUserList(allUsers.slice(0, 5));
+            showToast(`${name} ${isArtist ? 'is now an artist' : 'is no longer an artist'}`, isArtist);
+        } catch (e) {
+            showToast('Failed to update artist role', false, true);
+            renderUserTable(allUsers); // revert checkbox to stored state
+        }
     }
 
     async function changeRole(uid, newRole) {
