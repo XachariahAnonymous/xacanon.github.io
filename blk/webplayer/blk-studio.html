@@ -2689,7 +2689,23 @@ $("#btnMetro").addEventListener('click',()=>{State.metro=!State.metro;$("#btnMet
 $("#bpm").addEventListener('input',e=>{State.bpm=clamp(parseInt(e.target.value)||120,40,300);layout();});
 $("#timesig").addEventListener('change',e=>{const[a,b]=e.target.value.split('/').map(Number);State.timesig=[a,b];layout();});
 $("#snap").addEventListener('change',e=>{State.snap=parseFloat(e.target.value);});
-$("#zoom").addEventListener('input',e=>{State.pxPerBeat=parseInt(e.target.value);layout();PianoRoll.draw();});
+$("#zoom").addEventListener('input',e=>{State.pxPerBeat=parseInt(e.target.value);layout();});
+// Ctrl + mousewheel over the timeline zooms the arranger (not the browser page), centered on the cursor
+function zoomTimelineAt(clientX, factor){
+  const rect=lanes.getBoundingClientRect();
+  const px=clientX-rect.left;                 // cursor x within the lanes viewport
+  const beat=pxToBeat(px+lanes.scrollLeft);   // the beat currently under the cursor
+  State.pxPerBeat=clamp(Math.round(State.pxPerBeat*factor),24,360);
+  $("#zoom").value=State.pxPerBeat;
+  layout();
+  lanes.scrollLeft=Math.max(0, beatToPx(beat)-px); // keep that beat under the cursor
+  drawRuler(); syncLoopBarScroll();
+}
+[lanes, $("#rulerScroll"), $("#loopbarScroll")].forEach(el=>el && el.addEventListener('wheel',e=>{
+  if(!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  zoomTimelineAt(e.clientX, e.deltaY<0 ? 1.12 : 0.9);
+}, {passive:false}));
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
 // instrument picker rows: real sampled instruments, then synth presets
