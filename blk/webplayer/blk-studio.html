@@ -2756,6 +2756,7 @@ function param(label,min,max,step,val,fmt,onInput){
   const row=document.createElement('div'); row.className='prm';
   row.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}"><span class="val">${fmt(val)}</span>`;
   const inp=$("input",row), out=$(".val",row);
+  if(typeof historyOnDrag==='function') historyOnDrag(inp);
   inp.addEventListener('input',()=>{const v=parseFloat(inp.value); out.textContent=fmt(v); onInput(v);});
   return row;
 }
@@ -2836,6 +2837,7 @@ function renderMixer(){
       <div class="mm"><i></i></div>
       <input type="range" class="pan" min="-1" max="1" step="0.02" value="${t.pan}" style="width:100%">
       <div style="font-size:9px;color:var(--muted)">PAN</div>`;
+    historyOnDrag($(".fader",s)); historyOnDrag($(".pan",s));
     $(".fader",s).addEventListener('input',e=>{t.volume=parseFloat(e.target.value);applyTrackGain(t);renderTracks();});
     $(".pan",s).addEventListener('input',e=>{t.pan=parseFloat(e.target.value);applyTrackGain(t);});
     $(".m",s).addEventListener('click',()=>{t.mute=!t.mute;renderTracks();renderMixer();applyAllGains();});
@@ -3101,6 +3103,7 @@ function snapshotProject(){
     loop:Object.assign({},State.loop), metro:State.metro,
     drumPattern:State.drumPattern.map(r=>r.slice()),
     selectedTrack:State.selectedTrack,
+    masterVol:parseFloat($("#masterVol").value),
     masterFx:Audio.masterFX?fxToSpecs(Audio.masterFX):null,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
       mute:t.mute,solo:t.solo,arm:t.arm,synth:clone(t.synth),instrument:t.instrument,engine:t.engine,sample:t.sample,
@@ -3127,6 +3130,7 @@ function restoreSnapshot(s){
     State.timesig=s.timesig.slice(); State.snap=s.snap; State.loop=Object.assign({},s.loop);
     State.metro=s.metro; $("#btnMetro").classList.toggle('on',State.metro);
     State.drumPattern=s.drumPattern.map(r=>r.slice());
+    if(s.masterVol!=null){ $("#masterVol").value=s.masterVol; if(Audio.masterGain) Audio.masterGain.gain.value=s.masterVol; }
     if(s.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
       Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
       Audio.masterFX=buildFX(Audio.ctx, s.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0;
@@ -3154,6 +3158,16 @@ function redo(){ if(!History.redo.length){toast('Nothing to redo');return;} Hist
   restoreSnapshot(History.redo.pop()); updateHistoryButtons(); toast('Redo'); }
 function updateHistoryButtons(){ const u=$("#btnUndo"), r=$("#btnRedo");
   if(u)u.disabled=!History.undo.length; if(r)r.disabled=!History.redo.length; }
+function commitSnapshot(snap){ if(!snap||History.busy||History.suspend) return;
+  History.undo.push(snap); if(History.undo.length>History.max) History.undo.shift(); History.redo.length=0; updateHistoryButtons(); }
+// For range sliders: capture the pre-drag state on pointerdown, commit it to the
+// undo stack on the first actual value change (so plain clicks add no history).
+function historyOnDrag(el){
+  let snap=null;
+  el.addEventListener('pointerdown',()=>{ snap=snapshotProject(); });
+  el.addEventListener('input',()=>{ if(snap){ commitSnapshot(snap); snap=null; } });
+  el.addEventListener('pointerup',()=>{ snap=null; });
+}
 $("#btnUndo").addEventListener('click',undo);
 $("#btnRedo").addEventListener('click',redo);
 
@@ -3211,6 +3225,7 @@ function zoomTimelineAt(clientX, factor){
   e.preventDefault();
   zoomTimelineAt(e.clientX, e.deltaY<0 ? 1.12 : 0.9);
 }, {passive:false}));
+historyOnDrag($("#masterVol"));
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
 $("#btnMaster").addEventListener('click',()=>{ Audio.init(); State.fxView='master'; $("#btnMaster").classList.add('on');
