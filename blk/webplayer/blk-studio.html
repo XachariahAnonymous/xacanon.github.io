@@ -2800,6 +2800,8 @@ lanes.addEventListener('mousedown',e=>{
   if(e.button!==0) return;
   if(!(e.target===lanes||e.target===laneCanvas||e.target===regionsLayer)) return;
   const rect=lanes.getBoundingClientRect();
+  // ignore presses on the scrollbar gutter so the browser can drag the scrollbar
+  if(e.clientX-rect.left>=lanes.clientWidth || e.clientY-rect.top>=lanes.clientHeight) return;
   const x0=e.clientX-rect.left+lanes.scrollLeft, y0=e.clientY-rect.top+lanes.scrollTop;
   const cx=e.clientX, cy=e.clientY;
   let marquee=null;
