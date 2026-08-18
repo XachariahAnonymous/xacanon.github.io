@@ -3479,6 +3479,7 @@ function resetProject(){
 }
 function loadTemplate(key){
   Audio.init(); Audio.resume();
+  if(typeof History!=='undefined') History.suspend=true; // don't let template setup fill the undo stack
   if(key==='recording'){ resetProject(); $("#tplOverlay").classList.remove('show'); recordingTemplateImport(); return; }
   resetProject();
   if(key==='blank'){
@@ -3506,6 +3507,7 @@ function loadTemplate(key){
   buildDrumUI(); renderTracks(); layout(); drawRegions(); renderMixer(); renderFX(); renderSynthPanel();
   updatePlayhead(); updatePosDisplay();
   $("#tplOverlay").classList.remove('show');
+  if(typeof History!=='undefined'){ History.suspend=false; History.undo.length=0; History.redo.length=0; updateHistoryButtons(); }
   toast((TEMPLATES.find(t=>t.key===key)||{}).name+' loaded');
 }
 // Recording template: import a beat, detect tempo, then arm a vocal track below it
@@ -3531,7 +3533,9 @@ function recordingTemplateImport(){
       layout(); drawRegions(); renderTracks(); renderMixer(); updatePlayhead(); updatePosDisplay();
       toast('Detected ~'+bpm+' BPM · 4/4 · Vocals armed with Autotune — press Record');
     }catch(e){ toast('Could not read that audio file'); showTemplates(); }
+    if(typeof History!=='undefined'){ History.suspend=false; History.undo.length=0; History.redo.length=0; updateHistoryButtons(); }
   };
+  inp.oncancel=()=>{ if(typeof History!=='undefined') History.suspend=false; };
   inp.click();
 }
 function showTemplates(){
