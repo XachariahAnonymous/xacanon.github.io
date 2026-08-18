@@ -550,6 +550,7 @@ const Audio={
     split.connect(this.analyserL,0); split.connect(this.analyserR,1);
     this.masterGain.connect(this.ctx.destination);
     this._buf=new Float32Array(1024);
+    registerAutotune(this.ctx); // load the autotune worklet in the background
   },
   now(){return this.ctx?this.ctx.currentTime:0;},
   resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); }
@@ -564,14 +565,111 @@ function makeImpulse(ctx,seconds,decay){
   return imp;
 }
 
+/* ---------- tempo detection (onset-envelope autocorrelation) ---------- */
+function detectBPM(buffer){
+  const sr=buffer.sampleRate, data=buffer.getChannelData(0), n=data.length;
+  const hop=Math.max(1,Math.floor(sr*0.01)), frames=Math.floor(n/hop);
+  const env=new Float32Array(frames);
+  for(let i=0;i<frames;i++){ let s=0; const off=i*hop; for(let j=0;j<hop;j++){ const v=data[off+j]||0; s+=v*v; } env[i]=Math.sqrt(s/hop); }
+  const onset=new Float32Array(frames);
+  for(let i=1;i<frames;i++){ const d=env[i]-env[i-1]; onset[i]=d>0?d:0; }
+  const fps=sr/hop, minBPM=70, maxBPM=180;
+  const minLag=Math.max(1,Math.floor(fps*60/maxBPM)), maxLag=Math.floor(fps*60/minBPM);
+  let bestLag=minLag, best=-1;
+  for(let lag=minLag; lag<=maxLag; lag++){
+    let sum=0; for(let i=lag;i<frames;i++) sum+=onset[i]*onset[i-lag];
+    if(sum>best){ best=sum; bestLag=lag; }
+  }
+  let bpm=60*fps/bestLag;
+  while(bpm<70) bpm*=2; while(bpm>150) bpm/=2;
+  return Math.round(bpm)||120;
+}
+
+/* ---------- Autotune (AudioWorklet: pitch detect + delay-line pitch shift, snap to scale) ---------- */
+const SCALES={ chromatic:[0,1,2,3,4,5,6,7,8,9,10,11], major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], pentatonic:[0,2,4,7,9] };
+const KEY_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function scaleMask(keyName,scale){ const key=Math.max(0,KEY_NAMES.indexOf(keyName));
+  const arr=SCALES[scale]||SCALES.chromatic; const m=new Array(12).fill(false); arr.forEach(iv=>m[(iv+key)%12]=true); return m; }
+const AUTOTUNE_WORKLET=`
+class Autotune extends AudioWorkletProcessor {
+  constructor(){
+    super();
+    this.sr=sampleRate;
+    this.mask=new Array(12).fill(true);
+    this.strength=0.9; this.mix=1; this.retune=0.02;
+    this.N=16384; this.buf=new Float32Array(this.N); this.w=0;
+    this.M=2048; this.det=new Float32Array(this.M);
+    this.ratio=1; this.target=1; this.sinceDetect=0;
+    this.grain=Math.round(this.sr*0.03); this.p1=0; this.p2=this.grain/2;
+    this.port.onmessage=(e)=>{ const d=e.data;
+      if(d.mask) this.mask=d.mask;
+      if(d.strength!=null) this.strength=d.strength;
+      if(d.mix!=null) this.mix=d.mix;
+      if(d.retune!=null) this.retune=d.retune; };
+  }
+  detect(){
+    const M=this.M, N=this.N;
+    for(let i=0;i<M;i++) this.det[i]=this.buf[(this.w-M+i+N)%N];
+    let mean=0; for(let i=0;i<M;i++) mean+=this.det[i]; mean/=M;
+    let rms=0; for(let i=0;i<M;i++){ this.det[i]-=mean; rms+=this.det[i]*this.det[i]; }
+    if(rms<1e-4) return 0;
+    const minLag=Math.floor(this.sr/500), maxLag=Math.floor(this.sr/70);
+    let bestLag=0,best=0;
+    for(let lag=minLag; lag<=maxLag; lag++){
+      let s=0; for(let i=0;i<M-lag;i++) s+=this.det[i]*this.det[i+lag];
+      if(s>best){ best=s; bestLag=lag; }
+    }
+    return bestLag?this.sr/bestLag:0;
+  }
+  snap(freq){
+    if(freq<=0) return 1;
+    const midi=69+12*Math.log2(freq/440);
+    let target=Math.round(midi),bd=99;
+    for(let m=Math.round(midi)-2;m<=Math.round(midi)+2;m++){ const pc=((m%12)+12)%12;
+      if(this.mask[pc]){ const d=Math.abs(m-midi); if(d<bd){bd=d;target=m;} } }
+    const tf=440*Math.pow(2,(target-69)/12);
+    return Math.pow(tf/freq, this.strength);
+  }
+  interp(pos){ const N=this.N; let p=pos%N; if(p<0)p+=N; const i0=Math.floor(p),i1=(i0+1)%N,f=p-i0; return this.buf[i0]*(1-f)+this.buf[i1]*f; }
+  process(inputs,outputs){
+    const inp=inputs[0], outp=outputs[0];
+    if(!inp||!inp[0]||!outp||!outp[0]) return true;
+    const x=inp[0], y=outp[0], g=this.grain, detN=Math.round(this.sr*0.012);
+    for(let i=0;i<x.length;i++){
+      this.buf[this.w]=x[i];
+      if(++this.sinceDetect>=detN){ this.sinceDetect=0; const f=this.detect(); this.target=f>0?this.snap(f):1; }
+      this.ratio+=(this.target-this.ratio)*this.retune;
+      const s1=this.interp(this.w-this.p1), s2=this.interp(this.w-this.p2);
+      const win1=0.5-0.5*Math.cos(2*Math.PI*(this.p1/g)), win2=0.5-0.5*Math.cos(2*Math.PI*(this.p2/g));
+      const wet=s1*win1+s2*win2;
+      y[i]=wet*this.mix + x[i]*(1-this.mix);
+      const inc=1-this.ratio; this.p1+=inc; this.p2+=inc;
+      if(this.p1>=g)this.p1-=g; else if(this.p1<0)this.p1+=g;
+      if(this.p2>=g)this.p2-=g; else if(this.p2<0)this.p2+=g;
+      this.w=(this.w+1)%this.N;
+    }
+    return true;
+  }
+}
+registerProcessor('autotune-processor', Autotune);
+`;
+let _autotuneURL=null;
+function autotuneURL(){ if(!_autotuneURL) _autotuneURL=URL.createObjectURL(new Blob([AUTOTUNE_WORKLET],{type:'application/javascript'})); return _autotuneURL; }
+function registerAutotune(ctx){
+  if(!ctx||!ctx.audioWorklet) return Promise.resolve();
+  if(ctx.__autotuneReady) return Promise.resolve();
+  return ctx.audioWorklet.addModule(autotuneURL()).then(()=>{ ctx.__autotuneReady=true; }).catch(()=>{});
+}
+
 /* =====================================================================
    FX CHAIN — per track: EQ(3band) -> Delay -> Reverb -> Compressor -> gain -> pan
    Returned object exposes .input and .output plus param nodes.
    ===================================================================== */
-const FX_LABEL={eq:'3-Band EQ',filter:'Auto-Filter',compressor:'Compressor',distortion:'Distortion',
+const FX_LABEL={autotune:'Autotune',eq:'3-Band EQ',filter:'Auto-Filter',compressor:'Compressor',distortion:'Distortion',
   bitcrusher:'Bitcrusher',chorus:'Chorus',phaser:'Phaser',tremolo:'Tremolo',delay:'Delay',reverb:'Reverb'};
-const FX_ALL=['eq','filter','compressor','distortion','bitcrusher','chorus','phaser','tremolo','delay','reverb'];
+const FX_ALL=['autotune','eq','filter','compressor','distortion','bitcrusher','chorus','phaser','tremolo','delay','reverb'];
 const FX_DEFAULT_PARAMS={
+  autotune:{key:'C',scale:'major',strength:0.9,speed:0.5,mix:1},
   eq:{low:0,mid:0,high:0,midFreq:1000},
   filter:{cutoff:1200,reso:6,rate:1,depth:.5},
   compressor:{thresh:-24,ratio:3,att:.01,rel:.25},
@@ -585,6 +683,11 @@ const FX_DEFAULT_PARAMS={
 };
 const FX_DEFAULT_ON={eq:true,compressor:true};
 const FX_SPEC={
+  autotune:[ {k:'key',label:'Key',opts:KEY_NAMES},
+       {k:'scale',label:'Scale',opts:['chromatic','major','minor','pentatonic']},
+       {k:'strength',label:'Amount',min:0,max:1,step:.01,fmt:v=>Math.round(v*100)+'%'},
+       {k:'speed',label:'Retune',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
   eq:[ {k:'low',label:'Low dB',min:-18,max:18,step:.5,fmt:v=>v.toFixed(1)},
        {k:'mid',label:'Mid dB',min:-18,max:18,step:.5,fmt:v=>v.toFixed(1)},
        {k:'high',label:'High dB',min:-18,max:18,step:.5,fmt:v=>v.toFixed(1)},
@@ -632,7 +735,15 @@ function makeFXModule(ctx,type,params){
   const m={type, enabled:FX_DEFAULT_ON[type]!==false, in:input, out:output,
     params:Object.assign({}, FX_DEFAULT_PARAMS[type], params||{}), nodes:N};
   const startOsc=o=>{ try{o.start();}catch(e){} oscs.push(o); };
-  if(type==='eq'){
+  if(type==='autotune'){
+    input.connect(output); // passthrough until the worklet node is attached
+    const attach=()=>{ if(N.node||!ctx.__autotuneReady) return;
+      try{ N.node=new AudioWorkletNode(ctx,'autotune-processor',{numberOfInputs:1,numberOfOutputs:1,channelCount:1,channelCountMode:'explicit'});
+        try{input.disconnect(output);}catch(e){}
+        input.connect(N.node); N.node.connect(output); m.update();
+      }catch(e){} };
+    if(ctx.__autotuneReady) attach(); else registerAutotune(ctx).then(attach);
+  } else if(type==='eq'){
     N.low=ctx.createBiquadFilter(); N.low.type='lowshelf'; N.low.frequency.value=200;
     N.mid=ctx.createBiquadFilter(); N.mid.type='peaking'; N.mid.Q.value=1;
     N.high=ctx.createBiquadFilter(); N.high.type='highshelf'; N.high.frequency.value=4000;
@@ -682,7 +793,8 @@ function makeFXModule(ctx,type,params){
   }
   m.update=function(){
     const P=m.params;
-    if(type==='eq'){ N.low.gain.value=P.low; N.mid.gain.value=P.mid; N.high.gain.value=P.high; N.mid.frequency.value=P.midFreq; }
+    if(type==='autotune'){ if(N.node) N.node.port.postMessage({ mask:scaleMask(P.key,P.scale), strength:P.strength, mix:P.mix, retune:0.004+P.speed*0.06 }); }
+    else if(type==='eq'){ N.low.gain.value=P.low; N.mid.gain.value=P.mid; N.high.gain.value=P.high; N.mid.frequency.value=P.midFreq; }
     else if(type==='filter'){ N.filter.frequency.value=P.cutoff; N.filter.Q.value=P.reso; N.lfo.frequency.value=P.rate; N.lfoGain.gain.value=P.depth*P.cutoff; }
     else if(type==='compressor'){ N.comp.threshold.value=P.thresh; N.comp.ratio.value=P.ratio; N.comp.attack.value=P.att; N.comp.release.value=P.rel; }
     else if(type==='distortion'){ N.shaper.curve=makeDistCurve(P.amount); N.wet.gain.value=P.mix; N.dry.gain.value=1-Math.min(1,P.mix); }
@@ -2239,6 +2351,7 @@ function renderFX(){
     const body=document.createElement('div'); card.appendChild(body);
     let eqCanvas=null;
     FX_SPEC[m.type].forEach(sp=>{
+      if(sp.opts){ body.appendChild(selectRow(sp.label, sp.opts, m.params[sp.k], v=>{ m.params[sp.k]=v; m.update(); })); return; }
       body.appendChild(param(sp.label,sp.min,sp.max,sp.step,m.params[sp.k],sp.fmt,v=>{
         m.params[sp.k]=v;
         if(m.type==='reverb'&&sp.rebuild) m.rebuildImpulse(); else m.update();
@@ -2363,6 +2476,7 @@ async function exportWav(){
   toast('Rendering '+end.toFixed(1)+'s…');
   const rate=(Audio.ctx&&Audio.ctx.sampleRate)||44100;
   const off=new OfflineAudioContext(2, Math.ceil(end*rate), rate);
+  await registerAutotune(off); // so autotune renders into the bounce
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
   // rebuild per-track fx offline from the live chain (same modules, order, params)
   State.tracks.forEach(t=>{
@@ -2740,6 +2854,7 @@ window.addEventListener('resize',()=>{ layout(); if(PianoRoll.region!==undefined
    TEMPLATES / BOOT
    ===================================================================== */
 const TEMPLATES=[
+  {key:'recording', name:'Recording',  icon:'🎙️', desc:'Import a beat — we detect its tempo — then a vocal track (with Autotune) is armed underneath, ready to record.'},
   {key:'blank', name:'Blank',         icon:'▢',  desc:'Empty timeline with one instrument track. Build from scratch.'},
   {key:'beat',  name:'Beat Starter',  icon:'🥁', desc:'Drums with a basic groove, a Synth Bass and a Lead — ready to jam.'},
   {key:'vocal', name:'Vocal Session', icon:'🎤', desc:'An armed vocal audio track plus a Grand Piano to sing over.'},
@@ -2754,6 +2869,7 @@ function resetProject(){
 }
 function loadTemplate(key){
   Audio.init(); Audio.resume();
+  if(key==='recording'){ resetProject(); $("#tplOverlay").classList.remove('show'); recordingTemplateImport(); return; }
   resetProject();
   if(key==='blank'){
     addTrack('midi',{instrument:'Grand Piano'});
@@ -2781,6 +2897,32 @@ function loadTemplate(key){
   updatePlayhead(); updatePosDisplay();
   $("#tplOverlay").classList.remove('show');
   toast((TEMPLATES.find(t=>t.key===key)||{}).name+' loaded');
+}
+// Recording template: import a beat, detect tempo, then arm a vocal track below it
+function recordingTemplateImport(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='audio/*';
+  inp.onchange=async()=>{
+    const f=inp.files[0]; if(!f){ showTemplates(); return; }
+    Audio.init(); Audio.resume();
+    toast('Analyzing tempo of '+f.name+'…');
+    try{
+      const ab=await f.arrayBuffer();
+      const buf=await Audio.ctx.decodeAudioData(ab.slice(0));
+      const bpm=detectBPM(buf);
+      State.bpm=bpm; $("#bpm").value=bpm; State.timesig=[4,4]; $("#timesig").value='4/4';
+      // imported beat track
+      const beatTrack=addTrack('audio',{name:'Beat',color:COLORS[1]});
+      State.regions.push({id:uid(),trackId:beatTrack.id,type:'audio',name:f.name.slice(0,18),
+        start:0,offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0});
+      // vocal track below, armed, with autotune on its FX chain
+      const vox=addTrack('audio',{name:'Vocals',color:COLORS[4]}); vox.arm=true;
+      addFX(vox,'autotune');
+      selectTrack(vox.id);
+      layout(); drawRegions(); renderTracks(); renderMixer(); updatePlayhead(); updatePosDisplay();
+      toast('Detected ~'+bpm+' BPM · 4/4 · Vocals armed with Autotune — press Record');
+    }catch(e){ toast('Could not read that audio file'); showTemplates(); }
+  };
+  inp.click();
 }
 function showTemplates(){
   const grid=$("#tplGrid");
