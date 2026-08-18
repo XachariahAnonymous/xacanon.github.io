@@ -360,6 +360,26 @@
   [data-theme="logic"] .thead{background:linear-gradient(180deg,#2e343e,#282d36)}
   [data-theme="logic"] .drawer-tabs{background:linear-gradient(180deg,#333a45,#2a2f38)}
   [data-theme="logic"] .region{box-shadow:0 1px 3px rgba(0,0,0,.4)}
+
+  /* ===== per-DAW CONTROL-BAR (transport) LAYOUT ===== */
+  /* FL Studio: compact, tightly-packed left toolbar */
+  [data-theme="fl"] .transport{gap:8px; padding:6px 10px}
+  [data-theme="fl"] .tgroup{gap:4px; padding:0 6px}
+  [data-theme="fl"] .tbtn{padding:5px 7px}
+
+  /* Ableton Live: tempo/tap sits top-left (right after the logo), then transport */
+  [data-theme="ableton"] .brand{order:-4}
+  [data-theme="ableton"] .home{order:-3}
+  [data-theme="ableton"] .tg-tempo{order:-2}
+  [data-theme="ableton"] .tg-transport{order:-1}
+  /* the LCD, then file/history groups, then master stay in their DOM order (0+) */
+
+  /* Logic Pro: transport + LCD centered in the control bar, everything else to the sides */
+  [data-theme="logic"] .brand{order:-2}
+  [data-theme="logic"] .home{order:-1}
+  [data-theme="logic"] .tg-transport{margin-left:auto}
+  [data-theme="logic"] .tg-lcd{margin-right:auto}
+  [data-theme="logic"] .lcd{min-width:120px}
 </style>
 </head>
 <body>
@@ -370,7 +390,7 @@
     <div class="brand">BLK<span> Studio</span></div>
     <button class="tbtn small home" id="btnHome" title="Return to the BLK player">← Home</button>
 
-    <div class="tgroup">
+    <div class="tgroup tg-transport">
       <button class="tbtn" id="btnPlay" title="Play (Space)"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
       <button class="tbtn" id="btnStop" title="Stop"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg></button>
       <button class="tbtn on" id="btnReturn" title="When ON: pausing jumps the playhead back to where you pressed Play"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg></button>
@@ -380,12 +400,12 @@
       <button class="tbtn" id="btnMic" title="Record vocals (mic)"><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></button>
     </div>
 
-    <div class="tgroup">
+    <div class="tgroup tg-lcd">
       <div class="lcd"><div class="lbl">BARS · BEATS · TICKS</div><b id="posDisplay">1 . 1 . 000</b></div>
       <div class="lcd"><div class="lbl">TIME</div><b id="timeDisplay">0:00.000</b></div>
     </div>
 
-    <div class="tgroup">
+    <div class="tgroup tg-tempo">
       <div class="field"><label>Tempo (BPM)</label><input type="number" id="bpm" value="120" min="40" max="300" step="1"></div>
       <button class="tbtn small" id="btnTap" title="Tap Tempo">TAP</button>
       <div class="field"><label>Time Sig</label>
@@ -398,12 +418,12 @@
     </div>
 
 
-    <div class="tgroup">
+    <div class="tgroup tg-history">
       <button class="tbtn" id="btnUndo" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.98 7.98 0 0 1 12.5 11c2.9 0 5.4 1.6 6.72 4l2.36-.78A9.99 9.99 0 0 0 12.5 8z"/></svg></button>
       <button class="tbtn" id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.98 7.98 0 0 1 12.5 11c2.9 0 5.4 1.6 6.72 4l2.36-.78A9.99 9.99 0 0 0 12.5 8z"/></svg></button>
     </div>
 
-    <div class="tgroup">
+    <div class="tgroup tg-file">
       <button class="tbtn small" id="btnNew" title="New project from a template">New</button>
       <button class="tbtn small" id="btnMaster" title="Master bus mastering chain">⬤ Master</button>
       <button class="tbtn small" id="btnExport" title="Bounce to WAV">Export WAV</button>
@@ -3313,7 +3333,10 @@ const THEMES={
     '--line':'rgba(255,255,255,0.07)','--line2':'rgba(255,255,255,0.14)','--text':'#eef1f6','--muted':'#8f98a6',
     '--accent':'#5b9bd5','--accent2':'#9cc4ea','--grad-a':'#4a5261','--grad-b':'#333a45','--lcd-bg':'#12161c','--eqline':'#414b59','--radius':'7px' },
 };
-function applyTheme(name){
+// Each DAW's signature bottom panel (FL = Channel-Rack step sequencer, Ableton =
+// device/FX chain, Logic/BandLab = the piano-roll editor).
+const THEME_PANE={fl:'drum', ableton:'fx', logic:'piano', bandlab:'piano'};
+function applyTheme(name, opts={}){
   if(!THEMES[name]) name='bandlab';
   const th=THEMES[name]; const r=document.documentElement.style;
   Object.keys(th).forEach(k=>r.setProperty(k,th[k]));
@@ -3321,8 +3344,10 @@ function applyTheme(name){
   try{localStorage.setItem('blk-theme',name);}catch(e){}
   const sel=$("#themeSel"); if(sel) sel.value=name;
   if(State.selectedTrack!=null) renderFX(); // redraw EQ graph in the new accent
+  // on a deliberate switch, jump the bottom drawer to the DAW's signature panel
+  if(opts.switchPane && typeof setDrawerPane==='function'){ openDrawer(); setDrawerPane(THEME_PANE[name]||'piano'); }
 }
-$("#themeSel").addEventListener('change',e=>applyTheme(e.target.value));
+$("#themeSel").addEventListener('change',e=>applyTheme(e.target.value,{switchPane:true}));
 (function initTheme(){ let saved='bandlab'; try{saved=localStorage.getItem('blk-theme')||'bandlab';}catch(e){} applyTheme(saved); })();
 // instrument picker rows: real sampled instruments, then synth presets
 function instrumentMenuItems(onPick){
