@@ -2468,8 +2468,10 @@ const PianoRoll={
     this.draw(); drawRegions(); toast(n>1?n+' notes deleted':'Note deleted'); return true; },
   ensureRegion(){
     if(this.region) return this.region;
-    let t=getTrack(State.selectedTrack);
-    if(!t||t.type==='audio') t=State.tracks.find(x=>x.type!=='audio')||addTrack('midi');
+    // Only make a MIDI clip on the SELECTED instrument track — never invent a new
+    // track (e.g. when the selected track is audio/vocals or a drum track).
+    const t=getTrack(State.selectedTrack);
+    if(!t || t.type!=='midi') return null;
     const reg={id:uid(),trackId:t.id,type:'midi',name:'MIDI',start:0,offset:0,duration:secPerBeat()*beatsPerBar()*2,notes:[]};
     State.regions.push(reg); this.region=reg; State.selectedRegion=reg.id; drawRegions();
     $("#prRegionName").textContent=reg.name;
@@ -2617,6 +2619,10 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
 
   grid.addEventListener('mousedown',e=>{
     if(e.button!==0) return; // right-click opens the note context menu
+    // The piano roll edits the SELECTED instrument track. On an audio/vocal or drum
+    // track, do nothing (don't create a MIDI clip or a new instrument track).
+    const selT=getTrack(State.selectedTrack);
+    if(!selT || selT.type!=='midi'){ toast('Piano Roll edits instrument tracks — select or add one'); return; }
     const rect=grid.getBoundingClientRect();
     const x=e.clientX-rect.left, y=e.clientY-rect.top;
     const r=PianoRoll.region;
@@ -2675,8 +2681,9 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
       if(marquee){ marquee.remove(); PianoRoll.draw(); }
       else { // plain click → create a note and select it
-        if(typeof pushHistory==='function') pushHistory();
         const rr=PianoRoll.ensureRegion();
+        if(!rr) return; // no instrument track to write to
+        if(typeof pushHistory==='function') pushHistory();
         const note={pitch:PianoRoll.yToPitch(y), vel:0.9, start:beatToSec(PianoRoll.xToBeat(x)), dur:beatToSec(PianoRoll.cellBeat)};
         rr.notes.push(note); Synth.audition(note.pitch, note.vel, getTrack(rr.trackId));
         PianoRoll.selNotes=[note]; extendRegionToNotes(rr); PianoRoll.draw(); drawRegions();
@@ -2721,6 +2728,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
     } else {
       items.push({header:`${noteName(pitch)} · bar ${Math.floor(beat/beatsPerBar())+1}`});
       items.push({icon:'＋',label:'Add Note Here',action:()=>{ const rr=PianoRoll.ensureRegion();
+        if(!rr){ toast('Piano Roll edits instrument tracks — select or add one'); return; }
         rr.notes.push({pitch,vel:0.9,start:beatToSec(beat),dur:beatToSec(PianoRoll.cellBeat)});
         extendRegionToNotes(rr); PianoRoll.draw(); drawRegions(); }});
     }
