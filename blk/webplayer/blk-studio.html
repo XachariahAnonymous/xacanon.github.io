@@ -1708,14 +1708,15 @@ function attachRegionEvents(el,r){
     selectTrack(r.trackId); drawRegions();
     if(r.type==='midi' && State.selection.length<=1){ PianoRoll.load(r); setDrawerPane('piano'); }
     // drag every selected region together (same beat + track offset)
-    const startX=e.clientX;
+    const startX=e.clientX, startScrollL=lanes.scrollLeft;   // include scroll for edge auto-scroll
     const group=State.regions.filter(x=>State.selection.includes(x.id))
       .map(x=>({r:x, start:x.start, ti:State.tracks.findIndex(t=>t.id===x.trackId)}));
     const primTi=(group.find(o=>o.r.id===r.id)||{ti:0}).ti;
     let lastStart=null, lastResched=0, snapped=false;
+    const es=edgeAutoScroll(ev=>move(ev));
     const move=ev=>{
       if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
-      const dBeat=pxToBeat(ev.clientX-startX);
+      const dBeat=pxToBeat((ev.clientX-startX)+(lanes.scrollLeft-startScrollL));
       const rect=lanes.getBoundingClientRect();
       const y=ev.clientY-rect.top+lanes.scrollTop;
       const targetTi=clamp(Math.floor(y/ROWH),0,State.tracks.length-1);
@@ -1731,8 +1732,9 @@ function attachRegionEvents(el,r){
         const now=performance.now();
         if(now-lastResched>90){ lastResched=now; lastStart=r.start; group.forEach(o=>Transport.rescheduleRegion(o.r)); }
       }
+      es.update(ev);
     };
-    const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); group.forEach(o=>Transport.rescheduleRegion(o.r));};
+    const up=()=>{es.stop();document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); group.forEach(o=>Transport.rescheduleRegion(o.r));};
     document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
   });
   el.addEventListener('dblclick',()=>{ if(r.type==='midi'){PianoRoll.load(r);setDrawerPane('piano');openDrawer();}});
@@ -1742,11 +1744,12 @@ function attachRegionEvents(el,r){
       if(e.button!==0) return; // right-click → context menu
       e.stopPropagation();
       const left=h.classList.contains('l');
-      const startX=e.clientX, oStart=r.start, oDur=r.duration, oOff=r.offset||0;
+      const startX=e.clientX, startScrollL=lanes.scrollLeft, oStart=r.start, oDur=r.duration, oOff=r.offset||0;
       let lastResched=0, lastKey=null, snapped=false;
+      const es=edgeAutoScroll(ev=>move(ev));
       const move=ev=>{
         if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
-        const dBeat=pxToBeat(ev.clientX-startX);
+        const dBeat=pxToBeat((ev.clientX-startX)+(lanes.scrollLeft-startScrollL));
         if(left){
           let ns=snapBeat(secToBeat(oStart)+dBeat); ns=Math.max(0,ns);
           let delta=beatToSec(ns)-oStart;
@@ -1761,8 +1764,9 @@ function attachRegionEvents(el,r){
         const key=r.start+'/'+r.duration;
         if(Transport.isPlaying && key!==lastKey){ const now=performance.now();
           if(now-lastResched>90){ lastResched=now; lastKey=key; Transport.rescheduleRegion(r); } }
+        es.update(ev);
       };
-      const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.rescheduleRegion(r);};
+      const up=()=>{es.stop();document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.rescheduleRegion(r);};
       document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
     });
   });
@@ -3462,6 +3466,30 @@ lanes.addEventListener('dblclick',e=>{
 });
 
 /* empty timeline: click = move playhead + clear selection; drag = marquee-select multiple regions */
+// Auto-scroll the arranger viewport while a drag reaches its edges, so you can keep
+// selecting / moving past what's currently visible. apply(ev) re-runs the drag's own
+// update with the latest pointer event after each scroll step. Horizontal scrolling
+// can grow the arrangement (drawRegions -> ensureArrangeLength) when dragging a clip.
+function edgeAutoScroll(apply){
+  let lastEv=null, raf=0; const EDGE=44, MAXV=24;
+  function step(){
+    raf=0; if(!lastEv) return;
+    const rect=lanes.getBoundingClientRect(), vw=lanes.clientWidth, vh=lanes.clientHeight;
+    const x=lastEv.clientX-rect.left, y=lastEv.clientY-rect.top;
+    let dx=0, dy=0;
+    if(x<EDGE) dx=-(EDGE-x)/EDGE; else if(x>vw-EDGE) dx=(x-(vw-EDGE))/EDGE;
+    if(y<EDGE) dy=-(EDGE-y)/EDGE; else if(y>vh-EDGE) dy=(y-(vh-EDGE))/EDGE;
+    if(dx||dy){
+      const bL=lanes.scrollLeft, bT=lanes.scrollTop;
+      lanes.scrollLeft=clamp(lanes.scrollLeft+clamp(dx,-1,1)*MAXV, 0, lanes.scrollWidth-vw);
+      lanes.scrollTop =clamp(lanes.scrollTop +clamp(dy,-1,1)*MAXV, 0, lanes.scrollHeight-vh);
+      if(lanes.scrollLeft!==bL||lanes.scrollTop!==bT){ positionLaneCanvas(); drawGrid(); drawRuler(); syncHeadersScroll(); syncLoopBarScroll(); apply(lastEv); }
+      raf=requestAnimationFrame(step);
+    }
+  }
+  return { update(ev){ lastEv=ev; if(!raf) raf=requestAnimationFrame(step); },
+           stop(){ lastEv=null; if(raf){cancelAnimationFrame(raf); raf=0;} } };
+}
 lanes.addEventListener('mousedown',e=>{
   if(e.button!==0) return;
   if(!(e.target===lanes||e.target===laneCanvas||e.target===regionsLayer)) return;
@@ -3471,9 +3499,11 @@ lanes.addEventListener('mousedown',e=>{
   const x0=e.clientX-rect.left+lanes.scrollLeft, y0=e.clientY-rect.top+lanes.scrollTop;
   const cx=e.clientX, cy=e.clientY;
   let marquee=null;
+  const es=edgeAutoScroll(ev=>move(ev));
   const move=ev=>{
     if(!marquee && Math.abs(ev.clientX-cx)<4 && Math.abs(ev.clientY-cy)<4) return;
     if(!marquee){ marquee=document.createElement('div'); marquee.className='marquee'; lanes.appendChild(marquee); }
+    const rect=lanes.getBoundingClientRect();
     const x1=ev.clientX-rect.left+lanes.scrollLeft, y1=ev.clientY-rect.top+lanes.scrollTop;
     const L=Math.min(x0,x1), T=Math.min(y0,y1), W=Math.abs(x1-x0), H=Math.abs(y1-y0);
     marquee.style.left=L+'px'; marquee.style.top=T+'px'; marquee.style.width=W+'px'; marquee.style.height=H+'px';
@@ -3483,8 +3513,10 @@ lanes.addEventListener('mousedown',e=>{
       const rL=secToBeat(rg.start), rR=secToBeat(rg.start+rg.duration);
       if(ti>=tiT && ti<=tiB && rR>=bL && rL<=bR) ids.push(rg.id); });
     setSelection(ids); drawRegions();
+    es.update(ev); // keep scrolling while the pointer sits at an edge
   };
   const up=()=>{
+    es.stop();
     document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
     if(marquee){ marquee.remove(); toast(State.selection.length?State.selection.length+' selected':'None selected'); drawRegions(); }
     else { clearSelection(); drawRegions(); Transport.setPosition(beatToSec(snapBeat(pxToBeat(x0)))); }
