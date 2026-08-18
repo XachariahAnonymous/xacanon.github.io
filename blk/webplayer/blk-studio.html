@@ -908,6 +908,7 @@ function selectTrack(id){State.selectedTrack=id;
   // lightweight highlight — don't rebuild headers (would steal focus from a clicked input)
   $$('.thead').forEach(el=>el.classList.toggle('sel', el.dataset.id===id));
   renderMixer(); renderFX(); renderSynthPanel();
+  if(typeof Mic!=='undefined') Mic.routeMonitor();
   const t=getTrack(id); $("#selTrackName").textContent=t?t.name:'No track';}
 function anySolo(){return State.tracks.some(t=>t.solo);}
 function trackAudible(t){ if(t.mute) return false; if(anySolo()&&!t.solo) return false; return true; }
@@ -971,7 +972,7 @@ function renderTracks(){
     $(".tname",el).addEventListener('input',e=>{t.name=e.target.value; if(t.id===State.selectedTrack)$("#selTrackName").textContent=t.name; renderMixer();});
     $(".m",el).addEventListener('click',()=>{t.mute=!t.mute; renderTracks(); applyAllGains();});
     $(".s",el).addEventListener('click',()=>{t.solo=!t.solo; renderTracks(); applyAllGains();});
-    $(".r",el).addEventListener('click',()=>{t.arm=!t.arm; renderTracks();});
+    $(".r",el).addEventListener('click',()=>{t.arm=!t.arm; renderTracks(); Mic.routeMonitor();});
     $(".fx",el).addEventListener('click',()=>{selectTrack(t.id); setDrawerPane('fx'); openDrawer();});
     $(".vol",el).addEventListener('input',e=>{t.volume=parseFloat(e.target.value); applyTrackGain(t); renderMixer();});
     $(".pan",el).addEventListener('input',e=>{t.pan=parseFloat(e.target.value); applyTrackGain(t);});
@@ -1842,10 +1843,10 @@ const Mic={
     this.source = Audio.ctx.createMediaStreamSource(this.stream);
     this.analyser = Audio.ctx.createAnalyser(); this.analyser.fftSize=1024;
     this.buf = new Float32Array(this.analyser.fftSize);
-    // dedicated monitor path (post-fader would color the sound) -> straight to output
+    // monitor path routes THROUGH the record track's FX chain so you hear autotune/EQ/reverb live
     this.monitorGain = Audio.ctx.createGain(); this.monitorGain.gain.value = this.monitoring ? 1 : 0;
     this.source.connect(this.analyser);
-    this.source.connect(this.monitorGain); this.monitorGain.connect(Audio.masterGain);
+    this.source.connect(this.monitorGain); this._monDest=null; this.routeMonitor();
     Recorder.micStream = this.stream;
     this._setStatus(true);
     await this.listDevices();
@@ -1860,10 +1861,24 @@ const Mic={
     }
     toast('Noise suppression '+(on?'on':'off'));
   },
+  // where the monitor signal goes: the armed audio track's FX input (else selected track, else master)
+  monitorDest(){
+    const armed=State.tracks.find(t=>t.arm && t.type==='audio');
+    const t=armed || getTrack(State.selectedTrack);
+    return (t && t.fx && t.fx.input) ? t.fx.input : Audio.masterGain;
+  },
+  routeMonitor(){
+    if(!this.monitorGain) return;
+    const dest=this.monitorDest();
+    if(dest===this._monDest) return;
+    try{ this.monitorGain.disconnect(); }catch(e){}
+    this.monitorGain.connect(dest); this._monDest=dest;
+  },
   setMonitoring(on){
     this.monitoring = on;
+    this.routeMonitor();
     if(this.monitorGain) this.monitorGain.gain.setTargetAtTime(on?1:0, Audio.now(), 0.02);
-    if(on) toast('Monitoring on — use headphones (speakers will echo/feed back)');
+    if(on) toast('Monitoring through the track FX — use headphones');
   },
   async listDevices(){
     try{
