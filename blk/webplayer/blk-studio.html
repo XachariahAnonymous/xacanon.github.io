@@ -1112,7 +1112,7 @@ const FX_CATEGORIES=[
     {name:'Clean Limiter',type:'limiter',params:{}}, {name:'BL 1176',type:'limiter',params:{ceiling:-0.5,drive:6}},
     {name:'TecLab BA-2A',type:'compressor',params:{thresh:-22,ratio:4,att:.03,rel:.4}}, {name:'Vintage Limiter',type:'limiter',params:{ceiling:-1,drive:9}} ]},
   {cat:'Rhythmic', note:'Tempo-flavoured movement.', items:[
-    {name:'Pumper',type:'tremolo',params:{rate:2,depth:.85}}, {name:'Gater',type:'tremolo',params:{rate:4,depth:1}} ]},
+    {name:'Pumper',type:'tremolo',params:{depth:.85},sync:1}, {name:'Gater',type:'tremolo',params:{depth:1},sync:2} ]},
   {cat:'EQ', note:'Emphasize or reduce frequencies.', items:[
     {name:'Visual EQ',type:'eq',params:{}}, {name:'EQ3-M',type:'eq',params:{midFreq:1500}}, {name:'EZ EQ',type:'eq',params:{}},
     {name:'Graphic EQ',type:'eq',params:{}}, {name:'Multi Filter',type:'filter',params:{}} ]},
@@ -1147,7 +1147,11 @@ function openFXPicker(holder, anchorEl){
   FX_CATEGORIES.forEach((c,ci)=>{
     if(ci>0) items.push({separator:true});
     items.push({header:c.cat});
-    c.items.forEach(it=>items.push({icon:'🎛',label:it.name,action:()=>addFX(holder,it.type,Object.assign({},it.params),it.name)}));
+    c.items.forEach(it=>items.push({icon:'🎛',label:it.name,action:()=>{
+      const p=Object.assign({},it.params);
+      if(it.sync) p.rate=(State.bpm/60)*it.sync; // lock tempo-synced effects to the current BPM
+      addFX(holder,it.type,p,it.name);
+    }}));
   });
   const r=anchorEl.getBoundingClientRect(); showContextMenu(r.right+4, r.top, items);
 }
