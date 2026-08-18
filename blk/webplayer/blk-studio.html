@@ -3471,7 +3471,7 @@ lanes.addEventListener('dblclick',e=>{
 // update with the latest pointer event after each scroll step. Horizontal scrolling
 // can grow the arrangement (drawRegions -> ensureArrangeLength) when dragging a clip.
 function edgeAutoScroll(apply){
-  let lastEv=null, raf=0; const EDGE=44, MAXV=24;
+  let lastEv=null, raf=0; const EDGE=44, MAXV=8;
   function step(){
     raf=0; if(!lastEv) return;
     const rect=lanes.getBoundingClientRect(), vw=lanes.clientWidth, vh=lanes.clientHeight;
