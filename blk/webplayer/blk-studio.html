@@ -1320,6 +1320,7 @@ function attachRegionEvents(el,r){
     const group=State.regions.filter(x=>State.selection.includes(x.id))
       .map(x=>({r:x, start:x.start, ti:State.tracks.findIndex(t=>t.id===x.trackId)}));
     const primTi=(group.find(o=>o.r.id===r.id)||{ti:0}).ti;
+    let lastStart=null, lastResched=0;
     const move=ev=>{
       const dBeat=pxToBeat(ev.clientX-startX);
       const rect=lanes.getBoundingClientRect();
@@ -1332,6 +1333,11 @@ function attachRegionEvents(el,r){
         o.r.trackId=State.tracks[nti].id;
       });
       drawRegions();
+      // live: as you drag over the grid, update the audio to the new spot (throttled, only when it changed)
+      if(Transport.isPlaying && r.start!==lastStart){
+        const now=performance.now();
+        if(now-lastResched>90){ lastResched=now; lastStart=r.start; Transport.reschedule(); }
+      }
     };
     const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.reschedule();};
     document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
@@ -1344,6 +1350,7 @@ function attachRegionEvents(el,r){
       e.stopPropagation();
       const left=h.classList.contains('l');
       const startX=e.clientX, oStart=r.start, oDur=r.duration, oOff=r.offset||0;
+      let lastResched=0, lastKey=null;
       const move=ev=>{
         const dBeat=pxToBeat(ev.clientX-startX);
         if(left){
@@ -1357,6 +1364,9 @@ function attachRegionEvents(el,r){
           if(r.type==='audio'&&r.buffer) r.duration=Math.min(r.duration, r.buffer.duration-(r.offset||0));
         }
         drawRegions();
+        const key=r.start+'/'+r.duration;
+        if(Transport.isPlaying && key!==lastKey){ const now=performance.now();
+          if(now-lastResched>90){ lastResched=now; lastKey=key; Transport.reschedule(); } }
       };
       const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.reschedule();};
       document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
