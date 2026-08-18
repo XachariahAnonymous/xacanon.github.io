@@ -12,6 +12,7 @@
     --line:rgba(255,255,255,0.08); --line2:rgba(255,255,255,0.16); --text:#ffffff; --muted:#888888;
     --accent:#8A2BE2; --accent2:#b06bff; --rec:#ff0033; --good:#00ff66;
     --warn:#ffaa00; --radius:4px; --hdr:230px; --rowh:96px;
+    --grad-a:#1a1f2b; --grad-b:#12151d; --lcd-bg:#05070c; --eqline:#2a3244;
   }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
@@ -26,7 +27,7 @@
   /* ---------- Transport ---------- */
   .transport{
     display:flex; align-items:center; gap:14px; padding:8px 12px;
-    background:linear-gradient(180deg,#1a1f2b,#12151d);
+    background:linear-gradient(180deg,var(--grad-a),var(--grad-b));
     border-bottom:1px solid var(--line); flex-wrap:wrap;
   }
   .brand{font-family:'Space Mono',monospace; font-weight:700; letter-spacing:2px; font-size:15px; margin-right:6px}
@@ -46,7 +47,7 @@
   .tbtn.home{border-color:var(--accent); color:var(--accent); font-family:'Space Mono',monospace; letter-spacing:1px}
   .tbtn.home:hover{background:var(--accent); color:#fff; border-color:var(--accent)}
   .lcd{
-    font-family:'Space Mono',"Consolas",monospace; background:#05070c; color:var(--accent2);
+    font-family:'Space Mono',"Consolas",monospace; background:var(--lcd-bg); color:var(--accent2);
     border:1px solid var(--line2); border-radius:6px; padding:5px 10px;
     min-width:118px; text-align:center; letter-spacing:1px;
     text-shadow:0 0 8px rgba(34,211,238,.5);
@@ -64,7 +65,7 @@
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:14px;height:14px;
     border-radius:50%; background:var(--accent); cursor:pointer; border:2px solid #0b1020}
   .masterwrap{display:flex; align-items:center; gap:8px; margin-left:auto}
-  .meter{width:14px; height:34px; background:#05070c; border:1px solid var(--line2);
+  .meter{width:14px; height:34px; background:var(--lcd-bg); border:1px solid var(--line2);
     border-radius:3px; position:relative; overflow:hidden}
   .meter i{position:absolute; bottom:0; left:0; right:0; height:0%;
     background:linear-gradient(0deg,var(--good),var(--warn) 78%,var(--rec));}
@@ -202,7 +203,7 @@
   .mstrip .mn{font-size:11px; font-weight:600; text-align:center; width:100%;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .mstrip .fader{writing-mode:vertical-lr; direction:rtl; height:120px}
-  .mstrip .mm{width:100%; height:8px; background:#05070c; border-radius:3px; overflow:hidden}
+  .mstrip .mm{width:100%; height:8px; background:var(--lcd-bg); border-radius:3px; overflow:hidden}
   .mstrip .mm i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--good),var(--warn),var(--rec))}
 
   /* FX rack */
@@ -306,7 +307,7 @@
   .ctxsep{height:1px; background:var(--line); margin:4px 6px}
 
   /* Mic / vocals panel */
-  .hmeter{flex:1; height:14px; background:#05070c; border:1px solid var(--line2); border-radius:3px; overflow:hidden}
+  .hmeter{flex:1; height:14px; background:var(--lcd-bg); border:1px solid var(--line2); border-radius:3px; overflow:hidden}
   .hmeter i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--good),var(--warn) 78%,var(--rec)); transition:width .05s}
   .micchk{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:var(--muted); cursor:pointer}
   .micchk input{width:15px; height:15px; accent-color:var(--accent); cursor:pointer}
@@ -357,10 +358,24 @@
 
 
     <div class="tgroup">
+      <button class="tbtn" id="btnUndo" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.98 7.98 0 0 1 12.5 11c2.9 0 5.4 1.6 6.72 4l2.36-.78A9.99 9.99 0 0 0 12.5 8z"/></svg></button>
+      <button class="tbtn" id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.98 7.98 0 0 1 12.5 11c2.9 0 5.4 1.6 6.72 4l2.36-.78A9.99 9.99 0 0 0 12.5 8z"/></svg></button>
+    </div>
+
+    <div class="tgroup">
       <button class="tbtn small" id="btnNew" title="New project from a template">New</button>
+      <button class="tbtn small" id="btnMaster" title="Master bus mastering chain">⬤ Master</button>
       <button class="tbtn small" id="btnExport" title="Bounce to WAV">Export WAV</button>
       <button class="tbtn small" id="btnSave">Save</button>
       <button class="tbtn small" id="btnLoad">Load</button>
+      <div class="field"><label>Theme</label>
+        <select id="themeSel">
+          <option value="bandlab">BandLab</option>
+          <option value="fl">FL Studio</option>
+          <option value="ableton">Ableton</option>
+          <option value="logic">Logic</option>
+        </select>
+      </div>
     </div>
 
     <div class="masterwrap">
@@ -2481,12 +2496,13 @@ function fxCard(title){
 }
 function drawEQ(cv,nodes){
   const ctx=cv.getContext('2d'),W=cv.width,H=cv.height; ctx.clearRect(0,0,W,H);
-  ctx.strokeStyle='#8A2BE2'; ctx.lineWidth=1.5; ctx.beginPath();
+  const cs=getComputedStyle(document.documentElement);
+  ctx.strokeStyle=cs.getPropertyValue('--accent').trim()||'#8A2BE2'; ctx.lineWidth=1.5; ctx.beginPath();
   const freqs=new Float32Array(W); for(let i=0;i<W;i++)freqs[i]=20*Math.pow(1000,i/W);
   const mag=new Float32Array(W),ph=new Float32Array(W); let tot=new Float32Array(W).fill(1);
   [nodes.low,nodes.mid,nodes.high].forEach(f=>{f.getFrequencyResponse(freqs,mag,ph); for(let i=0;i<W;i++)tot[i]*=mag[i];});
   for(let i=0;i<W;i++){const db=20*Math.log10(tot[i]||1e-6); const y=H/2-db*1.6; i?ctx.lineTo(i,y):ctx.moveTo(i,y);}
-  ctx.stroke(); ctx.strokeStyle='#2a3244'; ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.stroke(); ctx.strokeStyle=cs.getPropertyValue('--eqline').trim()||'#2a3244'; ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
 }
 
 /* =====================================================================
@@ -2782,6 +2798,34 @@ function zoomTimelineAt(clientX, factor){
 }, {passive:false}));
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
+
+/* =====================================================================
+   THEMES — BandLab (default) / FL Studio / Ableton / Logic
+   Each theme is a set of CSS custom properties applied to :root.
+   ===================================================================== */
+const THEMES={
+  bandlab:{ '--bg':'#000000','--panel':'#0a0a0a','--panel2':'#111111','--panel3':'#1a1a1a',
+    '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#ffffff','--muted':'#888888',
+    '--accent':'#8A2BE2','--accent2':'#b06bff','--grad-a':'#1a1f2b','--grad-b':'#12151d','--lcd-bg':'#05070c','--eqline':'#2a3244' },
+  fl:{ '--bg':'#1b1e24','--panel':'#232830','--panel2':'#2b313b','--panel3':'#353c48',
+    '--line':'rgba(255,255,255,0.07)','--line2':'rgba(255,255,255,0.15)','--text':'#eef1f5','--muted':'#8b93a1',
+    '--accent':'#f2971e','--accent2':'#ffbe5c','--grad-a':'#333b47','--grad-b':'#232a33','--lcd-bg':'#12151a','--eqline':'#3a4351' },
+  ableton:{ '--bg':'#2c2c2c','--panel':'#343434','--panel2':'#3d3d3d','--panel3':'#474747',
+    '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#f0f0f0','--muted':'#9a9a9a',
+    '--accent':'#3fb7e6','--accent2':'#8ad4f0','--grad-a':'#4a4a4a','--grad-b':'#363636','--lcd-bg':'#1c1c1c','--eqline':'#4d4d4d' },
+  logic:{ '--bg':'#1c1f24','--panel':'#262a31','--panel2':'#2f343c','--panel3':'#3a4049',
+    '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#eceff3','--muted':'#8d95a1',
+    '--accent':'#6ea8dc','--accent2':'#a6cdf0','--grad-a':'#3a4049','--grad-b':'#282d34','--lcd-bg':'#161a1f','--eqline':'#414954' },
+};
+function applyTheme(name){
+  const th=THEMES[name]||THEMES.bandlab; const r=document.documentElement.style;
+  Object.keys(th).forEach(k=>r.setProperty(k,th[k]));
+  try{localStorage.setItem('blk-theme',name);}catch(e){}
+  const sel=$("#themeSel"); if(sel) sel.value=name;
+  if(State.selectedTrack!=null) renderFX(); // redraw EQ graph in the new accent
+}
+$("#themeSel").addEventListener('change',e=>applyTheme(e.target.value));
+(function initTheme(){ let saved='bandlab'; try{saved=localStorage.getItem('blk-theme')||'bandlab';}catch(e){} applyTheme(saved); })();
 // instrument picker rows: real sampled instruments, then synth presets
 function instrumentMenuItems(onPick){
   const items=[];
