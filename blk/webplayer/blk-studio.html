@@ -540,6 +540,7 @@ const secToBeat=s=>s/secPerBeat();
 const beatToPx=b=>b*State.pxPerBeat;
 const pxToBeat=p=>p/State.pxPerBeat;
 const ROWH=96, HDR=230;
+const MAX_CANVAS_W=16000;             // stay well under browsers' max canvas width
 let TOTAL_BARS=64;                    // minimum; grows to fit content
 const totalBeats=()=>TOTAL_BARS*beatsPerBar();
 // Grow (or shrink to the 64-bar minimum) the arrangement so it always covers the content.
@@ -594,16 +595,20 @@ function detectBPM(buffer){
   for(let i=0;i<frames;i++){ let s=0; const off=i*hop; for(let j=0;j<hop;j++){ const v=data[off+j]||0; s+=v*v; } env[i]=Math.sqrt(s/hop); }
   const onset=new Float32Array(frames);
   for(let i=1;i<frames;i++){ const d=env[i]-env[i-1]; onset[i]=d>0?d:0; }
-  const fps=sr/hop, minBPM=70, maxBPM=180;
+  const fps=sr/hop, minBPM=60, maxBPM=200;
   const minLag=Math.max(1,Math.floor(fps*60/maxBPM)), maxLag=Math.floor(fps*60/minBPM);
+  // weight each candidate by a log-normal tempo prior (~125 BPM) so we don't lock onto
+  // the half/double tempo (e.g. hear 140 as 70). This resolves the octave ambiguity.
+  const prefBPM=125, prefW=0.85;
   let bestLag=minLag, best=-1;
   for(let lag=minLag; lag<=maxLag; lag++){
     let sum=0; for(let i=lag;i<frames;i++) sum+=onset[i]*onset[i-lag];
-    if(sum>best){ best=sum; bestLag=lag; }
+    const bpm=60*fps/lag;
+    const w=Math.exp(-0.5*Math.pow(Math.log2(bpm/prefBPM)/prefW,2));
+    const score=sum*w;
+    if(score>best){ best=score; bestLag=lag; }
   }
-  let bpm=60*fps/bestLag;
-  while(bpm<70) bpm*=2; while(bpm>150) bpm/=2;
-  return Math.round(bpm)||120;
+  return Math.round(60*fps/bestLag)||120;
 }
 
 /* ---------- Autotune (AudioWorklet: pitch detect + delay-line pitch shift, snap to scale) ---------- */
@@ -1062,14 +1067,19 @@ const lanes=$("#lanes"), regionsLayer=$("#regionsLayer");
 const laneCanvas=$("#laneCanvas"), laneCtx=laneCanvas.getContext('2d');
 const rulerCanvas=$("#rulerCanvas"), rulerCtx=rulerCanvas.getContext('2d');
 function sizeArrangeCanvases(){
-  const w=beatToPx(totalBeats())+40;
-  const h=Math.max(State.tracks.length*ROWH, lanes.clientHeight);
-  laneCanvas.width=w; laneCanvas.height=h;
-  laneCanvas.style.width=w+'px'; laneCanvas.style.height=h+'px';
-  regionsLayer.style.width=w+'px'; regionsLayer.style.height=h+'px';
-  $("#playhead").style.height=h+'px';
+  const contentW=beatToPx(totalBeats())+40;
+  const contentH=Math.max(State.tracks.length*ROWH, lanes.clientHeight);
+  // the grid canvas covers only the viewport (a full-width canvas overflows the browser's
+  // max canvas size when zoomed/long and renders blank) — it's drawn with a scroll offset
+  const vw=Math.max(1,lanes.clientWidth), vh=Math.max(1,lanes.clientHeight);
+  laneCanvas.width=vw; laneCanvas.height=vh;
+  laneCanvas.style.width=vw+'px'; laneCanvas.style.height=vh+'px';
+  positionLaneCanvas();
+  regionsLayer.style.width=contentW+'px'; regionsLayer.style.height=contentH+'px';
+  $("#playhead").style.height=contentH+'px';
   rulerCanvas.width=$("#rulerScroll").clientWidth; rulerCanvas.height=26;
 }
+function positionLaneCanvas(){ laneCanvas.style.left=lanes.scrollLeft+'px'; laneCanvas.style.top=lanes.scrollTop+'px'; }
 function layout(){
   ensureArrangeLength();
   sizeArrangeCanvases();
@@ -1096,18 +1106,19 @@ function updateLoopUI(){
 function drawGrid(){
   const ctx=laneCtx, w=laneCanvas.width, h=laneCanvas.height;
   ctx.clearRect(0,0,w,h);
-  const bpb=beatsPerBar();
-  for(let b=0;b<=totalBeats();b++){
-    const x=beatToPx(b);
+  const bpb=beatsPerBar(), off=lanes.scrollLeft, tb=totalBeats();
+  // loop shading (behind the lines)
+  if(State.loop.on){
+    ctx.fillStyle='rgba(91,140,255,.08)';
+    ctx.fillRect(beatToPx(State.loop.start)-off,0,beatToPx(State.loop.end-State.loop.start),h);
+  }
+  const first=Math.max(0,Math.floor(pxToBeat(off))), last=Math.min(tb,Math.ceil(pxToBeat(off+w)));
+  for(let b=first;b<=last;b++){
+    const x=beatToPx(b)-off;
     const isBar=b%bpb===0;
     ctx.strokeStyle=isBar?'#2f3850':'#1c2230';
     ctx.lineWidth=isBar?1.5:1;
     ctx.beginPath();ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,h);ctx.stroke();
-  }
-  // loop region shading
-  if(State.loop.on){
-    ctx.fillStyle='rgba(91,140,255,.08)';
-    ctx.fillRect(beatToPx(State.loop.start),0,beatToPx(State.loop.end-State.loop.start),h);
   }
 }
 function drawRuler(){
@@ -1136,7 +1147,7 @@ function drawRuler(){
   ctx.fillStyle='#22d3ee'; ctx.beginPath();
   ctx.moveTo(px-4,0);ctx.lineTo(px+4,0);ctx.lineTo(px,6);ctx.fill();
 }
-lanes.addEventListener('scroll',()=>{drawRuler(); syncHeadersScroll(); syncLoopBarScroll();});
+lanes.addEventListener('scroll',()=>{positionLaneCanvas(); drawGrid(); drawRuler(); syncHeadersScroll(); syncLoopBarScroll();});
 function syncHeadersScroll(){$("#headers").scrollTop=lanes.scrollTop;}
 
 /* Loop bar interaction: drag to select the loop range, click to toggle, edge handles to resize */
@@ -1240,7 +1251,7 @@ function drawDrumLane(t,ti){
   el.style.background=hexA(t.color,.14); el.style.borderColor=hexA(t.color,.5);
   const lanes=DRUM_NAMES.filter((n,i)=>State.drumPattern[i].some(Boolean)).length;
   el.innerHTML=`<div class="rlabel">🥁 Drum Pattern · ${lanes} lane${lanes!==1?'s':''}</div>`;
-  const c=document.createElement('canvas'); c.width=Math.max(1,W); c.height=H;
+  const c=document.createElement('canvas'); c.width=Math.min(Math.max(1,W),MAX_CANVAS_W); c.height=H;
   c.style.position='absolute'; c.style.top='0'; c.style.left='0'; c.style.opacity='.9';
   const ctx=c.getContext('2d'); ctx.fillStyle=hexA(t.color,.95);
   for(let bar=0; bar*bpb<totalBeats(); bar++){
@@ -1262,7 +1273,7 @@ function drawAutomation(t,ti){
   const lane=document.createElement('div'); lane.className='autolane';
   const w=beatToPx(totalBeats());
   lane.style.width=w+'px'; lane.style.top=(ti*ROWH+ROWH-36)+'px';
-  const c=document.createElement('canvas'); c.width=w; c.height=34; lane.appendChild(c);
+  const c=document.createElement('canvas'); c.width=Math.min(Math.max(1,w),MAX_CANVAS_W); c.height=34; lane.appendChild(c);
   const ctx=c.getContext('2d');
   ctx.strokeStyle=hexA(t.color,.9); ctx.lineWidth=1.5; ctx.beginPath();
   const pts=t.automation.length?t.automation:[{beat:0,value:t.volume},{beat:totalBeats(),value:t.volume}];
@@ -2728,7 +2739,7 @@ function zoomTimelineAt(clientX, factor){
   $("#zoom").value=State.pxPerBeat;
   layout();
   lanes.scrollLeft=Math.max(0, beatToPx(beat)-px); // keep that beat under the cursor
-  drawRuler(); syncLoopBarScroll();
+  positionLaneCanvas(); drawGrid(); drawRuler(); syncLoopBarScroll();
 }
 [lanes, $("#rulerScroll"), $("#loopbarScroll")].forEach(el=>el && el.addEventListener('wheel',e=>{
   if(!e.ctrlKey && !e.metaKey) return;
