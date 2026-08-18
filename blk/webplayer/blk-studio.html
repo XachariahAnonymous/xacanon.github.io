@@ -3471,24 +3471,28 @@ lanes.addEventListener('dblclick',e=>{
 // update with the latest pointer event after each scroll step. Horizontal scrolling
 // can grow the arrangement (drawRegions -> ensureArrangeLength) when dragging a clip.
 function edgeAutoScroll(apply){
-  let lastEv=null, raf=0; const EDGE=44, MAXV=8;
-  function step(){
-    raf=0; if(!lastEv) return;
+  let lastEv=null, raf=0, lastT=0;
+  const EDGE=44, SPEED=150, MIN_MS=33; // px/sec at the very edge; throttle redraws to ~30fps
+  function step(t){
+    if(!lastEv){ raf=0; return; }
+    raf=requestAnimationFrame(step);
+    if(!lastT) lastT=t;
+    if(t-lastT<MIN_MS) return;          // throttle: skip frames so we don't thrash drawRegions
+    const dt=Math.min(0.05,(t-lastT)/1000); lastT=t;
     const rect=lanes.getBoundingClientRect(), vw=lanes.clientWidth, vh=lanes.clientHeight;
     const x=lastEv.clientX-rect.left, y=lastEv.clientY-rect.top;
-    let dx=0, dy=0;
-    if(x<EDGE) dx=-(EDGE-x)/EDGE; else if(x>vw-EDGE) dx=(x-(vw-EDGE))/EDGE;
-    if(y<EDGE) dy=-(EDGE-y)/EDGE; else if(y>vh-EDGE) dy=(y-(vh-EDGE))/EDGE;
-    if(dx||dy){
+    let fx=0, fy=0;
+    if(x<EDGE) fx=-(EDGE-x)/EDGE; else if(x>vw-EDGE) fx=(x-(vw-EDGE))/EDGE;
+    if(y<EDGE) fy=-(EDGE-y)/EDGE; else if(y>vh-EDGE) fy=(y-(vh-EDGE))/EDGE;
+    if(fx||fy){
       const bL=lanes.scrollLeft, bT=lanes.scrollTop;
-      lanes.scrollLeft=clamp(lanes.scrollLeft+clamp(dx,-1,1)*MAXV, 0, lanes.scrollWidth-vw);
-      lanes.scrollTop =clamp(lanes.scrollTop +clamp(dy,-1,1)*MAXV, 0, lanes.scrollHeight-vh);
+      lanes.scrollLeft=clamp(lanes.scrollLeft+clamp(fx,-1,1)*SPEED*dt, 0, lanes.scrollWidth-vw);
+      lanes.scrollTop =clamp(lanes.scrollTop +clamp(fy,-1,1)*SPEED*dt, 0, lanes.scrollHeight-vh);
       if(lanes.scrollLeft!==bL||lanes.scrollTop!==bT){ positionLaneCanvas(); drawGrid(); drawRuler(); syncHeadersScroll(); syncLoopBarScroll(); apply(lastEv); }
-      raf=requestAnimationFrame(step);
     }
   }
-  return { update(ev){ lastEv=ev; if(!raf) raf=requestAnimationFrame(step); },
-           stop(){ lastEv=null; if(raf){cancelAnimationFrame(raf); raf=0;} } };
+  return { update(ev){ lastEv=ev; if(!raf){ lastT=0; raf=requestAnimationFrame(step);} },
+           stop(){ lastEv=null; if(raf){cancelAnimationFrame(raf); raf=0;} lastT=0; } };
 }
 lanes.addEventListener('mousedown',e=>{
   if(e.button!==0) return;
