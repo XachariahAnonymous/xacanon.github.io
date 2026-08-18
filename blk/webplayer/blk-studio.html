@@ -3472,7 +3472,7 @@ lanes.addEventListener('dblclick',e=>{
 // can grow the arrangement (drawRegions -> ensureArrangeLength) when dragging a clip.
 function edgeAutoScroll(apply){
   let lastEv=null, raf=0, lastT=0;
-  const EDGE=44, SPEED=150, MIN_MS=33; // px/sec at the very edge; throttle redraws to ~30fps
+  const EDGE=44, SPEED=260, MIN_MS=33; // px/sec at the very edge; throttle redraws to ~30fps
   function step(t){
     if(!lastEv){ raf=0; return; }
     raf=requestAnimationFrame(step);
