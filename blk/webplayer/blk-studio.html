@@ -543,7 +543,7 @@ const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
   tracks:[], regions:[], selectedTrack:null, selectedRegion:null, selection:[],
-  recLatencyMs:0, returnToStart:true,
+  recLatencyMs:0, returnToStart:true, fxView:'track',
   drumPattern:Array.from({length:8},()=>new Array(16).fill(false)),
   synth:{osc1:'sawtooth',osc2:'square',detune:8,a:.01,d:.15,s:.6,r:.25,
          cutoff:4000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
@@ -580,6 +580,12 @@ const Audio={
     this.ctx=new (window.AudioContext||window.webkitAudioContext)();
     this.masterGain=this.ctx.createGain();
     this.masterGain.gain.value=parseFloat($("#masterVol").value);
+    // Master bus: all tracks sum into masterBus -> master FX chain -> masterGain -> analysers/out
+    this.masterBus=this.ctx.createGain();
+    this.masterFX=buildFX(this.ctx, DEFAULT_MASTER_SPECS.map(s=>({...s})));
+    this.masterFX.gain.gain.value=1; this.masterFX.pan.pan.value=0;
+    this.masterBus.connect(this.masterFX.input);
+    this.masterFX.output.connect(this.masterGain);
     const split=this.ctx.createChannelSplitter(2);
     this.analyserL=this.ctx.createAnalyser(); this.analyserL.fftSize=1024;
     this.analyserR=this.ctx.createAnalyser(); this.analyserR.fftSize=1024;
@@ -590,8 +596,14 @@ const Audio={
     registerAutotune(this.ctx); // load the autotune worklet in the background
   },
   now(){return this.ctx?this.ctx.currentTime:0;},
-  resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); }
+  resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
+  // where track FX outputs should connect (master bus once inited, else raw masterGain)
+  trackTarget(){ return this.masterBus||this.masterGain; }
 };
+// Default mastering chain on the master bus: gentle EQ + glue compressor + limiter
+const DEFAULT_MASTER_SPECS=[{type:'eq',params:{low:0,mid:0,high:1.5}},
+  {type:'compressor',params:{thresh:-18,ratio:2.5,att:.01,rel:.2}},
+  {type:'limiter',params:{ceiling:-0.3,drive:2}}];
 
 /* Impulse response for reverb (synthetic) */
 function makeImpulse(ctx,seconds,decay){
@@ -707,8 +719,12 @@ function registerAutotune(ctx){
    Returned object exposes .input and .output plus param nodes.
    ===================================================================== */
 const FX_LABEL={autotune:'Autotune',eq:'3-Band EQ',filter:'Auto-Filter',compressor:'Compressor',distortion:'Distortion',
-  bitcrusher:'Bitcrusher',chorus:'Chorus',phaser:'Phaser',tremolo:'Tremolo',delay:'Delay',reverb:'Reverb'};
-const FX_ALL=['autotune','eq','filter','compressor','distortion','bitcrusher','chorus','phaser','tremolo','delay','reverb'];
+  bitcrusher:'Bitcrusher',chorus:'Chorus',phaser:'Phaser',tremolo:'Tremolo',delay:'Delay',reverb:'Reverb',
+  limiter:'Limiter',gain:'Gain',widener:'Stereo Width',autopan:'Auto Pan',autowah:'Auto Wah',flanger:'Flanger',
+  exciter:'Exciter',tapesat:'Tape Saturation',deesser:'DeEsser',gate:'Noise Gate',pitchshift:'Pitch Shifter',
+  pingpong:'Ping Pong Delay',multiband:'Multi-Band Comp'};
+const FX_ALL=['autotune','eq','filter','compressor','distortion','bitcrusher','chorus','phaser','tremolo','delay','reverb',
+  'limiter','gain','widener','autopan','autowah','flanger','exciter','tapesat','deesser','gate','pitchshift','pingpong','multiband'];
 const FX_DEFAULT_PARAMS={
   autotune:{key:'C',scale:'major',strength:0.9,speed:0.5,mix:1},
   eq:{low:0,mid:0,high:0,midFreq:1000},
@@ -721,6 +737,20 @@ const FX_DEFAULT_PARAMS={
   tremolo:{rate:5,depth:.6},
   delay:{time:.3,feedback:.35,mix:.35},
   reverb:{size:2,decay:2.5,mix:.3},
+  limiter:{ceiling:-0.3,drive:2},
+  gain:{gain:0},
+  widener:{width:1.4},
+  autopan:{rate:1,depth:.7},
+  autowah:{rate:1.2,depth:.6,base:400,reso:6},
+  flanger:{rate:.3,depth:.5,feedback:.5,mix:.5},
+  exciter:{freq:3500,amount:.5,mix:.4},
+  tapesat:{drive:3,tone:6000,mix:.7},
+  deesser:{freq:6500,amount:8},
+  gate:{thresh:-45,release:.12},
+  pitchshift:{semitones:-12,mix:1},
+  pingpong:{time:.3,feedback:.35,mix:.35},
+  multiband:{low:-6,mid:-6,high:-6,ratio:3},
+  oneknob:{mode:'brighter',amount:.5},
 };
 const FX_DEFAULT_ON={eq:true,compressor:true};
 const FX_SPEC={
@@ -759,6 +789,68 @@ const FX_SPEC={
   reverb:[ {k:'size',label:'Size',min:.3,max:5,step:.1,fmt:v=>v.toFixed(1)+'s',rebuild:true},
        {k:'decay',label:'Decay',min:.5,max:6,step:.1,fmt:v=>v.toFixed(1),rebuild:true},
        {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  limiter:[ {k:'ceiling',label:'Ceiling',min:-24,max:0,step:.1,fmt:v=>v.toFixed(1)+'dB'},
+       {k:'drive',label:'Drive',min:0,max:24,step:.5,fmt:v=>'+'+v.toFixed(1)+'dB'} ],
+  gain:[ {k:'gain',label:'Gain',min:-24,max:24,step:.5,fmt:v=>(v>0?'+':'')+v.toFixed(1)+'dB'} ],
+  widener:[ {k:'width',label:'Width',min:0,max:2,step:.02,fmt:v=>Math.round(v*100)+'%'} ],
+  autopan:[ {k:'rate',label:'Rate',min:.05,max:8,step:.05,fmt:v=>v.toFixed(2)+'Hz'},
+       {k:'depth',label:'Depth',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  autowah:[ {k:'rate',label:'Rate',min:.1,max:8,step:.1,fmt:v=>v.toFixed(1)+'Hz'},
+       {k:'depth',label:'Depth',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'base',label:'Base Hz',min:100,max:2000,step:10,fmt:v=>Math.round(v)+''},
+       {k:'reso',label:'Reso',min:1,max:20,step:.5,fmt:v=>v.toFixed(1)} ],
+  flanger:[ {k:'rate',label:'Rate',min:.05,max:5,step:.05,fmt:v=>v.toFixed(2)+'Hz'},
+       {k:'depth',label:'Depth',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'feedback',label:'Feedback',min:0,max:.95,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  exciter:[ {k:'freq',label:'Freq',min:1000,max:9000,step:50,fmt:v=>Math.round(v)+''},
+       {k:'amount',label:'Amount',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  tapesat:[ {k:'drive',label:'Drive',min:0,max:12,step:.2,fmt:v=>v.toFixed(1)},
+       {k:'tone',label:'Tone',min:1500,max:12000,step:100,fmt:v=>Math.round(v)+''},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  deesser:[ {k:'freq',label:'Freq',min:3000,max:12000,step:100,fmt:v=>Math.round(v)+''},
+       {k:'amount',label:'Amount',min:0,max:18,step:.5,fmt:v=>'-'+v.toFixed(1)+'dB'} ],
+  gate:[ {k:'thresh',label:'Thresh',min:-80,max:-10,step:1,fmt:v=>v+'dB'},
+       {k:'release',label:'Release',min:.01,max:.5,step:.01,fmt:v=>Math.round(v*1000)+'ms'} ],
+  pitchshift:[ {k:'semitones',label:'Pitch',min:-12,max:12,step:1,fmt:v=>(v>0?'+':'')+v+'st'},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  pingpong:[ {k:'time',label:'Time',min:.05,max:1,step:.01,fmt:v=>v.toFixed(2)+'s'},
+       {k:'feedback',label:'Feedback',min:0,max:.9,step:.01,fmt:v=>v.toFixed(2)},
+       {k:'mix',label:'Mix',min:0,max:1,step:.01,fmt:v=>v.toFixed(2)} ],
+  multiband:[ {k:'low',label:'Low',min:-24,max:0,step:.5,fmt:v=>v.toFixed(1)+'dB'},
+       {k:'mid',label:'Mid',min:-24,max:0,step:.5,fmt:v=>v.toFixed(1)+'dB'},
+       {k:'high',label:'High',min:-24,max:0,step:.5,fmt:v=>v.toFixed(1)+'dB'},
+       {k:'ratio',label:'Ratio',min:1,max:12,step:.5,fmt:v=>v+':1'} ],
+  oneknob:[ {k:'amount',label:'Amount',min:0,max:1,step:.01,fmt:v=>Math.round(v*100)+'%'} ],
+};
+const dbToGain=db=>Math.pow(10,db/20);
+// One Knob macro definitions: a single Amount knob drives a tuned character.
+const ONEKNOB={
+  brighter:{icon:'✨',build:(ctx,N,input,output)=>{ N.f=ctx.createBiquadFilter(); N.f.type='highshelf'; N.f.frequency.value=4000; input.connect(N.f); N.f.connect(output); },
+    apply:(N,a)=>{ N.f.gain.value=a*14; }},
+  bassy:{icon:'🔊',build:(ctx,N,input,output)=>{ N.f=ctx.createBiquadFilter(); N.f.type='lowshelf'; N.f.frequency.value=120; input.connect(N.f); N.f.connect(output); },
+    apply:(N,a)=>{ N.f.gain.value=a*14; }},
+  echo:{icon:'🔁',build:(ctx,N,input,output)=>{ N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.d=ctx.createDelay(1); N.fb=ctx.createGain();
+      N.d.delayTime.value=0.28; N.fb.gain.value=0.35; input.connect(N.dry); N.dry.connect(output);
+      input.connect(N.d); N.d.connect(N.fb); N.fb.connect(N.d); N.d.connect(N.wet); N.wet.connect(output); },
+    apply:(N,a)=>{ N.wet.gain.value=a*0.6; N.dry.gain.value=1; }},
+  room:{icon:'🏛',build:(ctx,N,input,output)=>{ N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.conv=ctx.createConvolver();
+      N.conv.buffer=makeImpulse(ctx,1.6,2.2); input.connect(N.dry); N.dry.connect(output);
+      input.connect(N.conv); N.conv.connect(N.wet); N.wet.connect(output); },
+    apply:(N,a)=>{ N.wet.gain.value=a*0.6; N.dry.gain.value=1; }},
+  punchy:{icon:'👊',build:(ctx,N,input,output)=>{ N.c=ctx.createDynamicsCompressor(); N.mk=ctx.createGain(); N.c.knee.value=6; N.c.attack.value=0.006; N.c.release.value=0.12;
+      input.connect(N.c); N.c.connect(N.mk); N.mk.connect(output); },
+    apply:(N,a)=>{ N.c.threshold.value=-6-a*24; N.c.ratio.value=2+a*6; N.mk.gain.value=dbToGain(a*6); }},
+  leveller:{icon:'📏',build:(ctx,N,input,output)=>{ N.c=ctx.createDynamicsCompressor(); N.mk=ctx.createGain(); N.c.knee.value=12; N.c.attack.value=0.02; N.c.release.value=0.3; N.c.ratio.value=4;
+      input.connect(N.c); N.c.connect(N.mk); N.mk.connect(output); },
+    apply:(N,a)=>{ N.c.threshold.value=-4-a*26; N.mk.gain.value=dbToGain(a*8); }},
+  dirty:{icon:'🤘',build:(ctx,N,input,output)=>{ N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.sh=ctx.createWaveShaper(); N.sh.oversample='2x';
+      input.connect(N.dry); N.dry.connect(output); input.connect(N.sh); N.sh.connect(N.wet); N.wet.connect(output); },
+    apply:(N,a)=>{ N.sh.curve=makeDistCurve(a*80); N.wet.gain.value=a*0.7; N.dry.gain.value=1-Math.min(1,a*0.7); }},
+  toasty:{icon:'🍞',build:(ctx,N,input,output)=>{ N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.sh=ctx.createWaveShaper(); N.sh.oversample='4x'; N.lp=ctx.createBiquadFilter(); N.lp.type='lowpass'; N.lp.frequency.value=8000;
+      input.connect(N.dry); N.dry.connect(output); input.connect(N.sh); N.sh.connect(N.lp); N.lp.connect(N.wet); N.wet.connect(output); },
+    apply:(N,a)=>{ N.sh.curve=makeSatCurve(a*8); N.wet.gain.value=a; N.dry.gain.value=1-Math.min(1,a); }},
 };
 function makeDistCurve(amount){
   const k=+amount||0, n=1024, curve=new Float32Array(n);
@@ -768,6 +860,12 @@ function makeDistCurve(amount){
 function makeBitCurve(bits){
   const levels=Math.pow(2,Math.max(1,bits)), n=2048, c=new Float32Array(n);
   for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=Math.round(x*levels)/levels; }
+  return c;
+}
+// soft tanh-style saturation curve (warm, tape-ish)
+function makeSatCurve(drive){
+  const k=Math.max(0.001,drive), n=1024, c=new Float32Array(n);
+  for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=Math.tanh(x*(1+k))/Math.tanh(1+k); }
   return c;
 }
 // One effect: self-contained in->out graph with wet/dry so it can sit anywhere in the chain.
@@ -831,6 +929,96 @@ function makeFXModule(ctx,type,params){
     N.conv.buffer=makeImpulse(ctx,m.params.size,m.params.decay);
     input.connect(N.dry); N.dry.connect(output);
     input.connect(N.conv); N.conv.connect(N.wet); N.wet.connect(output);
+  } else if(type==='limiter'){
+    N.pre=ctx.createGain(); N.comp=ctx.createDynamicsCompressor();
+    N.comp.knee.value=0; N.comp.ratio.value=20; N.comp.attack.value=0.003; N.comp.release.value=0.05;
+    input.connect(N.pre); N.pre.connect(N.comp); N.comp.connect(output);
+  } else if(type==='gain'){
+    N.g=ctx.createGain(); input.connect(N.g); N.g.connect(output);
+  } else if(type==='widener'){
+    // Mid/Side width matrix: mid=0.5(L+R), side=0.5(L-R); out L=mid+w·side, R=mid−w·side
+    N.split=ctx.createChannelSplitter(2); N.merge=ctx.createChannelMerger(2);
+    N.mid=ctx.createGain(); N.mid.gain.value=0.5;
+    N.side=ctx.createGain(); N.side.gain.value=0.5; N.sideInv=ctx.createGain(); N.sideInv.gain.value=-1;
+    N.sideW=ctx.createGain(); N.sideWneg=ctx.createGain(); N.sideWneg.gain.value=-1;
+    input.connect(N.split);
+    N.split.connect(N.mid,0); N.split.connect(N.mid,1);
+    N.split.connect(N.side,0); N.split.connect(N.sideInv,1); N.sideInv.connect(N.side);
+    N.side.connect(N.sideW);
+    N.mid.connect(N.merge,0,0); N.mid.connect(N.merge,0,1);
+    N.sideW.connect(N.merge,0,0); N.sideW.connect(N.sideWneg); N.sideWneg.connect(N.merge,0,1);
+    N.merge.connect(output);
+  } else if(type==='autopan'){
+    N.pan=ctx.createStereoPanner(); N.lfo=ctx.createOscillator(); N.lfoGain=ctx.createGain();
+    input.connect(N.pan); N.pan.connect(output);
+    N.lfo.connect(N.lfoGain); N.lfoGain.connect(N.pan.pan); startOsc(N.lfo);
+  } else if(type==='autowah'){
+    N.filter=ctx.createBiquadFilter(); N.filter.type='bandpass';
+    N.lfo=ctx.createOscillator(); N.lfoGain=ctx.createGain();
+    input.connect(N.filter); N.filter.connect(output);
+    N.lfo.connect(N.lfoGain); N.lfoGain.connect(N.filter.frequency); startOsc(N.lfo);
+  } else if(type==='flanger'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.delay=ctx.createDelay(0.05); N.fb=ctx.createGain();
+    N.lfo=ctx.createOscillator(); N.lfoGain=ctx.createGain(); N.delay.delayTime.value=0.005;
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.delay); N.delay.connect(N.wet); N.wet.connect(output);
+    N.delay.connect(N.fb); N.fb.connect(N.delay);
+    N.lfo.connect(N.lfoGain); N.lfoGain.connect(N.delay.delayTime); startOsc(N.lfo);
+  } else if(type==='exciter'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.hp=ctx.createBiquadFilter(); N.hp.type='highpass';
+    N.shaper=ctx.createWaveShaper(); N.shaper.oversample='2x';
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.hp); N.hp.connect(N.shaper); N.shaper.connect(N.wet); N.wet.connect(output);
+  } else if(type==='tapesat'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain(); N.shaper=ctx.createWaveShaper(); N.shaper.oversample='4x';
+    N.lp=ctx.createBiquadFilter(); N.lp.type='lowpass';
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.shaper); N.shaper.connect(N.lp); N.lp.connect(N.wet); N.wet.connect(output);
+  } else if(type==='deesser'){
+    N.peak=ctx.createBiquadFilter(); N.peak.type='peaking'; N.peak.Q.value=3;
+    input.connect(N.peak); N.peak.connect(output);
+  } else if(type==='gate'){
+    N.sp=ctx.createScriptProcessor(1024,1,1); N.g=0;
+    input.connect(N.sp); N.sp.connect(output);
+    N.sp.onaudioprocess=(e)=>{ const inp=e.inputBuffer.getChannelData(0), o=e.outputBuffer.getChannelData(0);
+      const th=dbToGain(m.params.thresh), rel=Math.exp(-1/(ctx.sampleRate*Math.max(.005,m.params.release)));
+      for(let i=0;i<inp.length;i++){ const a=Math.abs(inp[i]); N.g = a>th ? 1 : N.g*rel; o[i]=inp[i]*N.g; } };
+  } else if(type==='pitchshift'){
+    // granular delay-line pitch shift (approximate, monophonic-friendly)
+    const SR=ctx.sampleRate, size=Math.max(1,Math.floor(SR*0.1));
+    N.dry=ctx.createGain(); N.sp=ctx.createScriptProcessor(1024,1,1);
+    const ring=new Float32Array(size); let wp=0, rp=0;
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.sp); N.sp.connect(output);
+    N.sp.onaudioprocess=(e)=>{ const inp=e.inputBuffer.getChannelData(0), o=e.outputBuffer.getChannelData(0);
+      const ratio=Math.pow(2,(m.params.semitones||0)/12), wet=m.params.mix;
+      for(let i=0;i<inp.length;i++){ ring[wp]=inp[i]; wp=(wp+1)%size;
+        rp+=ratio; if(rp>=size)rp-=size; if(rp<0)rp+=size;
+        const rp2=(rp+size/2)%size, i1=Math.floor(rp), i2=Math.floor(rp2);
+        const d1=((wp-rp+size)%size)/size, d2=((wp-rp2+size)%size)/size;
+        const w1=Math.sin(Math.PI*d1), w2=Math.sin(Math.PI*d2);
+        o[i]=((ring[i1]*w1+ring[i2]*w2)/((w1+w2)||1))*wet; } };
+  } else if(type==='pingpong'){
+    N.dry=ctx.createGain(); N.wet=ctx.createGain();
+    N.dL=ctx.createDelay(2); N.dR=ctx.createDelay(2); N.fbL=ctx.createGain(); N.fbR=ctx.createGain();
+    N.merge=ctx.createChannelMerger(2);
+    input.connect(N.dry); N.dry.connect(output);
+    input.connect(N.dL);
+    N.dL.connect(N.fbL); N.fbL.connect(N.dR);
+    N.dR.connect(N.fbR); N.fbR.connect(N.dL);
+    N.dL.connect(N.merge,0,0); N.dR.connect(N.merge,0,1);
+    N.merge.connect(N.wet); N.wet.connect(output);
+  } else if(type==='multiband'){
+    N.lp=ctx.createBiquadFilter(); N.lp.type='lowpass'; N.lp.frequency.value=250;
+    N.bp1=ctx.createBiquadFilter(); N.bp1.type='highpass'; N.bp1.frequency.value=250;
+    N.bp2=ctx.createBiquadFilter(); N.bp2.type='lowpass'; N.bp2.frequency.value=3000;
+    N.hp=ctx.createBiquadFilter(); N.hp.type='highpass'; N.hp.frequency.value=3000;
+    N.cLo=ctx.createDynamicsCompressor(); N.cMid=ctx.createDynamicsCompressor(); N.cHi=ctx.createDynamicsCompressor();
+    input.connect(N.lp); N.lp.connect(N.cLo); N.cLo.connect(output);
+    input.connect(N.bp1); N.bp1.connect(N.bp2); N.bp2.connect(N.cMid); N.cMid.connect(output);
+    input.connect(N.hp); N.hp.connect(N.cHi); N.cHi.connect(output);
+  } else if(type==='oneknob'){
+    const def=ONEKNOB[m.params.mode]||ONEKNOB.brighter; N._def=def; def.build(ctx,N,input,output);
   }
   m.update=function(){
     const P=m.params;
@@ -845,9 +1033,23 @@ function makeFXModule(ctx,type,params){
     else if(type==='tremolo'){ N.lfo.frequency.value=P.rate; N.trem.gain.value=1-P.depth*0.5; N.lfoGain.gain.value=P.depth*0.5; }
     else if(type==='delay'){ N.delay.delayTime.value=P.time; N.fb.gain.value=P.feedback; N.wet.gain.value=P.mix; N.dry.gain.value=1; }
     else if(type==='reverb'){ N.wet.gain.value=P.mix; N.dry.gain.value=1; }
+    else if(type==='limiter'){ N.pre.gain.value=dbToGain(P.drive); N.comp.threshold.value=P.ceiling; }
+    else if(type==='gain'){ N.g.gain.value=dbToGain(P.gain); }
+    else if(type==='widener'){ N.sideW.gain.value=P.width; }
+    else if(type==='autopan'){ N.lfo.frequency.value=P.rate; N.lfoGain.gain.value=Math.min(1,P.depth); }
+    else if(type==='autowah'){ N.filter.frequency.value=P.base; N.filter.Q.value=P.reso; N.lfo.frequency.value=P.rate; N.lfoGain.gain.value=P.depth*P.base*4; }
+    else if(type==='flanger'){ N.lfo.frequency.value=P.rate; N.lfoGain.gain.value=P.depth*0.003; N.fb.gain.value=P.feedback; N.wet.gain.value=P.mix; N.dry.gain.value=1; }
+    else if(type==='exciter'){ N.hp.frequency.value=P.freq; N.shaper.curve=makeDistCurve(P.amount*60); N.wet.gain.value=P.mix; N.dry.gain.value=1; }
+    else if(type==='tapesat'){ N.shaper.curve=makeSatCurve(P.drive); N.lp.frequency.value=P.tone; N.wet.gain.value=P.mix; N.dry.gain.value=1-Math.min(1,P.mix); }
+    else if(type==='deesser'){ N.peak.frequency.value=P.freq; N.peak.gain.value=-P.amount; }
+    else if(type==='gate'){ /* read live in processor */ }
+    else if(type==='pitchshift'){ N.dry.gain.value=1-Math.min(1,P.mix); }
+    else if(type==='pingpong'){ N.dL.delayTime.value=P.time; N.dR.delayTime.value=P.time; N.fbL.gain.value=P.feedback; N.fbR.gain.value=P.feedback; N.wet.gain.value=P.mix; N.dry.gain.value=1; }
+    else if(type==='multiband'){ [N.cLo,N.cMid,N.cHi].forEach(c=>{c.ratio.value=P.ratio; c.attack.value=.005; c.release.value=.15;}); N.cLo.threshold.value=P.low; N.cMid.threshold.value=P.mid; N.cHi.threshold.value=P.high; }
+    else if(type==='oneknob'){ if(N._def) N._def.apply(N,P.amount); }
   };
   m.rebuildImpulse=function(){ if(type==='reverb') N.conv.buffer=makeImpulse(ctx,m.params.size,m.params.decay); };
-  m.dispose=function(){ oscs.forEach(o=>{try{o.stop();}catch(e){}}); try{input.disconnect();}catch(e){} try{output.disconnect();}catch(e){} };
+  m.dispose=function(){ oscs.forEach(o=>{try{o.stop();}catch(e){}}); if(N.sp){try{N.sp.onaudioprocess=null; N.sp.disconnect();}catch(e){}} try{input.disconnect();}catch(e){} try{output.disconnect();}catch(e){} };
   m.update();
   return m;
 }
@@ -856,7 +1058,7 @@ function buildFX(ctx, specs){
   const input=ctx.createGain(), gain=ctx.createGain(); gain.gain.value=0.85;
   const pan=ctx.createStereoPanner();
   specs = specs || [{type:'eq'},{type:'compressor'}];
-  const modules = specs.map(s=>{ const m=makeFXModule(ctx,s.type,s.params); if(s.enabled!=null) m.enabled=s.enabled; return m; });
+  const modules = specs.map(s=>{ const m=makeFXModule(ctx,s.type,s.params); if(s.enabled!=null) m.enabled=s.enabled; if(s.label) m.label=s.label; return m; });
   const fx={ctx, input, gain, pan, output:pan, modules};
   fx.rebuild=function(){
     try{input.disconnect();}catch(e){}
@@ -869,16 +1071,109 @@ function buildFX(ctx, specs){
   fx.rebuild();
   return fx;
 }
-function fxToSpecs(fx){ return fx.modules.map(m=>({type:m.type, enabled:m.enabled, params:Object.assign({},m.params)})); }
+function fxToSpecs(fx){ return fx.modules.map(m=>({type:m.type, enabled:m.enabled, label:m.label||null, params:Object.assign({},m.params)})); }
 function moveFX(t, idx, dir){
   const a=t.fx.modules, j=idx+dir; if(j<0||j>=a.length) return;
   const tmp=a[idx]; a[idx]=a[j]; a[j]=tmp; t.fx.rebuild(); renderFX();
 }
-function addFX(t, type){
-  const m=makeFXModule(Audio.ctx, type); t.fx.modules.push(m); t.fx.rebuild(); renderFX(); toast('Added '+FX_LABEL[type]);
+function addFX(t, type, params, label){
+  if(typeof pushHistory==='function') pushHistory();
+  const m=makeFXModule(Audio.ctx, type, params); if(label) m.label=label;
+  t.fx.modules.push(m); t.fx.rebuild(); renderFX(); toast('Added '+(label||FX_LABEL[type]));
 }
 function removeFX(t, idx){
+  if(typeof pushHistory==='function') pushHistory();
   const m=t.fx.modules.splice(idx,1)[0]; t.fx.rebuild(); if(m&&m.dispose)m.dispose(); renderFX();
+}
+
+/* Full FX browser — categories map branded names to the engines above with tuned params.
+   Effects marked ≈ are honest approximations built on a shared engine. */
+const FX_CATEGORIES=[
+  {cat:'One Knobs', note:'Get studio-quality sound quickly — one Amount knob each.', items:[
+    {name:'Brighter',type:'oneknob',params:{mode:'brighter'}}, {name:'Echo',type:'oneknob',params:{mode:'echo'}},
+    {name:'Punchy',type:'oneknob',params:{mode:'punchy'}}, {name:'Room',type:'oneknob',params:{mode:'room'}},
+    {name:'Bassy',type:'oneknob',params:{mode:'bassy'}}, {name:'Leviller',type:'oneknob',params:{mode:'leveller'}},
+    {name:'Dirty',type:'oneknob',params:{mode:'dirty'}}, {name:'Toasty',type:'oneknob',params:{mode:'toasty'}} ]},
+  {cat:'Polish', note:'Clean up hiss, hum and harshness.', items:[
+    {name:'Feedback Killer',type:'deesser',params:{freq:3200,amount:6}}, {name:'DeEsser',type:'deesser',params:{}},
+    {name:'Noise Gate',type:'gate',params:{}} ]},
+  {cat:'Amps & Cabs', note:'Guitar amp & speaker-cab tone.', items:[
+    {name:'Guitar Amp',type:'distortion',params:{amount:38,mix:1}}, {name:'Guitar Cab',type:'eq',params:{low:2,mid:3,high:-8,midFreq:1200}},
+    {name:'Multi Amp Pro',type:'distortion',params:{amount:60,mix:1}}, {name:'Multi Cab Pro',type:'eq',params:{low:1,mid:4,high:-6,midFreq:2000}} ]},
+  {cat:'Pitch Shift', items:[
+    {name:'Multi Shifter',type:'pitchshift',params:{semitones:7,mix:.5}}, {name:'Pitch Shifter',type:'pitchshift',params:{}},
+    {name:'Dual Octaver',type:'pitchshift',params:{semitones:-12,mix:.6}} ]},
+  {cat:'Compressor', note:'Keep levels smooth and balanced.', items:[
+    {name:'Multi-Band Comp',type:'multiband',params:{}}, {name:'Compander',type:'compressor',params:{thresh:-20,ratio:3}},
+    {name:'DIGI Comp',type:'compressor',params:{thresh:-24,ratio:4,att:.003,rel:.15}}, {name:'FBK Compressor',type:'compressor',params:{thresh:-18,ratio:5}},
+    {name:'GTR Squeeze',type:'compressor',params:{thresh:-30,ratio:8,att:.005,rel:.2}}, {name:'Shaper',type:'compressor',params:{thresh:-16,ratio:6,att:.001,rel:.08}} ]},
+  {cat:'Limiter', note:'Tame sharp, sudden peaks.', items:[
+    {name:'Clean Limiter',type:'limiter',params:{}}, {name:'BL 1176',type:'limiter',params:{ceiling:-0.5,drive:6}},
+    {name:'TecLab BA-2A',type:'compressor',params:{thresh:-22,ratio:4,att:.03,rel:.4}}, {name:'Vintage Limiter',type:'limiter',params:{ceiling:-1,drive:9}} ]},
+  {cat:'Rhythmic', note:'Tempo-flavoured movement.', items:[
+    {name:'Pumper',type:'tremolo',params:{rate:2,depth:.85}}, {name:'Gater',type:'tremolo',params:{rate:4,depth:1}} ]},
+  {cat:'EQ', note:'Emphasize or reduce frequencies.', items:[
+    {name:'Visual EQ',type:'eq',params:{}}, {name:'EQ3-M',type:'eq',params:{midFreq:1500}}, {name:'EZ EQ',type:'eq',params:{}},
+    {name:'Graphic EQ',type:'eq',params:{}}, {name:'Multi Filter',type:'filter',params:{}} ]},
+  {cat:'Delay', note:'Echoes and repeats.', items:[
+    {name:'D-Delay +',type:'delay',params:{}}, {name:'Filter Echo +',type:'delay',params:{time:.36,feedback:.45}},
+    {name:'Ping Pong Delay',type:'pingpong',params:{}} ]},
+  {cat:'Modulation', note:'Chorus, flanger, phaser & motion.', items:[
+    {name:'Auto Filter',type:'filter',params:{}}, {name:'Auto Pan',type:'autopan',params:{}}, {name:'Auto Wah',type:'autowah',params:{}},
+    {name:'Chorus Ensemble',type:'chorus',params:{depth:.6,mix:.6}}, {name:'Dimension B',type:'chorus',params:{rate:.8,depth:.3,mix:.4}},
+    {name:'Little Rock',type:'flanger',params:{}}, {name:'Phase 45',type:'phaser',params:{}}, {name:'Phase 72',type:'phaser',params:{depth:1600,rate:.3}},
+    {name:'ST Chorus',type:'chorus',params:{rate:1.2,depth:.5,mix:.5}}, {name:'VibeToo',type:'chorus',params:{rate:5,depth:.3,mix:.5}},
+    {name:'Vocal Doubler',type:'chorus',params:{rate:.4,depth:.2,mix:.45}} ]},
+  {cat:'Distortion', note:'Grit, edge and aggression.', items:[
+    {name:'Bit Bandit',type:'bitcrusher',params:{bits:5}}, {name:'Bitcrusher',type:'bitcrusher',params:{}},
+    {name:'BL Driver',type:'distortion',params:{amount:30}}, {name:'Buzz Face',type:'distortion',params:{amount:70,mix:.8}},
+    {name:'Delta Driver',type:'distortion',params:{amount:45}}, {name:'Distortion ++',type:'distortion',params:{amount:85,mix:.9}},
+    {name:'Fuzz Screamer',type:'distortion',params:{amount:60,mix:.7}}, {name:'House Of Metal',type:'distortion',params:{amount:100,mix:1}},
+    {name:'Mouse Pro',type:'distortion',params:{amount:55}}, {name:'Puff Pie',type:'distortion',params:{amount:18,mix:.4}},
+    {name:'Valve Screamer',type:'tapesat',params:{drive:6,mix:.8}} ]},
+  {cat:'Saturation', note:'Warm, natural fullness.', items:[
+    {name:'Exciter',type:'exciter',params:{}}, {name:'Tape Simulator',type:'tapesat',params:{}}, {name:'Vocal Enhancer',type:'exciter',params:{freq:5000,amount:.4,mix:.35}} ]},
+  {cat:'Reverb', note:'Rooms, halls, plates and space.', items:[
+    {name:'Vocal Verb',type:'reverb',params:{size:1.8,decay:2,mix:.3}}, {name:'Shimmer',type:'reverb',params:{size:4,decay:4.5,mix:.35}},
+    {name:'Space Maker',type:'reverb',params:{size:5,decay:5.5,mix:.4}}, {name:'Spring Reverb',type:'reverb',params:{size:.8,decay:1.5,mix:.3}},
+    {name:'Studio Reverb',type:'reverb',params:{size:2,decay:2.5,mix:.3}}, {name:'Univerb',type:'reverb',params:{size:2.6,decay:3,mix:.32}} ]},
+  {cat:'Utility', note:'Shape and route the signal.', items:[
+    {name:'Gain',type:'gain',params:{}}, {name:'Stereowise',type:'widener',params:{}} ]},
+];
+// Open the full categorized FX browser near an anchor element; adds to holder.fx on pick.
+function openFXPicker(holder, anchorEl){
+  const items=[];
+  FX_CATEGORIES.forEach((c,ci)=>{
+    if(ci>0) items.push({separator:true});
+    items.push({header:c.cat});
+    c.items.forEach(it=>items.push({icon:'🎛',label:it.name,action:()=>addFX(holder,it.type,Object.assign({},it.params),it.name)}));
+  });
+  const r=anchorEl.getBoundingClientRect(); showContextMenu(r.right+4, r.top, items);
+}
+/* Save / load an FX chain (the ordered module specs) as a .blkfx JSON file. */
+function saveFXChain(holder){
+  const data={blkfx:1, name:holder.isMaster?'Master':holder.name, modules:fxToSpecs(holder.fx)};
+  downloadBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),
+    (holder.isMaster?'master':(holder.name||'chain')).replace(/\s+/g,'-').toLowerCase()+'.blkfx.json');
+  toast('FX chain saved ('+data.modules.length+' effects)');
+}
+let _fxChainInput=null, _fxChainTarget=null;
+function loadFXChain(holder){
+  if(!_fxChainInput){ _fxChainInput=document.createElement('input'); _fxChainInput.type='file'; _fxChainInput.accept='.json,.blkfx'; _fxChainInput.style.display='none';
+    document.body.appendChild(_fxChainInput);
+    _fxChainInput.addEventListener('change',e=>{ const f=e.target.files[0]; e.target.value=''; if(!f||!_fxChainTarget)return;
+      const rd=new FileReader(); rd.onload=()=>{ try{ const d=JSON.parse(rd.result);
+        if(!d.modules||!Array.isArray(d.modules)) throw 0; applyFXChain(_fxChainTarget, d.modules);
+      }catch(err){ toast('Invalid FX chain file'); } }; rd.readAsText(f); }); }
+  _fxChainTarget=holder; _fxChainInput.click();
+}
+function applyFXChain(holder, specs){
+  if(typeof pushHistory==='function') pushHistory();
+  const fx=holder.fx;
+  fx.modules.slice().forEach(m=>{ if(m.dispose) m.dispose(); }); // free old nodes
+  fx.modules.length=0;
+  specs.forEach(s=>{ const m=makeFXModule(Audio.ctx,s.type,s.params); if(s.enabled!=null)m.enabled=s.enabled; if(s.label)m.label=s.label; fx.modules.push(m); });
+  fx.rebuild(); renderFX(); toast('FX chain loaded ('+specs.length+' effects)');
 }
 
 /* =====================================================================
@@ -924,7 +1219,7 @@ let trackSeq=0;
 function addTrack(type='midi',opts={}){
   Audio.init();
   const fx=buildFX(Audio.ctx);
-  fx.output.connect(Audio.masterGain);
+  fx.output.connect(Audio.trackTarget());
   const inst = opts.instrument || DEFAULT_INSTRUMENT;
   const t={
     id:uid(), type, // 'midi' | 'audio' | 'drum'
@@ -943,7 +1238,8 @@ function addTrack(type='midi',opts={}){
   return t;
 }
 function getTrack(id){return State.tracks.find(t=>t.id===id);}
-function selectTrack(id){State.selectedTrack=id;
+function selectTrack(id){State.selectedTrack=id; State.fxView='track';
+  $("#btnMaster")&&$("#btnMaster").classList.remove('on');
   // lightweight highlight — don't rebuild headers (would steal focus from a clicked input)
   $$('.thead').forEach(el=>el.classList.toggle('sel', el.dataset.id===id));
   renderMixer(); renderFX(); renderSynthPanel();
@@ -1059,7 +1355,7 @@ function duplicateTrack(id){
   const nt=addTrack(t.type,{name:t.name+' copy', color:t.color, instrument:t.instrument||undefined});
   nt.volume=t.volume; nt.pan=t.pan; nt.synth=JSON.parse(JSON.stringify(t.synth));
   try{nt.fx.output.disconnect();}catch(e){}
-  nt.fx=buildFX(Audio.ctx, fxToSpecs(t.fx)); nt.fx.output.connect(Audio.masterGain);
+  nt.fx=buildFX(Audio.ctx, fxToSpecs(t.fx)); nt.fx.output.connect(Audio.trackTarget());
   applyTrackGain(nt);
   State.regions.filter(r=>r.trackId===id).forEach(r=>{
     const c=JSON.parse(JSON.stringify({...r,buffer:null})); c.buffer=r.buffer; c.id=uid(); c.trackId=nt.id;
@@ -2448,21 +2744,28 @@ function param(label,min,max,step,val,fmt,onInput){
   inp.addEventListener('input',()=>{const v=parseFloat(inp.value); out.textContent=fmt(v); onInput(v);});
   return row;
 }
+function masterHolder(){ return {name:'Master Bus', isMaster:true, fx:Audio.masterFX}; }
 function renderFX(){
-  const host=$("#fxRack"); const t=getTrack(State.selectedTrack);
-  if(!t){host.innerHTML='<div class="fxhdr">No track selected</div>';return;}
-  host.innerHTML=`<div class="fxhdr">FX Rack — <b>${t.name}</b> · signal flows left → right · reorder with ↑ ↓ · toggle each ON/OFF</div>`;
+  const host=$("#fxRack");
+  const isMaster=State.fxView==='master';
+  const t=isMaster?masterHolder():getTrack(State.selectedTrack);
+  if(!t||!t.fx){host.innerHTML='<div class="fxhdr">No track selected</div>';return;}
+  const hdr=document.createElement('div'); hdr.className='fxhdr';
+  hdr.innerHTML=`FX Rack — <b>${isMaster?'⬤ Master Bus':t.name}</b> · signal flows left → right · reorder ↑ ↓ · toggle ON/OFF `;
+  const saveBtn=document.createElement('button'); saveBtn.className='fxmini wide'; saveBtn.textContent='💾 Save Chain'; saveBtn.style.marginLeft='8px'; saveBtn.onclick=()=>saveFXChain(t);
+  const loadBtn=document.createElement('button'); loadBtn.className='fxmini wide'; loadBtn.textContent='📂 Load Chain'; loadBtn.onclick=()=>loadFXChain(t);
+  hdr.append(saveBtn,loadBtn);
+  host.innerHTML=''; host.appendChild(hdr);
   const grid=document.createElement('div'); grid.className='fxgrid'; host.appendChild(grid);
-  // Add-effect tile FIRST (left, before the effects)
+  // Add-effect tile FIRST (left, before the effects) — opens the full categorized browser
   const addTile=document.createElement('button'); addTile.className='fxaddtile';
   addTile.innerHTML='<span>＋</span>Add Effect';
-  addTile.onclick=e=>{ const items=FX_ALL.map(ty=>({icon:'🎛',label:FX_LABEL[ty],action:()=>addFX(t,ty)}));
-    const r=e.currentTarget.getBoundingClientRect(); showContextMenu(r.right+4, r.top, items); };
+  addTile.onclick=e=>openFXPicker(t, e.currentTarget);
   grid.appendChild(addTile);
   t.fx.modules.forEach((m,idx)=>{
     const card=document.createElement('div'); card.className='fxmod'+(m.enabled?'':' off');
     const h=document.createElement('h4');
-    const title=document.createElement('span'); title.textContent=`${idx+1}. ${FX_LABEL[m.type]}`;
+    const title=document.createElement('span'); title.textContent=`${idx+1}. ${m.label||FX_LABEL[m.type]}`;
     const ctrls=document.createElement('span'); ctrls.className='fxctrls';
     const up=document.createElement('button'); up.className='fxmini'; up.textContent='↑'; up.title='Move up'; up.disabled=idx===0; up.onclick=()=>moveFX(t,idx,-1);
     const dn=document.createElement('button'); dn.className='fxmini'; dn.textContent='↓'; dn.title='Move down'; dn.disabled=idx===t.fx.modules.length-1; dn.onclick=()=>moveFX(t,idx,1);
@@ -2601,6 +2904,10 @@ async function exportWav(){
   const off=new OfflineAudioContext(2, Math.ceil(end*rate), rate);
   await registerAutotune(off); // so autotune renders into the bounce
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
+  // master bus: sum tracks -> master FX chain -> master gain (mirrors the live routing)
+  let masterBus=master;
+  if(Audio.masterFX){ const mfx=buildFX(off, fxToSpecs(Audio.masterFX)); mfx.gain.gain.value=1; mfx.pan.pan.value=0;
+    mfx.output.connect(master); masterBus=mfx.input; }
   // rebuild per-track fx offline from the live chain (same modules, order, params)
   State.tracks.forEach(t=>{
     const fx=buildFX(off, fxToSpecs(t.fx));
@@ -2612,7 +2919,7 @@ async function exportWav(){
     } else {
       fx.gain.gain.value=trackAudible(t)?t.volume:0;
     }
-    fx.output.connect(master);
+    fx.output.connect(masterBus);
     // schedule regions
     State.regions.filter(r=>r.trackId===t.id).forEach(r=>{
       if(r.type==='audio'&&r.buffer){
@@ -2686,6 +2993,7 @@ function saveProject(){
   const data={
     bpm:State.bpm, timesig:State.timesig, snap:State.snap, loop:State.loop, metro:State.metro,
     drumPattern:State.drumPattern,
+    masterFx:Audio.masterFX?fxToSpecs(Audio.masterFX):null,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
       mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,instrument:t.instrument,engine:t.engine,sample:t.sample,automation:t.automation,fxModules:fxToSpecs(t.fx)})),
     regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
@@ -2711,13 +3019,18 @@ function loadProject(d){
   State.timesig=d.timesig||[4,4]; State.snap=d.snap??0.25; State.loop=d.loop||State.loop;
   State.metro=d.metro||false; $("#btnMetro").classList.toggle('on',State.metro);
   State.drumPattern=d.drumPattern||State.drumPattern;
+  // rebuild the master bus FX chain
+  if(d.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
+    Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
+    Audio.masterFX=buildFX(Audio.ctx, d.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0;
+    Audio.masterBus.connect(Audio.masterFX.input); Audio.masterFX.output.connect(Audio.masterGain); }
   (d.tracks||[]).forEach(td=>{
     const t=addTrack(td.type,{name:td.name,color:td.color});
     t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
     t.synth=td.synth||t.synth; t.instrument=td.instrument||t.instrument; t.automation=td.automation||[];
     t.engine=td.engine||'synth'; t.sample=td.sample||null; if(t.engine==='sampler'&&t.sample) Sampler.ensure(t.sample,()=>renderTracks());
     if(td.fxModules){ try{t.fx.output.disconnect();}catch(e){}
-      t.fx=buildFX(Audio.ctx, td.fxModules); t.fx.output.connect(Audio.masterGain); }
+      t.fx=buildFX(Audio.ctx, td.fxModules); t.fx.output.connect(Audio.trackTarget()); }
     applyTrackGain(t);
   });
   const pending=[];
@@ -2798,6 +3111,8 @@ function zoomTimelineAt(clientX, factor){
 }, {passive:false}));
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
+$("#btnMaster").addEventListener('click',()=>{ Audio.init(); State.fxView='master'; $("#btnMaster").classList.add('on');
+  openDrawer(); setDrawerPane('fx'); });
 
 /* =====================================================================
    THEMES — BandLab (default) / FL Studio / Ableton / Logic
