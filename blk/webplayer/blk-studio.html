@@ -238,6 +238,12 @@
   .tpl-brand{font-family:'Space Mono',monospace; font-weight:700; letter-spacing:2px; font-size:18px}
   .tpl-brand span{color:var(--accent)}
   .tpl-heading{color:var(--muted); font-size:13px; margin:4px 0 18px}
+  .tpl-or{text-align:center; color:var(--muted); font-family:'Space Mono',monospace; font-size:10px;
+    letter-spacing:2px; text-transform:uppercase; margin:16px 0 10px; position:relative}
+  .tpl-load{display:block; width:100%; padding:12px; border-radius:8px; border:1px solid var(--line2);
+    background:var(--panel2); color:var(--text); font-family:'Space Mono',monospace; font-weight:700;
+    letter-spacing:1px; font-size:13px; cursor:pointer; transition:.15s}
+  .tpl-load:hover{border-color:var(--accent); background:var(--panel3); color:#fff}
   .tpl-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px}
   .tpl-card{text-align:left; background:var(--panel2); border:1px solid var(--line2); border-radius:10px;
     padding:16px; cursor:pointer; transition:.15s; color:var(--text)}
@@ -496,6 +502,8 @@
     <div class="tpl-brand">BLK<span> Studio</span></div>
     <div class="tpl-heading">Choose a starting template</div>
     <div class="tpl-grid" id="tplGrid"></div>
+    <div class="tpl-or">or</div>
+    <button class="tpl-load" id="tplLoadBtn">📂 &nbsp;Load Project (.json)</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -2629,10 +2637,12 @@ function saveProject(){
 }
 $("#btnSave").addEventListener('click',saveProject);
 $("#btnLoad").addEventListener('click',()=>$("#projInput").click());
+$("#tplLoadBtn").addEventListener('click',()=>$("#projInput").click());
 $("#projInput").addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
   const rd=new FileReader(); rd.onload=()=>{try{loadProject(JSON.parse(rd.result));}catch(err){toast('Invalid project file');}}; rd.readAsText(f); e.target.value='';});
 function loadProject(d){
   Audio.init();
+  $("#tplOverlay").classList.remove('show'); // dismiss the startup picker if it's open
   // clear
   State.tracks.forEach(t=>{try{t.fx.output.disconnect();}catch(e){}});
   State.tracks=[]; State.regions=[]; State.selectedTrack=null; State.selectedRegion=null; State.selection=[];
