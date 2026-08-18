@@ -226,7 +226,7 @@
   .fxmini.rm:hover{border-color:var(--rec); color:var(--rec)}
   .fxmini:disabled{opacity:.3; cursor:default}
   .fxaddtile{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
-    min-height:130px; border:1px dashed var(--accent); border-radius:8px; background:rgba(138,43,226,.1);
+    min-height:130px; border:1px dashed var(--accent); border-radius:var(--radius); background:color-mix(in srgb, var(--accent) 10%, transparent);
     color:var(--accent); font-family:'Space Mono',monospace; font-weight:700; letter-spacing:1px; font-size:12px; cursor:pointer; transition:.15s}
   .fxaddtile span{font-size:30px; line-height:1}
   .fxaddtile:hover{background:var(--accent); color:#fff; border-style:solid}
@@ -319,6 +319,47 @@
   button.rec-vocals.armed{background:var(--rec); color:#fff; animation:recpulse 1s infinite}
   @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.55}}
   .tbtn.mic-on{background:var(--rec); border-color:var(--rec); color:#fff}
+
+  /* ============================================================
+     PER-DAW THEME LAYOUTS — evoke FL Studio / Ableton / Logic
+     (the default BandLab look is the unprefixed rules above)
+     ============================================================ */
+  /* corner radius follows the active theme's --radius on the main controls */
+  [data-theme] .tbtn,[data-theme] .region,[data-theme] .fxmod,[data-theme] .thead,
+  [data-theme] .dtab,[data-theme] .step,[data-theme] .pad,[data-theme] .add-track-row,
+  [data-theme] .tpl-card,[data-theme] .mstrip{border-radius:var(--radius)}
+
+  /* ---------- FL Studio: dark beveled chrome, signature orange ---------- */
+  [data-theme="fl"] .transport{background:linear-gradient(180deg,#4a4a4a,#2f2f2f);
+    border-bottom:1px solid #191919; box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+  [data-theme="fl"] .tbtn{background:linear-gradient(180deg,#3d3d3d,#2f2f2f);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  [data-theme="fl"] .thead{background:linear-gradient(180deg,#353535,#2c2c2c)}
+  [data-theme="fl"] .brand span{color:#ff9e2c}
+  [data-theme="fl"] .drawer-tabs{background:linear-gradient(180deg,#3a3a3a,#2e2e2e)}
+  [data-theme="fl"] .add-track-row{background:linear-gradient(180deg,#343434,#2c2c2c)}
+
+  /* ---------- Ableton Live: flat, sharp corners, thin lines, boxy ---------- */
+  [data-theme="ableton"] .transport{background:var(--panel); border-bottom:1px solid #1e1e1e; box-shadow:none}
+  [data-theme="ableton"] .tbtn{background:var(--panel2); border:1px solid #1e1e1e; box-shadow:none;
+    text-transform:uppercase; letter-spacing:.4px; font-size:10px}
+  [data-theme="ableton"] .tgroup{border-right-color:#1e1e1e}
+  [data-theme="ableton"] .thead{background:var(--panel); border:1px solid #1e1e1e}
+  [data-theme="ableton"] .region{box-shadow:none}
+  [data-theme="ableton"] .region .rlabel{background:rgba(0,0,0,.4); text-transform:uppercase;
+    font-size:9px; letter-spacing:.4px}
+  [data-theme="ableton"] .dtab{text-transform:uppercase; letter-spacing:.4px; font-size:10px}
+  [data-theme="ableton"] .fxmod,[data-theme="ableton"] .lcd,[data-theme="ableton"] .mstrip{box-shadow:none}
+  [data-theme="ableton"] .brand{letter-spacing:1px}
+
+  /* ---------- Logic Pro: polished, rounded, soft brushed chrome ---------- */
+  [data-theme="logic"] .transport{background:linear-gradient(180deg,#4c5563,#333a45);
+    border-bottom:1px solid #161a20; box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+  [data-theme="logic"] .tbtn{background:linear-gradient(180deg,#3c4450,#2f3540);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+  [data-theme="logic"] .thead{background:linear-gradient(180deg,#2e343e,#282d36)}
+  [data-theme="logic"] .drawer-tabs{background:linear-gradient(180deg,#333a45,#2a2f38)}
+  [data-theme="logic"] .region{box-shadow:0 1px 3px rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
@@ -2425,11 +2466,14 @@ const PianoRoll={
     this.keys.width=56; this.keys.height=H;
     this.ruler.width=W; this.ruler.height=22;
     // ---- grid rows ----
+    const _cs=getComputedStyle(document.documentElement);
+    const AC=_cs.getPropertyValue('--accent').trim()||'#8A2BE2';
+    const AC2=_cs.getPropertyValue('--accent2').trim()||'#b06bff';
     const g=this.grid.getContext('2d'); g.clearRect(0,0,W,H);
     for(let row=0;row<this.rows;row++){
       const pitch=this.lowNote+(this.rows-1-row), y=row*this.noteH;
       g.fillStyle=isBlackKey(pitch)?'#0b0c11':'#0f1119'; g.fillRect(0,y,W,this.noteH);
-      if(pitch%12===0){ g.fillStyle='rgba(138,43,226,0.07)'; g.fillRect(0,y,W,this.noteH); } // C-row tint
+      if(pitch%12===0){ g.fillStyle=hexA(AC,0.07); g.fillRect(0,y,W,this.noteH); } // C-row tint
       g.strokeStyle='#171a24'; g.beginPath(); g.moveTo(0,y+.5); g.lineTo(W,y+.5); g.stroke();
     }
     // ---- vertical grid ----
@@ -2442,16 +2486,16 @@ const PianoRoll={
     // clip-end marker (region duration)
     if(r){ const endX=secToBeat(r.duration)*pxBeat;
       g.fillStyle='rgba(0,0,0,0.28)'; g.fillRect(endX,0,W-endX,H);
-      g.strokeStyle='rgba(138,43,226,0.5)'; g.beginPath(); g.moveTo(endX+.5,0); g.lineTo(endX+.5,H); g.stroke(); }
+      g.strokeStyle=hexA(AC,0.5); g.beginPath(); g.moveTo(endX+.5,0); g.lineTo(endX+.5,H); g.stroke(); }
     // ---- notes ----
     if(r) (r.notes||[]).forEach(n=>{
       const x=secToBeat(n.start)*pxBeat, wN=Math.max(4,secToBeat(n.dur)*pxBeat);
       const row=this.rows-1-(n.pitch-this.lowNote); if(row<0||row>=this.rows) return;
       const y=row*this.noteH, vel=clamp(n.vel==null?0.9:n.vel,0.05,1);
       const sel=this.selNotes.includes(n);
-      g.fillStyle= sel ? `rgba(34,211,238,${0.55+0.4*vel})` : `rgba(138,43,226,${0.4+0.55*vel})`;
+      g.fillStyle= sel ? hexA(AC2,0.55+0.4*vel) : hexA(AC,0.4+0.55*vel);
       roundRect(g,x+1,y+1.5,wN-2,this.noteH-3,3); g.fill();
-      g.strokeStyle= sel ? '#ffffff' : 'rgba(200,155,255,0.95)'; g.lineWidth= sel?1.6:1;
+      g.strokeStyle= sel ? '#ffffff' : hexA(AC2,0.95); g.lineWidth= sel?1.6:1;
       roundRect(g,x+1,y+1.5,wN-2,this.noteH-3,3); g.stroke(); g.lineWidth=1;
       if(wN>11){ g.fillStyle= sel?'rgba(255,255,255,.95)':'rgba(255,255,255,.45)'; g.fillRect(x+wN-3.5, y+3, 2, this.noteH-6); }
     });
@@ -2469,7 +2513,7 @@ const PianoRoll={
       const pitch=this.lowNote+(this.rows-1-row), y=row*this.noteH, black=isBlackKey(pitch);
       k.fillStyle=black?'#14171e':'#e9edf5'; k.fillRect(0,y,56,this.noteH);
       k.strokeStyle='#090a0f'; k.beginPath(); k.moveTo(0,y+this.noteH-.5); k.lineTo(56,y+this.noteH-.5); k.stroke();
-      if(pitch%12===0){ k.fillStyle='#8A2BE2'; k.font='bold 9px "Space Mono",monospace';
+      if(pitch%12===0){ k.fillStyle=AC; k.font='bold 9px "Space Mono",monospace';
         k.fillText('C'+(Math.floor(pitch/12)-1), 30, y+this.noteH/2+3.5); }
     }
     // restore scroll + keep ruler/keybed aligned (a pane switch can reset the scroll to 0
@@ -3255,20 +3299,25 @@ $("#btnMaster").addEventListener('click',()=>{ Audio.init(); State.fxView='maste
 const THEMES={
   bandlab:{ '--bg':'#000000','--panel':'#0a0a0a','--panel2':'#111111','--panel3':'#1a1a1a',
     '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#ffffff','--muted':'#888888',
-    '--accent':'#8A2BE2','--accent2':'#b06bff','--grad-a':'#1a1f2b','--grad-b':'#12151d','--lcd-bg':'#05070c','--eqline':'#2a3244' },
-  fl:{ '--bg':'#1b1e24','--panel':'#232830','--panel2':'#2b313b','--panel3':'#353c48',
-    '--line':'rgba(255,255,255,0.07)','--line2':'rgba(255,255,255,0.15)','--text':'#eef1f5','--muted':'#8b93a1',
-    '--accent':'#f2971e','--accent2':'#ffbe5c','--grad-a':'#333b47','--grad-b':'#232a33','--lcd-bg':'#12151a','--eqline':'#3a4351' },
-  ableton:{ '--bg':'#2c2c2c','--panel':'#343434','--panel2':'#3d3d3d','--panel3':'#474747',
-    '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#f0f0f0','--muted':'#9a9a9a',
-    '--accent':'#3fb7e6','--accent2':'#8ad4f0','--grad-a':'#4a4a4a','--grad-b':'#363636','--lcd-bg':'#1c1c1c','--eqline':'#4d4d4d' },
-  logic:{ '--bg':'#1c1f24','--panel':'#262a31','--panel2':'#2f343c','--panel3':'#3a4049',
-    '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#eceff3','--muted':'#8d95a1',
-    '--accent':'#6ea8dc','--accent2':'#a6cdf0','--grad-a':'#3a4049','--grad-b':'#282d34','--lcd-bg':'#161a1f','--eqline':'#414954' },
+    '--accent':'#8A2BE2','--accent2':'#b06bff','--grad-a':'#1a1f2b','--grad-b':'#12151d','--lcd-bg':'#05070c','--eqline':'#2a3244','--radius':'4px' },
+  // FL Studio: charcoal chrome, signature orange, small radius
+  fl:{ '--bg':'#2a2a2a','--panel':'#323232','--panel2':'#3a3a3a','--panel3':'#454545',
+    '--line':'rgba(0,0,0,0.35)','--line2':'rgba(255,255,255,0.12)','--text':'#e9e9e9','--muted':'#9a9a9a',
+    '--accent':'#ff9e2c','--accent2':'#ffc061','--grad-a':'#4a4a4a','--grad-b':'#333333','--lcd-bg':'#151515','--eqline':'#4a4a4a','--radius':'3px' },
+  // Ableton Live: flat medium grey, sharp corners, warm amber highlight
+  ableton:{ '--bg':'#333333','--panel':'#3f3f3f','--panel2':'#4a4a4a','--panel3':'#565656',
+    '--line':'rgba(0,0,0,0.4)','--line2':'rgba(0,0,0,0.5)','--text':'#f2f2f2','--muted':'#b0b0b0',
+    '--accent':'#ffb84d','--accent2':'#ffd24d','--grad-a':'#464646','--grad-b':'#3a3a3a','--lcd-bg':'#252525','--eqline':'#5a5a5a','--radius':'0px' },
+  // Logic Pro: polished blue-grey, soft gradients, larger radius, silver-blue accent
+  logic:{ '--bg':'#20242b','--panel':'#2a2f38','--panel2':'#333945','--panel3':'#3f4653',
+    '--line':'rgba(255,255,255,0.07)','--line2':'rgba(255,255,255,0.14)','--text':'#eef1f6','--muted':'#8f98a6',
+    '--accent':'#5b9bd5','--accent2':'#9cc4ea','--grad-a':'#4a5261','--grad-b':'#333a45','--lcd-bg':'#12161c','--eqline':'#414b59','--radius':'7px' },
 };
 function applyTheme(name){
-  const th=THEMES[name]||THEMES.bandlab; const r=document.documentElement.style;
+  if(!THEMES[name]) name='bandlab';
+  const th=THEMES[name]; const r=document.documentElement.style;
   Object.keys(th).forEach(k=>r.setProperty(k,th[k]));
+  document.documentElement.setAttribute('data-theme',name); // drives per-DAW layout CSS
   try{localStorage.setItem('blk-theme',name);}catch(e){}
   const sel=$("#themeSel"); if(sel) sel.value=name;
   if(State.selectedTrack!=null) renderFX(); // redraw EQ graph in the new accent
