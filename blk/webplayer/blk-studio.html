@@ -1101,7 +1101,8 @@ const FX_CATEGORIES=[
   {cat:'Amps & Cabs', note:'Guitar amp & speaker-cab tone.', items:[
     {name:'Guitar Amp',type:'distortion',params:{amount:38,mix:1}}, {name:'Guitar Cab',type:'eq',params:{low:2,mid:3,high:-8,midFreq:1200}},
     {name:'Multi Amp Pro',type:'distortion',params:{amount:60,mix:1}}, {name:'Multi Cab Pro',type:'eq',params:{low:1,mid:4,high:-6,midFreq:2000}} ]},
-  {cat:'Pitch Shift', items:[
+  {cat:'Pitch Shift', note:'Pitch correction & creative shifting.', items:[
+    {name:'Autotune',type:'autotune',params:{}},
     {name:'Multi Shifter',type:'pitchshift',params:{semitones:7,mix:.5}}, {name:'Pitch Shifter',type:'pitchshift',params:{}},
     {name:'Dual Octaver',type:'pitchshift',params:{semitones:-12,mix:.6}} ]},
   {cat:'Compressor', note:'Keep levels smooth and balanced.', items:[
@@ -1240,6 +1241,11 @@ function addTrack(type='midi',opts={}){
   State.tracks.push(t);
   selectTrack(t.id);
   renderTracks(); layout();
+  // scroll the arrangement down so the new track (and the Add Track button) are visible,
+  // but not during bulk rebuilds (load/template/undo)
+  if(!(typeof History!=='undefined'&&(History.busy||History.suspend))){
+    lanes.scrollTop=lanes.scrollHeight; syncHeadersScroll();
+  }
   if(type==='midi' && SAMPLED[inst]) applyInstrument(t, inst); // load the real sample
   return t;
 }
@@ -1386,7 +1392,9 @@ const laneCanvas=$("#laneCanvas"), laneCtx=laneCanvas.getContext('2d');
 const rulerCanvas=$("#rulerCanvas"), rulerCtx=rulerCanvas.getContext('2d');
 function sizeArrangeCanvases(){
   const contentW=beatToPx(totalBeats())+40;
-  const contentH=Math.max(State.tracks.length*ROWH, lanes.clientHeight);
+  // +56 tail so the lanes can scroll far enough to reveal the "＋ Add Track" button
+  // in the (overflow-hidden, scroll-synced) headers column, however many tracks there are.
+  const contentH=Math.max(State.tracks.length*ROWH+56, lanes.clientHeight);
   // the grid canvas covers only the viewport (a full-width canvas overflows the browser's
   // max canvas size when zoomed/long and renders blank) — it's drawn with a scroll offset
   const vw=Math.max(1,lanes.clientWidth), vh=Math.max(1,lanes.clientHeight);
@@ -1505,11 +1513,16 @@ $("#rulerScroll").addEventListener('mousedown',e=>{
 
 /* ---------- Region rendering ---------- */
 function waveformCanvas(buffer,w,h,color){
-  const c=document.createElement('canvas'); c.width=Math.max(1,w); c.height=h;
+  // Cap the CANVAS pixel width (a canvas wider than the browser max renders blank/white
+  // when you zoom in) but stretch it via CSS to fill the region's on-screen width.
+  const dispW=Math.max(1,w);
+  const cw=Math.min(dispW,MAX_CANVAS_W);
+  const c=document.createElement('canvas'); c.width=cw; c.height=h;
+  c.style.width=dispW+'px'; c.style.height=h+'px';
   const ctx=c.getContext('2d'); ctx.strokeStyle=color; ctx.globalAlpha=.85;
-  const data=buffer.getChannelData(0); const step=Math.max(1,Math.floor(data.length/w));
+  const data=buffer.getChannelData(0); const step=Math.max(1,Math.floor(data.length/cw));
   ctx.beginPath();
-  for(let x=0;x<w;x++){
+  for(let x=0;x<cw;x++){
     let min=1,max=-1;
     for(let i=0;i<step;i++){const v=data[x*step+i]||0; if(v<min)min=v; if(v>max)max=v;}
     ctx.moveTo(x,(1+min)*h/2); ctx.lineTo(x,(1+max)*h/2);
@@ -3272,10 +3285,21 @@ function instrumentMenuItems(onPick){
   SYNTH_PRESETS.forEach(name=>items.push({icon:'🎹',label:name,action:()=>onPick(name)}));
   return items;
 }
+// A ready-to-sing vocal track: armed audio track with Autotune on its FX chain + mic panel.
+function addVocalTrack(){
+  const v=addTrack('audio',{name:'Vocals',color:COLORS[4]});
+  v.arm=true;
+  addFX(v,'autotune',{},'Autotune');
+  renderTracks(); Mic.routeMonitor();
+  setDrawerPane('mic'); openDrawer();
+  toast('Vocals armed with Autotune — pick your mic and press Record');
+  return v;
+}
 // Unified "Add Track" menu (used by the button in the track headers)
 function addTrackMenu(x,y){
   const items=[];
   items.push({header:'Add Track'});
+  items.push({icon:'🎙',label:'Vocals (armed + Autotune)',action:()=>addVocalTrack()});
   items.push({icon:'🎤',label:'Audio Track',action:()=>addTrack('audio')});
   items.push({icon:'🥁',label:'Drum Track',action:()=>{ addTrack('drum',{name:'Drums'}); setDrawerPane('drum'); openDrawer(); }});
   items.push({icon:'⭳',label:'Import Audio Clip…',action:()=>{ importTargetTrack=null; importTargetBeat=0; $("#fileInput").click(); }});
