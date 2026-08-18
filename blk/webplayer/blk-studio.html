@@ -469,6 +469,8 @@
                 <div class="hmeter"><i id="micMeter"></i></div>
               </div>
               <label class="micchk"><input type="checkbox" id="micMonitor"> Monitor input (hear yourself)</label>
+              <label class="micchk"><input type="checkbox" id="micNS"> Noise suppression (for noisy rooms)</label>
+              <div class="hint" style="margin-top:6px">Clean mode is on: echo-cancel &amp; auto-gain are off for full-quality audio. Monitor on headphones.</div>
             </div>
             <div class="fxmod">
               <h4><span>Take</span></h4>
@@ -1792,6 +1794,7 @@ const Recorder={
 const Mic={
   stream:null, source:null, analyser:null, monitorGain:null, monitoring:false,
   deviceId:null, buf:null, metering:false, autoDetected:false, _devWatch:false,
+  noiseSuppress:false, // browser voice-DSP off by default for clean, full-quality audio
 
   async getStream(){
     if(this.stream && this.stream.active) return this.stream;
@@ -1823,7 +1826,15 @@ const Mic={
   },
   async enable(deviceId){
     Audio.init(); Audio.resume();
-    const audio = deviceId ? {deviceId:{exact:deviceId}} : {echoCancellation:true,noiseSuppression:true,autoGainControl:true};
+    // Clean, full-bandwidth capture: turn OFF the browser's voice-call DSP, which mangles
+    // music/vocals (comb-filtering, pumping, muffling). Optional NS for noisy rooms.
+    const audio = {
+      echoCancellation:false, autoGainControl:false,
+      noiseSuppression:this.noiseSuppress,
+      channelCount:1,
+      sampleRate:(Audio.ctx&&Audio.ctx.sampleRate)||48000
+    };
+    if(deviceId) audio.deviceId={exact:deviceId};
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); }
     this.stream = await navigator.mediaDevices.getUserMedia({audio});
     this.deviceId = deviceId || null;
@@ -1831,6 +1842,7 @@ const Mic={
     this.source = Audio.ctx.createMediaStreamSource(this.stream);
     this.analyser = Audio.ctx.createAnalyser(); this.analyser.fftSize=1024;
     this.buf = new Float32Array(this.analyser.fftSize);
+    // dedicated monitor path (post-fader would color the sound) -> straight to output
     this.monitorGain = Audio.ctx.createGain(); this.monitorGain.gain.value = this.monitoring ? 1 : 0;
     this.source.connect(this.analyser);
     this.source.connect(this.monitorGain); this.monitorGain.connect(Audio.masterGain);
@@ -1840,10 +1852,18 @@ const Mic={
     this.startMeter();
     return this.stream;
   },
+  async setNoiseSuppress(on){
+    this.noiseSuppress = on;
+    if(this.stream && this.stream.active){
+      const wasMon=this.monitoring;
+      try{ await this.enable(this.deviceId); this.monitoring=wasMon; this.setMonitoring(wasMon); }catch(e){}
+    }
+    toast('Noise suppression '+(on?'on':'off'));
+  },
   setMonitoring(on){
     this.monitoring = on;
-    if(this.monitorGain) this.monitorGain.gain.setTargetAtTime(on?1:0, Audio.now(), 0.01);
-    if(on) toast('Monitoring on — use headphones to avoid feedback');
+    if(this.monitorGain) this.monitorGain.gain.setTargetAtTime(on?1:0, Audio.now(), 0.02);
+    if(on) toast('Monitoring on — use headphones (speakers will echo/feed back)');
   },
   async listDevices(){
     try{
@@ -2644,6 +2664,7 @@ $("#btnMic").addEventListener('click',()=>{ setDrawerPane('mic'); openDrawer(); 
 $("#micEnableBtn").addEventListener('click',()=>Mic.enable($("#micDevice").value||null).catch(()=>toast('Mic access denied')));
 $("#micDevice").addEventListener('change',e=>{ if(Mic.stream) Mic.enable(e.target.value||null).catch(()=>{}); else Mic.deviceId=e.target.value||null; });
 $("#micMonitor").addEventListener('change',e=>Mic.setMonitoring(e.target.checked));
+$("#micNS").addEventListener('change',e=>Mic.setNoiseSuppress(e.target.checked));
 $("#btnRecVocals").addEventListener('click',()=>recordVocals());
 function toggleLoop(){State.loop.on=!State.loop.on; updateLoopUI();}
 $("#btnReturn").addEventListener('click',function(){ State.returnToStart=!State.returnToStart; this.classList.toggle('on',State.returnToStart);
