@@ -1333,13 +1333,13 @@ function attachRegionEvents(el,r){
         o.r.trackId=State.tracks[nti].id;
       });
       drawRegions();
-      // live: as you drag over the grid, update the audio to the new spot (throttled, only when it changed)
+      // live: reschedule ONLY the dragged clips so other tracks aren't re-triggered (throttled)
       if(Transport.isPlaying && r.start!==lastStart){
         const now=performance.now();
-        if(now-lastResched>90){ lastResched=now; lastStart=r.start; Transport.reschedule(); }
+        if(now-lastResched>90){ lastResched=now; lastStart=r.start; group.forEach(o=>Transport.rescheduleRegion(o.r)); }
       }
     };
-    const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.reschedule();};
+    const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); group.forEach(o=>Transport.rescheduleRegion(o.r));};
     document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
   });
   el.addEventListener('dblclick',()=>{ if(r.type==='midi'){PianoRoll.load(r);setDrawerPane('piano');openDrawer();}});
@@ -1366,9 +1366,9 @@ function attachRegionEvents(el,r){
         drawRegions();
         const key=r.start+'/'+r.duration;
         if(Transport.isPlaying && key!==lastKey){ const now=performance.now();
-          if(now-lastResched>90){ lastResched=now; lastKey=key; Transport.reschedule(); } }
+          if(now-lastResched>90){ lastResched=now; lastKey=key; Transport.rescheduleRegion(r); } }
       };
-      const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.reschedule();};
+      const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); Transport.rescheduleRegion(r);};
       document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
     });
   });
@@ -1382,16 +1382,19 @@ function isRegionSelected(r){ return State.selection.includes(r.id) || r.id===St
 function selectedRegionIds(){ return State.selection.length?State.selection.slice():(State.selectedRegion?[State.selectedRegion]:[]); }
 function duplicateRegion(){
   const ids=selectedRegionIds(); if(!ids.length) return;
-  const newIds=[];
+  const newIds=[], copies=[];
   ids.forEach(id=>{ const r=State.regions.find(x=>x.id===id); if(!r) return;
     const copy=JSON.parse(JSON.stringify({...r,buffer:null})); copy.id=uid(); copy.buffer=r.buffer; copy.start=r.start+r.duration;
-    State.regions.push(copy); newIds.push(copy.id); });
-  setSelection(newIds); drawRegions(); Transport.reschedule(); toast(newIds.length>1?newIds.length+' regions duplicated':'Region duplicated');
+    State.regions.push(copy); newIds.push(copy.id); copies.push(copy); });
+  setSelection(newIds); drawRegions(); copies.forEach(c=>Transport.rescheduleRegion(c));
+  toast(newIds.length>1?newIds.length+' regions duplicated':'Region duplicated');
 }
 function deleteRegion(){
   const ids=selectedRegionIds(); if(!ids.length) return;
+  const removed=State.regions.filter(r=>ids.includes(r.id));
   State.regions=State.regions.filter(r=>!ids.includes(r.id));
-  clearSelection(); drawRegions(); Transport.reschedule(); toast(ids.length>1?ids.length+' regions deleted':'Region deleted');
+  clearSelection(); drawRegions(); removed.forEach(r=>Transport.rescheduleRegion(r)); // just stop their audio
+  toast(ids.length>1?ids.length+' regions deleted':'Region deleted');
 }
 function splitRegion(){
   const r=State.regions.find(x=>x.id===State.selectedRegion); if(!r) return;
@@ -1405,7 +1408,7 @@ function splitRegion(){
     r.notes=(r.notes||[]).filter(n=>r.start+n.start<p);
   }
   r.duration=p-r.start;
-  State.regions.push(right); drawRegions(); Transport.reschedule(); toast('Region split');
+  State.regions.push(right); drawRegions(); Transport.rescheduleRegion(r); Transport.rescheduleRegion(right); toast('Region split');
 }
 
 /* =====================================================================
@@ -1661,7 +1664,20 @@ const Transport={
     });
   },
 
-  killSources(){ this.activeSources.forEach(s=>{try{s.stop();}catch(e){}}); this.activeSources=[]; },
+  regionSources:{}, // regionId -> [source nodes currently scheduled for it]
+  killSources(){ this.activeSources.forEach(s=>{try{s.stop();}catch(e){}}); this.activeSources=[]; this.regionSources={}; },
+  // stop + reschedule ONE region (used for live clip drag/resize so other tracks aren't re-triggered)
+  rescheduleRegion(r){
+    if(!this.isPlaying) return;
+    (this.regionSources[r.id]||[]).forEach(s=>{try{s.stop();}catch(e){}});
+    this.regionSources[r.id]=[];
+    if(!State.regions.includes(r)) return;           // deleted → just stopped
+    const now=this.songTimeNow(), end=r.start+r.duration;
+    if(end<=now) return;                              // entirely in the past
+    if(r.start<=now)                      this.scheduleRegion(r, this.ctxTimeFor(r.start), now-r.start); // overlaps playhead
+    else if(r.start<this.scheduledUntil)  this.scheduleRegion(r, this.ctxTimeFor(r.start));              // future but already-scanned window
+    // else start >= scheduledUntil → the normal tick scheduler will pick it up
+  },
 
   primeAt(pos){
     // schedule regions that overlap pos (start playback mid-region)
@@ -1673,6 +1689,8 @@ const Transport={
   },
   scheduleRegion(r, when, skip=0){
     const t=getTrack(r.trackId); if(!t) return;
+    const bucket=(this.regionSources[r.id]=this.regionSources[r.id]||[]);
+    const add=node=>{ this.activeSources.push(node); bucket.push(node); };
     if(r.type==='audio'&&r.buffer){
       const src=Audio.ctx.createBufferSource(); src.buffer=r.buffer;
       const g=Audio.ctx.createGain();
@@ -1685,7 +1703,7 @@ const Transport={
       if(fin>0) g.gain.linearRampToValueAtTime(1, w+Math.min(fin,dur));
       if(fout>0){ g.gain.setValueAtTime(1, w+Math.max(0,dur-fout)); g.gain.linearRampToValueAtTime(0, w+dur);}
       try{src.start(Math.max(when,Audio.now()), off, dur);}catch(e){}
-      this.activeSources.push(src);
+      add(src);
     } else if(r.type==='midi'){
       (r.notes||[]).forEach(n=>{
         const nStart=r.start+n.start;
@@ -1693,7 +1711,7 @@ const Transport={
         const nWhen=this.ctxTimeFor(nStart);
         if(nStart < this.songTimeNow()-0.001) return;
         const v=playTrackNote(t,Audio.ctx,t.fx.input,n.pitch,Math.max(nWhen,Audio.now()),n.vel||0.85,n.dur);
-        if(v){ if(v.o1)this.activeSources.push(v.o1); if(v.o2)this.activeSources.push(v.o2); }
+        if(v){ if(v.o1)add(v.o1); if(v.o2)add(v.o2); }
       });
     }
   },
@@ -2007,7 +2025,7 @@ async function importFiles(files, dropTrackId=null, dropBeat=0){
       const reg={id:uid(),trackId:tid,type:'audio',name:f.name.slice(0,18),
         start:beatToSec(dropBeat),offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0};
       State.regions.push(reg);
-      drawRegions(); Transport.reschedule(); toast('Imported '+f.name);
+      drawRegions(); Transport.rescheduleRegion(reg); toast('Imported '+f.name);
     }catch(e){toast('Failed: '+f.name);}
   }
 }
