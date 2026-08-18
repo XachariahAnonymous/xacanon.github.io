@@ -532,8 +532,19 @@ const secToBeat=s=>s/secPerBeat();
 const beatToPx=b=>b*State.pxPerBeat;
 const pxToBeat=p=>p/State.pxPerBeat;
 const ROWH=96, HDR=230;
-const TOTAL_BARS=64;
+let TOTAL_BARS=64;                    // minimum; grows to fit content
 const totalBeats=()=>TOTAL_BARS*beatsPerBar();
+// Grow (or shrink to the 64-bar minimum) the arrangement so it always covers the content.
+function ensureArrangeLength(){
+  const bpb=beatsPerBar();
+  let endSec=0;
+  State.regions.forEach(r=>{ const e=r.start+(r.duration||0); if(e>endSec) endSec=e; });
+  if(State.loop.on) endSec=Math.max(endSec, beatToSec(State.loop.end));
+  if(Transport.recording) endSec=Math.max(endSec, Transport.position + secPerBeat()*bpb*4); // record headroom
+  const bars=Math.max(64, Math.ceil(secToBeat(endSec)/bpb)+8); // +8 bars of tail room
+  if(bars!==TOTAL_BARS){ TOTAL_BARS=bars; return true; }
+  return false;
+}
 
 /* =====================================================================
    AUDIO CORE
@@ -1042,7 +1053,7 @@ function deleteTrack(id){
 const lanes=$("#lanes"), regionsLayer=$("#regionsLayer");
 const laneCanvas=$("#laneCanvas"), laneCtx=laneCanvas.getContext('2d');
 const rulerCanvas=$("#rulerCanvas"), rulerCtx=rulerCanvas.getContext('2d');
-function layout(){
+function sizeArrangeCanvases(){
   const w=beatToPx(totalBeats())+40;
   const h=Math.max(State.tracks.length*ROWH, lanes.clientHeight);
   laneCanvas.width=w; laneCanvas.height=h;
@@ -1050,6 +1061,10 @@ function layout(){
   regionsLayer.style.width=w+'px'; regionsLayer.style.height=h+'px';
   $("#playhead").style.height=h+'px';
   rulerCanvas.width=$("#rulerScroll").clientWidth; rulerCanvas.height=26;
+}
+function layout(){
+  ensureArrangeLength();
+  sizeArrangeCanvases();
   drawGrid(); drawRuler(); drawRegions(); renderLoopBar();
 }
 /* ---------- Loop bar (select/enable the loop range on the time area) ---------- */
@@ -1165,6 +1180,8 @@ function waveformCanvas(buffer,w,h,color){
   ctx.stroke(); return c;
 }
 function drawRegions(){
+  // extend the arrangement if a clip now reaches past the current end (e.g. dragged out)
+  if(ensureArrangeLength()){ sizeArrangeCanvases(); drawGrid(); drawRuler(); renderLoopBar(); }
   regionsLayer.innerHTML='';
   State.regions.forEach(r=>{
     const ti=State.tracks.findIndex(t=>t.id===r.trackId);
@@ -1648,6 +1665,8 @@ const Transport={
 
   tick(){
     const now=this.songTimeNow();
+    // keep extending the arrangement while recording past the end
+    if(this.recording && ensureArrangeLength()) layout();
     // loop wrap
     if(State.loop.on && now>=beatToSec(State.loop.end)){
       this.killSources();
