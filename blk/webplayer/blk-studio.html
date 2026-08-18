@@ -1074,6 +1074,7 @@ function buildFX(ctx, specs){
 function fxToSpecs(fx){ return fx.modules.map(m=>({type:m.type, enabled:m.enabled, label:m.label||null, params:Object.assign({},m.params)})); }
 function moveFX(t, idx, dir){
   const a=t.fx.modules, j=idx+dir; if(j<0||j>=a.length) return;
+  if(typeof pushHistory==='function') pushHistory();
   const tmp=a[idx]; a[idx]=a[j]; a[j]=tmp; t.fx.rebuild(); renderFX();
 }
 function addFX(t, type, params, label){
@@ -1218,6 +1219,7 @@ function applyInstrument(t,name){
 let trackSeq=0;
 function addTrack(type='midi',opts={}){
   Audio.init();
+  if(typeof pushHistory==='function') pushHistory();
   const fx=buildFX(Audio.ctx);
   fx.output.connect(Audio.trackTarget());
   const inst = opts.instrument || DEFAULT_INSTRUMENT;
@@ -1364,6 +1366,7 @@ function duplicateTrack(id){
   renderTracks(); drawRegions(); renderMixer(); toast('Track duplicated');
 }
 function deleteTrack(id){
+  if(typeof pushHistory==='function') pushHistory();
   State.regions=State.regions.filter(r=>r.trackId!==id);
   const t=getTrack(id); if(t){try{t.fx.output.disconnect();}catch(e){}}
   State.tracks=State.tracks.filter(t=>t.id!==id);
@@ -1631,8 +1634,9 @@ function attachRegionEvents(el,r){
     const group=State.regions.filter(x=>State.selection.includes(x.id))
       .map(x=>({r:x, start:x.start, ti:State.tracks.findIndex(t=>t.id===x.trackId)}));
     const primTi=(group.find(o=>o.r.id===r.id)||{ti:0}).ti;
-    let lastStart=null, lastResched=0;
+    let lastStart=null, lastResched=0, snapped=false;
     const move=ev=>{
+      if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
       const dBeat=pxToBeat(ev.clientX-startX);
       const rect=lanes.getBoundingClientRect();
       const y=ev.clientY-rect.top+lanes.scrollTop;
@@ -1661,8 +1665,9 @@ function attachRegionEvents(el,r){
       e.stopPropagation();
       const left=h.classList.contains('l');
       const startX=e.clientX, oStart=r.start, oDur=r.duration, oOff=r.offset||0;
-      let lastResched=0, lastKey=null;
+      let lastResched=0, lastKey=null, snapped=false;
       const move=ev=>{
+        if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
         const dBeat=pxToBeat(ev.clientX-startX);
         if(left){
           let ns=snapBeat(secToBeat(oStart)+dBeat); ns=Math.max(0,ns);
@@ -1693,6 +1698,7 @@ function isRegionSelected(r){ return State.selection.includes(r.id) || r.id===St
 function selectedRegionIds(){ return State.selection.length?State.selection.slice():(State.selectedRegion?[State.selectedRegion]:[]); }
 function duplicateRegion(){
   const ids=selectedRegionIds(); if(!ids.length) return;
+  if(typeof pushHistory==='function') pushHistory();
   const newIds=[], copies=[];
   ids.forEach(id=>{ const r=State.regions.find(x=>x.id===id); if(!r) return;
     const copy=JSON.parse(JSON.stringify({...r,buffer:null})); copy.id=uid(); copy.buffer=r.buffer; copy.start=r.start+r.duration;
@@ -1702,6 +1708,7 @@ function duplicateRegion(){
 }
 function deleteRegion(){
   const ids=selectedRegionIds(); if(!ids.length) return;
+  if(typeof pushHistory==='function') pushHistory();
   const removed=State.regions.filter(r=>ids.includes(r.id));
   State.regions=State.regions.filter(r=>!ids.includes(r.id));
   clearSelection(); drawRegions(); removed.forEach(r=>Transport.rescheduleRegion(r)); // just stop their audio
@@ -1711,6 +1718,7 @@ function splitRegion(){
   const r=State.regions.find(x=>x.id===State.selectedRegion); if(!r) return;
   const p=Transport.position;
   if(p<=r.start||p>=r.start+r.duration){toast('Move playhead over region to split');return;}
+  if(typeof pushHistory==='function') pushHistory();
   const rightDur=(r.start+r.duration)-p;
   const right=JSON.parse(JSON.stringify({...r,buffer:null})); right.buffer=r.buffer;
   right.id=uid(); right.start=p; right.offset=(r.offset||0)+(p-r.start); right.duration=rightDur;
@@ -1878,6 +1886,8 @@ let kbOctave=0;
 window.addEventListener('keydown',e=>{
   if(e.target && e.target.matches && e.target.matches('input,select,textarea')) return;
   const k=e.key.toLowerCase();
+  if(k==='z'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+  if(k==='y'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); redo(); return; }
   if(k===' '){e.preventDefault(); Transport.toggle(); return;}
   if(k==='r'&&!e.ctrlKey){Transport.toggleRecord();return;}
   if(k==='l'){toggleLoop();return;}
@@ -2375,6 +2385,7 @@ const PianoRoll={
     this.draw(); this.scrollToContent();
   },
   deleteSelectedNotes(){ const r=this.region; if(!r||!this.selNotes.length) return false;
+    if(typeof pushHistory==='function') pushHistory();
     const n=this.selNotes.length; r.notes=r.notes.filter(x=>!this.selNotes.includes(x)); this.selNotes=[];
     this.draw(); drawRegions(); toast(n>1?n+' notes deleted':'Note deleted'); return true; },
   ensureRegion(){
@@ -2539,8 +2550,9 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       const resizing=overEdge(hit,x);
       const startX=e.clientX;
       const group=PianoRoll.selNotes.map(n=>({n, start:n.start, dur:n.dur, pitch:n.pitch}));
-      const primPitch=hit.pitch;
+      const primPitch=hit.pitch; let snapped=false;
       const move=ev=>{
+        if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
         const beat2=PianoRoll.xToBeat(ev.clientX-rect.left);
         if(resizing){
           // extend just the grabbed note (snapped, min one cell)
@@ -2582,6 +2594,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
       if(marquee){ marquee.remove(); PianoRoll.draw(); }
       else { // plain click → create a note and select it
+        if(typeof pushHistory==='function') pushHistory();
         const rr=PianoRoll.ensureRegion();
         const note={pitch:PianoRoll.yToPitch(y), vel:0.9, start:beatToSec(PianoRoll.xToBeat(x)), dur:beatToSec(PianoRoll.cellBeat)};
         rr.notes.push(note); Synth.audition(note.pitch, note.vel, getTrack(rr.trackId));
@@ -2594,6 +2607,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
     const r=PianoRoll.region; if(!r) return;
     const rect=grid.getBoundingClientRect(); const x=e.clientX-rect.left,y=e.clientY-rect.top;
     const pitch=PianoRoll.yToPitch(y), beat=PianoRoll.xToBeat(x);
+    if(typeof pushHistory==='function') pushHistory();
     r.notes=r.notes.filter(n=>!(n.pitch===pitch && beat>=secToBeat(n.start)-0.05 && beat<=secToBeat(n.start)+secToBeat(n.dur)+0.05));
     PianoRoll.selNotes=PianoRoll.selNotes.filter(n=>r.notes.includes(n));
     PianoRoll.draw(); drawRegions();
@@ -2712,7 +2726,8 @@ function buildDrumUI(){
       const cell=document.createElement('div');
       cell.className='step'+(s%4===0?' beat':'')+(State.drumPattern[row][s]?' on':'');
       cell.dataset.row=row; cell.dataset.step=s;
-      cell.addEventListener('click',()=>{State.drumPattern[row][s]=!State.drumPattern[row][s];
+      cell.addEventListener('click',()=>{ if(typeof pushHistory==='function') pushHistory();
+        State.drumPattern[row][s]=!State.drumPattern[row][s];
         cell.classList.toggle('on'); drawRegions(); });
       seq.appendChild(cell);
     }
@@ -3011,6 +3026,7 @@ $("#projInput").addEventListener('change',e=>{const f=e.target.files[0];if(!f)re
   const rd=new FileReader(); rd.onload=()=>{try{loadProject(JSON.parse(rd.result));}catch(err){toast('Invalid project file');}}; rd.readAsText(f); e.target.value='';});
 function loadProject(d){
   Audio.init();
+  if(typeof History!=='undefined') History.suspend=true;
   $("#tplOverlay").classList.remove('show'); // dismiss the startup picker if it's open
   // clear
   State.tracks.forEach(t=>{try{t.fx.output.disconnect();}catch(e){}});
@@ -3047,6 +3063,7 @@ function loadProject(d){
   });
   renderTracks(); drawRegions(); layout(); renderMixer(); buildDrumUI();
   if(State.loop.on)$("#btnLoop").classList.add('on');
+  if(typeof History!=='undefined'){ History.suspend=false; History.undo.length=0; History.redo.length=0; updateHistoryButtons(); }
   if(pending.length){
     toast(`Project loaded — decoding ${pending.length} audio clip${pending.length>1?'s':''}…`);
     Promise.all(pending).then(()=>{drawRegions(); toast('Project loaded with audio');});
@@ -3054,6 +3071,73 @@ function loadProject(d){
     toast('Project loaded');
   }
 }
+
+/* =====================================================================
+   UNDO / REDO  — before-mutation snapshots. Snapshots keep AudioBuffer refs
+   (no base64), so they're cheap; restore rebuilds tracks/regions/FX/master.
+   ===================================================================== */
+const History={undo:[], redo:[], max:80, busy:false, suspend:false};
+function snapshotProject(){
+  return {
+    bpm:State.bpm, timesig:State.timesig.slice(), snap:State.snap,
+    loop:Object.assign({},State.loop), metro:State.metro,
+    drumPattern:State.drumPattern.map(r=>r.slice()),
+    selectedTrack:State.selectedTrack,
+    masterFx:Audio.masterFX?fxToSpecs(Audio.masterFX):null,
+    tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
+      mute:t.mute,solo:t.solo,arm:t.arm,synth:clone(t.synth),instrument:t.instrument,engine:t.engine,sample:t.sample,
+      automation:t.automation.map(p=>({...p})),fxModules:fxToSpecs(t.fx)})),
+    regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
+      offset:r.offset,duration:r.duration,notes:r.notes?r.notes.map(n=>({...n})):null,
+      fadeIn:r.fadeIn,fadeOut:r.fadeOut,buffer:r.buffer})),
+  };
+}
+function pushHistory(){
+  if(History.busy||History.suspend) return;
+  History.undo.push(snapshotProject());
+  if(History.undo.length>History.max) History.undo.shift();
+  History.redo.length=0;
+  updateHistoryButtons();
+}
+function restoreSnapshot(s){
+  History.busy=true;
+  try{
+    if(Transport.isPlaying) Transport.stop&&Transport.stop();
+    State.tracks.forEach(t=>{try{t.fx.output.disconnect();}catch(e){}});
+    State.tracks=[]; State.regions=[]; State.selectedRegion=null; State.selection=[];
+    State.bpm=s.bpm; $("#bpm").value=s.bpm;
+    State.timesig=s.timesig.slice(); State.snap=s.snap; State.loop=Object.assign({},s.loop);
+    State.metro=s.metro; $("#btnMetro").classList.toggle('on',State.metro);
+    State.drumPattern=s.drumPattern.map(r=>r.slice());
+    if(s.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
+      Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
+      Audio.masterFX=buildFX(Audio.ctx, s.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0;
+      Audio.masterBus.connect(Audio.masterFX.input); Audio.masterFX.output.connect(Audio.masterGain); }
+    s.tracks.forEach(td=>{
+      const t=addTrack(td.type,{name:td.name,color:td.color});
+      t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
+      t.synth=td.synth||t.synth; t.instrument=td.instrument; t.automation=(td.automation||[]).map(p=>({...p}));
+      t.engine=td.engine||'synth'; t.sample=td.sample||null;
+      if(t.engine==='sampler'&&t.sample) Sampler.ensure(t.sample,()=>renderTracks());
+      if(td.fxModules){ try{t.fx.output.disconnect();}catch(e){}
+        t.fx=buildFX(Audio.ctx, td.fxModules); t.fx.output.connect(Audio.trackTarget()); }
+      applyTrackGain(t);
+    });
+    s.regions.forEach(rd=>{ State.regions.push(Object.assign({buffer:rd.buffer, notes:rd.notes?rd.notes.map(n=>({...n})):null}, rd)); });
+    State.selectedTrack = (s.selectedTrack&&getTrack(s.selectedTrack))?s.selectedTrack:((State.tracks[0]&&State.tracks[0].id)||null);
+    renderTracks(); drawRegions(); layout(); renderMixer(); buildDrumUI();
+    if(State.selectedTrack) selectTrack(State.selectedTrack); else {renderFX(); renderSynthPanel();}
+    updateLoopUI&&updateLoopUI();
+  } finally { History.busy=false; }
+}
+function undo(){ if(!History.undo.length){toast('Nothing to undo');return;} History.redo.push(snapshotProject());
+  restoreSnapshot(History.undo.pop()); updateHistoryButtons(); toast('Undo'); }
+function redo(){ if(!History.redo.length){toast('Nothing to redo');return;} History.undo.push(snapshotProject());
+  restoreSnapshot(History.redo.pop()); updateHistoryButtons(); toast('Redo'); }
+function updateHistoryButtons(){ const u=$("#btnUndo"), r=$("#btnRedo");
+  if(u)u.disabled=!History.undo.length; if(r)r.disabled=!History.redo.length; }
+$("#btnUndo").addEventListener('click',undo);
+$("#btnRedo").addEventListener('click',redo);
 
 /* =====================================================================
    WEB MIDI
