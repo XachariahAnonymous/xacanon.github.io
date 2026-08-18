@@ -2908,34 +2908,34 @@ requestAnimationFrame(meterLoop);
 /* =====================================================================
    EXPORT — OfflineAudioContext render to WAV
    ===================================================================== */
-async function exportWav(){
+// Offline render. opts: {onlyTrackId, master:true|false, stem:false}
+async function renderOffline(opts={}){
   Audio.init();
-  // determine length
-  let end=0; State.regions.forEach(r=>end=Math.max(end,r.start+r.duration));
-  if(State.loop.on) end=Math.max(end,beatToSec(State.loop.end));
+  const only=opts.onlyTrackId||null, useMaster=opts.master!==false, stem=!!opts.stem;
+  let end=0; State.regions.forEach(r=>{ if(only&&r.trackId!==only)return; end=Math.max(end,r.start+r.duration); });
+  if(!only && State.loop.on) end=Math.max(end,beatToSec(State.loop.end));
   end=Math.max(end,4)+1;
-  toast('Rendering '+end.toFixed(1)+'s…');
   const rate=(Audio.ctx&&Audio.ctx.sampleRate)||44100;
   const off=new OfflineAudioContext(2, Math.ceil(end*rate), rate);
-  await registerAutotune(off); // so autotune renders into the bounce
+  await registerAutotune(off);
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
   // master bus: sum tracks -> master FX chain -> master gain (mirrors the live routing)
   let masterBus=master;
-  if(Audio.masterFX){ const mfx=buildFX(off, fxToSpecs(Audio.masterFX)); mfx.gain.gain.value=1; mfx.pan.pan.value=0;
+  if(useMaster && Audio.masterFX){ const mfx=buildFX(off, fxToSpecs(Audio.masterFX)); mfx.gain.gain.value=1; mfx.pan.pan.value=0;
     mfx.output.connect(master); masterBus=mfx.input; }
-  // rebuild per-track fx offline from the live chain (same modules, order, params)
-  State.tracks.forEach(t=>{
+  const tracks = only ? State.tracks.filter(t=>t.id===only) : State.tracks;
+  tracks.forEach(t=>{
     const fx=buildFX(off, fxToSpecs(t.fx));
     fx.pan.pan.value=t.pan;
-    // volume automation (or static)
-    if(trackAudible(t) && t.automation.length){
+    // stems ignore the global solo state and export every non-muted track at its own level
+    const audible = stem ? !t.mute : trackAudible(t);
+    if(audible && t.automation.length){
       fx.gain.gain.setValueAtTime(clamp(autoValueAt(t,0),0,1.5),0);
       t.automation.forEach(p=>{ if(p.beat>0) fx.gain.gain.linearRampToValueAtTime(clamp(p.value,0,1.5), beatToSec(p.beat)); });
     } else {
-      fx.gain.gain.value=trackAudible(t)?t.volume:0;
+      fx.gain.gain.value=audible?t.volume:0;
     }
     fx.output.connect(masterBus);
-    // schedule regions
     State.regions.filter(r=>r.trackId===t.id).forEach(r=>{
       if(r.type==='audio'&&r.buffer){
         const src=off.createBufferSource(); src.buffer=r.buffer;
@@ -2953,19 +2953,37 @@ async function exportWav(){
       }
     });
   });
-  // drums as offline: schedule pattern across loop range or whole length
-  if(anyDrumActive()){
-    const drumTrack=State.tracks.find(x=>x.type==='drum');
-    const dest=master;
+  // drums (pattern) — included in the full mix, or when the drum track is the stem target
+  const drumTrack=State.tracks.find(x=>x.type==='drum');
+  const includeDrums = anyDrumActive() && (!only || (drumTrack && drumTrack.id===only));
+  if(includeDrums){
     const spb=secPerBeat(), stepDur=spb/4; const steps=Math.ceil(end/stepDur);
     for(let i=0;i<steps;i++){ const step=i%16; const when=i*stepDur;
-      for(let p=0;p<8;p++) if(State.drumPattern[p][step]) offlineDrum(off,dest,p,when);
+      for(let p=0;p<8;p++) if(State.drumPattern[p][step]) offlineDrum(off,masterBus,p,when);
     }
   }
-  const rendered=await off.startRendering();
-  const wav=encodeWav(rendered);
-  downloadBlob(new Blob([wav],{type:'audio/wav'}),'blk-mix.wav');
+  return off.startRendering();
+}
+async function exportWav(){
+  let end=0; State.regions.forEach(r=>end=Math.max(end,r.start+r.duration)); end=Math.max(end,4)+1;
+  toast('Rendering mix '+end.toFixed(1)+'s…');
+  const rendered=await renderOffline({master:true});
+  downloadBlob(new Blob([encodeWav(rendered)],{type:'audio/wav'}),'blk-mix.wav');
   toast('Exported blk-mix.wav');
+}
+// Bounce each non-muted track (and the drum pattern) to its own dry WAV (no master FX).
+async function exportStems(){
+  const stems=State.tracks.filter(t=>!t.mute);
+  if(!stems.length){ toast('No tracks to export'); return; }
+  toast('Rendering '+stems.length+' stems…');
+  let n=0;
+  for(const t of stems){
+    const rendered=await renderOffline({onlyTrackId:t.id, master:false, stem:true});
+    const safe=(t.name||'track').replace(/[^\w\-]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()||'track';
+    downloadBlob(new Blob([encodeWav(rendered)],{type:'audio/wav'}),'blk-stem-'+String(++n).padStart(2,'0')+'-'+safe+'.wav');
+    await new Promise(r=>setTimeout(r,350)); // stagger so the browser accepts each download
+  }
+  toast('Exported '+n+' stems');
 }
 function offlineDrum(ctx,dest,idx,when){
   const g=ctx.createGain(); g.connect(dest);
@@ -3246,7 +3264,13 @@ function addTrackMenu(x,y){
   instrumentMenuItems(name=>{ addTrack('midi',{instrument:name}); setDrawerPane('synth'); openDrawer(); }).forEach(i=>items.push(i));
   showContextMenu(x,y,items);
 }
-$("#btnExport").addEventListener('click',()=>exportWav().catch(err=>{console.error(err);toast('Export failed');}));
+$("#btnExport").addEventListener('click',e=>{
+  const r=e.currentTarget.getBoundingClientRect();
+  showContextMenu(r.left, r.bottom+4, [
+    {icon:'🎧',label:'Export Mix (WAV)',action:()=>exportWav().catch(err=>{console.error(err);toast('Export failed');})},
+    {icon:'🎚',label:'Export Stems (per-track WAV)',action:()=>exportStems().catch(err=>{console.error(err);toast('Export failed');})},
+  ]);
+});
 $("#btnHome").addEventListener('click',()=>{ window.location.href='blk-player.html'; });
 
 /* Tap tempo */
