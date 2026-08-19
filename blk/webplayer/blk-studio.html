@@ -1360,7 +1360,7 @@ function addTrack(type='midi',opts={}){
 }
 function getTrack(id){return State.tracks.find(t=>t.id===id);}
 function selectTrack(id){State.selectedTrack=id; State.fxView='track';
-  $("#btnMaster")&&$("#btnMaster").classList.remove('on');
+  if(typeof updateMasterBtn==='function') updateMasterBtn(); // light reflects mastering on/off, not view
   // lightweight highlight - don't rebuild headers (would steal focus from a clicked input)
   $$('.thead').forEach(el=>el.classList.toggle('sel', el.dataset.id===id));
   renderMixer(); renderFX(); renderSynthPanel();
@@ -2948,7 +2948,7 @@ function renderMastering(host){
   const bar=document.createElement('div'); bar.style.cssText='display:flex; align-items:center; gap:10px; padding:6px 12px';
   const toggle=document.createElement('button'); toggle.className='dtab'+(Audio.masterOn?' on':'');
   toggle.textContent='Mastering: '+(Audio.masterOn?'On':'Off');
-  toggle.onclick=()=>{ Audio.setMastering(!Audio.masterOn); renderMastering(host); toast('Mastering '+(Audio.masterOn?'on':'off')); };
+  toggle.onclick=()=>{ Audio.setMastering(!Audio.masterOn); if(typeof updateMasterBtn==='function')updateMasterBtn(); renderMastering(host); toast('Mastering '+(Audio.masterOn?'on':'off')); };
   const note=document.createElement('span'); note.style.cssText='font-size:11px;color:var(--muted)';
   note.textContent=Audio.masterOn?'Pick a preset below.':'The mix is bypassing all master processing.';
   bar.append(toggle,note); host.appendChild(bar);
@@ -2960,7 +2960,7 @@ function renderMastering(host){
     card.style.borderColor=active?'var(--accent)':''; if(active) card.style.background='color-mix(in srgb, var(--accent) 14%, transparent)';
     card.innerHTML=`<div class="tpl-name" style="color:${active?'var(--accent)':'var(--text)'}">${active?'● ':''}${name}</div>
       <div class="tpl-desc">${MASTER_PRESETS[name].desc}</div>`;
-    card.onclick=()=>{ if(!Audio.masterOn) Audio.setMastering(true); applyMasterPreset(name); renderMastering(host); toast('Mastering: '+name); };
+    card.onclick=()=>{ if(!Audio.masterOn) Audio.setMastering(true); applyMasterPreset(name); if(typeof updateMasterBtn==='function')updateMasterBtn(); renderMastering(host); toast('Mastering: '+name); };
     grid.appendChild(card);
   });
 }
@@ -3269,7 +3269,7 @@ function loadProject(d){
   if(d.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
     Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
     Audio.masterFX=buildFX(Audio.ctx, d.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0; }
-  Audio.routeMaster();
+  Audio.routeMaster(); if(typeof updateMasterBtn==='function') updateMasterBtn();
   (d.tracks||[]).forEach(td=>{
     const t=addTrack(td.type,{name:td.name,color:td.color});
     t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
@@ -3346,7 +3346,7 @@ function restoreSnapshot(s){
     if(s.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
       Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
       Audio.masterFX=buildFX(Audio.ctx, s.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0; }
-    Audio.routeMaster();
+    Audio.routeMaster(); if(typeof updateMasterBtn==='function') updateMasterBtn();
     s.tracks.forEach(td=>{
       const t=addTrack(td.type,{name:td.name,color:td.color});
       t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
@@ -3440,8 +3440,17 @@ function zoomTimelineAt(clientX, factor){
 historyOnDrag($("#masterVol"));
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
-$("#btnMaster").addEventListener('click',()=>{ Audio.init(); State.fxView='master'; $("#btnMaster").classList.add('on');
-  openDrawer(); setDrawerPane('fx'); });
+// btnMaster light reflects whether mastering is ON. Clicking opens the mastering
+// panel; clicking again while it's already showing toggles mastering on/off.
+function updateMasterBtn(){ const b=$("#btnMaster"); if(b) b.classList.toggle('on', Audio.masterOn); }
+$("#btnMaster").addEventListener('click',()=>{
+  Audio.init();
+  const here = State.fxView==='master' && !$("#drawer").classList.contains('collapsed');
+  if(here){ Audio.setMastering(!Audio.masterOn); renderFX(); toast('Mastering '+(Audio.masterOn?'on':'off')); }
+  else { State.fxView='master'; openDrawer(); setDrawerPane('fx'); }
+  updateMasterBtn();
+});
+updateMasterBtn(); // reflect the default (mastering on) at startup
 
 /* =====================================================================
    THEMES - BandLab (default) / FL Studio / Ableton / Logic
