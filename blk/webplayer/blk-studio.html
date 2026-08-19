@@ -498,6 +498,7 @@
             <button class="prz" id="prVZoomOut" title="Shorter rows">▁</button>
             <button class="prz" id="prVZoomIn" title="Taller rows">▔</button>
           </span>
+          <button class="dtab on" id="prSnap" title="Snap notes to the grid (off = free placement for fine tuning)">Snap: On</button>
           <button class="dtab" id="prQuantize">Quantize 1/16</button>
         </div>
         <div class="pr-body">
@@ -2482,7 +2483,7 @@ const BLACK_KEYS=[1,3,6,8,10];
 const isBlackKey=p=>BLACK_KEYS.includes(((p%12)+12)%12);
 
 const PianoRoll={
-  region:null, cellBeat:0.25, noteH:15, octaves:8, lowNote:12, beatW:96, minBars:16, // C0..B7
+  region:null, cellBeat:0.25, noteH:15, octaves:8, lowNote:12, beatW:96, minBars:16, snap:true, // C0..B7
   selNotes:[],
   grid:$("#prGrid"), keys:$("#prKeys"), ruler:$("#prRuler"),
   get rows(){return this.octaves*12;},
@@ -2627,15 +2628,19 @@ $("#prZoomIn").addEventListener('click',()=>PianoRoll.zoomH(1.25));
 $("#prZoomOut").addEventListener('click',()=>PianoRoll.zoomH(0.8));
 $("#prVZoomIn").addEventListener('click',()=>PianoRoll.zoomV(2));
 $("#prVZoomOut").addEventListener('click',()=>PianoRoll.zoomV(-2));
-function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/s)*s);}
+$("#prSnap").addEventListener('click',function(){ PianoRoll.snap=!PianoRoll.snap;
+  this.classList.toggle('on',PianoRoll.snap); this.textContent='Snap: '+(PianoRoll.snap?'On':'Off'); });
+function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.snap||0.25; return Math.max(0,Math.round(b/s)*s);}
 // piano roll mouse
 (function(){
   const grid=$("#prGrid");
   const EDGE=7; // px grab zone on a note's right edge
   const noteRightPx=n=>secToBeat(n.start+n.dur)*PianoRoll.beatW;
   const noteLeftPx =n=>secToBeat(n.start)*PianoRoll.beatW;
-  // is x within the resize grip of note n?
-  const overEdge=(n,x)=>{ const w=noteRightPx(n)-noteLeftPx(n); const zone=Math.min(EDGE, Math.max(3,w*0.4)); return x>=noteRightPx(n)-zone; };
+  // which resize grip (if any) is x over: 'l' (left edge), 'r' (right edge), or null.
+  // Drag either edge inward to shorten a note / outward to lengthen it.
+  const noteEdge=(n,x)=>{ const L=noteLeftPx(n), R=noteRightPx(n), zone=Math.min(EDGE, Math.max(3,(R-L)*0.35));
+    if(x>=R-zone) return 'r'; if(x<=L+zone) return 'l'; return null; };
 
   // cursor affordance while hovering (not dragging)
   grid.addEventListener('mousemove',e=>{
@@ -2643,7 +2648,7 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
     const r=PianoRoll.region; const rect=grid.getBoundingClientRect();
     const x=e.clientX-rect.left, y=e.clientY-rect.top;
     const hit=r?PianoRoll.noteAt(x,y):null;
-    grid.style.cursor = hit ? (overEdge(hit,x)?'ew-resize':'move') : 'crosshair';
+    grid.style.cursor = hit ? (noteEdge(hit,x)?'ew-resize':'move') : 'crosshair';
   });
 
   grid.addEventListener('mousedown',e=>{
@@ -2663,16 +2668,22 @@ function snapPRBeat(b){const s=State.snap||0.25; return Math.max(0,Math.round(b/
       if(additive){ const i=PianoRoll.selNotes.indexOf(hit); i>=0?PianoRoll.selNotes.splice(i,1):PianoRoll.selNotes.push(hit); }
       else if(!PianoRoll.selNotes.includes(hit)){ PianoRoll.selNotes=[hit]; }
       PianoRoll.draw();
-      const resizing=overEdge(hit,x);
+      const resizing=noteEdge(hit,x); // 'l' | 'r' | null
       const startX=e.clientX;
       const group=PianoRoll.selNotes.map(n=>({n, start:n.start, dur:n.dur, pitch:n.pitch}));
+      const hitOrig=group.find(o=>o.n===hit)||{start:hit.start,dur:hit.dur};
       const primPitch=hit.pitch; let snapped=false;
       const move=ev=>{
         if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
         const beat2=PianoRoll.xToBeat(ev.clientX-rect.left);
-        if(resizing){
-          // extend just the grabbed note (snapped, min one cell)
-          hit.dur=Math.max(beatToSec(PianoRoll.cellBeat), beatToSec(beat2-secToBeat(hit.start)));
+        if(resizing==='r'){
+          // drag the right edge (snapped, min one cell); left edge / start stays put
+          hit.dur=Math.max(beatToSec(PianoRoll.cellBeat), beatToSec(beat2-secToBeat(hitOrig.start)));
+        } else if(resizing==='l'){
+          // drag the left edge inward/outward; the right edge (note end) stays put
+          const endBeat=secToBeat(hitOrig.start+hitOrig.dur);
+          const ns=clamp(beat2, 0, endBeat-PianoRoll.cellBeat);
+          hit.start=beatToSec(ns); hit.dur=beatToSec(endBeat-ns);
         } else {
           const rawDelta=PianoRoll.xToBeat(ev.clientX-rect.left)-PianoRoll.xToBeat(startX-rect.left);
           const py=ev.clientY-rect.top; const dPitch=PianoRoll.yToPitch(py)-primPitch;
