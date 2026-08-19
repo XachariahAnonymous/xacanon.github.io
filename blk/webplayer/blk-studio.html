@@ -605,7 +605,7 @@ const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
   tracks:[], regions:[], selectedTrack:null, selectedRegion:null, selection:[],
-  recLatencyMs:0, returnToStart:true, fxView:'track',
+  recLatencyMs:0, returnToStart:true, fxView:'track', masterPreset:'Balanced',
   drumPattern:Array.from({length:8},()=>new Array(16).fill(false)),
   synth:{osc1:'sawtooth',osc2:'square',detune:8,a:.01,d:.15,s:.6,r:.25,
          cutoff:4000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6},
@@ -636,18 +636,17 @@ function ensureArrangeLength(){
    AUDIO CORE
    ===================================================================== */
 const Audio={
-  ctx:null, master:null, masterGain:null, analyserL:null, analyserR:null, splitter:null,
+  ctx:null, master:null, masterGain:null, analyserL:null, analyserR:null, splitter:null, masterOn:true,
   init(){
     if(this.ctx) return;
     this.ctx=new (window.AudioContext||window.webkitAudioContext)();
     this.masterGain=this.ctx.createGain();
     this.masterGain.gain.value=parseFloat($("#masterVol").value);
-    // Master bus: all tracks sum into masterBus -> master FX chain -> masterGain -> analysers/out
+    // Master bus: all tracks sum into masterBus -> (master FX chain) -> masterGain -> analysers/out
     this.masterBus=this.ctx.createGain();
     this.masterFX=buildFX(this.ctx, DEFAULT_MASTER_SPECS.map(s=>({...s})));
     this.masterFX.gain.gain.value=1; this.masterFX.pan.pan.value=0;
-    this.masterBus.connect(this.masterFX.input);
-    this.masterFX.output.connect(this.masterGain);
+    this.routeMaster();
     const split=this.ctx.createChannelSplitter(2);
     this.analyserL=this.ctx.createAnalyser(); this.analyserL.fftSize=1024;
     this.analyserR=this.ctx.createAnalyser(); this.analyserR.fftSize=1024;
@@ -660,12 +659,60 @@ const Audio={
   now(){return this.ctx?this.ctx.currentTime:0;},
   resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
   // where track FX outputs should connect (master bus once inited, else raw masterGain)
-  trackTarget(){ return this.masterBus||this.masterGain; }
+  trackTarget(){ return this.masterBus||this.masterGain; },
+  // wire the master bus through the master FX chain, or straight to the fader when off
+  routeMaster(){
+    if(!this.ctx) return;
+    try{this.masterBus.disconnect();}catch(e){}
+    try{this.masterFX.output.disconnect();}catch(e){}
+    if(this.masterOn){ this.masterBus.connect(this.masterFX.input); this.masterFX.output.connect(this.masterGain); }
+    else { this.masterBus.connect(this.masterGain); }
+  },
+  setMastering(on){ this.masterOn=!!on; this.routeMaster(); }
 };
 // Default mastering chain on the master bus: gentle EQ + glue compressor + limiter
 const DEFAULT_MASTER_SPECS=[{type:'eq',params:{low:0,mid:0,high:1.5}},
   {type:'compressor',params:{thresh:-18,ratio:2.5,att:.01,rel:.2}},
   {type:'limiter',params:{ceiling:-0.3,drive:2}}];
+// One-click mastering presets (each is a fixed master FX chain). Chosen from the
+// Master panel instead of editing a modular rack.
+const MASTER_PRESETS={
+  'Balanced':{desc:'Gentle glue + a touch of air. A safe all-rounder.', specs:DEFAULT_MASTER_SPECS},
+  'Loud':{desc:'Hotter compression and limiting for streaming loudness.', specs:[
+    {type:'eq',params:{low:1,mid:0,high:2}},
+    {type:'compressor',params:{thresh:-22,ratio:3,att:.008,rel:.15}},
+    {type:'limiter',params:{ceiling:-0.3,drive:6}}]},
+  'Warm':{desc:'Tape-style saturation, softer highs, rounded low end.', specs:[
+    {type:'eq',params:{low:2,mid:0,high:-1.5}},
+    {type:'tapesat',params:{drive:3,tone:8000,mix:.35}},
+    {type:'compressor',params:{thresh:-18,ratio:2.5,att:.012,rel:.2}},
+    {type:'limiter',params:{ceiling:-0.3,drive:3}}]},
+  'Bright':{desc:'Presence exciter and high shelf for a crisp, open top.', specs:[
+    {type:'eq',params:{low:0,mid:0,high:3}},
+    {type:'exciter',params:{freq:4000,amount:.4,mix:.3}},
+    {type:'compressor',params:{thresh:-18,ratio:2.5,att:.01,rel:.2}},
+    {type:'limiter',params:{ceiling:-0.3,drive:3}}]},
+  'Punchy':{desc:'Fast, aggressive compression that hits hard.', specs:[
+    {type:'eq',params:{low:1,mid:0,high:1.5}},
+    {type:'compressor',params:{thresh:-16,ratio:4,att:.003,rel:.12}},
+    {type:'limiter',params:{ceiling:-0.3,drive:4}}]},
+  'Bass Boost':{desc:'Weighted low end for a fuller, heavier mix.', specs:[
+    {type:'eq',params:{low:4,mid:0,high:1,midFreq:200}},
+    {type:'compressor',params:{thresh:-18,ratio:2.5,att:.01,rel:.2}},
+    {type:'limiter',params:{ceiling:-0.3,drive:3}}]},
+  'Clean':{desc:'Transparent limiting only. Keeps peaks in check, nothing else.', specs:[
+    {type:'limiter',params:{ceiling:-0.3,drive:0}}]},
+};
+function applyMasterPreset(name){
+  Audio.init();
+  const p=MASTER_PRESETS[name]||MASTER_PRESETS['Balanced'];
+  try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
+  Audio.masterFX.modules.slice().forEach(m=>{ if(m.dispose) m.dispose(); });
+  Audio.masterFX=buildFX(Audio.ctx, p.specs.map(s=>({type:s.type,params:{...s.params}})));
+  Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0;
+  Audio.routeMaster();
+  State.masterPreset=name;
+}
 
 /* Impulse response for reverb (synthetic) */
 function makeImpulse(ctx,seconds,decay){
@@ -2890,10 +2937,38 @@ function param(label,min,max,step,val,fmt,onInput){
   return row;
 }
 function masterHolder(){ return {name:'Master Bus', isMaster:true, fx:Audio.masterFX}; }
+// Mastering panel: an On/Off toggle + one-click presets (replaces the modular rack for the master bus)
+function renderMastering(host){
+  Audio.init();
+  host.innerHTML='';
+  const hdr=document.createElement('div'); hdr.className='fxhdr';
+  hdr.innerHTML='Mastering <span style="color:var(--muted)">· one master effect chain applied to the whole mix before the fader</span>';
+  host.appendChild(hdr);
+  // On/Off toggle
+  const bar=document.createElement('div'); bar.style.cssText='display:flex; align-items:center; gap:10px; padding:6px 12px';
+  const toggle=document.createElement('button'); toggle.className='dtab'+(Audio.masterOn?' on':'');
+  toggle.textContent='Mastering: '+(Audio.masterOn?'On':'Off');
+  toggle.onclick=()=>{ Audio.setMastering(!Audio.masterOn); renderMastering(host); toast('Mastering '+(Audio.masterOn?'on':'off')); };
+  const note=document.createElement('span'); note.style.cssText='font-size:11px;color:var(--muted)';
+  note.textContent=Audio.masterOn?'Pick a preset below.':'The mix is bypassing all master processing.';
+  bar.append(toggle,note); host.appendChild(bar);
+  // preset tiles
+  const grid=document.createElement('div'); grid.className='fxgrid'; grid.style.opacity=Audio.masterOn?'1':'0.45'; host.appendChild(grid);
+  Object.keys(MASTER_PRESETS).forEach(name=>{
+    const active=State.masterPreset===name;
+    const card=document.createElement('button'); card.className='tpl-card'; card.style.cssText='text-align:left; min-width:180px; max-width:230px';
+    card.style.borderColor=active?'var(--accent)':''; if(active) card.style.background='color-mix(in srgb, var(--accent) 14%, transparent)';
+    card.innerHTML=`<div class="tpl-name" style="color:${active?'var(--accent)':'var(--text)'}">${active?'● ':''}${name}</div>
+      <div class="tpl-desc">${MASTER_PRESETS[name].desc}</div>`;
+    card.onclick=()=>{ if(!Audio.masterOn) Audio.setMastering(true); applyMasterPreset(name); renderMastering(host); toast('Mastering: '+name); };
+    grid.appendChild(card);
+  });
+}
 function renderFX(){
   const host=$("#fxRack");
   const isMaster=State.fxView==='master';
-  const t=isMaster?masterHolder():getTrack(State.selectedTrack);
+  if(isMaster){ renderMastering(host); return; }
+  const t=getTrack(State.selectedTrack);
   if(!t||!t.fx){host.innerHTML='<div class="fxhdr">No track selected</div>';return;}
   const hdr=document.createElement('div'); hdr.className='fxhdr';
   hdr.innerHTML=`FX Rack - <b>${isMaster?'⬤ Master Bus':t.name}</b> · signal flows left → right · reorder ↑ ↓ · toggle ON/OFF `;
@@ -3052,7 +3127,7 @@ async function renderOffline(opts={}){
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
   // master bus: sum tracks -> master FX chain -> master gain (mirrors the live routing)
   let masterBus=master;
-  if(useMaster && Audio.masterFX){ const mfx=buildFX(off, fxToSpecs(Audio.masterFX)); mfx.gain.gain.value=1; mfx.pan.pan.value=0;
+  if(useMaster && Audio.masterOn && Audio.masterFX){ const mfx=buildFX(off, fxToSpecs(Audio.masterFX)); mfx.gain.gain.value=1; mfx.pan.pan.value=0;
     mfx.output.connect(master); masterBus=mfx.input; }
   const tracks = only ? State.tracks.filter(t=>t.id===only) : State.tracks;
   tracks.forEach(t=>{
@@ -3161,6 +3236,7 @@ function saveProject(){
     bpm:State.bpm, timesig:State.timesig, snap:State.snap, loop:State.loop, metro:State.metro,
     drumPattern:State.drumPattern,
     masterFx:Audio.masterFX?fxToSpecs(Audio.masterFX):null,
+    masterOn:Audio.masterOn, masterPreset:State.masterPreset,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
       mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,instrument:t.instrument,engine:t.engine,sample:t.sample,automation:t.automation,fxModules:fxToSpecs(t.fx)})),
     regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
@@ -3187,11 +3263,13 @@ function loadProject(d){
   State.timesig=d.timesig||[4,4]; State.snap=d.snap??0.25; State.loop=d.loop||State.loop;
   State.metro=d.metro||false; $("#btnMetro").classList.toggle('on',State.metro);
   State.drumPattern=d.drumPattern||State.drumPattern;
-  // rebuild the master bus FX chain
+  // rebuild the master bus FX chain + mastering on/off + preset
+  State.masterPreset=d.masterPreset||State.masterPreset;
+  Audio.masterOn = d.masterOn!==false;
   if(d.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
     Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
-    Audio.masterFX=buildFX(Audio.ctx, d.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0;
-    Audio.masterBus.connect(Audio.masterFX.input); Audio.masterFX.output.connect(Audio.masterGain); }
+    Audio.masterFX=buildFX(Audio.ctx, d.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0; }
+  Audio.routeMaster();
   (d.tracks||[]).forEach(td=>{
     const t=addTrack(td.type,{name:td.name,color:td.color});
     t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
@@ -3236,7 +3314,7 @@ function snapshotProject(){
     drumPattern:State.drumPattern.map(r=>r.slice()),
     selectedTrack:State.selectedTrack,
     masterVol:parseFloat($("#masterVol").value),
-    masterFx:Audio.masterFX?fxToSpecs(Audio.masterFX):null,
+    masterFx:Audio.masterFX?fxToSpecs(Audio.masterFX):null, masterOn:Audio.masterOn, masterPreset:State.masterPreset,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
       mute:t.mute,solo:t.solo,arm:t.arm,synth:clone(t.synth),instrument:t.instrument,engine:t.engine,sample:t.sample,
       automation:t.automation.map(p=>({...p})),fxModules:fxToSpecs(t.fx)})),
@@ -3263,10 +3341,12 @@ function restoreSnapshot(s){
     State.metro=s.metro; $("#btnMetro").classList.toggle('on',State.metro);
     State.drumPattern=s.drumPattern.map(r=>r.slice());
     if(s.masterVol!=null){ $("#masterVol").value=s.masterVol; if(Audio.masterGain) Audio.masterGain.gain.value=s.masterVol; }
+    if(s.masterPreset) State.masterPreset=s.masterPreset;
+    if(s.masterOn!=null) Audio.masterOn=s.masterOn;
     if(s.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
       Audio.masterFX.modules.slice().forEach(m=>{if(m.dispose)m.dispose();});
-      Audio.masterFX=buildFX(Audio.ctx, s.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0;
-      Audio.masterBus.connect(Audio.masterFX.input); Audio.masterFX.output.connect(Audio.masterGain); }
+      Audio.masterFX=buildFX(Audio.ctx, s.masterFx); Audio.masterFX.gain.gain.value=1; Audio.masterFX.pan.pan.value=0; }
+    Audio.routeMaster();
     s.tracks.forEach(td=>{
       const t=addTrack(td.type,{name:td.name,color:td.color});
       t.id=td.id; t.volume=td.volume; t.pan=td.pan; t.mute=td.mute; t.solo=td.solo; t.arm=td.arm;
