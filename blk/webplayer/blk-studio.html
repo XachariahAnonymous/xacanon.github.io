@@ -478,6 +478,7 @@
       <button class="dtab on" data-pane="piano">🎹 Piano Roll</button>
       <button class="dtab" data-pane="drum">🥁 Drum Machine</button>
       <button class="dtab" data-pane="fx">🎛 FX Rack</button>
+      <button class="dtab" data-pane="master">⬤ Mastering</button>
       <button class="dtab" data-pane="mixer">🎚 Mixer</button>
       <button class="dtab" data-pane="synth">⚙ Synth</button>
       <button class="dtab" data-pane="mic">🎤 Vocals</button>
@@ -526,6 +527,8 @@
       </div>
       <!-- FX -->
       <div class="dpane" id="pane-fx"><div class="fxrack" id="fxRack"></div></div>
+      <!-- Mastering -->
+      <div class="dpane" id="pane-master"><div class="fxrack" id="masterRack"></div></div>
       <!-- Mixer -->
       <div class="dpane" id="pane-mixer"><div class="mixer" id="mixer"></div></div>
       <!-- Synth -->
@@ -2937,9 +2940,10 @@ function param(label,min,max,step,val,fmt,onInput){
   return row;
 }
 function masterHolder(){ return {name:'Master Bus', isMaster:true, fx:Audio.masterFX}; }
-// Mastering panel: an On/Off toggle + one-click presets (replaces the modular rack for the master bus)
-function renderMastering(host){
+// Mastering panel (its own drawer pane): an On/Off toggle + one-click presets.
+function renderMastering(){
   Audio.init();
+  const host=$("#masterRack"); if(!host) return;
   host.innerHTML='';
   const hdr=document.createElement('div'); hdr.className='fxhdr';
   hdr.innerHTML='Mastering <span style="color:var(--muted)">· one master effect chain applied to the whole mix before the fader</span>';
@@ -2949,7 +2953,7 @@ function renderMastering(host){
   const toggle=document.createElement('button'); toggle.className='dtab'+(Audio.masterOn?' on':'');
   toggle.textContent='Mastering: '+(Audio.masterOn?'On':'Off');
   toggle.onclick=()=>{ Audio.setMastering(!Audio.masterOn); if(typeof updateMasterBtn==='function')updateMasterBtn();
-    if(!Audio.masterOn){ State.fxView='track'; renderFX(); } else { renderMastering(host); }
+    if(!Audio.masterOn){ setDrawerPane('fx'); } else { renderMastering(); }
     toast('Mastering '+(Audio.masterOn?'on':'off')); };
   const note=document.createElement('span'); note.style.cssText='font-size:11px;color:var(--muted)';
   note.textContent=Audio.masterOn?'Pick a preset below.':'The mix is bypassing all master processing.';
@@ -2962,18 +2966,16 @@ function renderMastering(host){
     card.style.borderColor=active?'var(--accent)':''; if(active) card.style.background='color-mix(in srgb, var(--accent) 14%, transparent)';
     card.innerHTML=`<div class="tpl-name" style="color:${active?'var(--accent)':'var(--text)'}">${active?'● ':''}${name}</div>
       <div class="tpl-desc">${MASTER_PRESETS[name].desc}</div>`;
-    card.onclick=()=>{ if(!Audio.masterOn) Audio.setMastering(true); applyMasterPreset(name); if(typeof updateMasterBtn==='function')updateMasterBtn(); renderMastering(host); toast('Mastering: '+name); };
+    card.onclick=()=>{ if(!Audio.masterOn) Audio.setMastering(true); applyMasterPreset(name); if(typeof updateMasterBtn==='function')updateMasterBtn(); renderMastering(); toast('Mastering: '+name); };
     grid.appendChild(card);
   });
 }
 function renderFX(){
   const host=$("#fxRack");
-  const isMaster=State.fxView==='master';
-  if(isMaster){ renderMastering(host); return; }
   const t=getTrack(State.selectedTrack);
   if(!t||!t.fx){host.innerHTML='<div class="fxhdr">No track selected</div>';return;}
   const hdr=document.createElement('div'); hdr.className='fxhdr';
-  hdr.innerHTML=`FX Rack - <b>${isMaster?'⬤ Master Bus':t.name}</b> · signal flows left → right · reorder ↑ ↓ · toggle ON/OFF `;
+  hdr.innerHTML=`FX Rack - <b>${t.name}</b> · signal flows left → right · reorder ↑ ↓ · toggle ON/OFF `;
   const saveBtn=document.createElement('button'); saveBtn.className='fxmini wide'; saveBtn.textContent='💾 Save Chain'; saveBtn.style.marginLeft='8px'; saveBtn.onclick=()=>saveFXChain(t);
   const loadBtn=document.createElement('button'); loadBtn.className='fxmini wide'; loadBtn.textContent='📂 Load Chain'; loadBtn.onclick=()=>loadFXChain(t);
   hdr.append(saveBtn,loadBtn);
@@ -3447,11 +3449,12 @@ $("#btnNew").addEventListener('click',showTemplates);
 function updateMasterBtn(){ const b=$("#btnMaster"); if(b) b.classList.toggle('on', Audio.masterOn); }
 $("#btnMaster").addEventListener('click',()=>{
   Audio.init();
-  const here = State.fxView==='master' && !$("#drawer").classList.contains('collapsed');
-  if(here){ Audio.setMastering(!Audio.masterOn);
-    if(!Audio.masterOn) State.fxView='track'; // off -> back to the track FX rack
-    renderFX(); toast('Mastering '+(Audio.masterOn?'on':'off')); }
-  else { State.fxView='master'; openDrawer(); setDrawerPane('fx'); }
+  const onMasterPane = $("#pane-master").classList.contains('on') && !$("#drawer").classList.contains('collapsed');
+  if(onMasterPane){ // already on the Mastering tab -> toggle on/off
+    Audio.setMastering(!Audio.masterOn);
+    if(!Audio.masterOn){ setDrawerPane('fx'); } else { renderMastering(); } // off -> jump to the FX Rack tab
+    toast('Mastering '+(Audio.masterOn?'on':'off'));
+  } else { openDrawer(); setDrawerPane('master'); }
   updateMasterBtn();
 });
 updateMasterBtn(); // reflect the default (mastering on) at startup
@@ -3550,6 +3553,7 @@ function setDrawerPane(name){
   $$(".dtab[data-pane]").forEach(b=>b.classList.toggle('on',b.dataset.pane===name));
   $$(".dpane").forEach(p=>p.classList.toggle('on',p.id==='pane-'+name));
   if(name==='piano')PianoRoll.draw(); if(name==='fx')renderFX(); if(name==='mixer')renderMixer(); if(name==='synth')renderSynthPanel();
+  if(name==='master')renderMastering();
   if(name==='mic')Mic.autoDetect();
 }
 $$(".dtab[data-pane]").forEach(b=>b.addEventListener('click',()=>{openDrawer();setDrawerPane(b.dataset.pane);}));
