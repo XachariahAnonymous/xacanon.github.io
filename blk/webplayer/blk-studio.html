@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* BLK brand palette */
+
     --bg:#000000; --panel:#0a0a0a; --panel2:#111111; --panel3:#1a1a1a;
     --line:rgba(255,255,255,0.08); --line2:rgba(255,255,255,0.16); --text:#ffffff; --muted:#888888;
     --accent:#8A2BE2; --accent2:#b06bff; --rec:#ff0033; --good:#00ff66;
@@ -24,7 +24,6 @@
   button{font-family:inherit; color:var(--text); cursor:pointer}
   .app{display:flex; flex-direction:column; height:100vh}
 
-  /* ---------- Transport ---------- */
   .transport{
     display:flex; align-items:center; gap:14px; padding:8px 12px;
     background:linear-gradient(180deg,var(--grad-a),var(--grad-b));
@@ -70,10 +69,9 @@
   .meter i{position:absolute; bottom:0; left:0; right:0; height:0%;
     background:linear-gradient(0deg,var(--good),var(--warn) 78%,var(--rec));}
 
-  /* ---------- Main ---------- */
   .main{flex:1; display:flex; min-height:0}
   .arranger{flex:1; display:flex; flex-direction:column; min-width:0}
-  /* Loop bar */
+
   .loopbar-row{display:flex; height:20px; border-bottom:1px solid var(--line); background:var(--panel2)}
   .loopbar-corner{width:var(--hdr); min-width:var(--hdr); border-right:1px solid var(--line);
     display:flex; align-items:center; padding:0 8px}
@@ -136,7 +134,6 @@
   .knobs input[type=range]{width:64px}
   .knobs .pan{width:44px}
 
-  /* Regions */
   .region{position:absolute; height:calc(var(--rowh) - 14px); top:7px; border-radius:5px;
     overflow:hidden; border:1px solid rgba(255,255,255,.25); cursor:grab;
     box-shadow:0 2px 6px rgba(0,0,0,.4)}
@@ -155,12 +152,10 @@
   .region .fade.l{left:2px} .region .fade.r{right:2px}
   .region.midi .note{position:absolute; background:rgba(255,255,255,.85); border-radius:1px}
 
-  /* Automation lane */
   .autolane{position:absolute; left:0; height:34px; background:rgba(0,0,0,.25);
     border-top:1px dashed var(--line2); z-index:3}
   .autolane canvas{display:block}
 
-  /* ---------- Bottom drawer ---------- */
   .drawer{height:var(--drawer-h,300px); border-top:1px solid var(--line); background:var(--panel);
     display:flex; flex-direction:column; position:relative}
   .drawer.collapsed{height:34px}
@@ -177,7 +172,6 @@
   .dpane{display:none; height:100%}
   .dpane.on{display:block}
 
-  /* Piano roll */
   #pane-piano.on{display:flex; flex-direction:column}
   .pr-toolbar{display:flex; gap:10px; align-items:center; padding:6px 10px; flex:0 0 auto;
     border-bottom:1px solid var(--line); font-size:11px; color:var(--muted); background:var(--panel2)}
@@ -199,7 +193,6 @@
   .pr-marquee{position:absolute; z-index:6; pointer-events:none; border:1px solid var(--accent2);
     background:rgba(34,211,238,.14)}
 
-  /* Mixer */
   .mixer{display:flex; gap:10px; padding:12px; height:100%; overflow-x:auto}
   .mstrip{width:92px; min-width:92px; background:var(--panel2); border:1px solid var(--line2);
     border-radius:8px; padding:8px; display:flex; flex-direction:column; align-items:center; gap:6px}
@@ -209,7 +202,6 @@
   .mstrip .mm{width:100%; height:8px; background:var(--lcd-bg); border-radius:3px; overflow:hidden}
   .mstrip .mm i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--good),var(--warn),var(--rec))}
 
-  /* FX rack */
   .fxrack{padding:12px; height:100%; overflow:auto}
   .fxhdr{font-size:12px; color:var(--muted); margin-bottom:10px}
   .fxgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:10px}
@@ -234,7 +226,6 @@
   .fxaddtile span{font-size:30px; line-height:1}
   .fxaddtile:hover{background:var(--accent); color:#fff; border-style:solid}
 
-  /* Template picker overlay */
   .tpl-overlay{position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,.9); backdrop-filter:blur(6px);
     display:none; align-items:center; justify-content:center}
   .tpl-overlay.show{display:flex}
@@ -260,7 +251,6 @@
   .prm .val{width:42px; text-align:right; color:var(--text); font-family:monospace}
   canvas.eqgraph{width:100%; height:56px; background:#0a0d14; border-radius:4px; margin-top:6px}
 
-  /* Drum machine */
   .drum{padding:12px; height:100%; overflow:auto}
   .pads{display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin-bottom:12px}
   .pad{aspect-ratio:1.6; background:var(--panel2); border:1px solid var(--line2); border-radius:8px;
@@ -290,7 +280,6 @@
   ::-webkit-scrollbar-track{background:transparent}
   .drop-hilite{outline:2px dashed var(--accent) !important; outline-offset:-4px}
 
-  /* Timeline right-click context menu */
   .ctxmenu{position:fixed; z-index:9999; min-width:210px; max-height:70vh; overflow-y:auto; background:var(--panel2);
     border:1px solid var(--line2); border-radius:6px; padding:4px; font-size:12px;
     box-shadow:0 12px 34px rgba(0,0,0,.65); animation:ctxIn .08s ease-out;}
@@ -309,7 +298,6 @@
   .ctxitem:hover .ctxhint{color:rgba(255,255,255,.85)}
   .ctxsep{height:1px; background:var(--line); margin:4px 6px}
 
-  /* Mic / vocals panel */
   .hmeter{flex:1; height:14px; background:var(--lcd-bg); border:1px solid var(--line2); border-radius:3px; overflow:hidden}
   .hmeter i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--good),var(--warn) 78%,var(--rec)); transition:width .05s}
   .micchk{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:var(--muted); cursor:pointer}
@@ -323,16 +311,10 @@
   @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.55}}
   .tbtn.mic-on{background:var(--rec); border-color:var(--rec); color:#fff}
 
-  /* ============================================================
-     PER-DAW THEME LAYOUTS - evoke FL Studio / Ableton / Logic
-     (the default BandLab look is the unprefixed rules above)
-     ============================================================ */
-  /* corner radius follows the active theme's --radius on the main controls */
   [data-theme] .tbtn,[data-theme] .region,[data-theme] .fxmod,[data-theme] .thead,
   [data-theme] .dtab,[data-theme] .step,[data-theme] .pad,[data-theme] .add-track-row,
   [data-theme] .tpl-card,[data-theme] .mstrip{border-radius:var(--radius)}
 
-  /* ---------- FL Studio: dark beveled chrome, signature orange ---------- */
   [data-theme="fl"] .transport{background:linear-gradient(180deg,#4a4a4a,#2f2f2f);
     border-bottom:1px solid #191919; box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
   [data-theme="fl"] .tbtn{background:linear-gradient(180deg,#3d3d3d,#2f2f2f);
@@ -342,7 +324,6 @@
   [data-theme="fl"] .drawer-tabs{background:linear-gradient(180deg,#3a3a3a,#2e2e2e)}
   [data-theme="fl"] .add-track-row{background:linear-gradient(180deg,#343434,#2c2c2c)}
 
-  /* ---------- Ableton Live: flat, sharp corners, thin lines, boxy ---------- */
   [data-theme="ableton"] .transport{background:var(--panel); border-bottom:1px solid #1e1e1e; box-shadow:none}
   [data-theme="ableton"] .tbtn{background:var(--panel2); border:1px solid #1e1e1e; box-shadow:none;
     text-transform:uppercase; letter-spacing:.4px; font-size:10px}
@@ -355,7 +336,6 @@
   [data-theme="ableton"] .fxmod,[data-theme="ableton"] .lcd,[data-theme="ableton"] .mstrip{box-shadow:none}
   [data-theme="ableton"] .brand{letter-spacing:1px}
 
-  /* ---------- Logic Pro: polished, rounded, soft brushed chrome ---------- */
   [data-theme="logic"] .transport{background:linear-gradient(180deg,#4c5563,#333a45);
     border-bottom:1px solid #161a20; box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
   [data-theme="logic"] .tbtn{background:linear-gradient(180deg,#3c4450,#2f3540);
@@ -364,20 +344,15 @@
   [data-theme="logic"] .drawer-tabs{background:linear-gradient(180deg,#333a45,#2a2f38)}
   [data-theme="logic"] .region{box-shadow:0 1px 3px rgba(0,0,0,.4)}
 
-  /* ===== per-DAW CONTROL-BAR (transport) LAYOUT ===== */
-  /* FL Studio: compact, tightly-packed left toolbar */
   [data-theme="fl"] .transport{gap:8px; padding:6px 10px}
   [data-theme="fl"] .tgroup{gap:4px; padding:0 6px}
   [data-theme="fl"] .tbtn{padding:5px 7px}
 
-  /* Ableton Live: tempo/tap sits top-left (right after the logo), then transport */
   [data-theme="ableton"] .brand{order:-4}
   [data-theme="ableton"] .home{order:-3}
   [data-theme="ableton"] .tg-tempo{order:-2}
   [data-theme="ableton"] .tg-transport{order:-1}
-  /* the LCD, then file/history groups, then master stay in their DOM order (0+) */
 
-  /* Logic Pro: transport + LCD centered in the control bar, everything else to the sides */
   [data-theme="logic"] .brand{order:-2}
   [data-theme="logic"] .home{order:-1}
   [data-theme="logic"] .tg-transport{margin-left:auto}
@@ -388,7 +363,6 @@
 <body>
 <div class="app">
 
-  <!-- ============ TRANSPORT ============ -->
   <div class="transport">
     <div class="brand">BLK<span> Studio</span></div>
     <button class="tbtn small home" id="btnHome" title="Return to the BLK player">← Home</button>
@@ -420,7 +394,6 @@
       <div class="field"><label>Zoom</label><input type="range" id="zoom" min="40" max="320" value="110" style="width:90px"></div>
     </div>
 
-
     <div class="tgroup tg-history">
       <button class="tbtn" id="btnUndo" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.98 7.98 0 0 1 12.5 11c2.9 0 5.4 1.6 6.72 4l2.36-.78A9.99 9.99 0 0 0 12.5 8z"/></svg></button>
       <button class="tbtn" id="btnRedo" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24" style="transform:scaleX(-1)"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62A7.98 7.98 0 0 1 12.5 11c2.9 0 5.4 1.6 6.72 4l2.36-.78A9.99 9.99 0 0 0 12.5 8z"/></svg></button>
@@ -450,7 +423,6 @@
     </div>
   </div>
 
-  <!-- ============ MAIN ============ -->
   <div class="main">
     <div class="arranger">
       <div class="loopbar-row">
@@ -474,7 +446,6 @@
     </div>
   </div>
 
-  <!-- ============ BOTTOM DRAWER ============ -->
   <div class="drawer" id="drawer">
     <div class="drawer-resize" id="drawerResize" title="Drag to resize"></div>
     <div class="drawer-tabs">
@@ -491,7 +462,7 @@
       </div>
     </div>
     <div class="drawer-body">
-      <!-- Piano roll -->
+
       <div class="dpane on" id="pane-piano">
         <div class="pr-toolbar">
           <b id="prRegionName">select or create a MIDI clip</b>
@@ -515,7 +486,7 @@
           </div>
         </div>
       </div>
-      <!-- Drum -->
+
       <div class="dpane" id="pane-drum">
         <div class="drum">
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
@@ -528,20 +499,20 @@
           <div class="hint" style="margin-top:8px">Click steps to program a 16-step pattern (plays on the armed drum track / transport). Click a pad to audition · right-click a pad to load a sample.</div>
         </div>
       </div>
-      <!-- FX -->
+
       <div class="dpane" id="pane-fx"><div class="fxrack" id="fxRack"></div></div>
-      <!-- Mastering -->
+
       <div class="dpane" id="pane-master"><div class="fxrack" id="masterRack"></div></div>
-      <!-- Mixer -->
+
       <div class="dpane" id="pane-mixer"><div class="mixer" id="mixer"></div></div>
-      <!-- Synth -->
+
       <div class="dpane" id="pane-synth">
         <div class="fxrack">
           <div class="fxhdr">Polyphonic synth - plays the selected instrument track. Play with computer keyboard (A–L = white keys, W E T Y U = black), Z/X octave.</div>
           <div class="fxgrid" id="synthPanel"></div>
         </div>
       </div>
-      <!-- Vocals / Mic -->
+
       <div class="dpane" id="pane-mic">
         <div class="fxrack">
           <div class="fxhdr">🎤 Record vocals or any mic / line input. Tip: wear headphones when monitoring to avoid feedback.</div>
@@ -594,10 +565,6 @@
 
 <script>
 "use strict";
-/* =====================================================================
-   WebDAW - single-file DAW.  Modules: Audio, Transport, Tracks, Regions,
-   Synth, FX, PianoRoll, Drum, Timeline, Export, Project, MIDI.
-   ===================================================================== */
 
 const $  = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
@@ -606,7 +573,6 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const COLORS=["#5b8cff","#22d3ee","#3ddc84","#ffbf47","#ff6b9d","#b388ff","#ff8a5b","#6ee7b7"];
 function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1800);}
 
-/* ---------- global project state ---------- */
 const State={
   bpm:120, timesig:[4,4], snap:0.25, pxPerBeat:110,
   loop:{on:false,start:0,end:16}, metro:false, count:false,
@@ -623,24 +589,21 @@ const secToBeat=s=>s/secPerBeat();
 const beatToPx=b=>b*State.pxPerBeat;
 const pxToBeat=p=>p/State.pxPerBeat;
 const ROWH=96, HDR=230;
-const MAX_CANVAS_W=16000;             // stay well under browsers' max canvas width
-let TOTAL_BARS=64;                    // minimum; grows to fit content
+const MAX_CANVAS_W=16000;
+let TOTAL_BARS=64;
 const totalBeats=()=>TOTAL_BARS*beatsPerBar();
-// Grow (or shrink to the 64-bar minimum) the arrangement so it always covers the content.
+
 function ensureArrangeLength(){
   const bpb=beatsPerBar();
   let endSec=0;
   State.regions.forEach(r=>{ const e=r.start+(r.duration||0); if(e>endSec) endSec=e; });
   if(State.loop.on) endSec=Math.max(endSec, beatToSec(State.loop.end));
-  if(Transport.recording) endSec=Math.max(endSec, Transport.position + secPerBeat()*bpb*4); // record headroom
-  const bars=Math.max(64, Math.ceil(secToBeat(endSec)/bpb)+8); // +8 bars of tail room
+  if(Transport.recording) endSec=Math.max(endSec, Transport.position + secPerBeat()*bpb*4);
+  const bars=Math.max(64, Math.ceil(secToBeat(endSec)/bpb)+8);
   if(bars!==TOTAL_BARS){ TOTAL_BARS=bars; return true; }
   return false;
 }
 
-/* =====================================================================
-   AUDIO CORE
-   ===================================================================== */
 const Audio={
   ctx:null, master:null, masterGain:null, analyserL:null, analyserR:null, splitter:null, masterOn:false,
   init(){
@@ -648,7 +611,7 @@ const Audio={
     this.ctx=new (window.AudioContext||window.webkitAudioContext)();
     this.masterGain=this.ctx.createGain();
     this.masterGain.gain.value=parseFloat($("#masterVol").value);
-    // Master bus: all tracks sum into masterBus -> (master FX chain) -> masterGain -> analysers/out
+
     this.masterBus=this.ctx.createGain();
     this.masterFX=buildFX(this.ctx, DEFAULT_MASTER_SPECS.map(s=>({...s})));
     this.masterFX.gain.gain.value=1; this.masterFX.pan.pan.value=0;
@@ -660,16 +623,15 @@ const Audio={
     split.connect(this.analyserL,0); split.connect(this.analyserR,1);
     this.masterGain.connect(this.ctx.destination);
     this._buf=new Float32Array(1024);
-    registerAutotune(this.ctx); // load the autotune worklet in the background
+    registerAutotune(this.ctx);
   },
   now(){return this.ctx?this.ctx.currentTime:0;},
-  // estimated latency from ctx.currentTime to the sound actually reaching the speakers,
-  // used to hold the visual playhead back so the bar lines up with what you hear
+
   latency(){ if(!this.ctx) return 0; return this.ctx.outputLatency || this.ctx.baseLatency || 0; },
   resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
-  // where track FX outputs should connect (master bus once inited, else raw masterGain)
+
   trackTarget(){ return this.masterBus||this.masterGain; },
-  // wire the master bus through the master FX chain, or straight to the fader when off
+
   routeMaster(){
     if(!this.ctx) return;
     try{this.masterBus.disconnect();}catch(e){}
@@ -679,12 +641,11 @@ const Audio={
   },
   setMastering(on){ this.masterOn=!!on; this.routeMaster(); }
 };
-// Default mastering chain on the master bus: gentle EQ + glue compressor + limiter
+
 const DEFAULT_MASTER_SPECS=[{type:'eq',params:{low:0,mid:0,high:1.5}},
   {type:'compressor',params:{thresh:-18,ratio:2.5,att:.01,rel:.2}},
   {type:'limiter',params:{ceiling:-0.3,drive:2}}];
-// One-click mastering presets (each is a fixed master FX chain). Chosen from the
-// Master panel instead of editing a modular rack.
+
 const MASTER_PRESETS={
   'Balanced':{desc:'Gentle glue + a touch of air. A safe all-rounder.', specs:DEFAULT_MASTER_SPECS},
   'Loud':{desc:'Hotter compression and limiting for streaming loudness.', specs:[
@@ -723,7 +684,6 @@ function applyMasterPreset(name){
   State.masterPreset=name;
 }
 
-/* Impulse response for reverb (synthetic) */
 function makeImpulse(ctx,seconds,decay){
   const rate=ctx.sampleRate, len=Math.max(1,Math.floor(rate*seconds));
   const imp=ctx.createBuffer(2,len,rate);
@@ -732,7 +692,6 @@ function makeImpulse(ctx,seconds,decay){
   return imp;
 }
 
-/* ---------- tempo detection (onset-envelope autocorrelation) ---------- */
 function detectBPM(buffer){
   const sr=buffer.sampleRate, data=buffer.getChannelData(0), n=data.length;
   const hop=Math.max(1,Math.floor(sr*0.01)), frames=Math.floor(n/hop);
@@ -742,8 +701,7 @@ function detectBPM(buffer){
   for(let i=1;i<frames;i++){ const d=env[i]-env[i-1]; onset[i]=d>0?d:0; }
   const fps=sr/hop, minBPM=60, maxBPM=200;
   const minLag=Math.max(1,Math.floor(fps*60/maxBPM)), maxLag=Math.floor(fps*60/minBPM);
-  // weight each candidate by a log-normal tempo prior (~125 BPM) so we don't lock onto
-  // the half/double tempo (e.g. hear 140 as 70). This resolves the octave ambiguity.
+
   const prefBPM=125, prefW=0.85;
   let bestLag=minLag, best=-1;
   for(let lag=minLag; lag<=maxLag; lag++){
@@ -756,7 +714,6 @@ function detectBPM(buffer){
   return Math.round(60*fps/bestLag)||120;
 }
 
-/* ---------- Autotune (AudioWorklet: pitch detect + delay-line pitch shift, snap to scale) ---------- */
 const SCALES={ chromatic:[0,1,2,3,4,5,6,7,8,9,10,11], major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10], pentatonic:[0,2,4,7,9] };
 const KEY_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function scaleMask(keyName,scale){ const key=Math.max(0,KEY_NAMES.indexOf(keyName));
@@ -832,10 +789,6 @@ function registerAutotune(ctx){
   return ctx.audioWorklet.addModule(autotuneURL()).then(()=>{ ctx.__autotuneReady=true; }).catch(()=>{});
 }
 
-/* =====================================================================
-   FX CHAIN - per track: EQ(3band) -> Delay -> Reverb -> Compressor -> gain -> pan
-   Returned object exposes .input and .output plus param nodes.
-   ===================================================================== */
 const FX_LABEL={autotune:'Autotune',eq:'3-Band EQ',filter:'Auto-Filter',compressor:'Compressor',distortion:'Distortion',
   bitcrusher:'Bitcrusher',chorus:'Chorus',phaser:'Phaser',tremolo:'Tremolo',delay:'Delay',reverb:'Reverb',
   limiter:'Limiter',gain:'Gain',widener:'Stereo Width',autopan:'Auto Pan',autowah:'Auto Wah',flanger:'Flanger',
@@ -943,7 +896,7 @@ const FX_SPEC={
   oneknob:[ {k:'amount',label:'Amount',min:0,max:1,step:.01,fmt:v=>Math.round(v*100)+'%'} ],
 };
 const dbToGain=db=>Math.pow(10,db/20);
-// One Knob macro definitions: a single Amount knob drives a tuned character.
+
 const ONEKNOB={
   brighter:{icon:'✨',build:(ctx,N,input,output)=>{ N.f=ctx.createBiquadFilter(); N.f.type='highshelf'; N.f.frequency.value=4000; input.connect(N.f); N.f.connect(output); },
     apply:(N,a)=>{ N.f.gain.value=a*14; }},
@@ -980,20 +933,20 @@ function makeBitCurve(bits){
   for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=Math.round(x*levels)/levels; }
   return c;
 }
-// soft tanh-style saturation curve (warm, tape-ish)
+
 function makeSatCurve(drive){
   const k=Math.max(0.001,drive), n=1024, c=new Float32Array(n);
   for(let i=0;i<n;i++){ const x=i*2/n-1; c[i]=Math.tanh(x*(1+k))/Math.tanh(1+k); }
   return c;
 }
-// One effect: self-contained in->out graph with wet/dry so it can sit anywhere in the chain.
+
 function makeFXModule(ctx,type,params){
   const input=ctx.createGain(), output=ctx.createGain(), N={}, oscs=[];
   const m={type, enabled:FX_DEFAULT_ON[type]!==false, in:input, out:output,
     params:Object.assign({}, FX_DEFAULT_PARAMS[type], params||{}), nodes:N};
   const startOsc=o=>{ try{o.start();}catch(e){} oscs.push(o); };
   if(type==='autotune'){
-    input.connect(output); // passthrough until the worklet node is attached
+    input.connect(output);
     const attach=()=>{ if(N.node||!ctx.__autotuneReady) return;
       try{ N.node=new AudioWorkletNode(ctx,'autotune-processor',{numberOfInputs:1,numberOfOutputs:1,channelCount:1,channelCountMode:'explicit'});
         try{input.disconnect(output);}catch(e){}
@@ -1054,7 +1007,7 @@ function makeFXModule(ctx,type,params){
   } else if(type==='gain'){
     N.g=ctx.createGain(); input.connect(N.g); N.g.connect(output);
   } else if(type==='widener'){
-    // Mid/Side width matrix: mid=0.5(L+R), side=0.5(L-R); out L=mid+w·side, R=mid−w·side
+
     N.split=ctx.createChannelSplitter(2); N.merge=ctx.createChannelMerger(2);
     N.mid=ctx.createGain(); N.mid.gain.value=0.5;
     N.side=ctx.createGain(); N.side.gain.value=0.5; N.sideInv=ctx.createGain(); N.sideInv.gain.value=-1;
@@ -1102,7 +1055,7 @@ function makeFXModule(ctx,type,params){
       const th=dbToGain(m.params.thresh), rel=Math.exp(-1/(ctx.sampleRate*Math.max(.005,m.params.release)));
       for(let i=0;i<inp.length;i++){ const a=Math.abs(inp[i]); N.g = a>th ? 1 : N.g*rel; o[i]=inp[i]*N.g; } };
   } else if(type==='pitchshift'){
-    // granular delay-line pitch shift (approximate, monophonic-friendly)
+
     const SR=ctx.sampleRate, size=Math.max(1,Math.floor(SR*0.1));
     N.dry=ctx.createGain(); N.sp=ctx.createScriptProcessor(1024,1,1);
     const ring=new Float32Array(size); let wp=0, rp=0;
@@ -1160,7 +1113,7 @@ function makeFXModule(ctx,type,params){
     else if(type==='exciter'){ N.hp.frequency.value=P.freq; N.shaper.curve=makeDistCurve(P.amount*60); N.wet.gain.value=P.mix; N.dry.gain.value=1; }
     else if(type==='tapesat'){ N.shaper.curve=makeSatCurve(P.drive); N.lp.frequency.value=P.tone; N.wet.gain.value=P.mix; N.dry.gain.value=1-Math.min(1,P.mix); }
     else if(type==='deesser'){ N.peak.frequency.value=P.freq; N.peak.gain.value=-P.amount; }
-    else if(type==='gate'){ /* read live in processor */ }
+    else if(type==='gate'){   }
     else if(type==='pitchshift'){ N.dry.gain.value=1-Math.min(1,P.mix); }
     else if(type==='pingpong'){ N.dL.delayTime.value=P.time; N.dR.delayTime.value=P.time; N.fbL.gain.value=P.feedback; N.fbR.gain.value=P.feedback; N.wet.gain.value=P.mix; N.dry.gain.value=1; }
     else if(type==='multiband'){ [N.cLo,N.cMid,N.cHi].forEach(c=>{c.ratio.value=P.ratio; c.attack.value=.005; c.release.value=.15;}); N.cLo.threshold.value=P.low; N.cMid.threshold.value=P.mid; N.cHi.threshold.value=P.high; }
@@ -1171,7 +1124,7 @@ function makeFXModule(ctx,type,params){
   m.update();
   return m;
 }
-// Track FX: input -> [enabled modules, in order] -> gain(volume) -> pan -> output(master)
+
 function buildFX(ctx, specs){
   const input=ctx.createGain(), gain=ctx.createGain(); gain.gain.value=0.85;
   const pan=ctx.createStereoPanner();
@@ -1205,8 +1158,6 @@ function removeFX(t, idx){
   const m=t.fx.modules.splice(idx,1)[0]; t.fx.rebuild(); if(m&&m.dispose)m.dispose(); renderFX();
 }
 
-/* Full FX browser - categories map branded names to the engines above with tuned params.
-   Effects marked ≈ are honest approximations built on a shared engine. */
 const FX_CATEGORIES=[
   {cat:'One Knobs', note:'Get studio-quality sound quickly - one Amount knob each.', items:[
     {name:'Brighter',type:'oneknob',params:{mode:'brighter'}}, {name:'Echo',type:'oneknob',params:{mode:'echo'}},
@@ -1260,7 +1211,7 @@ const FX_CATEGORIES=[
   {cat:'Utility', note:'Shape and route the signal.', items:[
     {name:'Gain',type:'gain',params:{}}, {name:'Stereowise',type:'widener',params:{}} ]},
 ];
-// Open the full categorized FX browser near an anchor element; adds to holder.fx on pick.
+
 function openFXPicker(holder, anchorEl){
   const items=[];
   FX_CATEGORIES.forEach((c,ci)=>{
@@ -1268,13 +1219,13 @@ function openFXPicker(holder, anchorEl){
     items.push({header:c.cat});
     c.items.forEach(it=>items.push({icon:'🎛',label:it.name,action:()=>{
       const p=Object.assign({},it.params);
-      if(it.sync) p.rate=(State.bpm/60)*it.sync; // lock tempo-synced effects to the current BPM
+      if(it.sync) p.rate=(State.bpm/60)*it.sync;
       addFX(holder,it.type,p,it.name);
     }}));
   });
   const r=anchorEl.getBoundingClientRect(); showContextMenu(r.right+4, r.top, items);
 }
-/* Save / load an FX chain (the ordered module specs) as a .blkfx JSON file. */
+
 function saveFXChain(holder){
   const data={blkfx:1, name:holder.isMaster?'Master':holder.name, modules:fxToSpecs(holder.fx)};
   downloadBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),
@@ -1294,15 +1245,12 @@ function loadFXChain(holder){
 function applyFXChain(holder, specs){
   if(typeof pushHistory==='function') pushHistory();
   const fx=holder.fx;
-  fx.modules.slice().forEach(m=>{ if(m.dispose) m.dispose(); }); // free old nodes
+  fx.modules.slice().forEach(m=>{ if(m.dispose) m.dispose(); });
   fx.modules.length=0;
   specs.forEach(s=>{ const m=makeFXModule(Audio.ctx,s.type,s.params); if(s.enabled!=null)m.enabled=s.enabled; if(s.label)m.label=s.label; fx.modules.push(m); });
   fx.rebuild(); renderFX(); toast('FX chain loaded ('+specs.length+' effects)');
 }
 
-/* =====================================================================
-   INSTRUMENTS - presets for the 2-osc subtractive synth engine
-   ===================================================================== */
 const INSTRUMENTS={
   'Saw Lead'  :{osc1:'sawtooth',osc2:'sawtooth',detune:12,a:.01,d:.1,s:.8,r:.2,cutoff:7000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.6,filterEnv:.2,filterDecay:.3},
   'Square Lead':{osc1:'square',osc2:'square',detune:8,a:.01,d:.1,s:.8,r:.2,cutoff:5000,reso:2,lfoRate:5,lfoAmt:0,lfoTarget:'off',mix:.5,filterEnv:.2,filterDecay:.3},
@@ -1319,26 +1267,23 @@ const INSTRUMENTS={
 };
 const DEFAULT_INSTRUMENT='Grand Piano';
 const clone=o=>JSON.parse(JSON.stringify(o));
-// full instrument list: real sampled instruments first, then the synth presets
+
 function allInstrumentNames(){ return [...Object.keys(SAMPLED), ...SYNTH_PRESETS]; }
 function applyInstrument(t,name){
   t.instrument=name;
-  if(SAMPLED[name]){                        // real recorded instrument
+  if(SAMPLED[name]){
     t.engine='sampler'; t.sample=SAMPLED[name];
-    if(INSTRUMENTS[name]) Object.assign(t.synth, clone(INSTRUMENTS[name])); // fallback tone while loading
+    if(INSTRUMENTS[name]) Object.assign(t.synth, clone(INSTRUMENTS[name]));
     t.loading=true; renderTracks(); renderSynthPanel();
     toast('Loading '+name+'…');
     Sampler.ensure(t.sample, ()=>{ t.loading=false; renderTracks();
       if(Sampler.ready(t.sample)) toast(name+' ready'); });
-  } else if(INSTRUMENTS[name]){             // synth preset
+  } else if(INSTRUMENTS[name]){
     t.engine='synth'; t.sample=null; Object.assign(t.synth, clone(INSTRUMENTS[name]));
     renderSynthPanel(); toast('Instrument: '+name);
   }
 }
 
-/* =====================================================================
-   TRACKS
-   ===================================================================== */
 let trackSeq=0;
 function addTrack(type='midi',opts={}){
   Audio.init();
@@ -1347,30 +1292,29 @@ function addTrack(type='midi',opts={}){
   fx.output.connect(Audio.trackTarget());
   const inst = opts.instrument || DEFAULT_INSTRUMENT;
   const t={
-    id:uid(), type, // 'midi' | 'audio' | 'drum'
+    id:uid(), type,
     name:opts.name||(type==='audio'?'Audio '+(++trackSeq):type==='drum'?'Drums':inst+' '+(++trackSeq)),
     color:opts.color||COLORS[State.tracks.length%COLORS.length],
     volume:0.85, pan:0, mute:false, solo:false, arm:false,
     fx, showFx:false, showAuto:false,
-    automation:[], // volume automation points {beat,value}
+    automation:[],
     instrument: type==='midi'?inst:null, engine:'synth', sample:null, loading:false,
     synth: type==='midi' ? clone(INSTRUMENTS[inst]||INSTRUMENTS['Saw Lead']) : clone(State.synth),
   };
   State.tracks.push(t);
   selectTrack(t.id);
   renderTracks(); layout();
-  // scroll the arrangement down so the new track (and the Add Track button) are visible,
-  // but not during bulk rebuilds (load/template/undo)
+
   if(!(typeof History!=='undefined'&&(History.busy||History.suspend))){
     lanes.scrollTop=lanes.scrollHeight; syncHeadersScroll();
   }
-  if(type==='midi' && SAMPLED[inst]) applyInstrument(t, inst); // load the real sample
+  if(type==='midi' && SAMPLED[inst]) applyInstrument(t, inst);
   return t;
 }
 function getTrack(id){return State.tracks.find(t=>t.id===id);}
 function selectTrack(id){State.selectedTrack=id; State.fxView='track';
-  if(typeof updateMasterBtn==='function') updateMasterBtn(); // light reflects mastering on/off, not view
-  // lightweight highlight - don't rebuild headers (would steal focus from a clicked input)
+  if(typeof updateMasterBtn==='function') updateMasterBtn();
+
   $$('.thead').forEach(el=>el.classList.toggle('sel', el.dataset.id===id));
   renderMixer(); renderFX(); renderSynthPanel();
   if(typeof Mic!=='undefined') Mic.routeMonitor();
@@ -1380,9 +1324,7 @@ function trackAudible(t){ if(t.mute) return false; if(anySolo()&&!t.solo) return
 function autoValueAt(t,beat){
   const pts=t.automation;
   if(!pts.length) return t.volume;
-  // Automation is a local deviation from the normal level: there are implicit
-  // anchors at the normal volume at the track start (beat 0) and end, so the line
-  // fades out of and back into normal instead of holding the edge points.
+
   const norm=t.volume, end=totalBeats();
   const first=pts[0], last=pts[pts.length-1];
   if(beat<=first.beat){
@@ -1403,7 +1345,7 @@ function autoValueAt(t,beat){
 }
 function applyTrackGain(t){
   t.fx.pan.pan.setTargetAtTime(t.pan, Audio.now(), 0.01);
-  // when playing an automated + audible track, let the automation ramps own the gain
+
   if(Transport.isPlaying && t.automation.length && trackAudible(t)){
     Transport.scheduleTrackAutomation(t, Transport.songTimeNow());
   } else {
@@ -1440,8 +1382,7 @@ function renderTracks(){
         <div class="kv"><button class="autoBtn" style="font-size:9px;background:${t.showAuto?'var(--accent)':'var(--panel2)'};color:${t.showAuto?'#000':'var(--muted)'};border:1px solid var(--line2);border-radius:4px;padding:2px 6px">Auto</button></div>
         <div class="kv"><button class="delBtn" style="font-size:9px;background:var(--panel2);color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:2px 6px">✕</button></div>
       </div>`;
-    // events
-    // Select on ANY interaction with the header (name, knobs, buttons all select the track too)
+
     el.addEventListener('mousedown',()=>{ if(State.selectedTrack!==t.id){ selectTrack(t.id);
       if(t.type==='drum'){ setDrawerPane('drum'); openDrawer(); } } });
     $(".tcolor",el).addEventListener('input',e=>{t.color=e.target.value; renderTracks(); drawRegions();});
@@ -1456,17 +1397,17 @@ function renderTracks(){
     $(".delBtn",el).addEventListener('click',()=>{deleteTrack(t.id);});
     host.appendChild(el);
   });
-  // "Add Track" button at the bottom of the track list
+
   const add=document.createElement('button'); add.className='add-track-row'; add.textContent='＋ Add Track';
   add.addEventListener('click',e=>{ const r=e.currentTarget.getBoundingClientRect(); addTrackMenu(r.left, r.bottom+4); });
   host.appendChild(add);
 }
-// Whole track-selector column gets the custom menu (no native menu anywhere)
+
 $("#headers").addEventListener('contextmenu',e=>{
   e.preventDefault(); e.stopPropagation();
   const el=e.target.closest('.thead');
   if(el){ const t=getTrack(el.dataset.id); if(t){ selectTrack(t.id); trackHeaderMenu(t, e.clientX, e.clientY); } }
-  else { addTrackMenu(e.clientX, e.clientY); }   // empty area → add a track
+  else { addTrackMenu(e.clientX, e.clientY); }
 });
 function trackHeaderMenu(t, x, y){
   const items=[];
@@ -1513,19 +1454,14 @@ function deleteTrack(id){
   renderTracks(); drawRegions(); layout(); renderMixer();
 }
 
-/* =====================================================================
-   TIMELINE / CANVAS
-   ===================================================================== */
 const lanes=$("#lanes"), regionsLayer=$("#regionsLayer");
 const laneCanvas=$("#laneCanvas"), laneCtx=laneCanvas.getContext('2d');
 const rulerCanvas=$("#rulerCanvas"), rulerCtx=rulerCanvas.getContext('2d');
 function sizeArrangeCanvases(){
   const contentW=beatToPx(totalBeats())+40;
-  // +56 tail so the lanes can scroll far enough to reveal the "＋ Add Track" button
-  // in the (overflow-hidden, scroll-synced) headers column, however many tracks there are.
+
   const contentH=Math.max(State.tracks.length*ROWH+56, lanes.clientHeight);
-  // the grid canvas covers only the viewport (a full-width canvas overflows the browser's
-  // max canvas size when zoomed/long and renders blank) - it's drawn with a scroll offset
+
   const vw=Math.max(1,lanes.clientWidth), vh=Math.max(1,lanes.clientHeight);
   laneCanvas.width=vw; laneCanvas.height=vh;
   laneCanvas.style.width=vw+'px'; laneCanvas.style.height=vh+'px';
@@ -1540,7 +1476,7 @@ function layout(){
   sizeArrangeCanvases();
   drawGrid(); drawRuler(); drawRegions(); renderLoopBar();
 }
-/* ---------- Loop bar (select/enable the loop range on the time area) ---------- */
+
 function renderLoopBar(){
   const track=$("#loopbarTrack"); if(!track) return;
   track.style.width=beatToPx(totalBeats())+'px';
@@ -1562,7 +1498,7 @@ function drawGrid(){
   const ctx=laneCtx, w=laneCanvas.width, h=laneCanvas.height;
   ctx.clearRect(0,0,w,h);
   const bpb=beatsPerBar(), off=lanes.scrollLeft, tb=totalBeats();
-  // loop shading (behind the lines)
+
   if(State.loop.on){
     ctx.fillStyle='rgba(91,140,255,.08)';
     ctx.fillRect(beatToPx(State.loop.start)-off,0,beatToPx(State.loop.end-State.loop.start),h);
@@ -1592,12 +1528,12 @@ function drawRuler(){
     ctx.beginPath();ctx.moveTo(x+.5,isBar?6:14);ctx.lineTo(x+.5,26);ctx.stroke();
     if(isBar){ctx.fillStyle='#9aa4b8';ctx.fillText((b/bpb+1),x+3,12);}
   }
-  // loop markers
+
   if(State.loop.on){
     ctx.fillStyle='rgba(34,211,238,.25)';
     ctx.fillRect(beatToPx(State.loop.start)-off,0,beatToPx(State.loop.end-State.loop.start),6);
   }
-  // playhead marker
+
   const px=beatToPx(secToBeat(Transport.position))-off;
   ctx.fillStyle='#22d3ee'; ctx.beginPath();
   ctx.moveTo(px-4,0);ctx.lineTo(px+4,0);ctx.lineTo(px,6);ctx.fill();
@@ -1605,7 +1541,6 @@ function drawRuler(){
 lanes.addEventListener('scroll',()=>{positionLaneCanvas(); drawGrid(); drawRuler(); syncHeadersScroll(); syncLoopBarScroll();});
 function syncHeadersScroll(){$("#headers").scrollTop=lanes.scrollTop;}
 
-/* Loop bar interaction: drag to select the loop range, click to toggle, edge handles to resize */
 (function(){
   const bar=$("#loopbarScroll"); if(!bar) return;
   bar.addEventListener('mousedown',e=>{
@@ -1629,7 +1564,6 @@ function syncHeadersScroll(){$("#headers").scrollTop=lanes.scrollTop;}
 })();
 $("#btnLoopBar").addEventListener('click',()=>{ State.loop.on=!State.loop.on; updateLoopUI(); });
 
-/* click + drag on the ruler to scrub the playhead (shift = set loop start) */
 $("#rulerScroll").addEventListener('mousedown',e=>{
   if(e.button!==0) return;
   const toBeat=cx=>snapBeat(pxToBeat(cx-$("#rulerScroll").getBoundingClientRect().left+lanes.scrollLeft));
@@ -1640,18 +1574,15 @@ $("#rulerScroll").addEventListener('mousedown',e=>{
   document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
 });
 
-/* ---------- Region rendering ---------- */
 function waveformCanvas(buffer,w,h,color,offsetSec,durSec){
-  // Cap the CANVAS pixel width (a canvas wider than the browser max renders blank/white
-  // when you zoom in) but stretch it via CSS to fill the region's on-screen width.
+
   const dispW=Math.max(1,w);
   const cw=Math.min(dispW,MAX_CANVAS_W);
   const c=document.createElement('canvas'); c.width=cw; c.height=h;
   c.style.width=dispW+'px'; c.style.height=h+'px';
   const ctx=c.getContext('2d'); ctx.strokeStyle=color; ctx.globalAlpha=.85;
   const data=buffer.getChannelData(0), sr=buffer.sampleRate;
-  // Only draw the region's OWN slice of the buffer [offset, offset+duration] so split
-  // halves each show their correct portion (not the whole take squished into the clip).
+
   const s0=Math.max(0,Math.floor((offsetSec||0)*sr));
   const s1=(durSec!=null)?Math.min(data.length,s0+Math.floor(durSec*sr)):data.length;
   const step=Math.max(1,Math.floor((s1-s0)/cw));
@@ -1664,7 +1595,7 @@ function waveformCanvas(buffer,w,h,color,offsetSec,durSec){
   ctx.stroke(); return c;
 }
 function drawRegions(){
-  // extend the arrangement if a clip now reaches past the current end (e.g. dragged out)
+
   if(ensureArrangeLength()){ sizeArrangeCanvases(); drawGrid(); drawRuler(); renderLoopBar(); }
   regionsLayer.innerHTML='';
   State.regions.forEach(r=>{
@@ -1680,12 +1611,12 @@ function drawRegions(){
     el.dataset.id=r.id;
     el.innerHTML=`<div class="rlabel">${r.recording?'● Recording…':r.name}</div>`+
       (r.recording?'':`<div class="handle l"></div><div class="handle r"></div>`);
-    // waveform / notes
+
     if(r.type==='audio'&&r.buffer){
       const wf=waveformCanvas(r.buffer, Math.max(2,w), ROWH-18, t.color, r.offset||0, r.duration);
       wf.style.top='0px'; el.appendChild(wf);
     } else if(r.type==='midi'){
-      const H=ROWH-14, LABEL_H=14, areaH=H-LABEL_H; const notes=r.notes||[]; // keep notes below the name label
+      const H=ROWH-14, LABEL_H=14, areaH=H-LABEL_H; const notes=r.notes||[];
       let minP=48,maxP=72;
       notes.forEach(n=>{minP=Math.min(minP,n.pitch);maxP=Math.max(maxP,n.pitch);});
       const range=Math.max(6,maxP-minP+2);
@@ -1700,11 +1631,11 @@ function drawRegions(){
       });
     }
     regionsLayer.appendChild(el);
-    if(!r.recording) attachRegionEvents(el,r); // the live recording clip isn't draggable
+    if(!r.recording) attachRegionEvents(el,r);
   });
-  // drum tracks show their step pattern as a lane strip (they play a pattern, not a clip)
+
   State.tracks.forEach((t,ti)=>{ if(t.type==='drum') drawDrumLane(t,ti); });
-  // automation lanes: one per track that has it shown (regardless of how many clips)
+
   State.tracks.forEach((t,ti)=>{ if(t.showAuto) drawAutomation(t,ti); });
 }
 function drawDrumLane(t,ti){
@@ -1716,7 +1647,7 @@ function drawDrumLane(t,ti){
   el.style.background=hexA(t.color,.14); el.style.borderColor=hexA(t.color,.5);
   const lanes=DRUM_NAMES.filter((n,i)=>State.drumPattern[i].some(Boolean)).length;
   el.innerHTML=`<div class="rlabel">🥁 Drum Pattern · ${lanes} lane${lanes!==1?'s':''}</div>`;
-  const LABEL_H=14, areaH=H-LABEL_H; // keep the pattern below the name label
+  const LABEL_H=14, areaH=H-LABEL_H;
   const c=document.createElement('canvas'); c.width=Math.min(Math.max(1,W),MAX_CANVAS_W); c.height=H;
   c.style.position='absolute'; c.style.top='0'; c.style.left='0'; c.style.opacity='.9';
   const ctx=c.getContext('2d'); ctx.fillStyle=hexA(t.color,.95);
@@ -1742,7 +1673,7 @@ function drawAutomation(t,ti){
   const c=document.createElement('canvas'); c.width=Math.min(Math.max(1,w),MAX_CANVAS_W); c.height=34; lane.appendChild(c);
   const ctx=c.getContext('2d');
   ctx.strokeStyle=hexA(t.color,.9); ctx.lineWidth=1.5; ctx.beginPath();
-  // build the drawn line with implicit normal-level anchors at the start and end
+
   const norm=t.volume, endB=totalBeats();
   let line;
   if(t.automation.length){
@@ -1753,11 +1684,11 @@ function drawAutomation(t,ti){
   line.forEach((p,i)=>{const x=beatToPx(p.beat), y=34-(p.value/1.2)*34;
     i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
   ctx.stroke();
-  // dots only on the user's own points (not the implicit anchors)
+
   t.automation.forEach(p=>{const x=beatToPx(p.beat), y=34-(p.value/1.2)*34;
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,3,0,7);ctx.fill();});
   c.addEventListener('mousedown',e=>{
-    if(e.button!==0) return; // let right-click delete a point / not add one
+    if(e.button!==0) return;
     const rect=c.getBoundingClientRect();
     const beat=snapBeat(pxToBeat(e.clientX-rect.left));
     const value=clamp(1.2-((e.clientY-rect.top)/34)*1.2,0,1.2);
@@ -1766,7 +1697,7 @@ function drawAutomation(t,ti){
     drawRegions();
   });
   c.addEventListener('contextmenu',e=>{
-    e.preventDefault(); e.stopPropagation(); // handle here, don't open the timeline menu
+    e.preventDefault(); e.stopPropagation();
     const rect=c.getBoundingClientRect(); const beat=pxToBeat(e.clientX-rect.left);
     if(!t.automation.length) return;
     let idx=0,best=1e9; t.automation.forEach((p,i)=>{const d=Math.abs(p.beat-beat); if(d<best){best=d;idx=i;}});
@@ -1779,18 +1710,17 @@ function drawAutomation(t,ti){
 
 function snapBeat(b){const s=State.snap; if(!s) return Math.max(0,b); return Math.max(0,Math.round(b/s)*s);}
 
-/* region interaction: move, trim, select, fade */
 function attachRegionEvents(el,r){
   el.addEventListener('mousedown',e=>{
-    if(e.button!==0) return; // right-click is the context menu, not a drag
-    if(e.target.classList.contains('handle')) return; // handled below
-    // shift/ctrl-click toggles this region in the multi-selection
+    if(e.button!==0) return;
+    if(e.target.classList.contains('handle')) return;
+
     if(e.shiftKey||e.ctrlKey||e.metaKey){ toggleInSelection(r.id); selectTrack(r.trackId); drawRegions(); return; }
     if(!State.selection.includes(r.id)) setSelection([r.id]);
     selectTrack(r.trackId); drawRegions();
     if(r.type==='midi' && State.selection.length<=1){ PianoRoll.load(r); setDrawerPane('piano'); }
-    // drag every selected region together (same beat + track offset)
-    const startX=e.clientX, startScrollL=lanes.scrollLeft;   // include scroll for edge auto-scroll
+
+    const startX=e.clientX, startScrollL=lanes.scrollLeft;
     const group=State.regions.filter(x=>State.selection.includes(x.id))
       .map(x=>({r:x, start:x.start, ti:State.tracks.findIndex(t=>t.id===x.trackId)}));
     const primTi=(group.find(o=>o.r.id===r.id)||{ti:0}).ti;
@@ -1809,7 +1739,7 @@ function attachRegionEvents(el,r){
         o.r.trackId=State.tracks[nti].id;
       });
       drawRegions();
-      // live: reschedule ONLY the dragged clips so other tracks aren't re-triggered (throttled)
+
       if(Transport.isPlaying && r.start!==lastStart){
         const now=performance.now();
         if(now-lastResched>90){ lastResched=now; lastStart=r.start; group.forEach(o=>Transport.rescheduleRegion(o.r)); }
@@ -1820,10 +1750,10 @@ function attachRegionEvents(el,r){
     document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
   });
   el.addEventListener('dblclick',()=>{ if(r.type==='midi'){PianoRoll.load(r);setDrawerPane('piano');openDrawer();}});
-  // trim handles
+
   $$(".handle",el).forEach(h=>{
     h.addEventListener('mousedown',e=>{
-      if(e.button!==0) return; // right-click → context menu
+      if(e.button!==0) return;
       e.stopPropagation();
       const left=h.classList.contains('l');
       const startX=e.clientX, startScrollL=lanes.scrollLeft, oStart=r.start, oDur=r.duration, oOff=r.offset||0;
@@ -1875,7 +1805,7 @@ function deleteRegion(){
   if(typeof pushHistory==='function') pushHistory();
   const removed=State.regions.filter(r=>ids.includes(r.id));
   State.regions=State.regions.filter(r=>!ids.includes(r.id));
-  clearSelection(); drawRegions(); removed.forEach(r=>Transport.rescheduleRegion(r)); // just stop their audio
+  clearSelection(); drawRegions(); removed.forEach(r=>Transport.rescheduleRegion(r));
   toast(ids.length>1?ids.length+' regions deleted':'Region deleted');
 }
 function splitRegion(){
@@ -1894,16 +1824,13 @@ function splitRegion(){
   State.regions.push(right); drawRegions(); Transport.rescheduleRegion(r); Transport.rescheduleRegion(right); toast('Region split');
 }
 
-/* =====================================================================
-   SYNTH - voice builder (works for live + offline)
-   ===================================================================== */
 function midiToFreq(m){return 440*Math.pow(2,(m-69)/12);}
 function spawnVoice(ctx,dest,params,freq,when,vel=0.9,dur=null){
   const o1=ctx.createOscillator(); o1.type=params.osc1; o1.frequency.value=freq;
   const o2=ctx.createOscillator(); o2.type=params.osc2; o2.frequency.value=freq; o2.detune.value=params.detune;
   const g1=ctx.createGain(); g1.gain.value=1; const g2=ctx.createGain(); g2.gain.value=params.mix;
   const filter=ctx.createBiquadFilter(); filter.type='lowpass'; filter.Q.value=params.reso;
-  // filter envelope: open bright on attack, decay down to the base cutoff (gives pianos/plucks/bells their shape)
+
   const baseCut=params.cutoff, envAmt=params.filterEnv||0;
   if(envAmt>0){
     const peak=Math.min(18000, baseCut + envAmt*11000);
@@ -1915,7 +1842,7 @@ function spawnVoice(ctx,dest,params,freq,when,vel=0.9,dur=null){
   const amp=ctx.createGain(); amp.gain.value=0;
   o1.connect(g1); o2.connect(g2); g1.connect(filter); g2.connect(filter);
   filter.connect(amp); amp.connect(dest);
-  // LFO
+
   let lfo,lfoGain;
   if(params.lfoTarget&&params.lfoTarget!=='off'&&params.lfoAmt>0){
     lfo=ctx.createOscillator(); lfo.frequency.value=params.lfoRate;
@@ -1937,16 +1864,12 @@ function spawnVoice(ctx,dest,params,freq,when,vel=0.9,dur=null){
       amp.gain.linearRampToValueAtTime(0, now+R);
       o1.stop(now+R+0.05); o2.stop(now+R+0.05); if(lfo)lfo.stop(now+R+0.05);
     }};
-  if(dur!=null){ // scheduled note
+  if(dur!=null){
     const end=when+dur; voice.release(end);
   }
   return voice;
 }
 
-/* =====================================================================
-   SAMPLER - real recorded instruments (General MIDI soundfonts, loaded on demand
-   from gleitz.github.io/midi-js-soundfonts). Pitch-shifts the nearest sample.
-   ===================================================================== */
 const SAMPLED={
   'Grand Piano':'acoustic_grand_piano','Bright Piano':'bright_acoustic_piano','Electric Piano':'electric_piano_1',
   'Harpsichord':'harpsichord','Clavinet':'clavinet','Church Organ':'church_organ','Drawbar Organ':'drawbar_organ','Accordion':'accordion',
@@ -2005,7 +1928,7 @@ const Sampler={
       g.gain.setValueAtTime(g.gain.value,now); g.gain.linearRampToValueAtTime(0.0001, now+0.35); try{src.stop(now+0.4);}catch(e){} } };
   }
 };
-// route a note through the track's active engine (real sample if loaded, else the synth)
+
 function playTrackNote(track, ctx, dest, pitch, when, vel, dur){
   if(track.engine==='sampler' && Sampler.ready(track.sample))
     return Sampler.play(track.sample, ctx, dest, pitch, when, vel, dur);
@@ -2013,8 +1936,8 @@ function playTrackNote(track, ctx, dest, pitch, when, vel, dur){
 }
 
 const Synth={
-  live:{}, // pitch -> voice (for currently held keys)
-  // One-shot audition on a SPECIFIC track (used by the piano roll so it plays the clip's own instrument)
+  live:{},
+
   audition(pitch,vel=0.9,track){
     Audio.init(); Audio.resume();
     const t=track||getTrack(State.selectedTrack); if(!t) return;
@@ -2027,7 +1950,7 @@ const Synth={
     const v=playTrackNote(t, Audio.ctx, t.fx.input, pitch, Audio.now(), vel, null);
     if(!v) return;
     this.live[pitch]=v;
-    // record into armed midi region
+
     if(Transport.recording && t.arm && t.type!=='audio') Recorder.midiNoteOn(t,pitch,vel);
     PianoRoll.highlight(pitch,true);
   },
@@ -2039,12 +1962,10 @@ const Synth={
   }
 };
 
-/* make sure the AudioContext is running on any user gesture (autoplay unlock) */
 function unlockAudio(){ if(Audio.ctx && Audio.ctx.state==='suspended') Audio.ctx.resume(); }
 window.addEventListener('pointerdown',unlockAudio,true);
 window.addEventListener('keydown',unlockAudio,true);
 
-/* computer keyboard -> notes */
 const KEYMAP={a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72,o:73,l:74,p:75};
 let kbOctave=0;
 window.addEventListener('keydown',e=>{
@@ -2069,9 +1990,6 @@ window.addEventListener('keyup',e=>{
   if(KEYMAP[k]!==undefined) Synth.noteOff(KEYMAP[k]+kbOctave*12);
 });
 
-/* =====================================================================
-   TRANSPORT + SCHEDULER
-   ===================================================================== */
 const Transport={
   isPlaying:false, recording:false,
   startCtx:0, startSong:0, position:0,
@@ -2081,11 +1999,11 @@ const Transport={
   play(){
     Audio.init(); Audio.resume();
     if(this.isPlaying) return;
-    this.playAnchor=this.position;               // remember where we pressed play
+    this.playAnchor=this.position;
     this.isPlaying=true; $("#btnPlay").classList.add('on');
     this.startCtx=Audio.now(); this.startSong=this.position;
     this.scheduledUntil=this.position;
-    // prime: schedule regions already in progress
+
     this.primeAt(this.position);
     this.scheduleAutomation(this.position);
     this.metroNext=Math.ceil(secToBeat(this.position)-1e-6)*secPerBeat();
@@ -2098,13 +2016,13 @@ const Transport={
     clearInterval(this.timer);
     this.killSources();
     Recorder.finishAll();
-    applyAllGains(); // restore static (non-automated) gains
+    applyAllGains();
   },
   toggle(){ this.isPlaying?this.pause():this.play(); },
   pause(){
     const anchor=this.playAnchor;
     this.stop();
-    // when "return to start" is on, jump back to where playback began
+
     if(State.returnToStart && anchor!=null){ this.position=anchor; updatePlayhead(); updatePosDisplay(); }
   },
   stopToStart(){ this.stop(); },
@@ -2113,14 +2031,14 @@ const Transport={
     if(this.isPlaying){ this._resyncFrom(this.position); }
     updatePlayhead(); updatePosDisplay();
   },
-  // re-arm the scheduler from a given song position (used on seek + after edits while playing)
+
   _resyncFrom(pos){
     this.startCtx=Audio.now(); this.startSong=pos;
     this.scheduledUntil=pos; this.killSources(); this.primeAt(pos);
     this.scheduleAutomation(pos);
     this.metroNext=Math.ceil(secToBeat(pos)-1e-6)*secPerBeat();
   },
-  // call after a region/clip is edited so playback follows the change live
+
   reschedule(){ if(this.isPlaying) this._resyncFrom(this.songTimeNow()); },
   toggleRecord(){
     Audio.init(); Audio.resume();
@@ -2131,8 +2049,7 @@ const Transport={
   },
   songTimeNow(){ return this.startSong+(Audio.now()-this.startCtx); },
   ctxTimeFor(songT){ return this.startCtx+(songT-this.startSong); },
-  // where to DRAW the playhead: while playing, hold it back by the output latency so the
-  // bar matches the audio you actually hear (scheduler still uses the true position)
+
   displayPos(){ return Math.max(0, this.position - (this.isPlaying ? Audio.latency() : 0)); },
 
   scheduleAutomation(fromSong){ State.tracks.forEach(t=>this.scheduleTrackAutomation(t,fromSong)); },
@@ -2150,7 +2067,7 @@ const Transport={
         g.linearRampToValueAtTime(clamp(p.value,0,1.5), when);
       }
     });
-    // after the last point, ramp back to the normal level by the end (or loop end)
+
     const last=t.automation[t.automation.length-1];
     if(last && last.beat<upper && upper>fromBeat){
       const when=Math.max(now, this.ctxTimeFor(beatToSec(upper)));
@@ -2158,23 +2075,23 @@ const Transport={
     }
   },
 
-  regionSources:{}, // regionId -> [source nodes currently scheduled for it]
+  regionSources:{},
   killSources(){ this.activeSources.forEach(s=>{try{s.stop();}catch(e){}}); this.activeSources=[]; this.regionSources={}; },
-  // stop + reschedule ONE region (used for live clip drag/resize so other tracks aren't re-triggered)
+
   rescheduleRegion(r){
     if(!this.isPlaying) return;
     (this.regionSources[r.id]||[]).forEach(s=>{try{s.stop();}catch(e){}});
     this.regionSources[r.id]=[];
-    if(!State.regions.includes(r)) return;           // deleted → just stopped
+    if(!State.regions.includes(r)) return;
     const now=this.songTimeNow(), end=r.start+r.duration;
-    if(end<=now) return;                              // entirely in the past
-    if(r.start<=now)                      this.scheduleRegion(r, this.ctxTimeFor(r.start), now-r.start); // overlaps playhead
-    else if(r.start<this.scheduledUntil)  this.scheduleRegion(r, this.ctxTimeFor(r.start));              // future but already-scanned window
-    // else start >= scheduledUntil → the normal tick scheduler will pick it up
+    if(end<=now) return;
+    if(r.start<=now)                      this.scheduleRegion(r, this.ctxTimeFor(r.start), now-r.start);
+    else if(r.start<this.scheduledUntil)  this.scheduleRegion(r, this.ctxTimeFor(r.start));
+
   },
 
   primeAt(pos){
-    // schedule regions that overlap pos (start playback mid-region)
+
     State.regions.forEach(r=>{
       if(r.start<=pos && r.start+r.duration>pos){
         this.scheduleRegion(r, this.ctxTimeFor(r.start), pos-r.start);
@@ -2191,7 +2108,7 @@ const Transport={
       src.connect(g); g.connect(t.fx.input);
       const off=(r.offset||0)+skip;
       const dur=r.duration-skip;
-      // fades
+
       const fin=r.fadeIn||0, fout=r.fadeOut||0, w=Math.max(when,Audio.now());
       g.gain.setValueAtTime(fin>0?0:1, w);
       if(fin>0) g.gain.linearRampToValueAtTime(1, w+Math.min(fin,dur));
@@ -2201,7 +2118,7 @@ const Transport={
     } else if(r.type==='midi'){
       (r.notes||[]).forEach(n=>{
         const nStart=r.start+n.start;
-        if(nStart+ (0) < r.start+skip) return; // skip already-passed
+        if(nStart+ (0) < r.start+skip) return;
         const nWhen=this.ctxTimeFor(nStart);
         if(nStart < this.songTimeNow()-0.001) return;
         const v=playTrackNote(t,Audio.ctx,t.fx.input,n.pitch,Math.max(nWhen,Audio.now()),n.vel||0.85,n.dur);
@@ -2212,9 +2129,9 @@ const Transport={
 
   tick(){
     const now=this.songTimeNow();
-    // keep extending the arrangement while recording past the end
+
     if(this.recording && ensureArrangeLength()) layout();
-    // loop wrap
+
     if(State.loop.on && now>=beatToSec(State.loop.end)){
       this.killSources();
       this.position=beatToSec(State.loop.start);
@@ -2228,13 +2145,13 @@ const Transport={
     if(!State.loop.on && now>=beatToSec(totalBeats())){ this.stopToStart(); this.position=0; updatePlayhead(); return;}
     let winEnd=now+this.lookahead;
     if(State.loop.on) winEnd=Math.min(winEnd, beatToSec(State.loop.end));
-    // schedule regions starting in window
+
     State.regions.forEach(r=>{
       if(r.start>=this.scheduledUntil && r.start<winEnd){
         this.scheduleRegion(r, this.ctxTimeFor(r.start));
       }
     });
-    // metronome + drum sequencer (beat clicks)
+
     if(State.metro || anyDrumActive()){
       while(this.metroNext<winEnd){
         if(this.metroNext>=this.scheduledUntil){
@@ -2259,7 +2176,7 @@ const Transport={
     this.position=this.songTimeNow();
     if(State.loop.on && this.position>beatToSec(State.loop.end)) this.position=beatToSec(State.loop.end);
     updatePlayhead(); updatePosDisplay();
-    // grow the live "recording" placeholder clip to follow the playhead (cheap: just its width)
+
     if(this.recording && Recorder.recRegion){
       const ph=Recorder.recRegion; ph.duration=Math.max(0.05, this.position-ph.start);
       const el=regionsLayer.querySelector('[data-id="'+ph.id+'"]');
@@ -2271,7 +2188,7 @@ const Transport={
 function updatePlayhead(){
   const x=beatToPx(secToBeat(Transport.displayPos()));
   $("#playhead").style.left=x+'px';
-  // autoscroll
+
   const view=lanes.scrollLeft, vw=lanes.clientWidth;
   if(x<view||x>view+vw-60) lanes.scrollLeft=Math.max(0,x-vw*0.3);
   drawRuler();
@@ -2284,25 +2201,21 @@ function updatePosDisplay(){
   const bt=Math.floor(beat%bpb)+1;
   const ticks=Math.floor((beat%1)*480);
   $("#posDisplay").textContent=`${bar} . ${bt} . ${String(ticks).padStart(3,'0')}`;
-  // actual elapsed time of the song (mm:ss.mmm)
+
   const sec=Math.max(0,Transport.displayPos());
   const m=Math.floor(sec/60), s=Math.floor(sec%60), ms=Math.floor((sec%1)*1000);
   $("#timeDisplay").textContent=`${m}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
 }
 
-/* =====================================================================
-   RECORDER - mic audio + live MIDI
-   ===================================================================== */
 const Recorder={
   micStream:null, mediaRec:null, chunks:[], recTrack:null, recRegion:null, recStartSong:0,
-  midiRegions:{}, // trackId -> region being recorded
-  activeNotes:{}, // trackId+pitch -> {noteObj, startSong}
+  midiRegions:{},
+  activeNotes:{},
 
   async armStart(){
-    // snapshot the pre-recording state so the finished take can be undone/redone
+
     if(typeof pushHistory==='function') pushHistory();
-    // MIDI recording regions created lazily on first note.
-    // Audio recording: capture the mic into the first armed audio track.
+
     const audioTrack=State.tracks.find(t=>t.arm && t.type==='audio');
     if(audioTrack){
       try{
@@ -2314,8 +2227,7 @@ const Recorder={
         this.mediaRec.ondataavailable=e=>{if(e.data.size)this.chunks.push(e.data);};
         this.mediaRec.onstop=()=>this.commitAudio();
         this.mediaRec.start();
-        // drop a live "recording" placeholder clip that grows on the timeline as you sing;
-        // it gets filled with the waveform when recording finishes (commitAudio)
+
         const ph={id:uid(),trackId:audioTrack.id,type:'audio',name:audioTrack.name+' take',
           start:this.recStartSong,offset:0,duration:0.05,buffer:null,fadeIn:0,fadeOut:0,recording:true};
         State.regions.push(ph); this.recRegion=ph; State.selectedRegion=ph.id; drawRegions();
@@ -2353,9 +2265,9 @@ const Recorder={
     if(!this.chunks.length){ dropPlaceholder(); return; }
     const blob=new Blob(this.chunks,{type:'audio/webm'});
     const track=this.recTrack, startSong=this.recStartSong;
-    const comp=(State.recLatencyMs||0)/1000; // latency compensation: pull the take earlier
+    const comp=(State.recLatencyMs||0)/1000;
     blob.arrayBuffer().then(ab=>Audio.ctx.decodeAudioData(ab)).then(buf=>{
-      // fill the placeholder container with the finished waveform (or create one if it's gone)
+
       let reg=ph;
       if(reg && State.regions.includes(reg)){ reg.recording=false; reg.buffer=buf; reg.start=Math.max(0,startSong-comp); reg.duration=buf.duration; }
       else { reg={id:uid(),trackId:track.id,type:'audio',name:track.name+' take',
@@ -2373,19 +2285,16 @@ const Recorder={
   }
 };
 
-/* =====================================================================
-   MIC / VOCALS - device select, input meter, monitoring, count-in
-   ===================================================================== */
 const Mic={
   stream:null, source:null, analyser:null, monitorGain:null, monitoring:false,
   deviceId:null, buf:null, metering:false, autoDetected:false, _devWatch:false,
-  noiseSuppress:false, // browser voice-DSP off by default for clean, full-quality audio
+  noiseSuppress:false,
 
   async getStream(){
     if(this.stream && this.stream.active) return this.stream;
     return this.enable(this.deviceId);
   },
-  // Automatically find and enable a microphone (called when the Vocals panel opens)
+
   async autoDetect(){
     if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){ toast('Mic not available in this browser/context'); return; }
     await this.listDevices();
@@ -2393,7 +2302,7 @@ const Mic={
     if((!this.stream || !this.stream.active) && !this.autoDetected){
       this.autoDetected=true;
       try{ await this.enable(this.deviceId); toast('Microphone detected'); }
-      catch(e){ this._setStatus(false); /* denied / none - user can retry */ }
+      catch(e){ this._setStatus(false);   }
     }
   },
   _watchDevices(){
@@ -2401,7 +2310,7 @@ const Mic={
     this._devWatch=true;
     navigator.mediaDevices.addEventListener('devicechange', async ()=>{
       await this.listDevices();
-      // if the active mic vanished, fall back to the default input
+
       if(this.stream){
         const live=this.stream.getAudioTracks()[0];
         const stillThere=(await navigator.mediaDevices.enumerateDevices()).some(d=>d.kind==='audioinput' && d.label===(live&&live.label));
@@ -2411,8 +2320,7 @@ const Mic={
   },
   async enable(deviceId){
     Audio.init(); Audio.resume();
-    // Clean, full-bandwidth capture: turn OFF the browser's voice-call DSP, which mangles
-    // music/vocals (comb-filtering, pumping, muffling). Optional NS for noisy rooms.
+
     const audio = {
       echoCancellation:false, autoGainControl:false,
       noiseSuppression:this.noiseSuppress,
@@ -2423,11 +2331,11 @@ const Mic={
     if(this.stream){ this.stream.getTracks().forEach(t=>t.stop()); }
     this.stream = await navigator.mediaDevices.getUserMedia({audio});
     this.deviceId = deviceId || null;
-    // build monitor + analyser graph
+
     this.source = Audio.ctx.createMediaStreamSource(this.stream);
     this.analyser = Audio.ctx.createAnalyser(); this.analyser.fftSize=1024;
     this.buf = new Float32Array(this.analyser.fftSize);
-    // monitor path routes THROUGH the record track's FX chain so you hear autotune/EQ/reverb live
+
     this.monitorGain = Audio.ctx.createGain(); this.monitorGain.gain.value = this.monitoring ? 1 : 0;
     this.source.connect(this.analyser);
     this.source.connect(this.monitorGain); this._monDest=null; this.routeMonitor();
@@ -2445,7 +2353,7 @@ const Mic={
     }
     toast('Noise suppression '+(on?'on':'off'));
   },
-  // where the monitor signal goes: the armed audio track's FX input (else selected track, else master)
+
   monitorDest(){
     const armed=State.tracks.find(t=>t.arm && t.type==='audio');
     const t=armed || getTrack(State.selectedTrack);
@@ -2495,13 +2403,12 @@ const Mic={
   }
 };
 
-// One-click vocal recording: ensure mic + an armed audio track, optional count-in, then roll.
 async function recordVocals(){
   if(Transport.recording){ Transport.stop(); return; }
   Audio.init(); Audio.resume();
   try{ await Mic.getStream(); }
   catch(e){ toast('Mic access denied - allow the microphone and try again'); return; }
-  // ensure an armed audio track
+
   let track = State.tracks.find(t=>t.arm && t.type==='audio')
            || State.tracks.find(t=>t.type==='audio');
   if(!track){ track = addTrack('audio',{name:'Vocals'}); }
@@ -2522,9 +2429,6 @@ function startCountIn(cb){
   setTimeout(cb, beats*spb*1000 + 120);
 }
 
-/* =====================================================================
-   FILE IMPORT (upload + drag/drop)
-   ===================================================================== */
 async function importFiles(files, dropTrackId=null, dropBeat=0){
   Audio.init();
   for(const f of files){
@@ -2556,9 +2460,6 @@ lanes.addEventListener('drop',e=>{
   importFiles(e.dataTransfer.files, t&&t.type==='audio'?t.id:null, beat);
 });
 
-/* =====================================================================
-   PIANO ROLL
-   ===================================================================== */
 function roundRect(ctx,x,y,w,h,r){ r=Math.max(0,Math.min(r,w/2,h/2));
   ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
@@ -2566,7 +2467,7 @@ const BLACK_KEYS=[1,3,6,8,10];
 const isBlackKey=p=>BLACK_KEYS.includes(((p%12)+12)%12);
 
 const PianoRoll={
-  region:null, cellBeat:0.25, noteH:15, octaves:8, lowNote:12, beatW:96, minBars:16, snap:true, // C0..B7
+  region:null, cellBeat:0.25, noteH:15, octaves:8, lowNote:12, beatW:96, minBars:16, snap:true,
   selNotes:[],
   grid:$("#prGrid"), keys:$("#prKeys"), ruler:$("#prRuler"),
   get rows(){return this.octaves*12;},
@@ -2581,8 +2482,7 @@ const PianoRoll={
     this.draw(); drawRegions(); toast(n>1?n+' notes deleted':'Note deleted'); return true; },
   ensureRegion(){
     if(this.region) return this.region;
-    // Only make a MIDI clip on the SELECTED instrument track - never invent a new
-    // track (e.g. when the selected track is audio/vocals or a drum track).
+
     const t=getTrack(State.selectedTrack);
     if(!t || t.type!=='midi') return null;
     const reg={id:uid(),trackId:t.id,type:'midi',name:'MIDI',start:0,offset:0,duration:secPerBeat()*beatsPerBar()*2,notes:[]};
@@ -2594,13 +2494,13 @@ const PianoRoll={
     const r=this.region;
     const bpb=beatsPerBar();
     const regionBars=Math.ceil((r?secToBeat(r.duration):8)/bpb);
-    const beats=(Math.max(regionBars, this.minBars)+2)*bpb; // extend well past the clip so you can scroll/add
+    const beats=(Math.max(regionBars, this.minBars)+2)*bpb;
     const pxBeat=this.beatW, W=Math.max(360, beats*pxBeat), H=this.rows*this.noteH;
     this._pxBeat=pxBeat;
     this.grid.width=W; this.grid.height=H;
     this.keys.width=56; this.keys.height=H;
     this.ruler.width=W; this.ruler.height=22;
-    // ---- grid rows ----
+
     const _cs=getComputedStyle(document.documentElement);
     const AC=_cs.getPropertyValue('--accent').trim()||'#8A2BE2';
     const AC2=_cs.getPropertyValue('--accent2').trim()||'#b06bff';
@@ -2608,21 +2508,21 @@ const PianoRoll={
     for(let row=0;row<this.rows;row++){
       const pitch=this.lowNote+(this.rows-1-row), y=row*this.noteH;
       g.fillStyle=isBlackKey(pitch)?'#0b0c11':'#0f1119'; g.fillRect(0,y,W,this.noteH);
-      if(pitch%12===0){ g.fillStyle=hexA(AC,0.07); g.fillRect(0,y,W,this.noteH); } // C-row tint
+      if(pitch%12===0){ g.fillStyle=hexA(AC,0.07); g.fillRect(0,y,W,this.noteH); }
       g.strokeStyle='#171a24'; g.beginPath(); g.moveTo(0,y+.5); g.lineTo(W,y+.5); g.stroke();
     }
-    // ---- vertical grid ----
+
     for(let b=0;b<=beats+1e-6;b+=this.cellBeat){
       const x=b*pxBeat, isBeat=Math.abs(b%1)<1e-6, isBar=Math.abs(b%bpb)<1e-6;
       g.strokeStyle=isBar?'#39445a':isBeat?'#232b3a':'#161b26'; g.lineWidth=isBar?1.4:1;
       g.beginPath(); g.moveTo(x+.5,0); g.lineTo(x+.5,H); g.stroke();
     }
     g.lineWidth=1;
-    // clip-end marker (region duration)
+
     if(r){ const endX=secToBeat(r.duration)*pxBeat;
       g.fillStyle='rgba(0,0,0,0.28)'; g.fillRect(endX,0,W-endX,H);
       g.strokeStyle=hexA(AC,0.5); g.beginPath(); g.moveTo(endX+.5,0); g.lineTo(endX+.5,H); g.stroke(); }
-    // ---- notes ----
+
     if(r) (r.notes||[]).forEach(n=>{
       const x=secToBeat(n.start)*pxBeat, wN=Math.max(4,secToBeat(n.dur)*pxBeat);
       const row=this.rows-1-(n.pitch-this.lowNote); if(row<0||row>=this.rows) return;
@@ -2634,7 +2534,7 @@ const PianoRoll={
       roundRect(g,x+1,y+1.5,wN-2,this.noteH-3,3); g.stroke(); g.lineWidth=1;
       if(wN>11){ g.fillStyle= sel?'rgba(255,255,255,.95)':'rgba(255,255,255,.45)'; g.fillRect(x+wN-3.5, y+3, 2, this.noteH-6); }
     });
-    // ---- ruler ----
+
     const rc=this.ruler.getContext('2d'); rc.clearRect(0,0,W,22);
     rc.font='9px "Space Mono",monospace';
     for(let b=0;b<=beats;b++){
@@ -2642,7 +2542,7 @@ const PianoRoll={
       rc.strokeStyle=isBar?'#3a445a':'#242c3a'; rc.beginPath(); rc.moveTo(x+.5,isBar?4:13); rc.lineTo(x+.5,22); rc.stroke();
       if(isBar){ rc.fillStyle='#9aa4b8'; rc.fillText(String(b/bpb+1), x+3, 10); }
     }
-    // ---- keys ----
+
     const k=this.keys.getContext('2d'); k.clearRect(0,0,56,H);
     for(let row=0;row<this.rows;row++){
       const pitch=this.lowNote+(this.rows-1-row), y=row*this.noteH, black=isBlackKey(pitch);
@@ -2651,8 +2551,7 @@ const PianoRoll={
       if(pitch%12===0){ k.fillStyle=AC; k.font='bold 9px "Space Mono",monospace';
         k.fillText('C'+(Math.floor(pitch/12)-1), 30, y+this.noteH/2+3.5); }
     }
-    // restore scroll + keep ruler/keybed aligned (a pane switch can reset the scroll to 0
-    // while the transforms stay stale, which made the piano-roll timeline vanish)
+
     const sc=$("#prScroll");
     if(sc){
       if(this._scroll){ sc.scrollLeft=this._scroll.left; sc.scrollTop=this._scroll.top; }
@@ -2686,19 +2585,19 @@ const PianoRoll={
     (r.notes||[]).forEach(n=>{ const nb=secToBeat(n.start), nd=secToBeat(n.dur);
       if(n.pitch===pitch && beat>=nb-0.01 && beat<=nb+nd+0.01) hit=n; });
     return hit; },
-  highlight(pitch,on){/* optional visual */},
+  highlight(pitch,on){ },
 };
 const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 function noteName(p){ return NOTE_NAMES[((p%12)+12)%12]+(Math.floor(p/12)-1); }
 function extendRegionToNotes(r){ let end=r.duration||0; (r.notes||[]).forEach(n=>end=Math.max(end,n.start+n.dur)); r.duration=Math.max(end, secPerBeat()*beatsPerBar()); }
-// keep keys/ruler aligned with the grid scroll, and remember the scroll position
+
 $("#prScroll").addEventListener('scroll',()=>{
   const sc=$("#prScroll");
   PianoRoll._scroll={left:sc.scrollLeft, top:sc.scrollTop};
   $("#prRuler").style.transform=`translateX(${-sc.scrollLeft}px)`;
   $("#prKeys").style.transform=`translateY(${-sc.scrollTop}px)`;
 });
-// click the keybed to audition the selected track's instrument (mouse-playable synth)
+
 $("#prKeys").addEventListener('mousedown',e=>{
   const rect=$("#prKeys").getBoundingClientRect();
   const pitch=PianoRoll.yToPitch(e.clientY-rect.top);
@@ -2714,18 +2613,16 @@ $("#prVZoomOut").addEventListener('click',()=>PianoRoll.zoomV(-2));
 $("#prSnap").addEventListener('click',function(){ PianoRoll.snap=!PianoRoll.snap;
   this.classList.toggle('on',PianoRoll.snap); this.textContent='Snap: '+(PianoRoll.snap?'On':'Off'); });
 function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.snap||0.25; return Math.max(0,Math.round(b/s)*s);}
-// piano roll mouse
+
 (function(){
   const grid=$("#prGrid");
-  const EDGE=7; // px grab zone on a note's right edge
+  const EDGE=7;
   const noteRightPx=n=>secToBeat(n.start+n.dur)*PianoRoll.beatW;
   const noteLeftPx =n=>secToBeat(n.start)*PianoRoll.beatW;
-  // which resize grip (if any) is x over: 'l' (left edge), 'r' (right edge), or null.
-  // Drag either edge inward to shorten a note / outward to lengthen it.
+
   const noteEdge=(n,x)=>{ const L=noteLeftPx(n), R=noteRightPx(n), zone=Math.min(EDGE, Math.max(3,(R-L)*0.35));
     if(x>=R-zone) return 'r'; if(x<=L+zone) return 'l'; return null; };
 
-  // cursor affordance while hovering (not dragging)
   grid.addEventListener('mousemove',e=>{
     if(e.buttons) return;
     const r=PianoRoll.region; const rect=grid.getBoundingClientRect();
@@ -2735,9 +2632,8 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
   });
 
   grid.addEventListener('mousedown',e=>{
-    if(e.button!==0) return; // right-click opens the note context menu
-    // The piano roll edits the SELECTED instrument track. On an audio/vocal or drum
-    // track, do nothing (don't create a MIDI clip or a new instrument track).
+    if(e.button!==0) return;
+
     const selT=getTrack(State.selectedTrack);
     if(!selT || selT.type!=='midi'){ toast('Piano Roll edits instrument tracks - select or add one'); return; }
     const rect=grid.getBoundingClientRect();
@@ -2747,11 +2643,11 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
     const additive=e.shiftKey||e.ctrlKey||e.metaKey;
 
     if(hit){
-      // ---- select / move / resize existing note(s) ----
+
       if(additive){ const i=PianoRoll.selNotes.indexOf(hit); i>=0?PianoRoll.selNotes.splice(i,1):PianoRoll.selNotes.push(hit); }
       else if(!PianoRoll.selNotes.includes(hit)){ PianoRoll.selNotes=[hit]; }
       PianoRoll.draw();
-      const resizing=noteEdge(hit,x); // 'l' | 'r' | null
+      const resizing=noteEdge(hit,x);
       const startX=e.clientX;
       const group=PianoRoll.selNotes.map(n=>({n, start:n.start, dur:n.dur, pitch:n.pitch}));
       const hitOrig=group.find(o=>o.n===hit)||{start:hit.start,dur:hit.dur};
@@ -2760,10 +2656,10 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
         if(!snapped){ snapped=true; if(typeof pushHistory==='function') pushHistory(); }
         const beat2=PianoRoll.xToBeat(ev.clientX-rect.left);
         if(resizing==='r'){
-          // drag the right edge (snapped, min one cell); left edge / start stays put
+
           hit.dur=Math.max(beatToSec(PianoRoll.cellBeat), beatToSec(beat2-secToBeat(hitOrig.start)));
         } else if(resizing==='l'){
-          // drag the left edge inward/outward; the right edge (note end) stays put
+
           const endBeat=secToBeat(hitOrig.start+hitOrig.dur);
           const ns=clamp(beat2, 0, endBeat-PianoRoll.cellBeat);
           hit.start=beatToSec(ns); hit.dur=beatToSec(endBeat-ns);
@@ -2783,7 +2679,6 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
       return;
     }
 
-    // ---- empty area: click = create note, drag = marquee-select ----
     const cx=e.clientX, cy=e.clientY;
     let marquee=null;
     const move=ev=>{
@@ -2803,9 +2698,9 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
     const up=()=>{
       document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
       if(marquee){ marquee.remove(); PianoRoll.draw(); }
-      else { // plain click → create a note and select it
+      else {
         const rr=PianoRoll.ensureRegion();
-        if(!rr) return; // no instrument track to write to
+        if(!rr) return;
         if(typeof pushHistory==='function') pushHistory();
         const note={pitch:PianoRoll.yToPitch(y), vel:0.9, start:beatToSec(PianoRoll.xToBeat(x)), dur:beatToSec(PianoRoll.cellBeat)};
         rr.notes.push(note); Synth.audition(note.pitch, note.vel, getTrack(rr.trackId));
@@ -2823,7 +2718,7 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
     PianoRoll.selNotes=PianoRoll.selNotes.filter(n=>r.notes.includes(n));
     PianoRoll.draw(); drawRegions();
   });
-  // custom right-click menu on notes / empty grid
+
   grid.addEventListener('contextmenu',e=>{
     e.preventDefault(); e.stopPropagation();
     const rect=grid.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top;
@@ -2832,7 +2727,7 @@ function snapPRBeat(b){ if(!PianoRoll.snap) return Math.max(0,b); const s=State.
     const note=PianoRoll.noteAt(x,y);
     const items=[];
     if(note){
-      // operate on the whole selection if the clicked note is part of a multi-selection
+
       const targets=(PianoRoll.selNotes.includes(note)&&PianoRoll.selNotes.length>1)?PianoRoll.selNotes.slice():[note];
       const many=targets.length>1;
       const setVel=v=>{ targets.forEach(n=>n.vel=v); PianoRoll.draw(); drawRegions(); };
@@ -2869,14 +2764,11 @@ $("#prQuantize").addEventListener('click',()=>{
   PianoRoll.draw(); drawRegions(); toast('Quantized to 1/16');
 });
 
-/* =====================================================================
-   DRUM MACHINE
-   ===================================================================== */
 const DRUM_NAMES=['Kick','Snare','Clap','Hat','OHat','Tom','Rim','Perc'];
 const Drum={
-  buffers:{}, // idx -> custom buffer
+  buffers:{},
   scheduleStep(beatIdx, when){
-    // 16th step index within the beat: schedule 4 sub-steps per beat
+
     for(let s=0;s<4;s++){
       const step=(beatIdx*4+s)%16;
       const subWhen=when+ s*(secPerBeat()/4);
@@ -2893,20 +2785,20 @@ const Drum={
       const src=Audio.ctx.createBufferSource(); src.buffer=this.buffers[idx];
       src.connect(dest); try{src.start(when);}catch(e){} return;
     }
-    // synthesized drums
+
     const ctx=Audio.ctx, g=ctx.createGain(); g.connect(dest);
-    if(idx===0){ // kick
+    if(idx===0){
       const o=ctx.createOscillator(); o.frequency.setValueAtTime(150,when);
       o.frequency.exponentialRampToValueAtTime(50,when+0.12);
       g.gain.setValueAtTime(1,when); g.gain.exponentialRampToValueAtTime(0.001,when+0.3);
       o.connect(g); o.start(when); o.stop(when+0.32);
-    } else if(idx===1||idx===2||idx===6){ // snare/clap/rim (noise)
+    } else if(idx===1||idx===2||idx===6){
       const buf=noiseBuffer(); const src=ctx.createBufferSource(); src.buffer=buf;
       const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=idx===6?2500:1800;
       src.connect(bp); bp.connect(g);
       g.gain.setValueAtTime(0.7,when); g.gain.exponentialRampToValueAtTime(0.001,when+(idx===2?0.15:0.2));
       src.start(when); src.stop(when+0.25);
-    } else { // hats/toms/perc
+    } else {
       const buf=noiseBuffer(); const src=ctx.createBufferSource(); src.buffer=buf;
       const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=idx===3?8000:idx===4?6000:3000;
       src.connect(hp); hp.connect(g);
@@ -2961,9 +2853,6 @@ function clearDrumRow(){
   buildDrumUI(); drawRegions(); toast('Cleared '+DRUM_NAMES[drumSelPad]+' row');
 }
 
-/* =====================================================================
-   FX PANEL UI
-   ===================================================================== */
 function param(label,min,max,step,val,fmt,onInput){
   const row=document.createElement('div'); row.className='prm';
   row.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}"><span class="val">${fmt(val)}</span>`;
@@ -2973,7 +2862,7 @@ function param(label,min,max,step,val,fmt,onInput){
   return row;
 }
 function masterHolder(){ return {name:'Master Bus', isMaster:true, fx:Audio.masterFX}; }
-// Mastering panel (its own drawer pane): an On/Off toggle + one-click presets.
+
 function renderMastering(){
   Audio.init();
   const host=$("#masterRack"); if(!host) return;
@@ -2981,7 +2870,7 @@ function renderMastering(){
   const hdr=document.createElement('div'); hdr.className='fxhdr';
   hdr.innerHTML='Mastering <span style="color:var(--muted)">· one master effect chain applied to the whole mix before the fader</span>';
   host.appendChild(hdr);
-  // On/Off toggle
+
   const bar=document.createElement('div'); bar.style.cssText='display:flex; align-items:center; gap:10px; padding:6px 12px';
   const toggle=document.createElement('button'); toggle.className='dtab'+(Audio.masterOn?' on':'');
   toggle.textContent='Mastering: '+(Audio.masterOn?'On':'Off');
@@ -2991,7 +2880,7 @@ function renderMastering(){
   const note=document.createElement('span'); note.style.cssText='font-size:11px;color:var(--muted)';
   note.textContent=Audio.masterOn?'Pick a preset below.':'The mix is bypassing all master processing.';
   bar.append(toggle,note); host.appendChild(bar);
-  // preset tiles
+
   const grid=document.createElement('div'); grid.className='fxgrid'; grid.style.opacity=Audio.masterOn?'1':'0.45'; host.appendChild(grid);
   Object.keys(MASTER_PRESETS).forEach(name=>{
     const active=State.masterPreset===name;
@@ -3014,7 +2903,7 @@ function renderFX(){
   hdr.append(saveBtn,loadBtn);
   host.innerHTML=''; host.appendChild(hdr);
   const grid=document.createElement('div'); grid.className='fxgrid'; host.appendChild(grid);
-  // Add-effect tile FIRST (left, before the effects) - opens the full categorized browser
+
   const addTile=document.createElement('button'); addTile.className='fxaddtile';
   addTile.innerHTML='<span>＋</span>Add Effect';
   addTile.onclick=e=>openFXPicker(t, e.currentTarget);
@@ -3047,7 +2936,7 @@ function renderFX(){
     grid.appendChild(card);
   });
 }
-// simple titled card (used by the Synth panel)
+
 function fxCard(title){
   const card=document.createElement('div'); card.className='fxmod';
   const h=document.createElement('h4'); h.innerHTML=`<span>${title}</span>`;
@@ -3065,9 +2954,6 @@ function drawEQ(cv,nodes){
   ctx.stroke(); ctx.strokeStyle=cs.getPropertyValue('--eqline').trim()||'#2a3244'; ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
 }
 
-/* =====================================================================
-   MIXER
-   ===================================================================== */
 function renderMixer(){
   const host=$("#mixer"); host.innerHTML='';
   State.tracks.forEach(t=>{
@@ -3088,9 +2974,6 @@ function renderMixer(){
   });
 }
 
-/* =====================================================================
-   SYNTH PANEL
-   ===================================================================== */
 function renderSynthPanel(){
   const host=$("#synthPanel"); host.innerHTML='';
   const t=getTrack(State.selectedTrack);
@@ -3132,26 +3015,19 @@ function selectRow(label,opts,val,onChange){
 }
 function hintRow(text){ const d=document.createElement('div'); d.className='hint'; d.style.marginTop='6px'; d.textContent=text; return d; }
 
-/* =====================================================================
-   METERS
-   ===================================================================== */
 function meterLoop(){
   if(Audio.ctx){
     const buf=Audio._buf;
     const rms=(an)=>{an.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++)s+=buf[i]*buf[i]; return Math.sqrt(s/buf.length);};
     const l=Math.min(1,rms(Audio.analyserL)*3), r=Math.min(1,rms(Audio.analyserR)*3);
     $("#mMeterL").style.height=(l*100)+'%'; $("#mMeterR").style.height=(r*100)+'%';
-    // per-track mixer meters (approx from master when playing)
+
     State.tracks.forEach(t=>{ if(t._meterEl){ const v=trackAudible(t)?(l+r)/2*t.volume:0; t._meterEl.style.width=Math.min(100,v*120)+'%';}});
   }
   requestAnimationFrame(meterLoop);
 }
 requestAnimationFrame(meterLoop);
 
-/* =====================================================================
-   EXPORT - OfflineAudioContext render to WAV
-   ===================================================================== */
-// Offline render. opts: {onlyTrackId, master:true|false, stem:false}
 async function renderOffline(opts={}){
   Audio.init();
   const only=opts.onlyTrackId||null, useMaster=opts.master!==false, stem=!!opts.stem;
@@ -3162,7 +3038,7 @@ async function renderOffline(opts={}){
   const off=new OfflineAudioContext(2, Math.ceil(end*rate), rate);
   await registerAutotune(off);
   const master=off.createGain(); master.gain.value=parseFloat($("#masterVol").value); master.connect(off.destination);
-  // master bus: sum tracks -> master FX chain -> master gain (mirrors the live routing)
+
   let masterBus=master;
   if(useMaster && Audio.masterOn && Audio.masterFX){ const mfx=buildFX(off, fxToSpecs(Audio.masterFX)); mfx.gain.gain.value=1; mfx.pan.pan.value=0;
     mfx.output.connect(master); masterBus=mfx.input; }
@@ -3170,12 +3046,12 @@ async function renderOffline(opts={}){
   tracks.forEach(t=>{
     const fx=buildFX(off, fxToSpecs(t.fx));
     fx.pan.pan.value=t.pan;
-    // stems ignore the global solo state and export every non-muted track at its own level
+
     const audible = stem ? !t.mute : trackAudible(t);
     if(audible && t.automation.length){
       fx.gain.gain.setValueAtTime(clamp(autoValueAt(t,0),0,1.5),0);
       t.automation.forEach(p=>{ if(p.beat>0) fx.gain.gain.linearRampToValueAtTime(clamp(p.value,0,1.5), beatToSec(p.beat)); });
-      // return to the normal level after the last point (matches live playback)
+
       const last=t.automation[t.automation.length-1];
       if(last.beat<totalBeats()) fx.gain.gain.linearRampToValueAtTime(clamp(t.volume,0,1.5), beatToSec(totalBeats()));
     } else {
@@ -3199,7 +3075,7 @@ async function renderOffline(opts={}){
       }
     });
   });
-  // drums (pattern) - included in the full mix, or when the drum track is the stem target
+
   const drumTrack=State.tracks.find(x=>x.type==='drum');
   const includeDrums = anyDrumActive() && (!only || (drumTrack && drumTrack.id===only));
   if(includeDrums){
@@ -3217,7 +3093,7 @@ async function exportWav(){
   downloadBlob(new Blob([encodeWav(rendered)],{type:'audio/wav'}),'blk-mix.wav');
   toast('Exported blk-mix.wav');
 }
-// Bounce each non-muted track (and the drum pattern) to its own dry WAV (no master FX).
+
 async function exportStems(){
   const stems=State.tracks.filter(t=>!t.mute);
   if(!stems.length){ toast('No tracks to export'); return; }
@@ -3227,7 +3103,7 @@ async function exportStems(){
     const rendered=await renderOffline({onlyTrackId:t.id, master:false, stem:true});
     const safe=(t.name||'track').replace(/[^\w\-]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()||'track';
     downloadBlob(new Blob([encodeWav(rendered)],{type:'audio/wav'}),'blk-stem-'+String(++n).padStart(2,'0')+'-'+safe+'.wav');
-    await new Promise(r=>setTimeout(r,350)); // stagger so the browser accepts each download
+    await new Promise(r=>setTimeout(r,350));
   }
   toast('Exported '+n+' stems');
 }
@@ -3255,9 +3131,6 @@ function encodeWav(buffer){
 function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
 
-/* =====================================================================
-   PROJECT SAVE / LOAD  (JSON; audio buffers not serialized)
-   ===================================================================== */
 function arrayBufferToBase64(ab){
   const bytes=new Uint8Array(ab); let bin=''; const CH=0x8000;
   for(let i=0;i<bytes.length;i+=CH) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
@@ -3292,15 +3165,15 @@ $("#projInput").addEventListener('change',e=>{const f=e.target.files[0];if(!f)re
 function loadProject(d){
   Audio.init();
   if(typeof History!=='undefined') History.suspend=true;
-  $("#tplOverlay").classList.remove('show'); // dismiss the startup picker if it's open
-  // clear
+  $("#tplOverlay").classList.remove('show');
+
   State.tracks.forEach(t=>{try{t.fx.output.disconnect();}catch(e){}});
   State.tracks=[]; State.regions=[]; State.selectedTrack=null; State.selectedRegion=null; State.selection=[];
   State.bpm=d.bpm||120; $("#bpm").value=State.bpm;
   State.timesig=d.timesig||[4,4]; State.snap=d.snap??0.25; State.loop=d.loop||State.loop;
   State.metro=d.metro||false; $("#btnMetro").classList.toggle('on',State.metro);
   State.drumPattern=d.drumPattern||State.drumPattern;
-  // rebuild the master bus FX chain + mastering on/off + preset
+
   State.masterPreset=d.masterPreset||State.masterPreset;
   Audio.masterOn = d.masterOn!==false;
   if(d.masterFx && Audio.masterFX){ try{Audio.masterBus.disconnect(); Audio.masterFX.output.disconnect();}catch(e){}
@@ -3339,10 +3212,6 @@ function loadProject(d){
   }
 }
 
-/* =====================================================================
-   UNDO / REDO  - before-mutation snapshots. Snapshots keep AudioBuffer refs
-   (no base64), so they're cheap; restore rebuilds tracks/regions/FX/master.
-   ===================================================================== */
 const History={undo:[], redo:[], max:80, busy:false, suspend:false};
 function snapshotProject(){
   return {
@@ -3409,8 +3278,7 @@ function updateHistoryButtons(){ const u=$("#btnUndo"), r=$("#btnRedo");
   if(u)u.disabled=!History.undo.length; if(r)r.disabled=!History.redo.length; }
 function commitSnapshot(snap){ if(!snap||History.busy||History.suspend) return;
   History.undo.push(snap); if(History.undo.length>History.max) History.undo.shift(); History.redo.length=0; updateHistoryButtons(); }
-// For range sliders: capture the pre-drag state on pointerdown, commit it to the
-// undo stack on the first actual value change (so plain clicks add no history).
+
 function historyOnDrag(el){
   let snap=null;
   el.addEventListener('pointerdown',()=>{ snap=snapshotProject(); });
@@ -3420,9 +3288,6 @@ function historyOnDrag(el){
 $("#btnUndo").addEventListener('click',undo);
 $("#btnRedo").addEventListener('click',redo);
 
-/* =====================================================================
-   WEB MIDI
-   ===================================================================== */
 if(navigator.requestMIDIAccess){
   navigator.requestMIDIAccess().then(acc=>{
     const attach=()=>{for(const inp of acc.inputs.values()) inp.onmidimessage=onMidi;};
@@ -3436,13 +3301,10 @@ function onMidi(e){
   else if(cmd===0x80 || (cmd===0x90&&d2===0)) Synth.noteOff(d1);
 }
 
-/* =====================================================================
-   TRANSPORT UI WIRING
-   ===================================================================== */
 $("#btnPlay").addEventListener('click',()=>Transport.toggle());
 $("#btnStop").addEventListener('click',()=>{Transport.stop();Transport.position=0;updatePlayhead();updatePosDisplay();});
 $("#btnRec").addEventListener('click',()=>Transport.toggleRecord());
-// Vocals / mic
+
 $("#btnMic").addEventListener('click',()=>{ setDrawerPane('mic'); openDrawer(); });
 $("#micEnableBtn").addEventListener('click',()=>Mic.enable($("#micDevice").value||null).catch(()=>toast('Mic access denied')));
 $("#micDevice").addEventListener('change',e=>{ if(Mic.stream) Mic.enable(e.target.value||null).catch(()=>{}); else Mic.deviceId=e.target.value||null; });
@@ -3458,15 +3320,15 @@ $("#bpm").addEventListener('input',e=>{State.bpm=clamp(parseInt(e.target.value)|
 $("#timesig").addEventListener('change',e=>{const[a,b]=e.target.value.split('/').map(Number);State.timesig=[a,b];layout();});
 $("#snap").addEventListener('change',e=>{State.snap=parseFloat(e.target.value);});
 $("#zoom").addEventListener('input',e=>{State.pxPerBeat=parseInt(e.target.value);layout();});
-// Ctrl + mousewheel over the timeline zooms the arranger (not the browser page), centered on the cursor
+
 function zoomTimelineAt(clientX, factor){
   const rect=lanes.getBoundingClientRect();
-  const px=clientX-rect.left;                 // cursor x within the lanes viewport
-  const beat=pxToBeat(px+lanes.scrollLeft);   // the beat currently under the cursor
+  const px=clientX-rect.left;
+  const beat=pxToBeat(px+lanes.scrollLeft);
   State.pxPerBeat=clamp(Math.round(State.pxPerBeat*factor),24,360);
   $("#zoom").value=State.pxPerBeat;
   layout();
-  lanes.scrollLeft=Math.max(0, beatToPx(beat)-px); // keep that beat under the cursor
+  lanes.scrollLeft=Math.max(0, beatToPx(beat)-px);
   positionLaneCanvas(); drawGrid(); drawRuler(); syncLoopBarScroll();
 }
 [lanes, $("#rulerScroll"), $("#loopbarScroll")].forEach(el=>el && el.addEventListener('wheel',e=>{
@@ -3477,59 +3339,53 @@ function zoomTimelineAt(clientX, factor){
 historyOnDrag($("#masterVol"));
 $("#masterVol").addEventListener('input',e=>{Audio.init();Audio.masterGain.gain.value=parseFloat(e.target.value);});
 $("#btnNew").addEventListener('click',showTemplates);
-// btnMaster light reflects whether mastering is ON. Clicking opens the mastering
-// panel; clicking again while it's already showing toggles mastering on/off.
+
 function updateMasterBtn(){ const b=$("#btnMaster"); if(b) b.classList.toggle('on', Audio.masterOn); }
 $("#btnMaster").addEventListener('click',()=>{
   Audio.init();
   const onMasterPane = $("#pane-master").classList.contains('on') && !$("#drawer").classList.contains('collapsed');
-  if(onMasterPane){ // already on the Mastering tab -> toggle on/off
+  if(onMasterPane){
     Audio.setMastering(!Audio.masterOn);
-    if(!Audio.masterOn){ setDrawerPane('fx'); } else { renderMastering(); } // off -> jump to the FX Rack tab
+    if(!Audio.masterOn){ setDrawerPane('fx'); } else { renderMastering(); }
     toast('Mastering '+(Audio.masterOn?'on':'off'));
   } else { openDrawer(); setDrawerPane('master'); }
   updateMasterBtn();
 });
-updateMasterBtn(); // reflect the default (mastering on) at startup
+updateMasterBtn();
 
-/* =====================================================================
-   THEMES - BandLab (default) / FL Studio / Ableton / Logic
-   Each theme is a set of CSS custom properties applied to :root.
-   ===================================================================== */
 const THEMES={
   bandlab:{ '--bg':'#000000','--panel':'#0a0a0a','--panel2':'#111111','--panel3':'#1a1a1a',
     '--line':'rgba(255,255,255,0.08)','--line2':'rgba(255,255,255,0.16)','--text':'#ffffff','--muted':'#888888',
     '--accent':'#8A2BE2','--accent2':'#b06bff','--grad-a':'#1a1f2b','--grad-b':'#12151d','--lcd-bg':'#05070c','--eqline':'#2a3244','--radius':'4px' },
-  // FL Studio: charcoal chrome, signature orange, small radius
+
   fl:{ '--bg':'#2a2a2a','--panel':'#323232','--panel2':'#3a3a3a','--panel3':'#454545',
     '--line':'rgba(0,0,0,0.35)','--line2':'rgba(255,255,255,0.12)','--text':'#e9e9e9','--muted':'#9a9a9a',
     '--accent':'#ff9e2c','--accent2':'#ffc061','--grad-a':'#4a4a4a','--grad-b':'#333333','--lcd-bg':'#151515','--eqline':'#4a4a4a','--radius':'3px' },
-  // Ableton Live: flat medium grey, sharp corners, warm amber highlight
+
   ableton:{ '--bg':'#333333','--panel':'#3f3f3f','--panel2':'#4a4a4a','--panel3':'#565656',
     '--line':'rgba(0,0,0,0.4)','--line2':'rgba(0,0,0,0.5)','--text':'#f2f2f2','--muted':'#b0b0b0',
     '--accent':'#ffb84d','--accent2':'#ffd24d','--grad-a':'#464646','--grad-b':'#3a3a3a','--lcd-bg':'#252525','--eqline':'#5a5a5a','--radius':'0px' },
-  // Logic Pro: polished blue-grey, soft gradients, larger radius, silver-blue accent
+
   logic:{ '--bg':'#20242b','--panel':'#2a2f38','--panel2':'#333945','--panel3':'#3f4653',
     '--line':'rgba(255,255,255,0.07)','--line2':'rgba(255,255,255,0.14)','--text':'#eef1f6','--muted':'#8f98a6',
     '--accent':'#5b9bd5','--accent2':'#9cc4ea','--grad-a':'#4a5261','--grad-b':'#333a45','--lcd-bg':'#12161c','--eqline':'#414b59','--radius':'7px' },
 };
-// Each DAW's signature bottom panel (FL = Channel-Rack step sequencer, Ableton =
-// device/FX chain, Logic/BandLab = the piano-roll editor).
+
 const THEME_PANE={fl:'drum', ableton:'fx', logic:'piano', bandlab:'piano'};
 function applyTheme(name, opts={}){
   if(!THEMES[name]) name='bandlab';
   const th=THEMES[name]; const r=document.documentElement.style;
   Object.keys(th).forEach(k=>r.setProperty(k,th[k]));
-  document.documentElement.setAttribute('data-theme',name); // drives per-DAW layout CSS
+  document.documentElement.setAttribute('data-theme',name);
   try{localStorage.setItem('blk-theme',name);}catch(e){}
   const sel=$("#themeSel"); if(sel) sel.value=name;
-  if(State.selectedTrack!=null) renderFX(); // redraw EQ graph in the new accent
-  // on a deliberate switch, jump the bottom drawer to the DAW's signature panel
+  if(State.selectedTrack!=null) renderFX();
+
   if(opts.switchPane && typeof setDrawerPane==='function'){ openDrawer(); setDrawerPane(THEME_PANE[name]||'piano'); }
 }
 $("#themeSel").addEventListener('change',e=>applyTheme(e.target.value,{switchPane:true}));
 (function initTheme(){ let saved='bandlab'; try{saved=localStorage.getItem('blk-theme')||'bandlab';}catch(e){} applyTheme(saved); })();
-// instrument picker rows: real sampled instruments, then synth presets
+
 function instrumentMenuItems(onPick){
   const items=[];
   items.push({header:'Instruments (real samples)'});
@@ -3539,7 +3395,7 @@ function instrumentMenuItems(onPick){
   SYNTH_PRESETS.forEach(name=>items.push({icon:'🎹',label:name,action:()=>onPick(name)}));
   return items;
 }
-// A ready-to-sing vocal track: armed audio track with Autotune on its FX chain + mic panel.
+
 function addVocalTrack(){
   const v=addTrack('audio',{name:'Vocals',color:COLORS[4]});
   v.arm=true;
@@ -3549,7 +3405,7 @@ function addVocalTrack(){
   toast('Vocals armed with Autotune - pick your mic and press Record');
   return v;
 }
-// Unified "Add Track" menu (used by the button in the track headers)
+
 function addTrackMenu(x,y){
   const items=[];
   items.push({header:'Add Track'});
@@ -3570,7 +3426,6 @@ $("#btnExport").addEventListener('click',e=>{
 });
 $("#btnHome").addEventListener('click',()=>{ window.location.href='blk-player.html'; });
 
-/* Tap tempo */
 let tapTimes=[];
 $("#btnTap").addEventListener('click',()=>{
   const now=performance.now(); tapTimes.push(now); tapTimes=tapTimes.filter(t=>now-t<3000);
@@ -3581,7 +3436,6 @@ $("#btnTap").addEventListener('click',()=>{
   }
 });
 
-/* Drawer tabs */
 function setDrawerPane(name){
   $$(".dtab[data-pane]").forEach(b=>b.classList.toggle('on',b.dataset.pane===name));
   $$(".dpane").forEach(p=>p.classList.toggle('on',p.id==='pane-'+name));
@@ -3598,7 +3452,6 @@ $("#keysToggle").addEventListener('click',function(){ const on=$(".kbdhint").cla
 $("#drumClear").addEventListener('click',clearDrumPattern);
 $("#drumClearRow").addEventListener('click',clearDrumRow);
 
-/* Resizable drawer (drag its top edge) - resizes the piano roll and all panes */
 (function(){
   const handle=$("#drawerResize"), drawer=$("#drawer");
   handle.addEventListener('mousedown',e=>{
@@ -3616,11 +3469,9 @@ $("#drumClearRow").addEventListener('click',clearDrumRow);
   });
 })();
 
-/* Latency compensation slider */
 $("#micLatency").addEventListener('input',e=>{ State.recLatencyMs=parseInt(e.target.value)||0;
   $("#micLatencyVal").textContent=State.recLatencyMs+' ms'; });
 
-/* click empty lane -> create region (midi draw start) */
 lanes.addEventListener('dblclick',e=>{
   if(e.target.closest('.region'))return;
   const rect=lanes.getBoundingClientRect();
@@ -3634,19 +3485,14 @@ lanes.addEventListener('dblclick',e=>{
   drawRegions(); PianoRoll.load(reg); setDrawerPane('piano'); openDrawer();
 });
 
-/* empty timeline: click = move playhead + clear selection; drag = marquee-select multiple regions */
-// Auto-scroll the arranger viewport while a drag reaches its edges, so you can keep
-// selecting / moving past what's currently visible. apply(ev) re-runs the drag's own
-// update with the latest pointer event after each scroll step. Horizontal scrolling
-// can grow the arrangement (drawRegions -> ensureArrangeLength) when dragging a clip.
 function edgeAutoScroll(apply){
   let lastEv=null, raf=0, lastT=0;
-  const EDGE=44, SPEED=260, MIN_MS=33; // px/sec at the very edge; throttle redraws to ~30fps
+  const EDGE=44, SPEED=260, MIN_MS=33;
   function step(t){
     if(!lastEv){ raf=0; return; }
     raf=requestAnimationFrame(step);
     if(!lastT) lastT=t;
-    if(t-lastT<MIN_MS) return;          // throttle: skip frames so we don't thrash drawRegions
+    if(t-lastT<MIN_MS) return;
     const dt=Math.min(0.05,(t-lastT)/1000); lastT=t;
     const rect=lanes.getBoundingClientRect(), vw=lanes.clientWidth, vh=lanes.clientHeight;
     const x=lastEv.clientX-rect.left, y=lastEv.clientY-rect.top;
@@ -3667,7 +3513,7 @@ lanes.addEventListener('mousedown',e=>{
   if(e.button!==0) return;
   if(!(e.target===lanes||e.target===laneCanvas||e.target===regionsLayer)) return;
   const rect=lanes.getBoundingClientRect();
-  // ignore presses on the scrollbar gutter so the browser can drag the scrollbar
+
   if(e.clientX-rect.left>=lanes.clientWidth || e.clientY-rect.top>=lanes.clientHeight) return;
   const x0=e.clientX-rect.left+lanes.scrollLeft, y0=e.clientY-rect.top+lanes.scrollTop;
   const cx=e.clientX, cy=e.clientY;
@@ -3686,7 +3532,7 @@ lanes.addEventListener('mousedown',e=>{
       const rL=secToBeat(rg.start), rR=secToBeat(rg.start+rg.duration);
       if(ti>=tiT && ti<=tiB && rR>=bL && rL<=bR) ids.push(rg.id); });
     setSelection(ids); drawRegions();
-    es.update(ev); // keep scrolling while the pointer sits at an edge
+    es.update(ev);
   };
   const up=()=>{
     es.stop();
@@ -3697,9 +3543,6 @@ lanes.addEventListener('mousedown',e=>{
   document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
 });
 
-/* =====================================================================
-   TIMELINE CONTEXT MENU (custom right-click)
-   ===================================================================== */
 function closeCtxMenu(){ const m=document.getElementById('ctxMenu'); if(m) m.remove(); }
 function showContextMenu(x,y,items){
   closeCtxMenu();
@@ -3718,7 +3561,7 @@ function showContextMenu(x,y,items){
   m.style.left=Math.max(4, Math.min(x, vw-r.width-6))+'px';
   m.style.top =Math.max(4, Math.min(y, vh-r.height-6))+'px';
 }
-// close menu on outside click / escape / scroll / resize
+
 document.addEventListener('mousedown',e=>{ if(!e.target.closest('#ctxMenu')) closeCtxMenu(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeCtxMenu(); });
 lanes.addEventListener('scroll',closeCtxMenu);
@@ -3743,7 +3586,7 @@ lanes.addEventListener('contextmenu',e=>{
   const items=[];
 
   if(r){
-    // a real (draggable) region was right-clicked - the drum-pattern strip has no dataset.id
+
     State.selectedRegion=r.id; selectTrack(r.trackId); drawRegions();
     items.push({header:`${r.type==='midi'?'MIDI':'Audio'} clip · ${r.name}`});
     if(r.type==='midi') items.push({icon:'🎹',label:'Edit in Piano Roll',action:()=>{PianoRoll.load(r);setDrawerPane('piano');openDrawer();}});
@@ -3775,9 +3618,6 @@ lanes.addEventListener('contextmenu',e=>{
 
 window.addEventListener('resize',()=>{ layout(); if(PianoRoll.region!==undefined) PianoRoll.draw(); });
 
-/* =====================================================================
-   TEMPLATES / BOOT
-   ===================================================================== */
 const TEMPLATES=[
   {key:'recording', name:'Recording',  icon:'🎙️', desc:'Import a beat - we detect its tempo - then a vocal track (with Autotune) is armed underneath, ready to record.'},
   {key:'blank', name:'Blank',         icon:'▢',  desc:'Empty timeline with one instrument track. Build from scratch.'},
@@ -3794,7 +3634,7 @@ function resetProject(){
 }
 function loadTemplate(key){
   Audio.init(); Audio.resume();
-  if(typeof History!=='undefined') History.suspend=true; // don't let template setup fill the undo stack
+  if(typeof History!=='undefined') History.suspend=true;
   if(key==='recording'){ resetProject(); $("#tplOverlay").classList.remove('show'); recordingTemplateImport(); return; }
   resetProject();
   if(key==='blank'){
@@ -3825,7 +3665,7 @@ function loadTemplate(key){
   if(typeof History!=='undefined'){ History.suspend=false; History.undo.length=0; History.redo.length=0; updateHistoryButtons(); }
   toast((TEMPLATES.find(t=>t.key===key)||{}).name+' loaded');
 }
-// Recording template: import a beat, detect tempo, then arm a vocal track below it
+
 function recordingTemplateImport(){
   const inp=document.createElement('input'); inp.type='file'; inp.accept='audio/*';
   inp.onchange=async()=>{
@@ -3837,11 +3677,11 @@ function recordingTemplateImport(){
       const buf=await Audio.ctx.decodeAudioData(ab.slice(0));
       const bpm=detectBPM(buf);
       State.bpm=bpm; $("#bpm").value=bpm; State.timesig=[4,4]; $("#timesig").value='4/4';
-      // imported beat track
+
       const beatTrack=addTrack('audio',{name:'Beat',color:COLORS[1]});
       State.regions.push({id:uid(),trackId:beatTrack.id,type:'audio',name:f.name.slice(0,18),
         start:0,offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0});
-      // vocal track below, armed, with autotune on its FX chain
+
       const vox=addTrack('audio',{name:'Vocals',color:COLORS[4]}); vox.arm=true;
       addFX(vox,'autotune');
       selectTrack(vox.id);
@@ -3862,7 +3702,7 @@ function showTemplates(){
 }
 function boot(){
   buildDrumUI();
-  showTemplates(); // choose a starting template before anything is built
+  showTemplates();
   updatePosDisplay();
 }
 boot();
