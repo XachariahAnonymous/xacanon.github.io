@@ -639,7 +639,7 @@ function ensureArrangeLength(){
    AUDIO CORE
    ===================================================================== */
 const Audio={
-  ctx:null, master:null, masterGain:null, analyserL:null, analyserR:null, splitter:null, masterOn:true,
+  ctx:null, master:null, masterGain:null, analyserL:null, analyserR:null, splitter:null, masterOn:false,
   init(){
     if(this.ctx) return;
     this.ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -1708,6 +1708,7 @@ function drawDrumLane(t,ti){
   el.style.background=hexA(t.color,.14); el.style.borderColor=hexA(t.color,.5);
   const lanes=DRUM_NAMES.filter((n,i)=>State.drumPattern[i].some(Boolean)).length;
   el.innerHTML=`<div class="rlabel">🥁 Drum Pattern · ${lanes} lane${lanes!==1?'s':''}</div>`;
+  const LABEL_H=14, areaH=H-LABEL_H; // keep the pattern below the name label
   const c=document.createElement('canvas'); c.width=Math.min(Math.max(1,W),MAX_CANVAS_W); c.height=H;
   c.style.position='absolute'; c.style.top='0'; c.style.left='0'; c.style.opacity='.9';
   const ctx=c.getContext('2d'); ctx.fillStyle=hexA(t.color,.95);
@@ -1716,7 +1717,7 @@ function drawDrumLane(t,ti){
       const beat=bar*bpb+s*0.25; if(beat>=totalBeats()) break;
       const x=beatToPx(beat);
       for(let p=0;p<8;p++){ if(State.drumPattern[p][s]){
-        const y=(p/8)*H; ctx.fillRect(x+1,y+1,Math.max(2,stepPx-2),Math.max(2,H/8-1)); } }
+        const y=LABEL_H+(p/8)*areaH; ctx.fillRect(x+1,y+1,Math.max(2,stepPx-2),Math.max(2,areaH/8-1)); } }
     }
   }
   el.appendChild(c);
