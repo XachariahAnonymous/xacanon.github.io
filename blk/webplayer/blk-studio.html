@@ -660,6 +660,9 @@ const Audio={
     registerAutotune(this.ctx); // load the autotune worklet in the background
   },
   now(){return this.ctx?this.ctx.currentTime:0;},
+  // estimated latency from ctx.currentTime to the sound actually reaching the speakers,
+  // used to hold the visual playhead back so the bar lines up with what you hear
+  latency(){ if(!this.ctx) return 0; return this.ctx.outputLatency || this.ctx.baseLatency || 0; },
   resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
   // where track FX outputs should connect (master bus once inited, else raw masterGain)
   trackTarget(){ return this.masterBus||this.masterGain; },
@@ -1674,7 +1677,7 @@ function drawRegions(){
       const wf=waveformCanvas(r.buffer, Math.max(2,w), ROWH-18, t.color);
       wf.style.top='0px'; el.appendChild(wf);
     } else if(r.type==='midi'){
-      const H=ROWH-14; const notes=r.notes||[];
+      const H=ROWH-14, LABEL_H=14, areaH=H-LABEL_H; const notes=r.notes||[]; // keep notes below the name label
       let minP=48,maxP=72;
       notes.forEach(n=>{minP=Math.min(minP,n.pitch);maxP=Math.max(maxP,n.pitch);});
       const range=Math.max(6,maxP-minP+2);
@@ -1682,9 +1685,9 @@ function drawRegions(){
         const nd=document.createElement('div'); nd.className='note';
         const nx=beatToPx(secToBeat(n.start));
         const nw=Math.max(2,beatToPx(secToBeat(n.dur)));
-        const ny=H-((n.pitch-minP+1)/range)*H;
+        const ny=LABEL_H+(areaH-((n.pitch-minP+1)/range)*areaH);
         nd.style.left=nx+'px'; nd.style.width=nw+'px';
-        nd.style.top=ny+'px'; nd.style.height=Math.max(2,H/range-1)+'px';
+        nd.style.top=ny+'px'; nd.style.height=Math.max(2,areaH/range-1)+'px';
         el.appendChild(nd);
       });
     }
@@ -2119,6 +2122,9 @@ const Transport={
   },
   songTimeNow(){ return this.startSong+(Audio.now()-this.startCtx); },
   ctxTimeFor(songT){ return this.startCtx+(songT-this.startSong); },
+  // where to DRAW the playhead: while playing, hold it back by the output latency so the
+  // bar matches the audio you actually hear (scheduler still uses the true position)
+  displayPos(){ return Math.max(0, this.position - (this.isPlaying ? Audio.latency() : 0)); },
 
   scheduleAutomation(fromSong){ State.tracks.forEach(t=>this.scheduleTrackAutomation(t,fromSong)); },
   scheduleTrackAutomation(t, fromSong){
@@ -2248,7 +2254,7 @@ const Transport={
   }
 };
 function updatePlayhead(){
-  const x=beatToPx(secToBeat(Transport.position));
+  const x=beatToPx(secToBeat(Transport.displayPos()));
   $("#playhead").style.left=x+'px';
   // autoscroll
   const view=lanes.scrollLeft, vw=lanes.clientWidth;
@@ -2257,14 +2263,14 @@ function updatePlayhead(){
   if(typeof PianoRoll!=='undefined') PianoRoll.updatePlayhead();
 }
 function updatePosDisplay(){
-  const beat=secToBeat(Transport.position);
+  const beat=secToBeat(Transport.displayPos());
   const bpb=beatsPerBar();
   const bar=Math.floor(beat/bpb)+1;
   const bt=Math.floor(beat%bpb)+1;
   const ticks=Math.floor((beat%1)*480);
   $("#posDisplay").textContent=`${bar} . ${bt} . ${String(ticks).padStart(3,'0')}`;
   // actual elapsed time of the song (mm:ss.mmm)
-  const sec=Math.max(0,Transport.position);
+  const sec=Math.max(0,Transport.displayPos());
   const m=Math.floor(sec/60), s=Math.floor(sec%60), ms=Math.floor((sec%1)*1000);
   $("#timeDisplay").textContent=`${m}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
 }
@@ -2631,7 +2637,7 @@ const PianoRoll={
   updatePlayhead(){
     const ph=$("#prPlayhead"); if(!ph) return;
     const r=this.region;
-    const rel=r?secToBeat(Transport.position-r.start):-1;
+    const rel=r?secToBeat(Transport.displayPos()-r.start):-1;
     if(!r || rel<0){ ph.style.display='none'; return; }
     ph.style.display='block'; ph.style.left=(rel*this.beatW)+'px'; ph.style.height=(this.rows*this.noteH)+'px';
   },
