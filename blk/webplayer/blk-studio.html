@@ -141,6 +141,9 @@
     overflow:hidden; border:1px solid rgba(255,255,255,.25); cursor:grab;
     box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .region.sel{outline:2px solid #fff; z-index:4}
+  .region.recording{border:1px dashed var(--rec); background:rgba(255,0,51,.16)!important;
+    box-shadow:0 0 10px rgba(255,0,51,.5); cursor:default; animation:recpulse 1s infinite}
+  .region.recording .rlabel{background:rgba(255,0,51,.55); font-weight:700; letter-spacing:.3px}
   .region .rlabel{position:absolute; top:0; left:0; right:0; font-size:10px;
     padding:1px 5px; color:#fff; background:rgba(0,0,0,.35); white-space:nowrap;
     overflow:hidden; text-overflow:ellipsis; pointer-events:none}
@@ -1664,14 +1667,14 @@ function drawRegions(){
     if(ti<0) return;
     const t=State.tracks[ti];
     const el=document.createElement('div');
-    el.className='region'+(r.type==='midi'?' midi':'')+(isRegionSelected(r)?' sel':'');
+    el.className='region'+(r.type==='midi'?' midi':'')+(r.recording?' recording':'')+(isRegionSelected(r)?' sel':'');
     const x=beatToPx(secToBeat(r.start));
     const w=beatToPx(secToBeat(r.duration));
     el.style.left=x+'px'; el.style.top=(ti*ROWH+7)+'px'; el.style.width=w+'px';
     el.style.background=hexA(t.color,.32); el.style.borderColor=hexA(t.color,.8);
     el.dataset.id=r.id;
-    el.innerHTML=`<div class="rlabel">${r.name}</div>
-      <div class="handle l"></div><div class="handle r"></div>`;
+    el.innerHTML=`<div class="rlabel">${r.recording?'● Recording…':r.name}</div>`+
+      (r.recording?'':`<div class="handle l"></div><div class="handle r"></div>`);
     // waveform / notes
     if(r.type==='audio'&&r.buffer){
       const wf=waveformCanvas(r.buffer, Math.max(2,w), ROWH-18, t.color);
@@ -1692,7 +1695,7 @@ function drawRegions(){
       });
     }
     regionsLayer.appendChild(el);
-    attachRegionEvents(el,r);
+    if(!r.recording) attachRegionEvents(el,r); // the live recording clip isn't draggable
   });
   // drum tracks show their step pattern as a lane strip (they play a pattern, not a clip)
   State.tracks.forEach((t,ti)=>{ if(t.type==='drum') drawDrumLane(t,ti); });
@@ -2251,6 +2254,12 @@ const Transport={
     this.position=this.songTimeNow();
     if(State.loop.on && this.position>beatToSec(State.loop.end)) this.position=beatToSec(State.loop.end);
     updatePlayhead(); updatePosDisplay();
+    // grow the live "recording" placeholder clip to follow the playhead (cheap: just its width)
+    if(this.recording && Recorder.recRegion){
+      const ph=Recorder.recRegion; ph.duration=Math.max(0.05, this.position-ph.start);
+      const el=regionsLayer.querySelector('[data-id="'+ph.id+'"]');
+      if(el) el.style.width=beatToPx(secToBeat(ph.duration))+'px';
+    }
     requestAnimationFrame(()=>this.raf());
   }
 };
@@ -2298,6 +2307,11 @@ const Recorder={
         this.mediaRec.ondataavailable=e=>{if(e.data.size)this.chunks.push(e.data);};
         this.mediaRec.onstop=()=>this.commitAudio();
         this.mediaRec.start();
+        // drop a live "recording" placeholder clip that grows on the timeline as you sing;
+        // it gets filled with the waveform when recording finishes (commitAudio)
+        const ph={id:uid(),trackId:audioTrack.id,type:'audio',name:audioTrack.name+' take',
+          start:this.recStartSong,offset:0,duration:0.05,buffer:null,fadeIn:0,fadeOut:0,recording:true};
+        State.regions.push(ph); this.recRegion=ph; State.selectedRegion=ph.id; drawRegions();
         $("#btnRecVocals")?.classList.add('armed');
         toast('● Recording → '+audioTrack.name);
       }catch(err){
@@ -2327,16 +2341,21 @@ const Recorder={
   },
   commitAudio(){
     $("#btnRecVocals")?.classList.remove('armed');
-    if(!this.chunks.length){ return; }
+    const ph=this.recRegion; this.recRegion=null;
+    const dropPlaceholder=()=>{ if(ph){ State.regions=State.regions.filter(r=>r!==ph); drawRegions(); } };
+    if(!this.chunks.length){ dropPlaceholder(); return; }
     const blob=new Blob(this.chunks,{type:'audio/webm'});
     const track=this.recTrack, startSong=this.recStartSong;
     const comp=(State.recLatencyMs||0)/1000; // latency compensation: pull the take earlier
     blob.arrayBuffer().then(ab=>Audio.ctx.decodeAudioData(ab)).then(buf=>{
-      const reg={id:uid(),trackId:track.id,type:'audio',name:track.name+' take',
-        start:Math.max(0,startSong-comp),offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0};
-      State.regions.push(reg); State.selectedRegion=reg.id; drawRegions();
+      // fill the placeholder container with the finished waveform (or create one if it's gone)
+      let reg=ph;
+      if(reg && State.regions.includes(reg)){ reg.recording=false; reg.buffer=buf; reg.start=Math.max(0,startSong-comp); reg.duration=buf.duration; }
+      else { reg={id:uid(),trackId:track.id,type:'audio',name:track.name+' take',
+        start:Math.max(0,startSong-comp),offset:0,duration:buf.duration,buffer:buf,fadeIn:0,fadeOut:0}; State.regions.push(reg); }
+      State.selectedRegion=reg.id; drawRegions();
       toast('✓ Recorded '+buf.duration.toFixed(1)+'s onto '+track.name+(comp?` (−${State.recLatencyMs}ms)`:''));
-    }).catch(()=>toast('Could not decode recording'));
+    }).catch(()=>{ dropPlaceholder(); toast('Could not decode recording'); });
   },
   finishAll(){
     if(this.mediaRec && this.mediaRec.state!=='inactive'){try{this.mediaRec.stop();}catch(e){}}
