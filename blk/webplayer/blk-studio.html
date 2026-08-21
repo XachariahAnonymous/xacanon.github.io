@@ -1641,7 +1641,7 @@ $("#rulerScroll").addEventListener('mousedown',e=>{
 });
 
 /* ---------- Region rendering ---------- */
-function waveformCanvas(buffer,w,h,color){
+function waveformCanvas(buffer,w,h,color,offsetSec,durSec){
   // Cap the CANVAS pixel width (a canvas wider than the browser max renders blank/white
   // when you zoom in) but stretch it via CSS to fill the region's on-screen width.
   const dispW=Math.max(1,w);
@@ -1649,11 +1649,16 @@ function waveformCanvas(buffer,w,h,color){
   const c=document.createElement('canvas'); c.width=cw; c.height=h;
   c.style.width=dispW+'px'; c.style.height=h+'px';
   const ctx=c.getContext('2d'); ctx.strokeStyle=color; ctx.globalAlpha=.85;
-  const data=buffer.getChannelData(0); const step=Math.max(1,Math.floor(data.length/cw));
+  const data=buffer.getChannelData(0), sr=buffer.sampleRate;
+  // Only draw the region's OWN slice of the buffer [offset, offset+duration] so split
+  // halves each show their correct portion (not the whole take squished into the clip).
+  const s0=Math.max(0,Math.floor((offsetSec||0)*sr));
+  const s1=(durSec!=null)?Math.min(data.length,s0+Math.floor(durSec*sr)):data.length;
+  const step=Math.max(1,Math.floor((s1-s0)/cw));
   ctx.beginPath();
   for(let x=0;x<cw;x++){
-    let min=1,max=-1;
-    for(let i=0;i<step;i++){const v=data[x*step+i]||0; if(v<min)min=v; if(v>max)max=v;}
+    let min=1,max=-1; const base=s0+x*step;
+    for(let i=0;i<step;i++){const v=data[base+i]||0; if(v<min)min=v; if(v>max)max=v;}
     ctx.moveTo(x,(1+min)*h/2); ctx.lineTo(x,(1+max)*h/2);
   }
   ctx.stroke(); return c;
@@ -1677,7 +1682,7 @@ function drawRegions(){
       (r.recording?'':`<div class="handle l"></div><div class="handle r"></div>`);
     // waveform / notes
     if(r.type==='audio'&&r.buffer){
-      const wf=waveformCanvas(r.buffer, Math.max(2,w), ROWH-18, t.color);
+      const wf=waveformCanvas(r.buffer, Math.max(2,w), ROWH-18, t.color, r.offset||0, r.duration);
       wf.style.top='0px'; el.appendChild(wf);
     } else if(r.type==='midi'){
       const H=ROWH-14, LABEL_H=14, areaH=H-LABEL_H; const notes=r.notes||[]; // keep notes below the name label
@@ -2294,6 +2299,8 @@ const Recorder={
   activeNotes:{}, // trackId+pitch -> {noteObj, startSong}
 
   async armStart(){
+    // snapshot the pre-recording state so the finished take can be undone/redone
+    if(typeof pushHistory==='function') pushHistory();
     // MIDI recording regions created lazily on first note.
     // Audio recording: capture the mic into the first armed audio track.
     const audioTrack=State.tracks.find(t=>t.arm && t.type==='audio');
@@ -3269,7 +3276,7 @@ function saveProject(){
     masterOn:Audio.masterOn, masterPreset:State.masterPreset,
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
       mute:t.mute,solo:t.solo,arm:t.arm,synth:t.synth,instrument:t.instrument,engine:t.engine,sample:t.sample,automation:t.automation,fxModules:fxToSpecs(t.fx)})),
-    regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
+    regions:State.regions.filter(r=>!r.recording).map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
       offset:r.offset,duration:r.duration,notes:r.notes,fadeIn:r.fadeIn,fadeOut:r.fadeOut,
       audioData:r.buffer?arrayBufferToBase64(encodeWav(r.buffer)):null})),
   };
@@ -3348,7 +3355,7 @@ function snapshotProject(){
     tracks:State.tracks.map(t=>({id:t.id,type:t.type,name:t.name,color:t.color,volume:t.volume,pan:t.pan,
       mute:t.mute,solo:t.solo,arm:t.arm,synth:clone(t.synth),instrument:t.instrument,engine:t.engine,sample:t.sample,
       automation:t.automation.map(p=>({...p})),fxModules:fxToSpecs(t.fx)})),
-    regions:State.regions.map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
+    regions:State.regions.filter(r=>!r.recording).map(r=>({id:r.id,trackId:r.trackId,type:r.type,name:r.name,start:r.start,
       offset:r.offset,duration:r.duration,notes:r.notes?r.notes.map(n=>({...n})):null,
       fadeIn:r.fadeIn,fadeOut:r.fadeOut,buffer:r.buffer})),
   };
