@@ -757,7 +757,7 @@
         const slot = document.createElement("div");
         if (id) {
           const c = store.card(id);
-          slot.className = `tbslot filled r-${c.rarity}`;
+          slot.className = `tbslot filled r-${c.rarity}${c.fullImage && c.imageUrl ? " full" : ""}`;
           slot.style.setProperty("--ec", matrix.META[c.element].color);
           slot.innerHTML = `<div class="tbx" title="remove">×</div>
             <div class="bart">${c.imageUrl ? `<img class="art-img" src="${c.imageUrl}">` : matrix.META[c.element].glyph}</div>
@@ -839,7 +839,8 @@
     const glyph = c.imageUrl ? `<img class="art-img" src="${c.imageUrl}">` : matrix.META[c.element].glyph;
     const psn = c.poison && c.poison.turns > 0 ? ` <span title="poisoned">☠️</span>` : "";
     const arm = c.armorBuff ? ` <span title="armor +${c.armorBuff}%">🛡️</span>` : "";
-    return `<div class="btile r-${c.rarity} ${dead ? "dead" : ""} ${seld ? "sel" : ""} ${clickable && !dead ? "clk" : ""}" data-uid="${c.uid}" style="--ec:${matrix.META[c.element].color}">
+    const full = c.fullImage && c.imageUrl ? " full" : "";
+    return `<div class="btile r-${c.rarity}${full} ${dead ? "dead" : ""} ${seld ? "sel" : ""} ${clickable && !dead ? "clk" : ""}" data-uid="${c.uid}" style="--ec:${matrix.META[c.element].color}">
       <div class="bart">${glyph}</div>
       <div class="bnm">${c.name}${psn}${arm}</div>
       <div class="row" style="justify-content:center;gap:6px;font-size:10px"><span>⚔${c.stats.attack}</span><span>🛡${c.stats.defense}</span><span title="${matrix.META[c.element].label}">${matrix.META[c.element].glyph}</span></div>
