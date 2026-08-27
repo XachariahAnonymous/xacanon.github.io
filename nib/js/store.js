@@ -272,6 +272,17 @@
       });
       persist(); return { updated: n };
     }
+    // Enable/disable every built-in card (optionally filtered). Custom cards
+    // keep their own state so "Disable all" leaves your own cards enabled.
+    async function setCatalogActive(active, filter) {
+      filter = filter || {}; let n = 0;
+      NIB.catalog.all().forEach((c) => {
+        if ((!filter.rarity || c.rarity === filter.rarity) && (!filter.element || c.element === filter.element)) {
+          state.overrides[c.id] = Object.assign({}, state.overrides[c.id], { isActive: active }); n++;
+        }
+      });
+      persist(); return { updated: n };
+    }
     async function setAppearance(patch) { state.config.appearance = Object.assign({}, state.config.appearance, patch); persist(); }
     async function uploadImage(file) {   // demo: inline as a data URI
       return await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
@@ -355,7 +366,7 @@
       sendVerification, reloadUser, setDisplayName,
       buyAndOpenPack, setConfig, grantTokens, loadCardStats,
       seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
-      updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
+      updateCard, bulkUpdateCards, setCatalogActive, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
       earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
       sellDuplicates, sellAllDuplicates, upgradeCard,
@@ -670,6 +681,21 @@
       }
       return { updated };
     }
+    // Enable/disable every built-in card (optionally filtered). Writes only to
+    // each card doc in ≤500 batches — no giant shared overrides doc — so it
+    // scales to the full 1,710-card catalogue. Custom cards are untouched.
+    async function setCatalogActive(active, filter) {
+      filter = filter || {};
+      const targets = NIB.catalog.all().filter((c) =>
+        (!filter.rarity || c.rarity === filter.rarity) && (!filter.element || c.element === filter.element));
+      let updated = 0;
+      for (let i = 0; i < targets.length; i += 400) {
+        const batch = dbf.batch();
+        targets.slice(i, i + 400).forEach((c) => { batch.set(dbf.doc(`cards/${c.id}`), { isActive: active }, { merge: true }); updated++; });
+        await batch.commit();
+      }
+      return { updated };
+    }
     async function setAppearance(patch) {
       await dbf.doc("config/game").set({ appearance: patch }, { merge: true });
     }
@@ -770,7 +796,7 @@
       sendVerification, reloadUser, setDisplayName,
       buyAndOpenPack, setConfig, grantTokens,
       loadCardStats, seedCatalog, adminGrantTokens, addAdmin, removeAdmin, resetAll,
-      updateCard, bulkUpdateCards, setAppearance, uploadImage, createCard, deleteCard,
+      updateCard, bulkUpdateCards, setCatalogActive, setAppearance, uploadImage, createCard, deleteCard,
       saveBattleTeam, recordBattleResult, listOpponents,
       earnCoins, buyCoins, buyItem, consumeItem, claimDaily,
       sellDuplicates, sellAllDuplicates, upgradeCard,
@@ -804,6 +830,7 @@
     resetAll: (...a) => Backend.resetAll(...a),
     updateCard: (...a) => Backend.updateCard(...a),
     bulkUpdateCards: (...a) => Backend.bulkUpdateCards(...a),
+    setCatalogActive: (...a) => Backend.setCatalogActive(...a),
     setAppearance: (...a) => Backend.setAppearance(...a),
     uploadImage: (...a) => Backend.uploadImage(...a),
     createCard: (...a) => Backend.createCard(...a),

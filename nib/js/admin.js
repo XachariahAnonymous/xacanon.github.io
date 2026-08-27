@@ -337,8 +337,8 @@
     };
     async function bulkActive(active) {
       if (!window.confirm(`${active ? "Enable" : "Disable"} ${filterLabel()}? This affects every matching card in the catalogue.`)) return;
-      toast(`${active ? "Enabling" : "Disabling"}…`);
-      try { const r = await store.bulkUpdateCards({ rarity: $("#cr").value, element: $("#ce").value }, { isActive: active });
+      toast(`${active ? "Enabling" : "Disabling"}… (may take a moment)`);
+      try { const r = await store.setCatalogActive(active, { rarity: $("#cr").value, element: $("#ce").value });
         toast(`${active ? "Enabled" : "Disabled"} ${r.updated} card${r.updated === 1 ? "" : "s"}`); fillCardTable(); }
       catch (e) { toast(e.message || "Update failed", true); }
     }
