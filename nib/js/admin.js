@@ -364,7 +364,7 @@
     return {
       id: "custom-" + Date.now().toString(36) + Math.floor(Math.random() * 100),
       name: "New Card", element: "fire", rarity: "common", rarityLabel: "Common",
-      level: 1, mintCap: 1000, isActive: true, imageUrl: null, lore: "",
+      level: 1, mintCap: 1000, isActive: true, imageUrl: null, lore: "", fullImage: true,
       stats: { attack: 10, defense: 5, hp: 30 },
     };
   }
@@ -413,7 +413,8 @@
   // ---- CARD EDITOR MODAL -------------------------------------------
   function previewCardHTML(c) {
     const shiny = ["super_rare", "ultra_rare", "mega_rare", "hidden_rare"].includes(c.rarity);
-    return `<div class="tcard r-${c.rarity} ${shiny ? "shiny" : ""}" style="width:150px;--ec:${matrix.META[c.element].color}">
+    const full = c.fullImage && c.imageUrl ? " full" : "";
+    return `<div class="tcard r-${c.rarity} ${shiny ? "shiny" : ""}${full}" style="width:150px;--ec:${matrix.META[c.element].color}">
       <div class="foil"></div>
       <div class="art">${c.imageUrl ? `<img class="art-img" src="${c.imageUrl}" alt="">` : matrix.META[c.element].glyph}</div>
       <div class="info"><div class="nm">${c.name || ""}</div>
@@ -455,6 +456,11 @@
         <div class="row"><input id="edImg" value="${card.imageUrl || ""}" placeholder="https://…/art.png" style="flex:1">
           <label class="btn ghost sm" style="cursor:pointer">Upload<input id="edFile" type="file" accept="image/*" class="hidden"></label></div>
         <div class="grid cols-2">
+          <div><label class="field">Card display</label>
+            ${sel("edFull", [{ v: "true", l: "Full image (edge-to-edge)" }, { v: "false", l: "Framed (art + name/stats)" }], String(card.fullImage !== false))}</div>
+          <div></div>
+        </div>
+        <div class="grid cols-2">
           <div><label class="field">Ability</label>
             <select id="edAbility"><option value="">Auto (by element)</option>${Object.entries((NIB.battle && NIB.battle.ABILITY_META) || {}).map(([t, m]) => `<option value="${t}" ${card.ability && card.ability.type === t ? "selected" : ""}>${m.glyph} ${m.name}</option>`).join("")}</select>
           </div>
@@ -479,12 +485,13 @@
       mintCap: Math.max(1, +$("#edCap").value || 1),
       isActive: $("#edActive").value === "true",
       imageUrl: $("#edImg").value.trim() || null,
+      fullImage: $("#edFull").value === "true",
       lore: $("#edLore").value,
       ability: $("#edAbility").value ? { type: $("#edAbility").value, value: $("#edAbilityVal").value !== "" ? +$("#edAbilityVal").value : null } : null,
       stats: { attack: +$("#edAtk").value || 0, defense: +$("#edDef").value || 0, hp: +$("#edHp").value || 0 },
     });
     const refreshPreview = () => { $("#edPreview").innerHTML = previewCardHTML(Object.assign({}, card, collect())); };
-    $$("#edName,#edElement,#edRarity,#edLevel,#edAtk,#edDef,#edHp,#edImg").forEach((i) => i.addEventListener("input", refreshPreview));
+    $$("#edName,#edElement,#edRarity,#edLevel,#edAtk,#edDef,#edHp,#edImg,#edFull").forEach((i) => i.addEventListener("input", refreshPreview));
     $("#edFile").onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return; $("#edErr").textContent = "Uploading…";
       try { const url = await store.uploadImage(f, card.id); $("#edImg").value = url; $("#edErr").textContent = ""; refreshPreview(); }
