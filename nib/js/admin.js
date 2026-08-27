@@ -230,6 +230,7 @@
   function renderCards() {
     const cfg = { r: "", e: "" };
     const back = store.cardBack ? store.cardBack() : null;
+    const frontImg = store.cardFront ? store.cardFront() : null;
     return `
       <div class="panel" style="margin-bottom:16px">
         <h3>Card Back <span class="muted" style="font-size:13px">— shown on every face-down card</span></h3>
@@ -240,6 +241,16 @@
           ${back ? `<button class="btn ghost sm" id="cbClear">Clear</button>` : ""}
         </div>
         <p class="muted" style="font-size:12px;margin-top:8px">Leave blank for the default LOL back.</p>
+      </div>
+      <div class="panel" style="margin-bottom:16px">
+        <h3>Card Front <span class="muted" style="font-size:13px">— logo shown on the booster pack front</span></h3>
+        <div class="row">
+          <input id="cfUrl" value="${frontImg || ""}" placeholder="https://…/card-front.png" style="flex:1">
+          <label class="btn ghost sm" style="cursor:pointer">Upload<input id="cfFile" type="file" accept="image/*" class="hidden"></label>
+          <button class="btn sm" id="cfSave">Save front</button>
+          ${frontImg ? `<button class="btn ghost sm" id="cfClear">Clear</button>` : ""}
+        </div>
+        <p class="muted" style="font-size:12px;margin-top:8px">Leave blank for the default 🃏 logo.</p>
       </div>
       <div class="panel">
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -294,6 +305,16 @@
     $("#cbFile") && ($("#cbFile").onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return; toast("Uploading…");
       try { const url = await store.uploadImage(f, "cardback"); $("#cbUrl").value = url; toast("Uploaded — click Save back"); }
+      catch (err) { toast(err.message || "Upload failed", true); }
+    });
+    $("#cfSave").onclick = async () => {
+      try { await store.setAppearance({ cardFrontUrl: $("#cfUrl").value.trim() || null }); toast("Card front saved"); }
+      catch (e) { toast(e.message || "Save failed", true); }
+    };
+    $("#cfClear") && ($("#cfClear").onclick = async () => { await store.setAppearance({ cardFrontUrl: null }); toast("Reset to default front"); render(); });
+    $("#cfFile") && ($("#cfFile").onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return; toast("Uploading…");
+      try { const url = await store.uploadImage(f, "cardfront"); $("#cfUrl").value = url; toast("Uploaded — click Save front"); }
       catch (err) { toast(err.message || "Upload failed", true); }
     });
   }

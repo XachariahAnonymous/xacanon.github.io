@@ -171,7 +171,7 @@
               <div class="pack-glow"></div>
               <div class="pack-body">
                 <div class="pack-shine"></div>
-                <div class="pk-logo">🃏</div>
+                <div class="pk-logo">${store.cardFront && store.cardFront() ? `<img class="art-img" src="${store.cardFront()}" alt="">` : "🃏"}</div>
                 <div class="pk-t">LOL</div>
               </div>
               <div class="pack-top"><span class="pull-tab">PULL ▸</span></div>

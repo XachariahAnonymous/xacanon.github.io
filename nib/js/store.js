@@ -105,6 +105,7 @@
     upgradeCost: (id) => upgradeCostFor(cache.cardLevels[id] || 0),
     upgradeMax: UPGRADE_MAX,
     cardBack: () => (cache.config.appearance && cache.config.appearance.cardBackUrl) || null,
+    cardFront: () => (cache.config.appearance && cache.config.appearance.cardFrontUrl) || null,
     battleTeam: () => cache.battleTeam,
     coins: () => cache.coins || 0,
     items: () => cache.items || {},
