@@ -260,30 +260,64 @@
             <select id="ce"><option value="">All Elements</option>${matrix.ELEMENTS.map((e) => `<option value="${e}">${matrix.META[e].label}</option>`).join("")}</select>
             <button class="btn sm" id="newBtn">+ New card</button>
             <button class="btn sm ghost" id="bulkBtn">Change all (filtered)</button>
+            <button class="btn sm" id="enAllBtn">Enable all</button>
+            <button class="btn sm ghost" id="disAllBtn">Disable all</button>
           </div>
         </div>
+        <div class="row" id="selBar" style="margin-top:10px;gap:8px;align-items:center;flex-wrap:wrap">
+          <label class="row" style="gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="selAll"> <span class="muted" style="font-size:13px">Select all shown</span></label>
+          <span class="muted" style="font-size:13px" id="selCount">0 selected</span>
+          <button class="btn sm" id="enSelBtn" disabled>Enable selected</button>
+          <button class="btn sm ghost" id="disSelBtn" disabled>Disable selected</button>
+        </div>
         <div id="cardTable" style="margin-top:12px;max-height:56vh;overflow:auto"></div>
-        <p class="muted" style="font-size:12px;margin-top:10px">Click <b>Edit</b> on any card to change its stats and artwork. “Change all” applies one change to every card matching the current filter.</p>
+        <p class="muted" style="font-size:12px;margin-top:10px">Click <b>Edit</b> to change a card’s stats and artwork. Use the per-row toggle, the checkboxes + <b>Enable/Disable selected</b>, or <b>Enable/Disable all</b> (respects the current filter) to control which cards appear in packs. “Change all” applies one change to every card matching the current filter.</p>
       </div>`;
+  }
+  function updateSelUI() {
+    const boxes = $$(".csel");
+    const checked = boxes.filter((b) => b.checked);
+    $("#selCount").textContent = `${checked.length} selected`;
+    $("#enSelBtn").disabled = $("#disSelBtn").disabled = checked.length === 0;
+    const all = $("#selAll"); if (all) all.checked = boxes.length > 0 && checked.length === boxes.length;
+  }
+  function selectedIds() { return $$(".csel").filter((b) => b.checked).map((b) => b.dataset.id); }
+  async function setActive(ids, active) {
+    if (!ids.length) return;
+    toast(`${active ? "Enabling" : "Disabling"} ${ids.length} card${ids.length > 1 ? "s" : ""}…`);
+    try {
+      for (const id of ids) await store.updateCard(id, { isActive: active });
+      toast(`${active ? "Enabled" : "Disabled"} ${ids.length} card${ids.length > 1 ? "s" : ""}`);
+      fillCardTable();
+    } catch (e) { toast(e.message || "Update failed", true); }
   }
   async function fillCardTable() {
     $("#cardTable").innerHTML = `<p class="muted">Loading…</p>`;
     const cards = await store.loadCardStats($("#cr").value, $("#ce").value, 400);
     const rows = cards.map((c) => {
       const thumb = c.imageUrl ? `<img src="${c.imageUrl}" style="width:26px;height:34px;object-fit:cover;border-radius:4px;vertical-align:middle">` : matrix.META[c.element].glyph;
-      return `<tr>
+      const active = c.isActive !== false;
+      return `<tr style="${active ? "" : "opacity:.55"}">
+        <td><input type="checkbox" class="csel" data-id="${c.id}"></td>
         <td>${thumb} ${c.name}</td>
         <td><span class="badge r-${c.rarity}">${catalog.RARITY_LABEL[c.rarity]}</span></td>
         <td>Lv ${c.level}</td>
         <td class="mono">${c.stats.attack}/${c.stats.defense}/${c.stats.hp}</td>
         <td>${(c.mintedCount || 0).toLocaleString()}/${c.mintCap.toLocaleString()}</td>
-        <td><button class="btn ghost sm ed-btn" data-id="${c.id}">Edit</button></td>
+        <td><span class="badge" style="background:${active ? "#1f7a3f" : "#5b2330"}">${active ? "Active" : "Off"}</span></td>
+        <td>
+          <button class="btn ghost sm tog-btn" data-id="${c.id}" data-active="${active}">${active ? "Disable" : "Enable"}</button>
+          <button class="btn ghost sm ed-btn" data-id="${c.id}">Edit</button>
+        </td>
       </tr>`;
     }).join("");
-    $("#cardTable").innerHTML = `<table><tr><th>Name</th><th>Rarity</th><th>Lvl</th><th>A/D/H</th><th>Minted</th><th></th></tr>${rows}</table>`;
+    $("#cardTable").innerHTML = `<table><tr><th></th><th>Name</th><th>Rarity</th><th>Lvl</th><th>A/D/H</th><th>Minted</th><th>Status</th><th></th></tr>${rows}</table>`;
     // stash the loaded cards so the editor has full data without a re-fetch
     const byId = {}; cards.forEach((c) => byId[c.id] = c);
     $$(".ed-btn").forEach((b) => b.onclick = () => openCardEditor(byId[b.dataset.id]));
+    $$(".tog-btn").forEach((b) => b.onclick = () => setActive([b.dataset.id], b.dataset.active !== "true"));
+    $$(".csel").forEach((b) => b.onchange = updateSelUI);
+    updateSelUI();
   }
   function newCardTemplate() {
     return {
@@ -297,6 +331,22 @@
     $("#cr").onchange = fillCardTable; $("#ce").onchange = fillCardTable; fillCardTable();
     $("#newBtn").onclick = () => openCardEditor(newCardTemplate(), true);
     $("#bulkBtn").onclick = () => openBulkEditor($("#cr").value, $("#ce").value);
+    const filterLabel = () => {
+      const r = $("#cr").value, e = $("#ce").value;
+      return (r || e) ? `${r ? catalog.RARITY_LABEL[r] : "all rarities"}${e ? " · " + matrix.META[e].label : ""}` : "ALL cards";
+    };
+    async function bulkActive(active) {
+      if (!window.confirm(`${active ? "Enable" : "Disable"} ${filterLabel()}? This affects every matching card in the catalogue.`)) return;
+      toast(`${active ? "Enabling" : "Disabling"}…`);
+      try { const r = await store.bulkUpdateCards({ rarity: $("#cr").value, element: $("#ce").value }, { isActive: active });
+        toast(`${active ? "Enabled" : "Disabled"} ${r.updated} card${r.updated === 1 ? "" : "s"}`); fillCardTable(); }
+      catch (e) { toast(e.message || "Update failed", true); }
+    }
+    $("#enAllBtn").onclick = () => bulkActive(true);
+    $("#disAllBtn").onclick = () => bulkActive(false);
+    $("#enSelBtn").onclick = () => setActive(selectedIds(), true);
+    $("#disSelBtn").onclick = () => setActive(selectedIds(), false);
+    $("#selAll").onchange = (e) => { $$(".csel").forEach((b) => b.checked = e.target.checked); updateSelUI(); };
     $("#cbSave").onclick = async () => {
       try { await store.setAppearance({ cardBackUrl: $("#cbUrl").value.trim() || null }); toast("Card back saved"); }
       catch (e) { toast(e.message || "Save failed", true); }

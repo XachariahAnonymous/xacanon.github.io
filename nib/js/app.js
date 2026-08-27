@@ -30,7 +30,7 @@
   function cardEl(card, opts = {}) {
     const el = document.createElement("div");
     const shiny = ["super_rare", "ultra_rare", "mega_rare", "hidden_rare"].includes(card.rarity);
-    el.className = `tcard r-${card.rarity}` + (shiny ? " shiny" : "");
+    el.className = `tcard r-${card.rarity}` + (shiny ? " shiny" : "") + ((card.fullImage && card.imageUrl) ? " full" : "");
     el.style.setProperty("--ec", matrix.META[card.element].color);
     if (opts.count > 1) el.classList.add("stacked");
     el.innerHTML = `
@@ -110,7 +110,7 @@
       <div class="panel modal r-${card.rarity}" style="position:relative">
         <span class="close">&times;</span>
         <div class="row" style="gap:18px;align-items:flex-start">
-          <div class="tcard r-${card.rarity} ${["super_rare","ultra_rare","mega_rare","hidden_rare"].includes(card.rarity)?"shiny":""}"
+          <div class="tcard r-${card.rarity} ${["super_rare","ultra_rare","mega_rare","hidden_rare"].includes(card.rarity)?"shiny":""} ${card.fullImage && card.imageUrl ? "full" : ""}"
                style="width:150px;flex:none;--ec:${matrix.META[card.element].color}">
             <div class="foil"></div>
             <div class="art">${card.imageUrl ? `<img class="art-img" src="${card.imageUrl}" alt="">` : matrix.META[card.element].glyph}</div>
