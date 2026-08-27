@@ -25,15 +25,12 @@
 
   <main class="wrap" id="main"></main>
 
-  <!-- backend config; loads Firebase SDK only when enabled:true -->
+  <!-- backend config -->
   <script src="js/firebase-config.js?v=lol7"></script>
-  <script>
-    if (window.NIB_CONFIG && window.NIB_CONFIG.enabled) {
-      var _b = "https://www.gstatic.com/firebasejs/10.12.2/";
-      ["firebase-app-compat.js", "firebase-auth-compat.js", "firebase-firestore-compat.js"]
-        .forEach(function (f) { document.write('<script src="' + _b + f + '"><\/script>'); });
-    }
-  </script>
+  <!-- Firebase SDK (normal tags, not document.write, so it loads reliably) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <!-- shared logic (classic scripts; runs with no build step) -->
   <script src="js/matrix.js?v=lol7"></script>
