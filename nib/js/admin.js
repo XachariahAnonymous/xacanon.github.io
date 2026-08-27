@@ -95,6 +95,7 @@
   function renderEconomy() {
     const cfg = store.config();
     const ov = cfg.dropRateOverrides || NIB.engine.DEFAULT_CONFIG.chaseTable;
+    const sc = cfg.showcase || { enabled: false, chance: 0.5, cardIds: [] };
     return `
       <div class="grid cols-2" style="align-items:start">
         <div class="panel">
@@ -125,6 +126,25 @@
         </div>
       </div>
       <div class="panel" style="margin-top:16px">
+        <h3>Showcase Boost <span class="muted" style="font-size:12px">— force featured cards into packs (for demos)</span></h3>
+        <div class="row" style="justify-content:space-between;margin-top:8px">
+          <span>Boost enabled</span>
+          <button class="btn sm ${sc.enabled ? "" : "ghost"}" id="scToggle">${sc.enabled ? "ON" : "OFF"}</button>
+        </div>
+        <div class="grid cols-2" style="align-items:start;margin-top:8px">
+          <div>
+            <label class="field">Chance per card slot (%)</label>
+            <input id="scChance" type="number" min="0" max="100" step="1" value="${Math.round((sc.chance || 0) * 100)}">
+          </div>
+          <div>
+            <label class="field">Featured card IDs (comma-separated)</label>
+            <input id="scIds" value="${(sc.cardIds || []).join(", ")}" placeholder="custom-lawn-gnome, custom-gnome-king, custom-weaboo">
+          </div>
+        </div>
+        <button class="btn sm" id="scSave" style="margin-top:12px">Save showcase</button>
+        <p class="muted" style="font-size:12px;margin-top:8px">Each of the 6 cards in a pack has this % chance to be swapped for a random featured card. 100% = every card in the pack is a featured one. This is separate from drop rates.</p>
+      </div>
+      <div class="panel" style="margin-top:16px">
         <h3>Tools</h3>
         <div class="grid cols-2" style="align-items:start">
           <div>
@@ -152,6 +172,18 @@
       await store.setConfig({ dropRateOverrides: ov }); toast("Overrides applied");
     };
     $("#resetOvr").onclick = async () => { await store.setConfig({ dropRateOverrides: null }); toast("Reset to defaults"); };
+    $("#scToggle").onclick = async () => {
+      const cur = store.config().showcase || { chance: 0.5, cardIds: [] };
+      await store.setConfig({ showcase: { ...cur, enabled: !cur.enabled } });
+      toast(`Showcase boost ${!cur.enabled ? "ON" : "OFF"}`);
+    };
+    $("#scSave").onclick = async () => {
+      const cur = store.config().showcase || {};
+      const chance = Math.min(100, Math.max(0, +$("#scChance").value || 0)) / 100;
+      const cardIds = $("#scIds").value.split(",").map((s) => s.trim()).filter(Boolean);
+      await store.setConfig({ showcase: { ...cur, chance, cardIds } });
+      toast("Showcase saved");
+    };
     $("#seedBtn").onclick = async () => {
       $("#seedBtn").disabled = true; toast("Seeding…");
       try { const r = await store.seedCatalog(); toast(`Seeded ${r.written} cards`); }

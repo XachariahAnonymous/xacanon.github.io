@@ -39,6 +39,9 @@
     bonusRareEnabled: true,
     dropRateOverrides: null,
     welcomeBalance: 0,
+    // Showcase boost: independently force some pack slots to be specific cards
+    // (for demos). chance = per-slot probability [0..1]. Off by default.
+    showcase: { enabled: false, chance: 0.5, cardIds: ["custom-lawn-gnome", "custom-gnome-king", "custom-weaboo"] },
     onchain: {
       network: "devnet", rpcUrl: "", mintAddress: "",
       treasuryWallet: "", paymentsEnabled: false, mintingEnabled: false, linked: false,
@@ -221,6 +224,17 @@
       ecfg.bonusRare.enabled = cfg.bonusRareEnabled;
       if (cfg.dropRateOverrides) ecfg.chaseTable = cfg.dropRateOverrides;
       const slots = NIB.engine.openPack(G.poolLocal(), reserve, ecfg);
+      // Showcase boost: independently override some slots with specific cards.
+      const sc = cfg.showcase;
+      if (sc && sc.enabled && sc.chance > 0 && (sc.cardIds || []).length) {
+        slots.forEach((s) => {
+          if (Math.random() < sc.chance) {
+            const id = sc.cardIds[Math.floor(Math.random() * sc.cardIds.length)];
+            const card = G.card(id);
+            if (card && card.isActive !== false) { s.cardId = id; s.rarity = card.rarity; state.minted[id] = (state.minted[id] || 0) + 1; }
+          }
+        });
+      }
       const serials = slots.map((s) => state.minted[s.cardId]);
       state.coins = (state.coins || 0) + PACK_COIN_REWARD;
       const opening = { id: "pk_" + Date.now().toString(36), wallet: state.walletAddress || state.email, cost: cfg.packPriceTokens, slots, serials, coinsEarned: PACK_COIN_REWARD, at: new Date().toISOString() };
@@ -540,6 +554,17 @@
       }
       throw new Error("Card pool exhausted — enable at least one in-stock card.");
     }
+    // Fetch a random showcase card (for the demo boost). Returns the same
+    // shape as selectCard, or null if it's missing/disabled/at its cap.
+    async function pickShowcaseCard(ids) {
+      const id = ids[Math.floor(Math.random() * ids.length)];
+      const doc = await dbf.doc(`cards/${id}`).get();
+      if (!doc.exists) return null;
+      const data = doc.data();
+      if (data.isActive === false) return null;
+      if ((data.mintedCount || 0) >= data.mintCap) return null;
+      return { id: doc.id, ref: doc.ref, mintedCount: data.mintedCount, mintCap: data.mintCap, rarity: data.rarity, downtiered: false };
+    }
 
     async function buyAndOpenPack() {
       const cfg = cache.config;
@@ -559,6 +584,17 @@
       try { chosen = []; for (const r of rarities) chosen.push(await selectCard(r)); }
       catch (e) { return { ok: false, error: e.message }; }
 
+      // Showcase boost: independently override some slots with specific cards.
+      const sc = cfg.showcase;
+      if (sc && sc.enabled && sc.chance > 0 && (sc.cardIds || []).length) {
+        for (let i = 0; i < chosen.length; i++) {
+          if (Math.random() < sc.chance) {
+            const boosted = await pickShowcaseCard(sc.cardIds);
+            if (boosted) chosen[i] = boosted;
+          }
+        }
+      }
+
       // Build the atomic batch fresh each attempt (a WriteBatch can't be
       // reused after commit). Returns { openRef, slots, label }.
       const uid = cache.uid;
@@ -567,12 +603,19 @@
         const batch = dbf.batch();
         const openRef = dbf.collection("packOpenings").doc();
         const slots = [];
+        // The same card can fill several slots (e.g. small active pool or
+        // showcase boost). Give each copy a sequential serial and aggregate
+        // the mint increment so we never write one card doc twice in a batch.
+        const seen = {};  // cardId -> { ref, mintCap, base, n }
         chosen.forEach((c) => {
-          const serial = c.mintedCount + 1;
-          batch.update(c.ref, { mintedCount: FV.increment(1), soldOut: serial >= c.mintCap });
+          const m = seen[c.id] || (seen[c.id] = { ref: c.ref, mintCap: c.mintCap, base: c.mintedCount || 0, n: 0 });
+          const serial = m.base + m.n + 1; m.n++;
           const copyRef = dbf.collection(`users/${uid}/collection`).doc();
           batch.set(copyRef, { cardId: c.id, rarity: c.rarity, serial, mintAddress: null, openingId: openRef.id, mintedAt: FV.serverTimestamp() });
           slots.push({ cardId: c.id, rarity: c.rarity, serial });
+        });
+        Object.values(seen).forEach((m) => {
+          batch.update(m.ref, { mintedCount: FV.increment(m.n), soldOut: (m.base + m.n) >= m.mintCap });
         });
         batch.update(dbf.doc(`users/${uid}`), { tokenBalance: FV.increment(-price), packsOpened: FV.increment(1), coins: FV.increment(PACK_COIN_REWARD) });
         batch.set(openRef, { uid, wallet: label, cost: price, slots, at: FV.serverTimestamp() });
