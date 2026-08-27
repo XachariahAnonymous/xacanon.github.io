@@ -497,21 +497,21 @@
     }
     async function disconnect() { await auth.signOut(); }
 
-    // Query in-stock cards of a rarity (index: rarity+soldOut+rand), then
-    // skip any that are disabled (isActive === false) or at their mint cap.
-    // Filtering isActive in code avoids needing a new composite index.
+    // Query one in-stock, enabled card of a rarity.
+    // Composite index (cards): rarity ASC, isActive ASC, soldOut ASC, rand ASC
+    // (and a matching rand DESC index). Disabled cards (isActive:false) are
+    // excluded by the query, so they never appear in packs.
     async function pickAvailable(rarity, r, dir) {
       const s = await dbf.collection("cards")
-        .where("rarity", "==", rarity).where("soldOut", "==", false)
+        .where("rarity", "==", rarity)
+        .where("isActive", "==", true)
+        .where("soldOut", "==", false)
         .where("rand", dir === "asc" ? ">=" : "<", r)
-        .orderBy("rand", dir).limit(20).get();
-      for (const d of s.docs) {
-        const data = d.data();
-        if (data.isActive === false) continue;
-        if ((data.mintedCount || 0) >= data.mintCap) continue;
-        return { id: d.id, ref: d.ref, mintedCount: data.mintedCount, mintCap: data.mintCap, rarity };
-      }
-      return null;
+        .orderBy("rand", dir).limit(1).get();
+      if (s.empty) return null;
+      const d = s.docs[0], data = d.data();
+      if ((data.mintedCount || 0) >= data.mintCap) return null;
+      return { id: d.id, ref: d.ref, mintedCount: data.mintedCount, mintCap: data.mintCap, rarity };
     }
     async function selectCard(desired) {
       const start = NIB.engine.RARITY_ORDER.indexOf(desired);
