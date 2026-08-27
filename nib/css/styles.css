@@ -181,6 +181,7 @@ input, select {
 }
 .pk-logo { font-size: 52px; filter: drop-shadow(0 3px 6px #0007); z-index: 1; }
 .pk-t { font-weight: 900; letter-spacing: 3px; margin-top: 6px; text-shadow: 0 2px 6px #0008; z-index: 1; }
+.pk-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; display: block; }
 
 /* moving sheen */
 .pack-shine {
