@@ -210,12 +210,23 @@
     hard:   { rarities: ["ultra_rare", "mega_rare"], label: "Hard" },
     boss:   { rarities: ["mega_rare", "hidden_rare"], label: "Boss" },
   };
-  // Returns raw catalog cards (caller wraps with battleCard at battle start).
+  // Returns raw card objects (caller wraps with battleCard at battle start).
   function generateNpcTeam(difficulty, size) {
+    const n = size || TEAM_SIZE;
+    const team = [];
+    // Showcase: build NPC teams from the featured cards (for demos).
+    const cfg = (NIB.store && NIB.store.config && NIB.store.config()) || {};
+    const sc = cfg.showcase;
+    if (sc && sc.npcTeams && (sc.cardIds || []).length) {
+      const featured = sc.cardIds.map((id) => NIB.store.card(id)).filter(Boolean);
+      if (featured.length) {
+        for (let i = 0; i < n; i++) team.push(featured[Math.floor(Math.random() * featured.length)]);
+        return team;
+      }
+    }
     const tier = NPC_TIERS[difficulty] || NPC_TIERS.easy;
     const pool = NIB.catalog.all().filter((c) => tier.rarities.includes(c.rarity));
-    const team = [];
-    for (let i = 0; i < (size || TEAM_SIZE); i++) team.push(pool[Math.floor(Math.random() * pool.length)]);
+    for (let i = 0; i < n; i++) team.push(pool[Math.floor(Math.random() * pool.length)]);
     return team;
   }
 

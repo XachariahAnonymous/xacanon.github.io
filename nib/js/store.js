@@ -41,7 +41,7 @@
     welcomeBalance: 0,
     // Showcase boost: independently force some pack slots to be specific cards
     // (for demos). chance = per-slot probability [0..1]. Off by default.
-    showcase: { enabled: false, chance: 0.5, cardIds: ["custom-lawn-gnome", "custom-gnome-king", "custom-weaboo"] },
+    showcase: { enabled: false, chance: 0.5, npcTeams: false, cardIds: ["custom-lawn-gnome", "custom-gnome-king", "custom-weaboo"] },
     onchain: {
       network: "devnet", rpcUrl: "", mintAddress: "",
       treasuryWallet: "", paymentsEnabled: false, mintingEnabled: false, linked: false,

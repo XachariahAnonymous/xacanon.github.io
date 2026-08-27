@@ -128,8 +128,12 @@
       <div class="panel" style="margin-top:16px">
         <h3>Showcase Boost <span class="muted" style="font-size:12px">— force featured cards into packs (for demos)</span></h3>
         <div class="row" style="justify-content:space-between;margin-top:8px">
-          <span>Boost enabled</span>
+          <span>Boost enabled (packs)</span>
           <button class="btn sm ${sc.enabled ? "" : "ghost"}" id="scToggle">${sc.enabled ? "ON" : "OFF"}</button>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:12px">
+          <span>Use featured cards for NPC battle teams</span>
+          <button class="btn sm ${sc.npcTeams ? "" : "ghost"}" id="scNpc">${sc.npcTeams ? "ON" : "OFF"}</button>
         </div>
         <div class="grid cols-2" style="align-items:start;margin-top:8px">
           <div>
@@ -176,6 +180,11 @@
       const cur = store.config().showcase || { chance: 0.5, cardIds: [] };
       await store.setConfig({ showcase: { ...cur, enabled: !cur.enabled } });
       toast(`Showcase boost ${!cur.enabled ? "ON" : "OFF"}`);
+    };
+    $("#scNpc").onclick = async () => {
+      const cur = store.config().showcase || { chance: 0.5, cardIds: [] };
+      await store.setConfig({ showcase: { ...cur, npcTeams: !cur.npcTeams } });
+      toast(`NPC featured teams ${!cur.npcTeams ? "ON" : "OFF"}`);
     };
     $("#scSave").onclick = async () => {
       const cur = store.config().showcase || {};
