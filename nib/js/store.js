@@ -514,14 +514,20 @@
       return { id: d.id, ref: d.ref, mintedCount: data.mintedCount, mintCap: data.mintCap, rarity };
     }
     async function selectCard(desired) {
-      const start = NIB.engine.RARITY_ORDER.indexOf(desired);
-      for (let t = start; t >= 0; t--) {
-        const rarity = NIB.engine.RARITY_ORDER[t];
+      const order = NIB.engine.RARITY_ORDER;
+      const start = order.indexOf(desired);
+      // Prefer the rolled rarity, step DOWN toward common, then UP toward rarer
+      // so packs still fill when whole tiers are disabled/empty.
+      const tiers = [];
+      for (let t = start; t >= 0; t--) tiers.push(t);
+      for (let t = start + 1; t < order.length; t++) tiers.push(t);
+      for (const t of tiers) {
+        const rarity = order[t];
         const r = Math.random();
         const card = (await pickAvailable(rarity, r, "asc")) || (await pickAvailable(rarity, r, "desc"));
         if (card && card.mintedCount < card.mintCap) return { ...card, downtiered: t !== start };
       }
-      throw new Error("Card pool exhausted — has the catalogue been seeded?");
+      throw new Error("Card pool exhausted — enable at least one in-stock card.");
     }
 
     async function buyAndOpenPack() {

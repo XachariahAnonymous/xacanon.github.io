@@ -79,7 +79,12 @@
 
   function selectCard(pool, desired, reserve) {
     const start = RARITY_ORDER.indexOf(desired);
-    for (let t = start; t >= 0; t--) {
+    // Prefer the rolled rarity, step DOWN toward common, then UP toward rarer
+    // so packs still fill when whole tiers are disabled/empty.
+    const tiers = [];
+    for (let t = start; t >= 0; t--) tiers.push(t);
+    for (let t = start + 1; t < RARITY_ORDER.length; t++) tiers.push(t);
+    for (const t of tiers) {
       const rarity = RARITY_ORDER[t];
       let candidates = pool.filter(
         (c) => c.rarity === rarity && c.mintedCount < c.mintCap,
