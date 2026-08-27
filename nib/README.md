@@ -4,8 +4,8 @@ A fully browser-based Solana Trading Card Game. **No build step** — just open 
 
 ## Run it
 Double-click **`web/index.html`** (or serve the `web/` folder with any static host).
-- Click **Connect Wallet** — uses Phantom/Solflare/Backpack if installed, otherwise **demo mode** (100 free NIB).
-- Click **+ Get 50 demo NIB** for more tokens, then **Rip Pack**.
+- Click **Connect Wallet** — uses Phantom/Solflare/Backpack if installed, otherwise **demo mode** (100 free LOL).
+- Click **+ Get 50 demo LOL** for more tokens, then **Rip Pack**.
 - **Admin panel:** open **`admin.html`** (or the *Admin* link). Any wallet passes in demo mode.
 
 > Tip: serve over `http://localhost` (e.g. `npx serve web`) so both pages share the same
@@ -28,7 +28,7 @@ Everything backend-ish lives in **`js/store.js`**. Reimplement these against rea
 
 1. **`connectWallet()`** → already tries injected wallets; add `@solana/wallet-adapter` if you want the modal.
 2. **`buyAndOpenPack()`** → move server-side into a **Supabase Edge Function**:
-   - verify the 5-NIB SPL payment tx (burn or send to `game_config.vault_wallet`),
+   - verify the 5-LOL SPL payment tx (burn or send to `game_config.vault_wallet`),
    - run `openPack()` from `lib/packEngine.ts` (⚠️ **never** roll in the browser — it's cheatable),
    - mint cNFTs via Metaplex, write `pack_openings` + `minted_nfts` rows.
 3. **`reserve()`** → call the `reserve_card_serial()` RPC in `schema.sql` (atomic cap enforcement).

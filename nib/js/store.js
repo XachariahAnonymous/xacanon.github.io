@@ -17,7 +17,7 @@
   const LIVE = !!CFG.enabled;
   const KEY = "nibcoin.v1";
   const DAILY_AMOUNT = 100, DAILY_COOLDOWN = 24 * 3600 * 1000, PACK_COIN_REWARD = 20;
-  const SELL_PRICE = 0.1;  // NIB per duplicate card sold
+  const SELL_PRICE = 0.1;  // LOL per duplicate card sold
   const UPGRADE_MAX = 10, UPGRADE_BASE = 30, UPGRADE_STAT = 0.08; // level-up tuning
   const round2 = (n) => Math.round(n * 100) / 100;
   const upgradeCostFor = (tier) => tier < UPGRADE_MAX ? UPGRADE_BASE * (tier + 1) : null;
@@ -214,7 +214,7 @@
       const cfg = state.config;
       if (!state.loggedIn) return { ok: false, error: "Log in first." };
       if (!cfg.packsEnabled) return { ok: false, error: "Pack sales are paused." };
-      if (state.balance < cfg.packPriceTokens) return { ok: false, error: "Insufficient NIB balance." };
+      if (state.balance < cfg.packPriceTokens) return { ok: false, error: "Insufficient LOL balance." };
       state.balance -= cfg.packPriceTokens;
       const ecfg = JSON.parse(JSON.stringify(NIB.engine.DEFAULT_CONFIG));
       ecfg.bonusRare.enabled = cfg.bonusRareEnabled;
@@ -299,7 +299,7 @@
     // ---- coins & items (demo) ----
     async function earnCoins(n) { state.coins = (state.coins || 0) + Number(n); persist(); }
     async function buyCoins(nib) {
-      if (state.balance < nib) throw new Error("Not enough NIB");
+      if (state.balance < nib) throw new Error("Not enough LOL");
       state.balance -= Number(nib); state.coins = (state.coins || 0) + nib * NIB.battle.COIN_PER_NIB; persist();
     }
     async function buyItem(id, price) {
@@ -315,7 +315,7 @@
       state.coins = (state.coins || 0) + DAILY_AMOUNT; state.lastDaily = Date.now(); persist();
       return { amount: DAILY_AMOUNT };
     }
-    // ---- sell duplicates for NIB (demo) ----
+    // ---- sell duplicates for LOL (demo) ----
     function sellSet(dupes) {
       const ids = new Set(dupes);
       state.collection = state.collection.filter((n) => !ids.has(n));
@@ -522,7 +522,7 @@
       if (!cache.uid) return { ok: false, error: "Log in first." };
       if (cfg.packsEnabled === false) return { ok: false, error: "Pack sales are paused." };
       const price = Number(cfg.packPriceTokens || 5);
-      if (cache.balance < price) return { ok: false, error: "Insufficient NIB balance." };
+      if (cache.balance < price) return { ok: false, error: "Insufficient LOL balance." };
 
       // Roll the 6 rarities (honest client engine), then pick concrete cards.
       const ecfg = JSON.parse(JSON.stringify(NIB.engine.DEFAULT_CONFIG));
@@ -707,7 +707,7 @@
     // ---- coins & items ----
     async function earnCoins(n) { await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(Number(n)) }); }
     async function buyCoins(nib) {
-      if ((cache.balance || 0) < nib) throw new Error("Not enough NIB");
+      if ((cache.balance || 0) < nib) throw new Error("Not enough LOL");
       await dbf.doc(`users/${cache.uid}`).update({ tokenBalance: FV.increment(-nib), coins: FV.increment(nib * NIB.battle.COIN_PER_NIB) });
     }
     async function buyItem(id, price) {
@@ -723,7 +723,7 @@
       await dbf.doc(`users/${cache.uid}`).update({ coins: FV.increment(DAILY_AMOUNT), lastDailyCoins: Date.now() });
       return { amount: DAILY_AMOUNT };
     }
-    // ---- sell duplicates for NIB ----
+    // ---- sell duplicates for LOL ----
     async function sellCopies(dupes) {
       const uid = cache.uid;
       for (let i = 0; i < dupes.length; i += 400) {

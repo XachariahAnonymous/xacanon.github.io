@@ -156,7 +156,7 @@
   }
 
   // ---- items (bought in the shop with coins) ------------------------
-  const COIN_PER_NIB = 100;            // exchange rate: 1 NIB -> 100 coins
+  const COIN_PER_NIB = 100;            // exchange rate: 1 LOL -> 100 coins
   const ITEMS = {
     potion:    { id: "potion",    name: "Potion",     glyph: "🧪", target: "ally",       heal: 70,  price: 40,  desc: "Heal an ally 70 HP" },
     elixir:    { id: "elixir",    name: "Elixir",     glyph: "⚗️", target: "ally",       heal: 160, price: 90,  desc: "Heal an ally 160 HP" },

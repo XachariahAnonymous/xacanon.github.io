@@ -68,7 +68,7 @@
     return `
       <div class="grid cols-4">
         <div class="panel"><div class="muted">Packs Opened</div><div class="stat">${totalPacks}</div></div>
-        <div class="panel"><div class="muted">NIB Collected/Burned</div><div class="stat">${totalBurned}</div></div>
+        <div class="panel"><div class="muted">LOL Collected/Burned</div><div class="stat">${totalBurned}</div></div>
         <div class="panel"><div class="muted">Cards Minted</div><div class="stat">${totalMinted.toLocaleString()}</div></div>
         <div class="panel"><div class="muted">Sales Status</div><div class="stat small" style="color:${cfg.packsEnabled ? "var(--ok)" : "var(--danger)"}">${cfg.packsEnabled ? "LIVE" : "PAUSED"}</div></div>
       </div>
@@ -107,7 +107,7 @@
             <span>Bonus Rare slot (10%)</span>
             <button class="btn sm ${cfg.bonusRareEnabled ? "" : "ghost"}" id="toggleBonus">${cfg.bonusRareEnabled ? "ON" : "OFF"}</button>
           </div>
-          <label class="field">Pack price (NIB)</label>
+          <label class="field">Pack price (LOL)</label>
           <input id="price" type="number" min="1" step="1" value="${cfg.packPriceTokens}">
           <button class="btn sm" id="savePrice" style="margin-top:12px">Save price</button>
         </div>
@@ -133,10 +133,10 @@
             <p class="muted" style="font-size:12px;margin-top:8px">${store.isLive() ? "Required once before packs can open in live mode." : "LOCAL mode: catalogue is already in-memory."}</p>
           </div>
           <div>
-            <label class="field">Grant NIB to a player ${store.isLive() ? "(uid)" : "(wallet)"}</label>
+            <label class="field">Grant LOL to a player ${store.isLive() ? "(uid)" : "(wallet)"}</label>
             <div class="row"><input id="grantWallet" placeholder="${store.isLive() ? "player uid" : "wallet"}" style="flex:2"><input id="grantAmt" type="number" placeholder="amount" style="flex:1"></div>
-            <button class="btn sm" id="grantBtn" style="margin-top:10px">Grant NIB</button>
-            ${store.isLive() ? `<p class="muted" style="font-size:11px;margin-top:6px">New players auto-start with 25 NIB. Find uids in the users collection.</p>` : ""}
+            <button class="btn sm" id="grantBtn" style="margin-top:10px">Grant LOL</button>
+            ${store.isLive() ? `<p class="muted" style="font-size:11px;margin-top:6px">New players auto-start with 25 LOL. Find uids in the users collection.</p>` : ""}
           </div>
         </div>
       </div>`;
@@ -161,7 +161,7 @@
     $("#grantBtn").onclick = async () => {
       const w = $("#grantWallet").value.trim(), amt = +$("#grantAmt").value;
       if (!w || !(amt > 0)) return toast("Enter wallet + amount", true);
-      try { await store.adminGrantTokens(w, amt); toast(`Granted ${amt} NIB`); }
+      try { await store.adminGrantTokens(w, amt); toast(`Granted ${amt} LOL`); }
       catch (e) { toast(e.message || "Grant failed", true); }
     };
   }
@@ -177,7 +177,7 @@
         <div class="row" style="justify-content:space-between">
           <h3 style="margin:0">Solana Linkage ${badge}</h3>
         </div>
-        <p class="muted" style="font-size:13px">Off-chain today: NIB balances &amp; card ownership live in Firestore. Fill these in and enable to settle pack payments — and later mint cards — on Solana.</p>
+        <p class="muted" style="font-size:13px">Off-chain today: LOL balances &amp; card ownership live in Firestore. Fill these in and enable to settle pack payments — and later mint cards — on Solana.</p>
         <div class="grid cols-2" style="align-items:start">
           <div>
             <label class="field">Network</label>
@@ -186,7 +186,7 @@
             </select>
             <label class="field">RPC endpoint URL</label>
             <input id="ocRpc" value="${oc.rpcUrl || ""}" placeholder="https://api.devnet.solana.com">
-            <label class="field">NIB token mint address</label>
+            <label class="field">LOL token mint address</label>
             <input id="ocMint" value="${oc.mintAddress || ""}" placeholder="SPL mint pubkey">
             <label class="field">Treasury / vault wallet</label>
             <input id="ocVault" value="${oc.treasuryWallet || ""}" placeholder="vault pubkey (receives pack payments)">
@@ -239,7 +239,7 @@
           <button class="btn sm" id="cbSave">Save back</button>
           ${back ? `<button class="btn ghost sm" id="cbClear">Clear</button>` : ""}
         </div>
-        <p class="muted" style="font-size:12px;margin-top:8px">Leave blank for the default NIB back.</p>
+        <p class="muted" style="font-size:12px;margin-top:8px">Leave blank for the default LOL back.</p>
       </div>
       <div class="panel">
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -463,7 +463,7 @@
         ${openings.slice(-12).reverse().map((o) => {
           const best = o.slots.reduce((b, s) => NIB.engine.RARITY_ORDER.indexOf(s.rarity) > NIB.engine.RARITY_ORDER.indexOf(b) ? s.rarity : b, "common");
           return `<tr><td class="muted">${new Date(o.at).toLocaleTimeString()}</td>
-            <td class="mono">${o.wallet.slice(0, 6)}…</td><td>${o.cost} NIB</td>
+            <td class="mono">${o.wallet.slice(0, 6)}…</td><td>${o.cost} LOL</td>
             <td><span class="badge r-${best}">${catalog.RARITY_LABEL[best]}</span></td></tr>`;
         }).join("") || `<tr><td colspan="4" class="muted">No packs opened yet</td></tr>`}
         </table>
