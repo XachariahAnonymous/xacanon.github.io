@@ -187,7 +187,7 @@
     async function signUp(email, _pass, name) { return signIn(email, _pass, name); }
     async function signIn(email, _pass, name) {
       state.loggedIn = true; state.uid = "local-" + (email || "player");
-      state.email = email || "demo@nibcoin.local";
+      state.email = email || "demo@lolcoin.local";
       state.displayName = name || (email ? email.split("@")[0] : "Player");
       persist(); return state.uid;
     }
