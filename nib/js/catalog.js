@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Card Catalogue Generator
+   LOLCOIN TCG — Card Catalogue Generator
    Procedurally builds all 1,710 unique designs so the game is fully
    playable without hand-authoring art. In production these rows live in
    the Supabase `cards` table; here we generate them deterministically.

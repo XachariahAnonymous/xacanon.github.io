@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Battle Engine
+   LOLCOIN TCG — Battle Engine
    Turn-based card combat using stats + the elemental matrix.
    Attaches to window.NIB.battle
    ===================================================================== */

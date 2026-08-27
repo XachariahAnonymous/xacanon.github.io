@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Storage / Backend Layer (unified)
+   LOLCOIN TCG — Storage / Backend Layer (unified)
    -------------------------------------------------------------------
    Two backends behind ONE API (so app.js / admin.js don't care which):
      • LOCAL   (NIB_CONFIG.enabled === false) — localStorage demo.

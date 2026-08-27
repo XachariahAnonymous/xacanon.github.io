@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Pack Opening RNG Engine (browser port of packEngine.ts)
+   LOLCOIN TCG — Pack Opening RNG Engine (browser port of packEngine.ts)
    Deliverable 2, running client-side for the demo.
 
    ⚠️  In production this logic MUST run inside a Supabase Edge Function

@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Player App UI  (index.html)
+   LOLCOIN TCG — Player App UI  (index.html)
    Attaches to window.NIB.app
    ===================================================================== */
 (function (NIB) {
@@ -267,7 +267,7 @@
       <div class="panel modal" style="max-width:400px;position:relative">
         <span class="close">&times;</span>
         <h2 style="margin-bottom:4px">${m === "signup" ? "Create account" : "Welcome back"}</h2>
-        <p class="muted" style="font-size:13px">${m === "signup" ? "Sign up to start collecting." : "Log in to your NIBCOIN account."}</p>
+        <p class="muted" style="font-size:13px">${m === "signup" ? "Sign up to start collecting." : "Log in to your LOLCOIN account."}</p>
         ${m === "signup" ? `<label class="field">Display name</label><input id="auName" placeholder="Collector name">` : ""}
         <label class="field">Email</label><input id="auEmail" type="email" placeholder="you@email.com" autocomplete="email">
         <label class="field">Password</label><input id="auPass" type="password" placeholder="••••••••" autocomplete="${m === "signup" ? "new-password" : "current-password"}">

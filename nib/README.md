@@ -1,4 +1,4 @@
-# NIBCOIN TCG — Browser Game
+# LOLCOIN TCG — Browser Game
 
 A fully browser-based Solana Trading Card Game. **No build step** — just open `index.html`.
 

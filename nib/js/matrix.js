@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Elemental Advantage Matrix  (Deliverable 3)
+   LOLCOIN TCG — Elemental Advantage Matrix  (Deliverable 3)
    Classic script -> attaches to window.NIB.matrix
    Fast O(1) lookups for combat & UI strength/weakness display.
    ===================================================================== */

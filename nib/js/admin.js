@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Admin Panel  (admin.html)   Deliverable 4
+   LOLCOIN TCG — Admin Panel  (admin.html)   Deliverable 4
    Role-based wallet gate + card/economy/analytics management.
    Attaches to window.NIB.admin
    ===================================================================== */

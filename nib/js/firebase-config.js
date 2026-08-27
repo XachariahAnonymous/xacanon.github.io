@@ -1,5 +1,5 @@
 /* =====================================================================
-   NIBCOIN TCG — Firebase config  (Spark / free plan; client-only)
+   LOLCOIN TCG — Firebase config  (Spark / free plan; client-only)
    The apiKey is PUBLIC by design (identifies the project; it does not
    grant data access — Firestore Rules do). Safe to commit/host.
    Set enabled:false to fall back to the offline localStorage demo.
