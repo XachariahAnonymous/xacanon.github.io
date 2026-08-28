@@ -438,6 +438,7 @@
     setTimeout(() => {                       // 1) tear + burst
       pack.classList.remove("shake");
       pack.classList.add("tearing");
+      tearApart(pack, stage);                // rip the body into two peeling halves
       spawnParticles(stage, best, big ? 30 : 16);
       if (big) { const f = $("#flash"); f.classList.add("go"); setTimeout(() => f.classList.remove("go"), 800); }
     }, 480);
@@ -455,6 +456,30 @@
       // re-enables and the balance updates (the reveal is repainted intact).
       setTimeout(() => { ripping = false; if (currentTab === "store") render(); }, 700);
     }, 1320);
+  }
+
+  // Rip the pack body into two halves that peel apart and fall away, so the
+  // pack visibly tears open before the cards fly down out of it.
+  function tearApart(pack, stage) {
+    const body = pack.querySelector(".pack-body");
+    if (!body || !stage) return;
+    const pr = pack.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    pack.classList.add("split");
+    ["left", "right"].forEach((side) => {
+      const half = body.cloneNode(true);
+      half.className = "pack-body pack-half " + side;
+      half.style.position = "absolute";
+      half.style.margin = "0";
+      half.style.left = (pr.left - sr.left) + "px";
+      half.style.top = (pr.top - sr.top) + "px";
+      half.style.width = pr.width + "px";
+      half.style.height = pr.height + "px";
+      half.style.clipPath = side === "left"
+        ? "polygon(0 0, 54% 0, 46% 100%, 0 100%)"
+        : "polygon(54% 0, 100% 0, 100% 100%, 46% 100%)";
+      stage.appendChild(half);
+      setTimeout(() => half.remove(), 1100);
+    });
   }
 
   function bestRarity(slots) {

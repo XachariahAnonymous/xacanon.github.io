@@ -262,6 +262,8 @@ input, select {
 .pack.tearing .rays       { animation: rayBurst 1s ease-out .1s forwards; }
 .pack.tearing .pack-body  { animation: bodyBurst .8s ease-in .32s forwards; }
 .pack.tearing .pack-shine { opacity: 0; }
+/* when we split the pack into peeling halves, hide the intact body */
+.pack.split .pack-body { animation: none; opacity: 0; }
 
 @keyframes tearOff {
   0%   { transform: translateY(0) rotate(0); opacity: 1; }
@@ -304,12 +306,24 @@ input, select {
 
 .reveal { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
 @media (max-width: 780px) { .reveal { grid-template-columns: repeat(3, 1fr); } .cols-2,.cols-3,.cols-4 { grid-template-columns: 1fr 1fr; } }
-.reveal .flip-card { opacity: 0; transform: translateY(40px) scale(.85); animation: pop .5s cubic-bezier(.2,.9,.3,1.2) forwards; }
-@keyframes pop {
-  0%   { opacity: 0; transform: translateY(40px) scale(.85); }
-  60%  { opacity: 1; transform: translateY(-6px) scale(1.03); }
-  100% { opacity: 1; transform: none; }
+/* cards fly DOWN out of the torn pack and settle into place, face-down */
+.reveal .flip-card { opacity: 0; animation: flyDown .6s cubic-bezier(.2,.8,.3,1) forwards; }
+@keyframes flyDown {
+  0%   { opacity: 0; transform: translateY(-260px) scale(.6) rotate(-7deg); }
+  55%  { opacity: 1; transform: translateY(14px) scale(1.04) rotate(2deg); }
+  78%  { transform: translateY(-4px) scale(.99) rotate(-1deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
 }
+
+/* the pack ripping into two halves that peel apart and fall away */
+.pack-half {
+  z-index: 6; pointer-events: none; border-radius: 16px; overflow: hidden;
+  will-change: transform, opacity;
+}
+.pack-half.left  { animation: tearLeft  1s cubic-bezier(.35,0,.25,1) forwards; }
+.pack-half.right { animation: tearRight 1s cubic-bezier(.35,0,.25,1) forwards; }
+@keyframes tearLeft  { 0% { transform: none; opacity: 1; } 100% { transform: translate(-64px,150px) rotate(-26deg); opacity: 0; } }
+@keyframes tearRight { 0% { transform: none; opacity: 1; } 100% { transform: translate( 64px,150px) rotate( 26deg); opacity: 0; } }
 
 /* ---- flip cards (face-down pull, click to reveal) ---- */
 .flip-card { aspect-ratio: 3/4; cursor: pointer; perspective: 1000px; }
