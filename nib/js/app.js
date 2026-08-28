@@ -223,7 +223,8 @@
       if ($("#buyBtn")) $("#buyBtn").disabled = true;
       const res = await store.buyAndOpenPack();
       if (!res.ok) { ripping = false; renderTopbar(); return toast(res.error, true); }
-      playRip(res.opening);
+      renderTopbar();               // reflect the new balance immediately
+      armCut(res.opening);          // player swipes across the pack to cut it open
     };
     $("#buyBtn")?.addEventListener("click", buy);
     $("#pack")?.addEventListener("click", () => { if (!$("#buyBtn").disabled) buy(); });
@@ -361,6 +362,66 @@
       stage.appendChild(s);
       setTimeout(() => s.remove(), 1300);
     }
+  }
+
+  // Pokémon-TCG-style: after buying, the player drags across the pack to
+  // slice it open. A qualifying swipe triggers the tear/reveal (playRip).
+  function armCut(opening) {
+    const pack = $("#pack");
+    if (!pack) return playRip(opening);           // safety: no pack in DOM
+    const stage = pack.closest(".stage");
+    pack.classList.add("armed");
+    const tab = pack.querySelector(".pull-tab"); if (tab) tab.textContent = "SWIPE ✂";
+    const hint = document.createElement("div");
+    hint.className = "cut-hint";
+    hint.textContent = "✂️ Swipe across the pack to cut it open";
+    stage.appendChild(hint);
+    const line = document.createElement("div");
+    line.className = "cut-line";
+    stage.appendChild(line);
+
+    let dragging = false, done = false, sx = 0, sy = 0, maxDist = 0;
+    const pt = (e) => ({ x: e.clientX, y: e.clientY });
+    const need = () => pack.getBoundingClientRect().height * 0.55;
+
+    const start = (e) => {
+      if (done) return;
+      dragging = true; maxDist = 0;
+      const p = pt(e); sx = p.x; sy = p.y;
+      pack.classList.add("cutting"); hint.style.opacity = "0";
+      e.preventDefault();
+    };
+    const move = (e) => {
+      if (!dragging || done) return;
+      const p = pt(e), dx = p.x - sx, dy = p.y - sy, dist = Math.hypot(dx, dy);
+      maxDist = Math.max(maxDist, dist);
+      const r = stage.getBoundingClientRect();
+      line.style.left = (sx - r.left) + "px";
+      line.style.top = (sy - r.top) + "px";
+      line.style.width = dist + "px";
+      line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+      line.style.opacity = "1";
+      if (dist >= need()) trigger();
+    };
+    const end = () => {
+      dragging = false;
+      if (!done) { line.style.opacity = "0"; if (maxDist < need()) hint.style.opacity = "1"; }
+    };
+    const trigger = () => {
+      if (done) return; done = true;
+      cleanup();
+      pack.classList.remove("armed", "cutting");
+      playRip(opening);
+    };
+    const cleanup = () => {
+      pack.removeEventListener("pointerdown", start);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      hint.remove(); line.remove();
+    };
+    pack.addEventListener("pointerdown", start);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end);
   }
 
   // Staged opening: anticipation shake -> foil tears off + light burst

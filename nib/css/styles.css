@@ -228,6 +228,26 @@ input, select {
           mask: radial-gradient(circle, #000 30%, transparent 70%);
 }
 
+/* ---- swipe-to-cut (Pokémon-TCG style) ---- */
+.pack.armed { cursor: crosshair; touch-action: none; }
+.pack.armed .pack-body { animation: armedPulse 1.4s ease-in-out infinite; }
+@keyframes armedPulse {
+  0%,100% { box-shadow: 0 22px 55px -14px #6c5ce7aa, inset 0 0 44px #0006, inset 0 2px 0 #ffffff55; }
+  50%     { box-shadow: 0 0 0 3px #ffd75a, 0 24px 60px -12px #6c5ce7cc, inset 0 0 44px #0006, inset 0 2px 0 #ffffff55; }
+}
+.pack.cutting .pack-body { animation: none; }
+.cut-hint {
+  position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  background: #000a; color: #fff; font-size: 12px; font-weight: 700;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid #ffffff33;
+  white-space: nowrap; pointer-events: none; z-index: 8; transition: opacity .2s;
+}
+.cut-line {
+  position: absolute; height: 3px; width: 0; transform-origin: 0 50%; z-index: 7;
+  background: linear-gradient(90deg, #ffffff, #ffe58a); border-radius: 2px;
+  box-shadow: 0 0 10px 2px #ffd75a, 0 0 22px 4px #ffd75a55; opacity: 0; pointer-events: none;
+}
+
 /* ---- opening choreography ---- */
 .pack.shake { animation: packShake .5s cubic-bezier(.36,.07,.19,.97); }
 @keyframes packShake {
