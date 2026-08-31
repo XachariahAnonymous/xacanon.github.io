@@ -136,10 +136,14 @@ body.crt-mode .crt-overlay{ display: block; }
   flex: 0 0 auto;
   display: inline-block;
   background: radial-gradient(circle at 35% 30%, #ffffff, var(--led) 62%);
+  /* layered bloom: hot white core -> tight color -> wide color halo */
   box-shadow:
-    0 0 4px 1px var(--led),
-    0 0 11px 2px var(--led),
-    inset 0 0 2px rgba(0,0,0,0.45);
+    0 0 3px 1px rgba(255,255,255,0.9),
+    0 0 7px 2px var(--led),
+    0 0 15px 4px var(--led),
+    0 0 26px 7px var(--led),
+    0 0 42px 12px var(--led),
+    inset 0 0 2px rgba(0,0,0,0.4);
 }
 .led-sm{ width: 7px; height: 7px; }
 .led-lg{ width: 13px; height: 13px; }
@@ -151,10 +155,10 @@ body.crt-mode .crt-overlay{ display: block; }
   background: radial-gradient(circle at 35% 30%, #4a4a50, #16161b 62%);
   box-shadow: inset 0 0 3px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.08);
 }
-.led.pulse{ animation: led-pulse 2.4s ease-in-out infinite; }
+.led.pulse{ animation: led-pulse 1.9s ease-in-out infinite; }
 @keyframes led-pulse{
-  0%,100%{ filter: brightness(0.8); }
-  50%{ filter: brightness(1.5); }
+  0%,100%{ filter: brightness(0.75) saturate(1); }
+  50%{ filter: brightness(1.9) saturate(1.3); }
 }
 
 /* ===== HEADER ===== */
@@ -203,6 +207,7 @@ body.crt-mode .crt-overlay{ display: block; }
   background: var(--n64-green);
   border-color: #0d0d10;
   text-shadow: none;
+  box-shadow: var(--bevel-raise), 0 0 8px 1px var(--n64-green), 0 0 18px 3px rgba(56,187,89,0.7);
 }
 
 /* ===== HERO ===== */
@@ -360,7 +365,7 @@ body.crt-mode .crt-overlay{ display: block; }
   letter-spacing: 1px;
   color: var(--n64-green);
   text-align: center;
-  text-shadow: 0 0 8px rgba(56,187,89,0.7);
+  text-shadow: 0 0 6px rgba(56,187,89,0.9), 0 0 14px rgba(56,187,89,0.7), 0 0 24px rgba(56,187,89,0.5);
   animation: coin-blink 1.2s steps(2, start) infinite;
 }
 @keyframes coin-blink{ 50%{ opacity: 0.15; } }
@@ -703,8 +708,8 @@ body.crt-mode .crt-overlay{ display: block; }
 .marquee-bulbs{
   height: 7px;
   background-image: repeating-radial-gradient(circle, var(--n64-yellow) 0 2.5px, transparent 3.5px 15px);
-  opacity: 0.9;
-  filter: drop-shadow(0 0 3px rgba(244,197,24,0.9));  /* make the bulbs read as lit */
+  opacity: 0.95;
+  filter: drop-shadow(0 0 4px rgba(244,197,24,1)) drop-shadow(0 0 9px rgba(244,197,24,0.85));  /* make the bulbs read as lit */
 }
 .marquee-bulbs-bottom{ margin-top: 10px; }
 /* power light on the player cabinet's marquee corner */
