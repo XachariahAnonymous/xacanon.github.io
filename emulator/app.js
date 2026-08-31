@@ -483,7 +483,10 @@
       card.className = "bios-card";
       card.innerHTML = `
         <div class="bios-card-head">
-          <span class="bios-card-label">${label}</span>
+          <span class="bios-card-title">
+            <span class="led led-sm ${entry ? "led-green pulse" : "led-off"}" aria-hidden="true"></span>
+            <span class="bios-card-label">${label}</span>
+          </span>
           <span class="bios-card-req ${requirement}">${requirement === "required" ? "REQUIRED" : "OPTIONAL"}</span>
         </div>
         <div class="bios-card-status">${entry ? `${escapeHtml(entry.filename)} · ${formatSize(entry.size)}` : "No BIOS loaded"}</div>

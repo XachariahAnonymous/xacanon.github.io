@@ -123,6 +123,40 @@ body.crt-mode .crt-overlay{ display: block; }
   53%{ opacity: 0.97; }
 }
 
+/* ===== LEDs (glowing hardware indicators) =====
+   One reusable bead: a bright center + a colored bloom (box-shadow).
+   Color is set through --led, so `.led-green/red/blue/yellow` (or an
+   inline override) recolor both the bead and its glow at once.
+   `.led-off` is the dark, unlit state; `.pulse` adds a soft breathing
+   glow for "power/live" lights. */
+.led{
+  --led: var(--n64-green);
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: inline-block;
+  background: radial-gradient(circle at 35% 30%, #ffffff, var(--led) 62%);
+  box-shadow:
+    0 0 4px 1px var(--led),
+    0 0 11px 2px var(--led),
+    inset 0 0 2px rgba(0,0,0,0.45);
+}
+.led-sm{ width: 7px; height: 7px; }
+.led-lg{ width: 13px; height: 13px; }
+.led-green{  --led: var(--n64-green); }
+.led-red{    --led: var(--n64-red); }
+.led-blue{   --led: var(--n64-blue); }
+.led-yellow{ --led: var(--n64-yellow); }
+.led-off{
+  background: radial-gradient(circle at 35% 30%, #4a4a50, #16161b 62%);
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.08);
+}
+.led.pulse{ animation: led-pulse 2.4s ease-in-out infinite; }
+@keyframes led-pulse{
+  0%,100%{ filter: brightness(0.8); }
+  50%{ filter: brightness(1.5); }
+}
+
 /* ===== HEADER ===== */
 .site-header{
   position: sticky; top: 0; z-index: 40;
@@ -137,6 +171,7 @@ body.crt-mode .crt-overlay{ display: block; }
   padding: 14px 28px;
 }
 .logo{
+  display: inline-flex; align-items: center; gap: 11px;
   font-family: var(--display);
   font-size: 18px;
   letter-spacing: 0;
@@ -234,6 +269,15 @@ body.crt-mode .crt-overlay{ display: block; }
   border-style: solid;
   border-color: var(--n64-green);
 }
+/* status light in the slot corner: amber while idle, green once a
+   cartridge is in (has-file) or hovering over the slot (drag-over) */
+.slot-led{
+  position: absolute; top: 14px; right: 16px; z-index: 2;
+  --led: var(--n64-yellow);
+}
+.cart-slot.has-file .slot-led,
+.cart-slot.drag-over .slot-led{ --led: var(--n64-green); }
+
 .slot-label{ display:flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
 .slot-title{ font-family: var(--display); font-size: 15px; line-height: 1.4; color: var(--cream); text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
 .slot-sub{ font-family: var(--body); font-size: 18px; color: var(--muted); }
@@ -275,6 +319,7 @@ body.crt-mode .crt-overlay{ display: block; }
   display: flex; flex-direction: column; align-items: center; gap: 14px;
 }
 .arcade-machine-cab{
+  position: relative;
   width: 100%; max-width: 300px;
   background: linear-gradient(180deg, var(--charcoal-3) 0%, var(--charcoal) 100%);
   border: 3px solid #0d0d10;
@@ -283,6 +328,8 @@ body.crt-mode .crt-overlay{ display: block; }
   overflow: hidden;
   padding-bottom: 22px;
 }
+/* power light on the cabinet's marquee corner */
+.cab-power{ position: absolute; top: 13px; right: 14px; z-index: 2; }
 .arcade-machine-marquee{
   padding: 12px 14px 8px;
   text-align: center;
@@ -536,6 +583,8 @@ body.crt-mode .crt-overlay{ display: block; }
   box-shadow: var(--bevel-raise), 0 6px 14px rgba(0,0,0,0.4);
 }
 .bios-card-head{ display:flex; align-items:center; justify-content: space-between; gap: 8px; }
+/* LED + name grouped on the left; the LED glows green once a BIOS is stored */
+.bios-card-title{ display:inline-flex; align-items:center; gap: 9px; min-width: 0; }
 .bios-card-label{
   font-family: var(--display);
   font-size: 12px;
@@ -655,8 +704,11 @@ body.crt-mode .crt-overlay{ display: block; }
   height: 7px;
   background-image: repeating-radial-gradient(circle, var(--n64-yellow) 0 2.5px, transparent 3.5px 15px);
   opacity: 0.9;
+  filter: drop-shadow(0 0 3px rgba(244,197,24,0.9));  /* make the bulbs read as lit */
 }
 .marquee-bulbs-bottom{ margin-top: 10px; }
+/* power light on the player cabinet's marquee corner */
+.cabinet-power{ position: absolute; top: 14px; right: 16px; z-index: 3; }
 .marquee-title{
   display: block;
   font-family: var(--display);

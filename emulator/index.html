@@ -21,7 +21,7 @@
 
 <header class="site-header">
   <div class="wrap header-inner">
-    <div class="logo">CARTRIDGE<span class="logo-dot">.</span></div>
+    <div class="logo"><span class="led led-green led-sm pulse" title="POWER" aria-hidden="true"></span>CARTRIDGE<span class="logo-dot">.</span></div>
     <nav class="header-nav">
       <button class="nav-link" data-scroll="#library">LIBRARY</button>
       <button class="nav-link" data-scroll="#bios">BIOS</button>
@@ -46,6 +46,7 @@
         <svg class="slot-teeth" viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0,0 H400 V10 L390,24 L380,10 V24 L370,10 V24 L360,10 V24 L350,10 V24 L340,10 V24 L330,10 V24 L320,10 V24 L310,10 V24 L300,10 V24 L290,10 V24 L280,10 V24 L270,10 V24 L260,10 V24 L250,10 V24 L240,10 V24 L230,10 V24 L220,10 V24 L210,10 V24 L200,10 V24 L190,10 V24 L180,10 V24 L170,10 V24 L160,10 V24 L150,10 V24 L140,10 V24 L130,10 V24 L120,10 V24 L110,10 V24 L100,10 V24 L90,10 V24 L80,10 V24 L70,10 V24 L60,10 V24 L50,10 V24 L40,10 V24 L30,10 V24 L20,10 V24 L10,10 V24 L0,10 Z" fill="currentColor"/>
         </svg>
+        <span class="led slot-led led-sm pulse" aria-hidden="true"></span>
         <div class="slot-body">
           <div class="slot-label" id="slotLabel">
             <span class="slot-title">DRAG ROM HERE</span>
@@ -67,6 +68,7 @@
 
     <div class="arcade-machine">
       <div class="arcade-machine-cab">
+        <span class="led led-red led-sm pulse cab-power" aria-hidden="true"></span>
         <div class="arcade-machine-marquee"><span>ARCADE</span></div>
         <div class="arcade-machine-screen">
           <span class="arcade-machine-screen-text">DRAG A COIN HERE TO PLAY</span>
@@ -126,6 +128,7 @@
 <div id="playerModal" class="player-modal" aria-hidden="true">
   <div class="arcade-cabinet">
     <div class="cabinet-marquee">
+      <span class="led led-green led-sm pulse cabinet-power" aria-hidden="true"></span>
       <div class="marquee-bulbs" aria-hidden="true"></div>
       <span class="marquee-title" id="playerTitle">GAME TITLE</span>
       <div class="marquee-bulbs marquee-bulbs-bottom" aria-hidden="true"></div>
