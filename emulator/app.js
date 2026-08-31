@@ -755,7 +755,34 @@
     if (e.key === "Escape" && playerModal.classList.contains("open")) closePlayerModal();
   });
 
+  // ---------- CRT overlay toggle ----------
+  // Flips body.crt-mode (the scanline/vignette overlay in style.css) on and
+  // off, and remembers the choice across visits via localStorage.
+  function wireCrtToggle() {
+    const btn = document.getElementById("crtToggle");
+    if (!btn) return;
+    const KEY = "cartridge_crt";
+
+    const apply = (on) => {
+      document.body.classList.toggle("crt-mode", on);
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.textContent = on ? "CRT: ON" : "CRT: OFF";
+    };
+
+    let saved = false;
+    try { saved = localStorage.getItem(KEY) === "1"; } catch {}
+    apply(saved);
+
+    btn.addEventListener("click", () => {
+      const on = !document.body.classList.contains("crt-mode");
+      apply(on);
+      try { localStorage.setItem(KEY, on ? "1" : "0"); } catch {}
+    });
+  }
+
   // ---------- Init ----------
+  wireCrtToggle();
   wireArcadeMachine();
   renderLibrary();
   renderBiosSection();

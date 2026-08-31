@@ -6,13 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CARTRIDGE: Play Your Own ROMs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- Halftone texture overlay -->
 <div class="halftone-overlay" aria-hidden="true"></div>
+
+<!-- Optional CRT overlay: scanlines + aperture grille + vignette.
+     Shown only while <body> carries the .crt-mode class. -->
+<div class="crt-overlay" aria-hidden="true"></div>
 
 <header class="site-header">
   <div class="wrap header-inner">
@@ -21,6 +26,7 @@
       <button class="nav-link" data-scroll="#library">LIBRARY</button>
       <button class="nav-link" data-scroll="#bios">BIOS</button>
       <button class="nav-link" data-scroll="#legal">LEGAL</button>
+      <button class="nav-link crt-toggle" id="crtToggle" type="button" aria-pressed="false">CRT: OFF</button>
     </nav>
   </div>
 </header>
