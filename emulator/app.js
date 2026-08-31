@@ -48,6 +48,21 @@
     // PS1/PS2/Sega CD/Saturn/3DO/PSP, so guessing wrong would silently launch
     // the wrong core. Those go through a picker in handleFiles() instead.
 
+    // -- GameCube / Wii, via native desktop Dolphin (EXPERIMENTAL) --
+    // These don't go through EmulatorJS or Play!; there's no public
+    // in-browser Dolphin core yet, so they hand off to real Dolphin
+    // through the native companion bridge (see launchGame). Single-system
+    // formats are mapped directly; .iso is shared with the disc systems
+    // below, so it goes through the picker instead.
+    gcm: { core: "gamecube", label: "GAMECUBE" },
+    rvz: { core: "gamecube", label: "GAMECUBE" },
+    gcz: { core: "gamecube", label: "GAMECUBE" },
+    ciso: { core: "gamecube", label: "GAMECUBE" },
+    tgc: { core: "gamecube", label: "GAMECUBE" },
+    dol: { core: "gamecube", label: "GAMECUBE" },
+    wbfs: { core: "wii", label: "WII" },
+    wad: { core: "wii", label: "WII" },
+
     // -- PS2, via Play! (not EmulatorJS) --
     isz: { core: "ps2", label: "PS2" },
     elf: { core: "ps2", label: "PS2" },
@@ -59,11 +74,18 @@
   const DISC_SYSTEMS = [
     { core: "psx", label: "PS1" },
     { core: "ps2", label: "PS2" },
+    { core: "gamecube", label: "GAMECUBE" },
+    { core: "wii", label: "WII" },
     { core: "segaCD", label: "SEGA CD" },
     { core: "segaSaturn", label: "SATURN" },
     { core: "3do", label: "3DO" },
     { core: "psp", label: "PSP" },
   ];
+
+  // Cores with no in-browser engine: they run through the native companion
+  // bridge (window.cartNative) instead. Used for the "experimental" badge
+  // and the launch handoff below.
+  const NATIVE_CORES = new Set(["gamecube", "wii"]);
 
   // Cores that need a BIOS/firmware file to boot. "required" cores refuse
   // to launch without one; "optional" ones can run in a lower-accuracy
@@ -107,6 +129,8 @@
     "PC ENGINE": "NEC - PC Engine - TurboGrafx 16",
     "PS1": "Sony - PlayStation",
     "PS2": "Sony - PlayStation 2",
+    "GAMECUBE": "Nintendo - GameCube",
+    "WII": "Nintendo - Wii",
     "SEGA CD": "Sega - Mega-CD - Sega CD",
     "SATURN": "Sega - Saturn",
     "3DO": "The 3DO Company - 3DO",
@@ -372,6 +396,19 @@
     }
   }
 
+  // Experimental badge shown on cards for cores that are inherently
+  // heavy or not yet fully browser-native. Returns ready-to-insert HTML,
+  // or "" for the well-supported cores.
+  function experimentalBadge(core) {
+    if (core === "ps2") {
+      return `<div class="cart-experimental" title="PS2 emulation runs in-browser via WebAssembly, which is inherently much slower than a native emulator. Demanding 3D games may lag regardless of your hardware.">EXPERIMENTAL · MAY RUN SLOW</div>`;
+    }
+    if (core === "gamecube" || core === "wii") {
+      return `<div class="cart-experimental" title="GameCube/Wii is experimental. There is no public in-browser Dolphin core yet, so it plays through the native companion app (real Dolphin). A normal browser tab can't boot these discs.">EXPERIMENTAL · NATIVE DOLPHIN</div>`;
+    }
+    return "";
+  }
+
   // ---------- Library rendering ----------
   async function renderLibrary() {
     const roms = (await dbAll()).sort((a, b) => b.addedAt - a.addedAt);
@@ -391,7 +428,7 @@
         <div class="cart-body">
           <div class="cart-name" title="${escapeHtml(rom.filename)}">${escapeHtml(rom.name)}</div>
           <div class="cart-meta">${formatSize(rom.size)} · ADDED ${formatDate(rom.addedAt)}</div>
-          ${rom.core === "ps2" ? `<div class="cart-experimental" title="PS2 emulation runs in-browser via WebAssembly, which is inherently much slower than a native emulator. Demanding 3D games may lag regardless of your hardware.">EXPERIMENTAL · MAY RUN SLOW</div>` : ""}
+          ${experimentalBadge(rom.core)}
           <div class="cart-actions">
             <button class="btn btn-ghost" data-remove="${rom.id}" aria-label="Remove ${escapeHtml(rom.name)}">✕ REMOVE</button>
           </div>
@@ -566,6 +603,23 @@
       if (!result || !result.ok) {
         alert(`Couldn't launch ${rom.name} natively: ${(result && result.error) || "unknown error"}`);
       }
+      return;
+    }
+
+    // GameCube / Wii (EXPERIMENTAL). There is no public in-browser Dolphin
+    // core yet, so these hand off to real desktop Dolphin through the same
+    // native companion bridge the PS2 path uses. In a plain browser tab
+    // (no bridge) we can't boot the disc, so say so plainly instead of
+    // failing silently.
+    if (NATIVE_CORES.has(rom.core)) {
+      if (window.cartNative && typeof window.cartNative.launchDolphin === "function") {
+        const result = await window.cartNative.launchDolphin(rom.blob, rom.filename, rom.core);
+        if (!result || !result.ok) {
+          alert(`Couldn't launch ${rom.name} in Dolphin: ${(result && result.error) || "unknown error"}`);
+        }
+        return;
+      }
+      alert(`${rom.label} support is experimental and runs through the native companion app (real Dolphin). A normal browser tab can't boot GameCube/Wii discs yet — open CARTRIDGE in BLK Browser to play "${rom.name}".`);
       return;
     }
 
