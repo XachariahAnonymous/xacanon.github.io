@@ -258,10 +258,10 @@ body.crt-mode .crt-overlay{ display: block; }
   text-align: center;
   box-shadow: var(--bevel-inset), var(--drop);
 }
-.cart-slot .slot-teeth{
-  position: absolute; top: -12px; left: 0; width: 100%; height: 20px;
-  color: var(--charcoal-2);
-}
+/* The old "cartridge teeth" strip sat over the top edge and read as a
+   dark, jagged line that clashed with the clean dashed border on the
+   other three sides. Hide it so all four sides match. */
+.cart-slot .slot-teeth{ display: none; }
 .cart-slot:hover{ border-color: var(--n64-yellow); transform: translateY(-2px); }
 .cart-slot:focus-visible{ outline: 2px solid var(--n64-blue); outline-offset: 4px; }
 .cart-slot.drag-over{
